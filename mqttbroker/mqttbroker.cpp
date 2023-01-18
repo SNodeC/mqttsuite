@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
         } else if (errnum > 0) {
             PLOG(ERROR) << "listening on " << socketAddress.toString();
         } else {
-            VLOG(0) << mqttLegacyInServer.getConfig().getName() << " listening on " << socketAddress.toString();
+            VLOG(0) << mqttLegacyInServer.getConfig().getInstanceName() << " listening on " << socketAddress.toString();
         }
     });
 
@@ -81,7 +81,7 @@ int main(int argc, char* argv[]) {
         } else if (errnum > 0) {
             PLOG(ERROR) << "listening on " << socketAddress.toString();
         } else {
-            VLOG(0) << mqttTLSInServer.getConfig().getName() << " listening on " << socketAddress.toString();
+            VLOG(0) << mqttTLSInServer.getConfig().getInstanceName() << " listening on " << socketAddress.toString();
         }
     });
 
@@ -95,7 +95,7 @@ int main(int argc, char* argv[]) {
         } else if (errnum > 0) {
             PLOG(ERROR) << "listening on " << socketAddress.toString();
         } else {
-            VLOG(0) << mqttLegacyUnServer.getConfig().getName() << " listening on " << socketAddress.toString();
+            VLOG(0) << mqttLegacyUnServer.getConfig().getInstanceName() << " listening on " << socketAddress.toString();
         }
     });
 
