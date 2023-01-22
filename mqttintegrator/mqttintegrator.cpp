@@ -30,11 +30,12 @@
 
 template <typename Client>
 void doConnect(Client& client, const std::function<void()>& stopTimer = nullptr) {
-    client.connect([stopTimer](const typename Client::SocketAddress& socketAddress, int errnum) -> void {
+    client.connect([stopTimer, clientName = client.getConfig().getInstanceName()](const typename Client::SocketAddress& socketAddress,
+                                                                                  int errnum) -> void {
         if (errnum != 0) {
-            PLOG(ERROR) << "Connecting to " << socketAddress.toString();
+            PLOG(ERROR) << clientName << "Connecting to " << socketAddress.toString();
         } else {
-            VLOG(0) << "MqttIntegrator connected to " << socketAddress.toString();
+            VLOG(0) << clientName << " connected to " << socketAddress.toString();
 
             if (stopTimer) {
                 stopTimer();
@@ -56,22 +57,21 @@ int main(int argc, char* argv[]) {
     setenv("MQTT_SESSION_STORE", sessionStore.data(), 0);
 
     using InMqttTlsIntegratorClient = net::in::stream::tls::SocketClient<mqtt::mqttintegrator::SocketContextFactory>;
-    using TLSInSocketConnection = InMqttTlsIntegratorClient::SocketConnection;
-
     InMqttTlsIntegratorClient inMqttTlsIntegratorClient("mqtttlsintegrator");
 
-    inMqttTlsIntegratorClient.onDisconnect([&inMqttTlsIntegratorClient](TLSInSocketConnection* socketConnection) -> void {
-        VLOG(0) << "OnDisconnect";
+    inMqttTlsIntegratorClient.onDisconnect(
+        [&inMqttTlsIntegratorClient](InMqttTlsIntegratorClient::SocketConnection* socketConnection) -> void {
+            VLOG(0) << "OnDisconnect";
 
-        VLOG(0) << "\tServer: " + socketConnection->getRemoteAddress().toString();
-        VLOG(0) << "\tClient: " + socketConnection->getLocalAddress().toString();
+            VLOG(0) << "\tServer: " + socketConnection->getRemoteAddress().toString();
+            VLOG(0) << "\tClient: " + socketConnection->getLocalAddress().toString();
 
-        core::timer::Timer timer = core::timer::Timer::intervalTimer(
-            [&inMqttTlsIntegratorClient](const std::function<void()>& stop) -> void {
-                doConnect(inMqttTlsIntegratorClient, stop);
-            },
-            1);
-    });
+            core::timer::Timer timer = core::timer::Timer::intervalTimer(
+                [&inMqttTlsIntegratorClient](const std::function<void()>& stop) -> void {
+                    doConnect(inMqttTlsIntegratorClient, stop);
+                },
+                1);
+        });
 
     if (!mappingFilePath.empty()) {
         bool tryConnectFromBeginning = false;

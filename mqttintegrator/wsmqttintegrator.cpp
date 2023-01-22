@@ -30,11 +30,12 @@
 
 template <typename Client>
 void doConnect(Client& client, const std::function<void()>& stopTimer = nullptr) {
-    client.connect([stopTimer](const typename Client::SocketAddress& socketAddress, int errnum) -> void {
+    client.connect([stopTimer, clientName = client.getConfig().getInstanceName()](const typename Client::SocketAddress& socketAddress,
+                                                                                  int errnum) -> void {
         if (errnum != 0) {
-            PLOG(ERROR) << "Connecting to " << socketAddress.toString();
+            PLOG(ERROR) << clientName << "Connecting to " << socketAddress.toString();
         } else {
-            VLOG(0) << "MqttIntegrator connected to " << socketAddress.toString();
+            VLOG(0) << clientName << " connected to " << socketAddress.toString();
 
             if (stopTimer) {
                 stopTimer();
@@ -56,21 +57,14 @@ int main(int argc, char* argv[]) {
     setenv("MQTT_SESSION_STORE", sessionStore.data(), 0);
 
     using WsMqttLegacyIntegrator = web::http::legacy::in::Client<web::http::client::Request, web::http::client::Response>;
-
-    using WsMqttLegacyIntegratorConnection = WsMqttLegacyIntegrator::SocketConnection;
-
     WsMqttLegacyIntegrator wsMqttLegacyIntegrator(
         "legacy",
         [](web::http::client::Request& request) -> void {
-            VLOG(0) << "OnRequestBegin";
-
             request.set("Sec-WebSocket-Protocol", "mqtt");
 
             request.upgrade("/ws/", "websocket");
         },
         [](web::http::client::Request& request, web::http::client::Response& response) -> void {
-            VLOG(0) << "OnResponse";
-
             response.upgrade(request);
         },
         [](int status, const std::string& reason) -> void {
@@ -79,7 +73,7 @@ int main(int argc, char* argv[]) {
             VLOG(0) << "     Reason: " << reason;
         });
 
-    wsMqttLegacyIntegrator.onDisconnect([&wsMqttLegacyIntegrator](WsMqttLegacyIntegratorConnection* socketConnection) -> void {
+    wsMqttLegacyIntegrator.onDisconnect([&wsMqttLegacyIntegrator](WsMqttLegacyIntegrator::SocketConnection* socketConnection) -> void {
         VLOG(0) << "OnDisconnect";
 
         VLOG(0) << "\tServer: " + socketConnection->getRemoteAddress().toString();
