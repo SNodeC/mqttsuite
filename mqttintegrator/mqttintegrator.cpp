@@ -74,7 +74,17 @@ int main(int argc, char* argv[]) {
     });
 
     if (!mappingFilePath.empty()) {
-        doConnect(inMqttTlsIntegratorClient);
+        bool tryConnectFromBeginning = false;
+
+        if (tryConnectFromBeginning) {
+            core::timer::Timer timer = core::timer::Timer::intervalTimer(
+                [&inMqttTlsIntegratorClient](const std::function<void()>& stop) -> void {
+                    doConnect(inMqttTlsIntegratorClient, stop);
+                },
+                1);
+        } else {
+            doConnect(inMqttTlsIntegratorClient);
+        }
     }
 
     return core::SNodeC::start();

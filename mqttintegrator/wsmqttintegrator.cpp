@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
 
     using WsMqttLegacyIntegratorConnection = WsMqttLegacyIntegrator::SocketConnection;
 
-    WsMqttLegacyIntegrator legacyClient(
+    WsMqttLegacyIntegrator wsMqttLegacyIntegrator(
         "legacy",
         [](web::http::client::Request& request) -> void {
             VLOG(0) << "OnRequestBegin";
@@ -79,21 +79,31 @@ int main(int argc, char* argv[]) {
             VLOG(0) << "     Reason: " << reason;
         });
 
-    legacyClient.onDisconnect([&legacyClient](WsMqttLegacyIntegratorConnection* socketConnection) -> void {
+    wsMqttLegacyIntegrator.onDisconnect([&wsMqttLegacyIntegrator](WsMqttLegacyIntegratorConnection* socketConnection) -> void {
         VLOG(0) << "OnDisconnect";
 
         VLOG(0) << "\tServer: " + socketConnection->getRemoteAddress().toString();
         VLOG(0) << "\tClient: " + socketConnection->getLocalAddress().toString();
 
         core::timer::Timer timer = core::timer::Timer::intervalTimer(
-            [&legacyClient](const std::function<void()>& stop) -> void {
-                doConnect(legacyClient, stop);
+            [&wsMqttLegacyIntegrator](const std::function<void()>& stop) -> void {
+                doConnect(wsMqttLegacyIntegrator, stop);
             },
             1);
     });
 
     if (!mappingFilePath.empty()) {
-        doConnect(legacyClient);
+        bool tryConnectFromBeginning = false;
+
+        if (tryConnectFromBeginning) {
+            core::timer::Timer timer = core::timer::Timer::intervalTimer(
+                [&wsMqttLegacyIntegrator](const std::function<void()>& stop) -> void {
+                    doConnect(wsMqttLegacyIntegrator, stop);
+                },
+                1);
+        } else {
+            doConnect(wsMqttLegacyIntegrator);
+        }
     }
 
     return core::SNodeC::start();
