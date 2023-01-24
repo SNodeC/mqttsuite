@@ -22,6 +22,7 @@
 
 #include <core/SNodeC.h>
 #include <core/socket/SocketAddress.h>
+#include <core/timer/Timer.h>
 #include <express/legacy/in/WebApp.h>
 #include <express/tls/in/WebApp.h>
 #include <log/Logger.h>
@@ -39,6 +40,63 @@ namespace iot::mqtt::packets {
     class Connect;
 }
 
+template <typename Server>
+void doListen(Server& server, bool relisten = false) {
+    server.listen([&server, relisten](const typename Server::SocketAddress& socketAddress, int errnum) mutable -> void {
+        if (errnum == 0) {
+            VLOG(0) << server.getConfig().getInstanceName() << " listening on " << socketAddress.toString();
+        } else {
+            PLOG(ERROR) << server.getConfig().getInstanceName() << " listening on " << socketAddress.toString();
+            if (relisten) {
+                LOG(INFO) << "  ... retrying";
+                core::timer::Timer::singleshotTimer(
+                    [&server]() -> void {
+                        doListen(server, true);
+                    },
+                    1);
+            }
+        }
+    });
+}
+
+express::Router getRouter() {
+    express::Router router;
+    router.get("/clients", [] APPLICATION(req, res) {
+        const std::map<mqtt::mqttbroker::lib::Mqtt*, iot::mqtt::packets::Connect>& connectionList =
+            mqtt::mqttbroker::lib::MqttModel::instance().getConnectedClinets();
+
+        std::string responseString = "<html>"
+                                     "  <head>"
+                                     "    <title>Response from MqttWebFrontend</title>"
+                                     "  </head>"
+                                     "  <body>"
+                                     "    <h1>List of all Connected Clients</h1>"
+                                     "    <table>"
+                                     "      <tr><th>ClientId</th><th>Locale Address</th><th>Remote Address</th></tr>";
+
+        for (const auto& [mqtt, connectPacket] : connectionList) {
+            responseString += "<tr><td>" + mqtt->getClientId() + "</td><td>" + mqtt->getSocketConnection()->getLocalAddress().toString() +
+                              "</td><td>" + mqtt->getSocketConnection()->getRemoteAddress().toString() + "</td></tr>";
+        }
+
+        responseString += "    </table>"
+                          "  </body>"
+                          "</html>";
+
+        res.send(responseString);
+    });
+
+    router.get("/ws/", [] APPLICATION(req, res) -> void {
+        if (httputils::ci_contains(req.get("connection"), "Upgrade")) {
+            res.upgrade(req);
+        } else {
+            res.sendStatus(404);
+        }
+    });
+
+    return router;
+}
+
 int main(int argc, char* argv[]) {
     std::string mappingFilePath;
     utils::Config::add_option("--mqtt-mapping-file", mappingFilePath, "MQTT mapping file (json format) for integration", false, "[path]");
@@ -53,135 +111,23 @@ int main(int argc, char* argv[]) {
 
     using MQTTLegacyInServer = net::in::stream::legacy::SocketServer<mqtt::mqttbroker::SharedSocketContextFactory>;
     MQTTLegacyInServer mqttLegacyInServer("legacyin");
-
-    mqttLegacyInServer.listen([serverName = mqttLegacyInServer.getConfig().getInstanceName()](
-                                  const MQTTLegacyInServer::SocketAddress& socketAddress, int errnum) mutable -> void {
-        if (errnum < 0) {
-            PLOG(ERROR) << serverName << " listening on " << socketAddress.toString();
-        } else if (errnum > 0) {
-            PLOG(ERROR) << serverName << " listening on " << socketAddress.toString();
-        } else {
-            VLOG(0) << serverName << " listening on " << socketAddress.toString();
-        }
-    });
+    doListen(mqttLegacyInServer, true);
 
     using MQTTTLSInServer = net::in::stream::tls::SocketServer<mqtt::mqttbroker::SharedSocketContextFactory>;
     MQTTTLSInServer mqttTLSInServer("tlsin");
-
-    mqttTLSInServer.listen([serverName = mqttTLSInServer.getConfig().getInstanceName()](const MQTTTLSInServer::SocketAddress& socketAddress,
-                                                                                        int errnum) mutable -> void {
-        if (errnum < 0) {
-            PLOG(ERROR) << serverName << " listening on " << socketAddress.toString();
-        } else if (errnum > 0) {
-            PLOG(ERROR) << serverName << " listening on " << socketAddress.toString();
-        } else {
-            VLOG(0) << serverName << " listening on " << socketAddress.toString();
-        }
-    });
+    doListen(mqttTLSInServer, true);
 
     using MQTTLegacyUnServer = net::un::stream::legacy::SocketServer<mqtt::mqttbroker::SharedSocketContextFactory>;
     MQTTLegacyUnServer mqttLegacyUnServer("legacyun");
+    doListen(mqttLegacyUnServer, true);
 
-    mqttLegacyUnServer.listen([serverName = mqttLegacyUnServer.getConfig().getInstanceName()](
-                                  const MQTTLegacyUnServer::SocketAddress& socketAddress, int errnum) mutable -> void {
-        if (errnum < 0) {
-            PLOG(ERROR) << serverName << " listening on " << socketAddress.toString();
-        } else if (errnum > 0) {
-            PLOG(ERROR) << serverName << " listening on " << socketAddress.toString();
-        } else {
-            VLOG(0) << serverName << " listening on " << socketAddress.toString();
-        }
-    });
+    using MQTTTLSWebView = express::tls::in::WebApp;
+    MQTTTLSWebView mqttTLSWebView("mqtttlswebview", getRouter());
+    doListen(mqttTLSWebView, true);
 
-    express::tls::in::WebApp mqttTLSWebView("mqtttlswebview");
-    mqttTLSWebView.get("/clients", [] APPLICATION(req, res) {
-        const std::map<mqtt::mqttbroker::lib::Mqtt*, iot::mqtt::packets::Connect>& connectionList =
-            mqtt::mqttbroker::lib::MqttModel::instance().getConnectedClinets();
-
-        std::string responseString = "<html>"
-                                     "  <head>"
-                                     "    <title>Response from MqttWebFrontend</title>"
-                                     "  </head>"
-                                     "  <body>"
-                                     "    <h1>List of all Connected Clients</h1>"
-                                     "    <table>"
-                                     "      <tr><th>ClientId</th><th>Locale Address</th><th>Remote Address</th></tr>";
-
-        for (const auto& [mqtt, connectPacket] : connectionList) {
-            responseString += "<tr><td>" + mqtt->getClientId() + "</td><td>" + mqtt->getSocketConnection()->getLocalAddress().toString() +
-                              "</td><td>" + mqtt->getSocketConnection()->getRemoteAddress().toString() + "</td></tr>";
-        }
-
-        responseString += "    </table>"
-                          "  </body>"
-                          "</html>";
-
-        res.send(responseString);
-    });
-
-    mqttTLSWebView.get("/ws/", [] APPLICATION(req, res) -> void {
-        if (httputils::ci_contains(req.get("connection"), "Upgrade")) {
-            res.upgrade(req);
-        } else {
-            res.sendStatus(404);
-        }
-    });
-
-    mqttTLSWebView.listen([serverName = mqttTLSWebView.getConfig().getInstanceName()](
-                              const express::tls::in::WebApp::SocketAddress& socketAddress, int errnum) mutable -> void {
-        if (errnum < 0) {
-            PLOG(ERROR) << serverName << " listening on " << socketAddress.toString();
-        } else if (errnum > 0) {
-            PLOG(ERROR) << serverName << " listening on " << socketAddress.toString();
-        } else {
-            VLOG(0) << serverName << " listening on " << socketAddress.toString();
-        }
-    });
-
-    express::legacy::in::WebApp mqttLegacyWebView("mqttlegacywebview");
-    mqttLegacyWebView.get("/clients", [] APPLICATION(req, res) {
-        const std::map<mqtt::mqttbroker::lib::Mqtt*, iot::mqtt::packets::Connect>& connectionList =
-            mqtt::mqttbroker::lib::MqttModel::instance().getConnectedClinets();
-
-        std::string responseString = "<html>"
-                                     "  <head>"
-                                     "    <title>Response from MqttWebFrontend</title>"
-                                     "  </head>"
-                                     "  <body>"
-                                     "    <h1>List of all Connected Clients</h1>"
-                                     "    <table>"
-                                     "      <tr><th>ClientId</th><th>Locale Address</th><th>Remote Address</th></tr>";
-
-        for (const auto& [mqtt, connectPacket] : connectionList) {
-            responseString += "<tr><td>" + mqtt->getClientId() + "</td><td>" + mqtt->getSocketConnection()->getLocalAddress().toString() +
-                              "</td><td>" + mqtt->getSocketConnection()->getRemoteAddress().toString() + "</td></tr>";
-        }
-
-        responseString += "    </table>"
-                          "  </body>"
-                          "</html>";
-
-        res.send(responseString);
-    });
-
-    mqttLegacyWebView.get("/ws/", [] APPLICATION(req, res) -> void {
-        if (httputils::ci_contains(req.get("connection"), "Upgrade")) {
-            res.upgrade(req);
-        } else {
-            res.sendStatus(404);
-        }
-    });
-
-    mqttLegacyWebView.listen([serverName = mqttLegacyWebView.getConfig().getInstanceName()](
-                                 const express::legacy::in::WebApp::SocketAddress& socketAddress, int errnum) mutable -> void {
-        if (errnum < 0) {
-            PLOG(ERROR) << serverName << " listening on " << socketAddress.toString();
-        } else if (errnum > 0) {
-            PLOG(ERROR) << serverName << " listening on " << socketAddress.toString();
-        } else {
-            VLOG(0) << serverName << " listening on " << socketAddress.toString();
-        }
-    });
+    using MQTTLegacyWebView = express::legacy::in::WebApp;
+    MQTTLegacyWebView mqttLegacyWebView("mqttlegacywebview", getRouter());
+    doListen(mqttLegacyWebView, true);
 
     return core::SNodeC::start();
 }
