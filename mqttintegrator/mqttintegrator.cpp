@@ -32,9 +32,9 @@ template <typename Client>
 void doConnect(Client& client, bool reconnect = false) {
     client.connect([&client, reconnect](const typename Client::SocketAddress& socketAddress, int errnum) -> void {
         if (errnum == 0) {
-            VLOG(0) << client.getConfig().getInstanceName() << " connected to " << socketAddress.toString();
+            VLOG(0) << "Client Instance '" << client.getConfig().getInstanceName() << "' connected to " << socketAddress.toString();
         } else {
-            PLOG(ERROR) << client.getConfig().getInstanceName() << "Connecting to " << socketAddress.toString();
+            PLOG(ERROR) << "Client Instance '" << client.getConfig().getInstanceName() << "' connecting to " << socketAddress.toString();
             if (reconnect) {
                 LOG(INFO) << "  ... retrying";
                 core::timer::Timer::singleshotTimer(

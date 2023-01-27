@@ -44,9 +44,9 @@ template <typename Server>
 void doListen(Server& server, bool relisten = false) {
     server.listen([&server, relisten](const typename Server::SocketAddress& socketAddress, int errnum) mutable -> void {
         if (errnum == 0) {
-            VLOG(0) << server.getConfig().getInstanceName() << " listening on " << socketAddress.toString();
+            VLOG(0) << "Server Instance '" << server.getConfig().getInstanceName() << "' listening on " << socketAddress.toString();
         } else {
-            PLOG(ERROR) << server.getConfig().getInstanceName() << " listening on " << socketAddress.toString();
+            PLOG(ERROR) << "Server Instance '" << server.getConfig().getInstanceName() << "' listening on " << socketAddress.toString();
             if (relisten) {
                 LOG(INFO) << "  ... retrying";
                 core::timer::Timer::singleshotTimer(
