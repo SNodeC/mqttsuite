@@ -126,7 +126,7 @@ int main(int argc, char* argv[]) {
     doListen(mqttTLSWebView, true);
 
     using MQTTLegacyWebView = express::legacy::in::WebApp;
-    MQTTLegacyWebView mqttLegacyWebView("mqttlegacywebview", getRouter());
+    MQTTLegacyWebView mqttLegacyWebView("mqttlegacywebview", mqttTLSWebView);
     doListen(mqttLegacyWebView, true);
 
     return core::SNodeC::start();
