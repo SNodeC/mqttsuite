@@ -19,15 +19,7 @@
 #ifndef APPS_MQTTBROKER_BROKER_SOCKETCONTEXTFACTORY_H
 #define APPS_MQTTBROKER_BROKER_SOCKETCONTEXTFACTORY_H
 
-namespace core::socket {
-    class SocketConnection;
-    class SocketContext;
-} // namespace core::socket
-
-namespace iot::mqtt::server::broker {
-    class Broker;
-}
-
+#include <core/socket/stream/SocketContext.h>
 #include <iot/mqtt/server/SharedSocketContextFactory.h>
 
 //
@@ -36,14 +28,22 @@ namespace iot::mqtt::server::broker {
 #include <nlohmann/json.hpp>
 // IWYU pragma: no_include <nlohmann/json_fwd.hpp>
 
+namespace core::socket::stream {
+    class SocketConnection;
+} // namespace core::socket::stream
+
+namespace iot::mqtt::server::broker {
+    class Broker;
+}
+
 namespace mqtt::mqttbroker {
 
     class SharedSocketContextFactory : public iot::mqtt::server::SharedSocketContextFactory {
     public:
         SharedSocketContextFactory();
 
-        core::socket::SocketContext* create(core::socket::SocketConnection* socketConnection,
-                                            std::shared_ptr<iot::mqtt::server::broker::Broker>& broker) final;
+        core::socket::stream::SocketContext* create(core::socket::stream::SocketConnection* socketConnection,
+                                                    std::shared_ptr<iot::mqtt::server::broker::Broker>& broker) final;
 
     private:
         nlohmann::json jsonMapping;

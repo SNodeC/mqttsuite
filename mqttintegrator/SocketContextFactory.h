@@ -19,25 +19,25 @@
 #ifndef APPS_MQTTBROKER_MQTTINTEGRATOR_SOCKETCONTEXTFACTORY_H
 #define APPS_MQTTBROKER_MQTTINTEGRATOR_SOCKETCONTEXTFACTORY_H
 
-#include <core/socket/SocketContext.h>
-#include <core/socket/SocketContextFactory.h>
+#include <core/socket/stream/SocketContext.h>
+#include <core/socket/stream/SocketContextFactory.h>
 
 //
 
 #include <nlohmann/json.hpp>
 // IWYU pragma: no_include <nlohmann/json_fwd.hpp>
 
-namespace core::socket {
+namespace core::socket::stream {
     class SocketConnection;
-}
+} // namespace core::socket::stream
 
 namespace mqtt::mqttintegrator {
 
-    class SocketContextFactory : public core::socket::SocketContextFactory {
+    class SocketContextFactory : public core::socket::stream::SocketContextFactory {
     public:
         SocketContextFactory();
 
-        core::socket::SocketContext* create(core::socket::SocketConnection* socketConnection) final;
+        core::socket::stream::SocketContext* create(core::socket::stream::SocketConnection* socketConnection) final;
 
     private:
         nlohmann::json connection;

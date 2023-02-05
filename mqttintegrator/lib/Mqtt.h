@@ -26,7 +26,7 @@ namespace iot::mqtt::packets {
     class Publish;
 } // namespace iot::mqtt::packets
 
-#include <iot/mqtt/client/Mqtt.h>
+#include <iot/mqtt/client/Mqtt.h> // IWYU pragma: export
 
 //
 

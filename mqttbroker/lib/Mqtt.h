@@ -31,7 +31,7 @@ namespace iot::mqtt {
     } // namespace server::broker
 } // namespace iot::mqtt
 
-#include <iot/mqtt/server/Mqtt.h>
+#include <iot/mqtt/server/Mqtt.h> // IWYU pragma: export
 
 //
 

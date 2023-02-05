@@ -18,14 +18,11 @@
 
 #include "SharedSocketContextFactory.h" // IWYU pragma: export
 
-#include "Mqtt.h" // IWYU pragma: export
 #include "lib/JsonMappingReader.h"
-
-#include <iot/mqtt/SocketContext.h>
-
-//
+#include "mqttbroker/lib/Mqtt.h"
 
 #include <cstdlib>
+#include <iot/mqtt/SocketContext.h>
 
 namespace mqtt::mqttbroker {
 
@@ -41,8 +38,8 @@ namespace mqtt::mqttbroker {
         }
     }
 
-    core::socket::SocketContext* SharedSocketContextFactory::create(core::socket::SocketConnection* socketConnection,
-                                                                    std::shared_ptr<iot::mqtt::server::broker::Broker>& broker) {
+    core::socket::stream::SocketContext* SharedSocketContextFactory::create(core::socket::stream::SocketConnection* socketConnection,
+                                                                            std::shared_ptr<iot::mqtt::server::broker::Broker>& broker) {
         return new iot::mqtt::SocketContext(socketConnection, new mqtt::mqttbroker::lib::Mqtt(broker, jsonMapping));
     }
 

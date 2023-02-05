@@ -22,7 +22,6 @@
 
 #include <core/SNodeC.h>
 #include <core/socket/SocketAddress.h>
-#include <core/timer/Timer.h>
 #include <express/legacy/in/WebApp.h>
 #include <express/tls/in/WebApp.h>
 #include <log/Logger.h>

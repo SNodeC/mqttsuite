@@ -21,16 +21,11 @@
 #include "lib/JsonMappingReader.h"
 #include "mqttintegrator/lib/Mqtt.h"
 
-namespace core::socket {
-    class SocketConnection;
-}
-
 #include <iot/mqtt/SocketContext.h>
 
 //
 
 #include <cstdlib>
-#include <memory>
 
 namespace mqtt::mqttintegrator {
 
@@ -47,7 +42,7 @@ namespace mqtt::mqttintegrator {
         }
     }
 
-    core::socket::SocketContext* SocketContextFactory::create(core::socket::SocketConnection* socketConnection) {
+    core::socket::stream::SocketContext* SocketContextFactory::create(core::socket::stream::SocketConnection* socketConnection) {
         return new iot::mqtt::SocketContext(socketConnection, new mqtt::mqttintegrator::lib::Mqtt(connection, jsonMapping));
     }
 
