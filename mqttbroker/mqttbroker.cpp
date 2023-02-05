@@ -58,6 +58,7 @@ void doListen(Server& server, bool relisten = false) {
     });
 }
 
+express::Router getRouter();
 express::Router getRouter() {
     express::Router router;
     router.get("/clients", [] APPLICATION(req, res) {
@@ -86,6 +87,14 @@ express::Router getRouter() {
     });
 
     router.get("/ws/", [] APPLICATION(req, res) -> void {
+        if (httputils::ci_contains(req.get("connection"), "Upgrade")) {
+            res.upgrade(req);
+        } else {
+            res.sendStatus(404);
+        }
+    });
+
+    router.get("/", [] APPLICATION(req, res) -> void {
         if (httputils::ci_contains(req.get("connection"), "Upgrade")) {
             res.upgrade(req);
         } else {
