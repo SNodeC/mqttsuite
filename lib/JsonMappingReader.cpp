@@ -56,7 +56,7 @@ namespace mqtt::lib {
         std::ifstream mapFile(mapFilePath);
 
         if (mapFile.is_open()) {
-            VLOG(0) << "MappingFilePath: " << mapFilePath;
+            LOG(TRACE) << "MappingFilePath: " << mapFilePath;
 
             try {
                 mapFile >> mapFileJson;
@@ -98,7 +98,7 @@ namespace mqtt::lib {
             }
             mapFile.close();
         } else {
-            LOG(INFO) << "MappingFilePath: " << mapFilePath << " not found";
+            LOG(WARNING) << "MappingFilePath: " << mapFilePath << " not found";
         }
 
         return mapFileJson;
