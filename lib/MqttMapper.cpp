@@ -75,12 +75,7 @@ namespace mqtt::lib {
     std::list<iot::mqtt::Topic> MqttMapper::extractTopics() {
         std::list<iot::mqtt::Topic> topicList;
 
-        //        try {
         extractTopics(mappingJson, "", topicList);
-        //        } catch (const nlohmann::json::exception& e) {
-        //            LOG(ERROR) << e.what();
-        //            LOG(ERROR) << "Extracting topics failed.";
-        //        }
 
         return topicList;
     }
