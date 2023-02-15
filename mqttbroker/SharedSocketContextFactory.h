@@ -46,7 +46,7 @@ namespace mqtt::mqttbroker {
                                                     std::shared_ptr<iot::mqtt::server::broker::Broker>& broker) final;
 
     private:
-        nlohmann::json jsonMapping;
+        nlohmann::json mappingJson;
     };
 
 } // namespace mqtt::mqttbroker

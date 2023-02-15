@@ -24,34 +24,36 @@
 //
 
 #include <cstdlib>
+#include <map>
 
 // IWYU pragma: no_include  <iot/mqtt/MqttSubProtocol.hpp>
 
 namespace mqtt::mqttintegrator::websocket {
 
-    SubProtocolFactory::SubProtocolFactory(const std::string& name)
-        : web::websocket::SubProtocolFactory<iot::mqtt::client::SubProtocol>::SubProtocolFactory(name) {
+#define NAME "mqtt"
+
+    SubProtocolFactory::SubProtocolFactory()
+        : web::websocket::SubProtocolFactory<iot::mqtt::client::SubProtocol>::SubProtocolFactory(NAME) {
         char* mappingFile = getenv("MQTT_MAPPING_FILE");
 
         if (mappingFile != nullptr) {
-            nlohmann::json mappingJson = mqtt::lib::JsonMappingReader::readMappingFromFile(mappingFile);
-
-            if (!mappingJson.empty()) {
-                connection = mappingJson["connection"];
-                jsonMapping = mappingJson["mapping"];
-            }
+            mappingJson = mqtt::lib::JsonMappingReader::readMappingFromFile(mappingFile);
         }
     }
 
     iot::mqtt::client::SubProtocol* SubProtocolFactory::create(web::websocket::SubProtocolContext* subProtocolContext) {
-        return new iot::mqtt::client::SubProtocol(
-            subProtocolContext, getName(), new mqtt::mqttintegrator::lib::Mqtt(connection, jsonMapping));
+        iot::mqtt::client::SubProtocol* subProtocol = nullptr;
+
+        if (mappingJson.contains("connection")) {
+            subProtocol = new iot::mqtt::client::SubProtocol(
+                subProtocolContext, getName(), new mqtt::mqttintegrator::lib::Mqtt(mappingJson["connection"], mappingJson["mapping"]));
+        }
+
+        return subProtocol;
     }
 
 } // namespace mqtt::mqttintegrator::websocket
 
-#define NAME "mqtt"
-
 extern "C" void* mqttClientSubProtocolFactory() {
-    return new mqtt::mqttintegrator::websocket::SubProtocolFactory(NAME);
+    return new mqtt::mqttintegrator::websocket::SubProtocolFactory();
 }

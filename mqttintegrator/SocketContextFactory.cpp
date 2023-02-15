@@ -26,6 +26,7 @@
 //
 
 #include <cstdlib>
+#include <map>
 
 namespace mqtt::mqttintegrator {
 
@@ -33,17 +34,19 @@ namespace mqtt::mqttintegrator {
         char* mappingFile = getenv("MQTT_MAPPING_FILE");
 
         if (mappingFile != nullptr) {
-            nlohmann::json mappingJson = mqtt::lib::JsonMappingReader::readMappingFromFile(mappingFile);
-
-            if (!mappingJson.empty()) {
-                connection = mappingJson["connection"];
-                jsonMapping = mappingJson["mapping"];
-            }
+            mappingJson = mqtt::lib::JsonMappingReader::readMappingFromFile(mappingFile);
         }
     }
 
     core::socket::stream::SocketContext* SocketContextFactory::create(core::socket::stream::SocketConnection* socketConnection) {
-        return new iot::mqtt::SocketContext(socketConnection, new mqtt::mqttintegrator::lib::Mqtt(connection, jsonMapping));
+        iot::mqtt::SocketContext* socketContext = nullptr;
+
+        if (mappingJson.contains("connection")) {
+            socketContext = new iot::mqtt::SocketContext(
+                socketConnection, new mqtt::mqttintegrator::lib::Mqtt(mappingJson["connection"], mappingJson["mapping"]));
+        }
+
+        return socketContext;
     }
 
 } // namespace mqtt::mqttintegrator

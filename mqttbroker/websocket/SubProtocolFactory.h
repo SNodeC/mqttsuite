@@ -29,19 +29,19 @@ namespace web::websocket {
 //
 
 #include <nlohmann/json.hpp>
-#include <string>
+
 // IWYU pragma: no_include <nlohmann/json_fwd.hpp>
 
 namespace mqtt::mqttbroker::websocket {
 
     class SubProtocolFactory : public web::websocket::SubProtocolFactory<iot::mqtt::server::SubProtocol> {
     public:
-        explicit SubProtocolFactory(const std::string& name);
+        SubProtocolFactory();
 
     private:
         iot::mqtt::server::SubProtocol* create(web::websocket::SubProtocolContext* subProtocolContext) override;
 
-        nlohmann::json jsonMapping;
+        nlohmann::json mappingJson;
     };
 
 } // namespace mqtt::mqttbroker::websocket

@@ -31,16 +31,14 @@
 
 namespace mqtt::mqttbroker::websocket {
 
-    SubProtocolFactory::SubProtocolFactory(const std::string& name)
-        : web::websocket::SubProtocolFactory<iot::mqtt::server::SubProtocol>::SubProtocolFactory(name) {
+#define NAME "mqtt"
+
+    SubProtocolFactory::SubProtocolFactory()
+        : web::websocket::SubProtocolFactory<iot::mqtt::server::SubProtocol>::SubProtocolFactory(NAME) {
         char* mappingFile = getenv("MQTT_MAPPING_FILE");
 
         if (mappingFile != nullptr) {
-            nlohmann::json mappingJson = mqtt::lib::JsonMappingReader::readMappingFromFile(mappingFile);
-
-            if (!mappingJson.empty()) {
-                jsonMapping = mappingJson["mapping"];
-            }
+            mappingJson = mqtt::lib::JsonMappingReader::readMappingFromFile(mappingFile);
         }
     }
 
@@ -48,13 +46,11 @@ namespace mqtt::mqttbroker::websocket {
         return new iot::mqtt::server::SubProtocol(
             subProtocolContext,
             getName(),
-            new mqtt::mqttbroker::lib::Mqtt(iot::mqtt::server::broker::Broker::instance(SUBSCRIBTION_MAX_QOS), jsonMapping));
+            new mqtt::mqttbroker::lib::Mqtt(iot::mqtt::server::broker::Broker::instance(SUBSCRIBTION_MAX_QOS), mappingJson["mapping"]));
     }
 
 } // namespace mqtt::mqttbroker::websocket
 
-#define NAME "mqtt"
-
 extern "C" void* mqttServerSubProtocolFactory() {
-    return new mqtt::mqttbroker::websocket::SubProtocolFactory(NAME);
+    return new mqtt::mqttbroker::websocket::SubProtocolFactory();
 }

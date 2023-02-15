@@ -40,8 +40,7 @@ namespace mqtt::mqttintegrator {
         core::socket::stream::SocketContext* create(core::socket::stream::SocketConnection* socketConnection) final;
 
     private:
-        nlohmann::json connection;
-        nlohmann::json jsonMapping;
+        nlohmann::json mappingJson;
     };
 
 } // namespace mqtt::mqttintegrator

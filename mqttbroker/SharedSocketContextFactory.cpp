@@ -30,17 +30,13 @@ namespace mqtt::mqttbroker {
         char* mappingFile = getenv("MQTT_MAPPING_FILE");
 
         if (mappingFile != nullptr) {
-            nlohmann::json mappingJson = mqtt::lib::JsonMappingReader::readMappingFromFile(mappingFile);
-
-            if (!mappingJson.empty()) {
-                jsonMapping = mappingJson["mapping"];
-            }
+            mappingJson = mqtt::lib::JsonMappingReader::readMappingFromFile(mappingFile);
         }
     }
 
     core::socket::stream::SocketContext* SharedSocketContextFactory::create(core::socket::stream::SocketConnection* socketConnection,
                                                                             std::shared_ptr<iot::mqtt::server::broker::Broker>& broker) {
-        return new iot::mqtt::SocketContext(socketConnection, new mqtt::mqttbroker::lib::Mqtt(broker, jsonMapping));
+        return new iot::mqtt::SocketContext(socketConnection, new mqtt::mqttbroker::lib::Mqtt(broker, mappingJson["mapping"]));
     }
 
 } // namespace mqtt::mqttbroker
