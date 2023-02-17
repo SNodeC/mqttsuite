@@ -41,21 +41,23 @@ namespace iot::mqtt::packets {
 
 template <typename Server>
 void doListen(Server& server, bool relisten = false) {
-    server.listen([&server, relisten](const typename Server::SocketAddress& socketAddress, int errnum) mutable -> void {
-        if (errnum == 0) {
-            VLOG(0) << "Server Instance '" << server.getConfig().getInstanceName() << "' listening on " << socketAddress.toString();
-        } else {
-            PLOG(ERROR) << "Server Instance '" << server.getConfig().getInstanceName() << "' listening on " << socketAddress.toString();
-            if (relisten) {
-                LOG(INFO) << "  ... retrying";
-                core::timer::Timer::singleshotTimer(
-                    [&server]() -> void {
-                        doListen(server, true);
-                    },
-                    1);
+    if (core::SNodeC::state() == core::State::RUNNING || core::SNodeC::state() == core::State::INITIALIZED) {
+        server.listen([&server, relisten](const typename Server::SocketAddress& socketAddress, int errnum) mutable -> void {
+            if (errnum == 0) {
+                VLOG(0) << "Server Instance '" << server.getConfig().getInstanceName() << "' listening on " << socketAddress.toString();
+            } else {
+                PLOG(ERROR) << "Server Instance '" << server.getConfig().getInstanceName() << "' listening on " << socketAddress.toString();
+                if (relisten) {
+                    LOG(INFO) << "  ... retrying";
+                    core::timer::Timer::singleshotTimer(
+                        [&server]() -> void {
+                            doListen(server, true);
+                        },
+                        1);
+                }
             }
-        }
-    });
+        });
+    }
 }
 
 express::Router getRouter();
