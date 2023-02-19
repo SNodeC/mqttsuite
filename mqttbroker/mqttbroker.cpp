@@ -113,7 +113,6 @@ int main(int argc, char* argv[]) {
 
     core::SNodeC::init(argc, argv);
 
-    setenv("MQTT_MAPPING_FILE", utils::Config::get_string_option_value("--mqtt-mapping-file").data(), 0);
     setenv("MQTT_SESSION_STORE", utils::Config::get_string_option_value("--mqtt-session-store").data(), 0);
 
     using MQTTLegacyInServer = net::in::stream::legacy::SocketServer<mqtt::mqttbroker::SharedSocketContextFactory>;

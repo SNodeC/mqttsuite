@@ -28,9 +28,7 @@ namespace web::websocket {
 
 //
 
-#include <nlohmann/json.hpp>
-
-// IWYU pragma: no_include <nlohmann/json_fwd.hpp>
+#include <nlohmann/json_fwd.hpp>
 
 namespace mqtt::mqttintegrator::websocket {
 
@@ -41,7 +39,7 @@ namespace mqtt::mqttintegrator::websocket {
     private:
         iot::mqtt::client::SubProtocol* create(web::websocket::SubProtocolContext* subProtocolContext) override;
 
-        nlohmann::json mappingJson;
+        nlohmann::json& mappingJson;
     };
 
 } // namespace mqtt::mqttintegrator::websocket

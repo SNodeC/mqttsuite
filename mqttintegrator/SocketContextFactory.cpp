@@ -22,20 +22,17 @@
 #include "mqttintegrator/lib/Mqtt.h"
 
 #include <iot/mqtt/SocketContext.h>
+#include <utils/Config.h>
 
 //
 
-#include <cstdlib>
 #include <map>
+#include <nlohmann/json.hpp>
 
 namespace mqtt::mqttintegrator {
 
-    SocketContextFactory::SocketContextFactory() {
-        char* mappingFile = getenv("MQTT_MAPPING_FILE");
-
-        if (mappingFile != nullptr) {
-            mappingJson = mqtt::lib::JsonMappingReader::readMappingFromFile(mappingFile);
-        }
+    SocketContextFactory::SocketContextFactory()
+        : mappingJson(mqtt::lib::JsonMappingReader::readMappingFromFile(utils::Config::get_string_option_value("--mqtt-mapping-file"))) {
     }
 
     core::socket::stream::SocketContext* SocketContextFactory::create(core::socket::stream::SocketConnection* socketConnection) {

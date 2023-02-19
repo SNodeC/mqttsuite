@@ -21,17 +21,17 @@
 #include "lib/JsonMappingReader.h"
 #include "mqttbroker/lib/Mqtt.h"
 
-#include <cstdlib>
 #include <iot/mqtt/SocketContext.h>
+#include <utils/Config.h>
+
+//
+
+#include <nlohmann/json.hpp>
 
 namespace mqtt::mqttbroker {
 
-    SharedSocketContextFactory::SharedSocketContextFactory() {
-        char* mappingFile = getenv("MQTT_MAPPING_FILE");
-
-        if (mappingFile != nullptr) {
-            mappingJson = mqtt::lib::JsonMappingReader::readMappingFromFile(mappingFile);
-        }
+    SharedSocketContextFactory::SharedSocketContextFactory()
+        : mappingJson(mqtt::lib::JsonMappingReader::readMappingFromFile(utils::Config::get_string_option_value("--mqtt-mapping-file"))) {
     }
 
     core::socket::stream::SocketContext* SharedSocketContextFactory::create(core::socket::stream::SocketConnection* socketConnection,

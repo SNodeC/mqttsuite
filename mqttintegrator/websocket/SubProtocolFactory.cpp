@@ -21,24 +21,20 @@
 #include "lib/JsonMappingReader.h"
 #include "mqttintegrator/lib/Mqtt.h"
 
+#include <utils/Config.h>
+
 //
 
-#include <cstdlib>
 #include <map>
-
-// IWYU pragma: no_include  <iot/mqtt/MqttSubProtocol.hpp>
+#include <nlohmann/json.hpp>
 
 namespace mqtt::mqttintegrator::websocket {
 
 #define NAME "mqtt"
 
     SubProtocolFactory::SubProtocolFactory()
-        : web::websocket::SubProtocolFactory<iot::mqtt::client::SubProtocol>::SubProtocolFactory(NAME) {
-        char* mappingFile = getenv("MQTT_MAPPING_FILE");
-
-        if (mappingFile != nullptr) {
-            mappingJson = mqtt::lib::JsonMappingReader::readMappingFromFile(mappingFile);
-        }
+        : web::websocket::SubProtocolFactory<iot::mqtt::client::SubProtocol>::SubProtocolFactory(NAME)
+        , mappingJson(mqtt::lib::JsonMappingReader::readMappingFromFile(utils::Config::get_string_option_value("--mqtt-mapping-file"))) {
     }
 
     iot::mqtt::client::SubProtocol* SubProtocolFactory::create(web::websocket::SubProtocolContext* subProtocolContext) {

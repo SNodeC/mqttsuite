@@ -25,8 +25,7 @@
 //
 
 #include <memory>
-#include <nlohmann/json.hpp>
-// IWYU pragma: no_include <nlohmann/json_fwd.hpp>
+#include <nlohmann/json_fwd.hpp>
 
 namespace core::socket::stream {
     class SocketConnection;
@@ -46,7 +45,7 @@ namespace mqtt::mqttbroker {
                                                     std::shared_ptr<iot::mqtt::server::broker::Broker>& broker) final;
 
     private:
-        nlohmann::json mappingJson;
+        nlohmann::json& mappingJson;
     };
 
 } // namespace mqtt::mqttbroker

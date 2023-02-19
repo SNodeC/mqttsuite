@@ -22,24 +22,19 @@
 #include "mqttbroker/lib/Mqtt.h"
 
 #include <iot/mqtt/server/broker/Broker.h>
+#include <utils/Config.h>
 
 //
 
-#include <cstdlib>
-
-// IWYU pragma: no_include  <iot/mqtt/MqttSubProtocol.hpp>
+#include <nlohmann/json.hpp>
 
 namespace mqtt::mqttbroker::websocket {
 
 #define NAME "mqtt"
 
     SubProtocolFactory::SubProtocolFactory()
-        : web::websocket::SubProtocolFactory<iot::mqtt::server::SubProtocol>::SubProtocolFactory(NAME) {
-        char* mappingFile = getenv("MQTT_MAPPING_FILE");
-
-        if (mappingFile != nullptr) {
-            mappingJson = mqtt::lib::JsonMappingReader::readMappingFromFile(mappingFile);
-        }
+        : web::websocket::SubProtocolFactory<iot::mqtt::server::SubProtocol>::SubProtocolFactory(NAME)
+        , mappingJson(mqtt::lib::JsonMappingReader::readMappingFromFile(utils::Config::get_string_option_value("--mqtt-mapping-file"))) {
     }
 
     iot::mqtt::server::SubProtocol* SubProtocolFactory::create(web::websocket::SubProtocolContext* subProtocolContext) {

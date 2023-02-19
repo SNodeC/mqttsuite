@@ -19,7 +19,8 @@
 #ifndef MQTTBROKER_LIB_JSONMAPPINGREADER_H
 #define MQTTBROKER_LIB_JSONMAPPINGREADER_H
 
-#include <nlohmann/json_fwd.hpp>
+#include <map>
+#include <nlohmann/json_fwd.hpp> // IWYU pragma: export
 #include <string>
 
 namespace mqtt::lib {
@@ -29,15 +30,12 @@ namespace mqtt::lib {
         JsonMappingReader() = delete;
 
     public:
-        static const nlohmann::json readMappingFromFile(const std::string& mapFilePath);
-
-        static const nlohmann::json& getConnectionJson();
-        static const nlohmann::json& getMappingJson();
+        static nlohmann::json& readMappingFromFile(const std::string& mapFilePath);
 
     private:
         static nlohmann::json mappingJsonSchema;
-        static nlohmann::json connectionJson;
-        static nlohmann::json mappingJson;
+
+        static std::map<std::string, nlohmann::json> mapFileJsons;
     };
 
 } // namespace mqtt::lib
