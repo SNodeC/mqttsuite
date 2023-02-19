@@ -51,16 +51,13 @@ void doConnect(Client& client, bool reconnect = false) {
 }
 
 int main(int argc, char* argv[]) {
-    std::string mappingFilePath;
-    utils::Config::add_option("--mqtt-mapping-file", mappingFilePath, "MQTT mapping file (json format) for integration", true, "[path]");
-
-    std::string sessionStore;
-    utils::Config::add_option("--mqtt-session-store", sessionStore, "Path to file for the persistent session store", false, "[path]");
+    utils::Config::add_string_option("--mqtt-mapping-file", "MQTT mapping file (json format) for integration", "[path]");
+    utils::Config::add_string_option("--mqtt-session-store", "Path to file for the persistent session store", "[path]", "");
 
     core::SNodeC::init(argc, argv);
 
-    setenv("MQTT_MAPPING_FILE", mappingFilePath.data(), 0);
-    setenv("MQTT_SESSION_STORE", sessionStore.data(), 0);
+    setenv("MQTT_MAPPING_FILE", utils::Config::get_string_option_value("--mqtt-mapping-file").data(), 0);
+    setenv("MQTT_SESSION_STORE", utils::Config::get_string_option_value("--mqtt-session-store").data(), 0);
 
     using WsMqttLegacyIntegrator = web::http::legacy::in::Client<web::http::client::Request, web::http::client::Response>;
     WsMqttLegacyIntegrator wsMqttLegacyIntegrator(
