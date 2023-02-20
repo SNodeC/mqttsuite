@@ -26,10 +26,14 @@ namespace iot::mqtt {
     }
 } // namespace iot::mqtt
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
 #include <cstdint>
 #include <list>
 #include <nlohmann/json_fwd.hpp> // IWYU pragma: export
 #include <string>
+
+#endif
 
 namespace mqtt::lib {
 

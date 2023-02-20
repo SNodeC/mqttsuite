@@ -28,9 +28,11 @@ namespace iot::mqtt::packets {
 
 #include <iot/mqtt/client/Mqtt.h> // IWYU pragma: export
 
-//
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <string>
+
+#endif
 
 namespace mqtt::mqttintegrator::lib {
 

@@ -22,9 +22,11 @@
 #include <core/socket/stream/SocketContext.h>
 #include <core/socket/stream/SocketContextFactory.h>
 
-//
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <nlohmann/json_fwd.hpp>
+
+#endif
 
 namespace core::socket::stream {
     class SocketConnection;

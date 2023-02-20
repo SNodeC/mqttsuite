@@ -24,16 +24,18 @@
 #include <core/socket/SocketAddress.h>
 #include <express/legacy/in/WebApp.h>
 #include <express/tls/in/WebApp.h>
-#include <log/Logger.h>
 #include <net/in/stream/legacy/SocketServer.h> // IWYU pragma: keep
 #include <net/in/stream/tls/SocketServer.h>    // IWYU pragma: keep
 #include <net/un/stream/legacy/SocketServer.h> // IWYU pragma: keep
 #include <utils/Config.h>
 #include <web/http/http_utils.h>
 
-//
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <cstdlib>
+#include <log/Logger.h>
+
+#endif
 
 namespace iot::mqtt::packets {
     class Connect;

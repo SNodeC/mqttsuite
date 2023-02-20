@@ -20,13 +20,15 @@
 
 #include <core/SNodeC.h>
 #include <core/timer/Timer.h>
-#include <log/Logger.h>
 #include <net/in/stream/tls/SocketClient.h>
-#include <utils/Config.h>
 
-//
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <cstdlib>
+#include <log/Logger.h>
+#include <utils/Config.h>
+
+#endif
 
 template <typename Client>
 void doConnect(Client& client, bool reconnect = false) {

@@ -33,10 +33,12 @@ namespace iot::mqtt {
 
 #include <iot/mqtt/server/Mqtt.h> // IWYU pragma: export
 
-//
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <memory>
 #include <string>
+
+#endif
 
 namespace mqtt::mqttbroker::lib {
 

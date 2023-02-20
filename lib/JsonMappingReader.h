@@ -19,9 +19,13 @@
 #ifndef MQTTBROKER_LIB_JSONMAPPINGREADER_H
 #define MQTTBROKER_LIB_JSONMAPPINGREADER_H
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
 #include <map>
 #include <nlohmann/json_fwd.hpp> // IWYU pragma: export
 #include <string>
+
+#endif
 
 namespace mqtt::lib {
 

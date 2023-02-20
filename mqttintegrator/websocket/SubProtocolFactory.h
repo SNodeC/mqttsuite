@@ -26,9 +26,11 @@ namespace web::websocket {
 #include <iot/mqtt/client/SubProtocol.h>
 #include <web/websocket/SubProtocolFactory.h>
 
-//
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <nlohmann/json_fwd.hpp>
+
+#endif
 
 namespace mqtt::mqttintegrator::websocket {
 

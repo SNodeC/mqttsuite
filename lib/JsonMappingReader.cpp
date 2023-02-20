@@ -20,17 +20,17 @@
 
 #include "nlohmann/json-schema.hpp"
 
-#include <log/Logger.h>
-
-//
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <exception>
 #include <fstream>
 #include <initializer_list>
-#include <map>
-#include <nlohmann/json.hpp>
+#include <log/Logger.h>
 #include <vector>
 
+#endif
+
+// IWYU pragma: no_include <nlohmann/json.hpp>
 // IWYU pragma: no_include <nlohmann/detail/json_pointer.hpp>
 
 namespace mqtt::lib {

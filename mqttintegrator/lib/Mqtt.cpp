@@ -20,15 +20,17 @@
 
 #include <iot/mqtt/Topic.h>
 #include <iot/mqtt/packets/Connack.h>
-#include <log/Logger.h>
 
-//
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <list>
+#include <log/Logger.h>
 #include <map>
 #include <nlohmann/json.hpp>
 
 // IWYU pragma: no_include <nlohmann/detail/json_pointer.hpp>
+
+#endif
 
 namespace mqtt::mqttintegrator::lib {
 

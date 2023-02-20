@@ -25,15 +25,17 @@ namespace mqtt::mqttbroker::lib {
 
 #include <iot/mqtt/packets/Connect.h>
 
-//
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <map>
+
+#endif
 
 namespace mqtt::mqttbroker::lib {
 
     class MqttModel {
     private:
-        MqttModel();
+        MqttModel() = default;
 
     public:
         static MqttModel& instance();

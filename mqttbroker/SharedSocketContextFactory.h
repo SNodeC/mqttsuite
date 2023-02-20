@@ -22,10 +22,12 @@
 #include <core/socket/stream/SocketContext.h>
 #include <iot/mqtt/server/SharedSocketContextFactory.h>
 
-//
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <memory>
 #include <nlohmann/json_fwd.hpp>
+
+#endif
 
 namespace core::socket::stream {
     class SocketConnection;

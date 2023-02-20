@@ -22,12 +22,14 @@
 #include "mqttintegrator/lib/Mqtt.h"
 
 #include <iot/mqtt/SocketContext.h>
-#include <utils/Config.h>
 
-//
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <map>
 #include <nlohmann/json.hpp>
+#include <utils/Config.h>
+
+#endif
 
 namespace mqtt::mqttintegrator {
 

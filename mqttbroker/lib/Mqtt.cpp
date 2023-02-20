@@ -23,6 +23,10 @@
 #include <iot/mqtt/packets/Publish.h>
 #include <iot/mqtt/server/broker/Broker.h>
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
+#endif
+
 namespace mqtt::mqttbroker::lib {
 
     Mqtt::Mqtt(const std::shared_ptr<iot::mqtt::server::broker::Broker>& broker, const nlohmann::json& mappingJson)

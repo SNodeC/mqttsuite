@@ -18,19 +18,21 @@
 
 #include "MqttMapper.h"
 
-#include "inja.hpp"
-
 #include <iot/mqtt/Topic.h>
 #include <iot/mqtt/packets/Publish.h>
-#include <log/Logger.h>
 
-//
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
+#include "inja.hpp"
 
 #include <algorithm>
 #include <initializer_list>
+#include <log/Logger.h>
 #include <map>
 #include <nlohmann/json.hpp>
 #include <stdexcept>
+
+#endif
 
 // IWYU pragma: no_include <nlohmann/detail/iterators/iteration_proxy.hpp>
 // IWYU pragma: no_include <nlohmann/detail/json_pointer.hpp>

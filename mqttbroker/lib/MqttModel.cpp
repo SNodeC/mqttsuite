@@ -20,9 +20,6 @@
 
 namespace mqtt::mqttbroker::lib {
 
-    MqttModel::MqttModel() {
-    }
-
     MqttModel& MqttModel::instance() {
         static MqttModel mqttModel;
 
