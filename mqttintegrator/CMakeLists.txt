@@ -9,8 +9,8 @@ add_subdirectory(lib)
 add_subdirectory(websocket)
 
 find_package(
-    snodec COMPONENTS net-in-stream-legacy net-in-stream-tls
-                      net-un-stream-legacy mqtt-client http-client
+    snodec COMPONENTS net-in-stream-legacy net-in-stream-tls mqtt-client
+                      http-client
 )
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
@@ -62,14 +62,7 @@ target_include_directories(
                           ${CMAKE_CURRENT_BINARY_DIR} ${PROJECT_SOURCE_DIR}
 )
 target_link_libraries(
-    mqttintegrator
-    PUBLIC snodec::mqtt-client snodec::net-in-stream-legacy
-           snodec::net-in-stream-tls snodec::net-un-stream-legacy
-           mqtt-integrator
-)
-
-set_target_properties(
-    mqttintegrator PROPERTIES INSTALL_RPATH "${SNODEC_IOT_MQTT_RPATH}"
+    mqttintegrator PUBLIC snodec::net-in-stream-tls mqtt-integrator
 )
 
 install(TARGETS mqttintegrator RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
@@ -85,8 +78,7 @@ target_include_directories(
                             ${CMAKE_CURRENT_BINARY_DIR} ${PROJECT_SOURCE_DIR}
 )
 target_link_libraries(
-    wsmqttintegrator PUBLIC snodec::mqtt-client snodec::net-in-stream-legacy
-                            snodec::http-client
+    wsmqttintegrator PUBLIC snodec::net-in-stream-legacy snodec::http-client
 )
 
 install(TARGETS wsmqttintegrator RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})

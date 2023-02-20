@@ -66,7 +66,6 @@ namespace mqtt::lib {
 
         virtual void publishMapping(const std::string& topic, const std::string& message, uint8_t qoS, bool retain) = 0;
 
-    protected:
         const nlohmann::json& mappingJson;
     };
 

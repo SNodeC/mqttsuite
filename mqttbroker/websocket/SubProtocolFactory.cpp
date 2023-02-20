@@ -46,6 +46,16 @@ namespace mqtt::mqttbroker::websocket {
 
 } // namespace mqtt::mqttbroker::websocket
 
+static void before_main() __attribute__((constructor));
+static void after_main() __attribute__((destructor));
+static void before_main() {
+    std::cout << "++++++++++++  load  ++++++++++++" << std::endl;
+}
+
+static void after_main() {
+    std::cout << "++++++++++++ unload ++++++++++++" << std::endl;
+}
+
 extern "C" void* mqttServerSubProtocolFactory() {
     return new mqtt::mqttbroker::websocket::SubProtocolFactory();
 }

@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.5)
 
-find_package(snodec COMPONENTS websocket-server)
-
 find_package(nlohmann_json)
+
+find_package(snodec COMPONENTS websocket-server)
 
 get_target_property(
     WEBSOCKET_SUBPROTOCOL_SERVER_INSTALL_LIBDIR snodec::websocket-server
