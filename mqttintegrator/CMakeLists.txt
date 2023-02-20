@@ -79,6 +79,7 @@ target_include_directories(
 )
 target_link_libraries(
     wsmqttintegrator PUBLIC snodec::net-in-stream-legacy snodec::http-client
+                            snodec::mqtt-client
 )
 
 install(TARGETS wsmqttintegrator RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})

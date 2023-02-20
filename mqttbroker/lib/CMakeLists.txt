@@ -14,6 +14,9 @@ target_include_directories(
                        ${PROJECT_SOURCE_DIR}
 )
 
-target_link_libraries(mqtt-broker PUBLIC snodec::mqtt-server mqtt-mapping nlohmann_json::nlohmann_json)
+target_link_libraries(
+    mqtt-broker PUBLIC snodec::mqtt-server mqtt-mapping
+                       nlohmann_json::nlohmann_json
+)
 
 install(TARGETS mqtt-broker RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR})

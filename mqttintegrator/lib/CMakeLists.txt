@@ -14,6 +14,9 @@ target_include_directories(
                            ${CMAKE_CURRENT_BINARY_DIR} ${PROJECT_SOURCE_DIR}
 )
 
-target_link_libraries(mqtt-integrator PUBLIC snodec::mqtt-client mqtt-mapping nlohmann_json::nlohmann_json)
+target_link_libraries(
+    mqtt-integrator PUBLIC snodec::mqtt-client mqtt-mapping
+                           nlohmann_json::nlohmann_json
+)
 
 install(TARGETS mqtt-integrator RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR})

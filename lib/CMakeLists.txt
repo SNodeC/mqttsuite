@@ -71,5 +71,6 @@ set_property(TARGET mqtt-mapping PROPERTY POSITION_INDEPENDENT_CODE ON)
 target_include_directories(mqtt-mapping PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 target_link_libraries(
-    mqtt-mapping PRIVATE snodec::mqtt nlohmann_json_schema_validator nlohmann_json::nlohmann_json
+    mqtt-mapping PRIVATE snodec::mqtt nlohmann_json_schema_validator
+                         nlohmann_json::nlohmann_json
 )
