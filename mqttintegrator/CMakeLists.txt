@@ -50,23 +50,30 @@ target_link_libraries(
 
 install(TARGETS wsmqttintegrator RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
-add_executable(wsmqttintegrator-dynamic ${WSMQTTINTEGRATOR_CPP} ${WSMQTTINTEGRATOR_H})
+add_executable(
+    wsmqttintegrator-dynamic ${WSMQTTINTEGRATOR_CPP} ${WSMQTTINTEGRATOR_H}
+)
 
 target_compile_definitions(
     wsmqttintegrator-dynamic PRIVATE LINK_SUBPROTOCOL_STATIC
 )
 
 target_include_directories(
-    wsmqttintegrator-dynamic PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
-                            ${CMAKE_CURRENT_BINARY_DIR} ${PROJECT_SOURCE_DIR}
+    wsmqttintegrator-dynamic
+    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
+           ${PROJECT_SOURCE_DIR}
 )
 target_link_libraries(
-    wsmqttintegrator-dynamic PUBLIC snodec::net-in-stream-legacy snodec::http-client
-                            snodec::websocket-client mqttclientsubprotocol
+    wsmqttintegrator-dynamic
+    PUBLIC snodec::net-in-stream-legacy snodec::http-client
+           snodec::websocket-client mqttclientsubprotocol
 )
 
 target_link_directories(
-    wsmqttintegrator-dynamic PRIVATE ${WEBSOCKET_SUBPROTOCOL_CLIENT_INSTALL_LIBDIR}
+    wsmqttintegrator-dynamic PRIVATE
+    ${WEBSOCKET_SUBPROTOCOL_CLIENT_INSTALL_LIBDIR}
 )
 
-install(TARGETS wsmqttintegrator-dynamic RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(TARGETS wsmqttintegrator-dynamic
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
