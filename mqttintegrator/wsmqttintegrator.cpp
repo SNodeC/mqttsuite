@@ -30,6 +30,20 @@
 
 #endif
 
+#ifdef LINK_SUBPROTOCOL_STATIC
+
+#include "websocket/SubProtocolFactory.h"
+
+#include <web/websocket/client/SubProtocolFactorySelector.h>
+
+#endif
+
+#if defined(LINK_WEBSOCKET_STATIC) || defined(LINK_SUBPROTOCOL_STATIC)
+
+#include <web/websocket/client/SocketContextUpgradeFactory.h>
+
+#endif
+
 template <typename Client>
 void doConnect(Client& client, bool reconnect = false) {
     if (core::SNodeC::state() == core::State::RUNNING || core::SNodeC::state() == core::State::INITIALIZED) {
@@ -53,6 +67,14 @@ void doConnect(Client& client, bool reconnect = false) {
 }
 
 int main(int argc, char* argv[]) {
+#ifdef LINK_SUBPROTOCOL_STATIC
+    web::websocket::client::SubProtocolFactorySelector::link("mqtt", mqttClientSubProtocolFactory);
+#endif
+
+#if defined(LINK_WEBSOCKET_STATIC) || defined(LINK_SUBPROTOCOL_STATIC)
+    web::websocket::client::SocketContextUpgradeFactory::link();
+#endif
+
     utils::Config::add_string_option("--mqtt-mapping-file", "MQTT mapping file (json format) for integration", "[path]");
     utils::Config::add_string_option("--mqtt-session-store", "Path to file for the persistent session store", "[path]", "");
 

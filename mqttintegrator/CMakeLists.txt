@@ -10,45 +10,12 @@ add_subdirectory(websocket)
 
 find_package(
     snodec COMPONENTS net-in-stream-legacy net-in-stream-tls mqtt-client
-                      http-client
+                      http-client websocket-client
 )
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    set(ADDITIONAL_OPTIONS
-        -Weverything
-        -Wno-c++98-compat
-        -Wno-c++98-compat-bind-to-temporary-copy
-        -Wno-exit-time-destructors
-        -Wno-global-constructors
-        -Wno-padded
-        -Wno-shadow
-        -Wno-used-but-marked-unused
-        -Wno-weak-vtables
-        -Wno-shadow-field
-    )
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    # using GCC
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-    # using Intel C++
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    # using Visual Studio C++
-endif()
-
-add_compile_options(
-    -Werror
-    -Wall
-    -Wextra
-    -Wno-psabi # needed for RaspberryPi
-    -Wconversion
-    -Wpedantic
-    -Wconversion
-    -Wuninitialized
-    -Wunreachable-code
-    -Wno-float-equal
-    -Wno-implicit-int-float-conversion
-    -pedantic-errors
-    -fexec-charset=UTF-8
-    ${ADDITIONAL_OPTIONS}
+get_target_property(
+    WEBSOCKET_SUBPROTOCOL_CLIENT_INSTALL_LIBDIR snodec::websocket-client
+    WEBSOCKET_SUBPROTOCOL_CLIENT_INSTALL_LIBDIR
 )
 
 set(MQTTINTEGRATOR_CPP mqttintegrator.cpp SocketContextFactory.cpp)
@@ -79,7 +46,27 @@ target_include_directories(
 )
 target_link_libraries(
     wsmqttintegrator PUBLIC snodec::net-in-stream-legacy snodec::http-client
-                            snodec::mqtt-client
 )
 
 install(TARGETS wsmqttintegrator RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+add_executable(wsmqttintegrator-dynamic ${WSMQTTINTEGRATOR_CPP} ${WSMQTTINTEGRATOR_H})
+
+target_compile_definitions(
+    wsmqttintegrator-dynamic PRIVATE LINK_SUBPROTOCOL_STATIC
+)
+
+target_include_directories(
+    wsmqttintegrator-dynamic PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
+                            ${CMAKE_CURRENT_BINARY_DIR} ${PROJECT_SOURCE_DIR}
+)
+target_link_libraries(
+    wsmqttintegrator-dynamic PUBLIC snodec::net-in-stream-legacy snodec::http-client
+                            snodec::websocket-client mqttclientsubprotocol
+)
+
+target_link_directories(
+    wsmqttintegrator-dynamic PRIVATE ${WEBSOCKET_SUBPROTOCOL_CLIENT_INSTALL_LIBDIR}
+)
+
+install(TARGETS wsmqttintegrator-dynamic RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
