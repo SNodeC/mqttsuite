@@ -19,4 +19,11 @@ target_link_libraries(
                            nlohmann_json::nlohmann_json
 )
 
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    target_compile_options(
+        mqtt-integrator PRIVATE -Wno-shadow-field-in-constructor
+                                -Wno-weak-vtables
+    )
+endif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+
 install(TARGETS mqtt-integrator RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR})

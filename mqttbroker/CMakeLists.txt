@@ -13,43 +13,6 @@ find_package(
                       net-un-stream-legacy mqtt-server http-server-express
 )
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    set(ADDITIONAL_OPTIONS
-        -Weverything
-        -Wno-c++98-compat
-        -Wno-exit-time-destructors
-        -Wno-global-constructors
-        -Wno-padded
-        -Wno-shadow
-        -Wno-shadow-field
-        -Wno-used-but-marked-unused
-        -Wno-weak-vtables
-    )
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    # using GCC
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-    # using Intel C++
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    # using Visual Studio C++
-endif()
-
-add_compile_options(
-    -Werror
-    -Wall
-    -Wextra
-    -Wno-psabi # needed for RaspberryPi
-    -Wconversion
-    -Wpedantic
-    -Wconversion
-    -Wuninitialized
-    -Wunreachable-code
-    -Wno-float-equal
-    -Wno-implicit-int-float-conversion
-    -pedantic-errors
-    -fexec-charset=UTF-8
-    ${ADDITIONAL_OPTIONS}
-)
-
 set(MQTTBROKER_CPP mqttbroker.cpp SharedSocketContextFactory.cpp)
 
 set(MQTTBROKER_H SharedSocketContextFactory.h)

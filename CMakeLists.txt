@@ -20,6 +20,31 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(GNUInstallDirs)
 
+add_compile_options(
+    -Werror
+    -Wall
+    -Wextra
+    -Wno-psabi # needed for RaspberryPi
+    -Wconversion
+    -Wpedantic
+    -Wconversion
+    -Wuninitialized
+    -Wunreachable-code
+    -pedantic-errors
+    -fexec-charset=UTF-8
+    -Wno-shadow
+)
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    add_compile_options(-Weverything -Wno-c++98-compat -Wno-padded)
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    # using GCC
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+    # using Intel C++
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    # using Visual Studio C++
+endif()
+
 add_subdirectory(lib)
 add_subdirectory(mqttbroker)
 add_subdirectory(mqttintegrator)
