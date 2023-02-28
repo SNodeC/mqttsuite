@@ -26,6 +26,7 @@
 
 #include <cstdlib>
 #include <log/Logger.h>
+#include <string>
 #include <utils/Config.h>
 
 #endif
