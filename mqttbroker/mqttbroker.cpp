@@ -42,17 +42,18 @@ namespace iot::mqtt::packets {
 }
 
 template <typename Server>
-void doListen(Server& server, bool relisten = false) {
+void doListen(Server& server, bool reconnect = false) {
     if (core::SNodeC::state() == core::State::RUNNING || core::SNodeC::state() == core::State::INITIALIZED) {
-        server.listen([&server, relisten](const typename Server::SocketAddress& socketAddress, int errnum) mutable -> void {
+        server.listen([server, reconnect](const typename Server::SocketAddress& socketAddress, int errnum) mutable -> void {
             if (errnum == 0) {
-                VLOG(0) << "Server Instance '" << server.getConfig().getInstanceName() << "' listening on " << socketAddress.toString();
+                VLOG(0) << "Client Instance '" << server.getConfig().getInstanceName() << "' connected to " << socketAddress.toString();
             } else {
-                PLOG(ERROR) << "Server Instance '" << server.getConfig().getInstanceName() << "' listening on " << socketAddress.toString();
-                if (relisten) {
+                PLOG(ERROR) << "Client Instance '" << server.getConfig().getInstanceName() << "' connecting to "
+                            << socketAddress.toString();
+                if (reconnect) {
                     LOG(INFO) << "  ... retrying";
                     core::timer::Timer::singleshotTimer(
-                        [&server]() -> void {
+                        [server]() mutable -> void {
                             doListen(server, true);
                         },
                         1);
@@ -117,25 +118,27 @@ int main(int argc, char* argv[]) {
 
     setenv("MQTT_SESSION_STORE", utils::Config::get_string_option_value("--mqtt-session-store").data(), 0);
 
-    using MQTTLegacyInServer = net::in::stream::legacy::SocketServer<mqtt::mqttbroker::SharedSocketContextFactory>;
-    MQTTLegacyInServer mqttLegacyInServer("legacyin");
-    doListen(mqttLegacyInServer, true);
+    {
+        using MQTTLegacyInServer = net::in::stream::legacy::SocketServer<mqtt::mqttbroker::SharedSocketContextFactory>;
+        MQTTLegacyInServer mqttLegacyInServer("legacyin");
+        doListen(mqttLegacyInServer, true);
 
-    using MQTTTLSInServer = net::in::stream::tls::SocketServer<mqtt::mqttbroker::SharedSocketContextFactory>;
-    MQTTTLSInServer mqttTLSInServer("tlsin");
-    doListen(mqttTLSInServer, true);
+        using MQTTTLSInServer = net::in::stream::tls::SocketServer<mqtt::mqttbroker::SharedSocketContextFactory>;
+        MQTTTLSInServer mqttTLSInServer("tlsin");
+        doListen(mqttTLSInServer, true);
 
-    using MQTTLegacyUnServer = net::un::stream::legacy::SocketServer<mqtt::mqttbroker::SharedSocketContextFactory>;
-    MQTTLegacyUnServer mqttLegacyUnServer("legacyun");
-    doListen(mqttLegacyUnServer, true);
+        using MQTTLegacyUnServer = net::un::stream::legacy::SocketServer<mqtt::mqttbroker::SharedSocketContextFactory>;
+        MQTTLegacyUnServer mqttLegacyUnServer("legacyun");
+        doListen(mqttLegacyUnServer, true);
 
-    using MQTTTLSWebView = express::tls::in::WebApp;
-    MQTTTLSWebView mqttTLSWebView("mqtttlswebview", getRouter());
-    doListen(mqttTLSWebView, true);
+        using MQTTTLSWebView = express::tls::in::WebApp;
+        MQTTTLSWebView mqttTLSWebView("mqtttlswebview", getRouter());
+        doListen(mqttTLSWebView, true);
 
-    using MQTTLegacyWebView = express::legacy::in::WebApp;
-    MQTTLegacyWebView mqttLegacyWebView("mqttlegacywebview", mqttTLSWebView);
-    doListen(mqttLegacyWebView, true);
+        using MQTTLegacyWebView = express::legacy::in::WebApp;
+        MQTTLegacyWebView mqttLegacyWebView("mqttlegacywebview", mqttTLSWebView);
+        doListen(mqttLegacyWebView, true);
+    }
 
     return core::SNodeC::start();
 }

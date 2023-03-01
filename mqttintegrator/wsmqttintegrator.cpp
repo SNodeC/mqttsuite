@@ -47,7 +47,15 @@
 template <typename Client>
 void doConnect(Client& client, bool reconnect = false) {
     if (core::SNodeC::state() == core::State::RUNNING || core::SNodeC::state() == core::State::INITIALIZED) {
-        client.connect([&client, reconnect](const typename Client::SocketAddress& socketAddress, int errnum) -> void {
+        client.onDisconnect([client](typename Client::SocketConnection* socketConnection) mutable -> void {
+            VLOG(0) << "OnDisconnect";
+
+            VLOG(0) << "\tServer: " + socketConnection->getRemoteAddress().toString();
+            VLOG(0) << "\tClient: " + socketConnection->getLocalAddress().toString();
+
+            doConnect(client, true);
+        });
+        client.connect([client, reconnect](const typename Client::SocketAddress& socketAddress, int errnum) mutable -> void {
             if (errnum == 0) {
                 VLOG(0) << "Client Instance '" << client.getConfig().getInstanceName() << "' connected to " << socketAddress.toString();
             } else {
@@ -56,7 +64,7 @@ void doConnect(Client& client, bool reconnect = false) {
                 if (reconnect) {
                     LOG(INFO) << "  ... retrying";
                     core::timer::Timer::singleshotTimer(
-                        [&client]() -> void {
+                        [client]() mutable -> void {
                             doConnect(client, true);
                         },
                         1);
@@ -82,33 +90,26 @@ int main(int argc, char* argv[]) {
 
     setenv("MQTT_SESSION_STORE", utils::Config::get_string_option_value("--mqtt-session-store").data(), 0);
 
-    using WsMqttLegacyIntegrator = web::http::legacy::in::Client<web::http::client::Request, web::http::client::Response>;
-    WsMqttLegacyIntegrator wsMqttLegacyIntegrator(
-        "legacy",
-        [](web::http::client::Request& request) -> void {
-            request.set("Sec-WebSocket-Protocol", "mqtt");
+    {
+        using WsMqttLegacyIntegrator = web::http::legacy::in::Client<web::http::client::Request, web::http::client::Response>;
+        WsMqttLegacyIntegrator wsMqttLegacyIntegrator(
+            "legacy",
+            [](web::http::client::Request& request) -> void {
+                request.set("Sec-WebSocket-Protocol", "mqtt");
 
-            request.upgrade("/ws/", "websocket");
-        },
-        [](web::http::client::Request& request, web::http::client::Response& response) -> void {
-            response.upgrade(request);
-        },
-        [](int status, const std::string& reason) -> void {
-            VLOG(0) << "OnResponseError";
-            VLOG(0) << "     Status: " << status;
-            VLOG(0) << "     Reason: " << reason;
-        });
-
-    wsMqttLegacyIntegrator.onDisconnect([&wsMqttLegacyIntegrator](WsMqttLegacyIntegrator::SocketConnection* socketConnection) -> void {
-        VLOG(0) << "OnDisconnect";
-
-        VLOG(0) << "\tServer: " + socketConnection->getRemoteAddress().toString();
-        VLOG(0) << "\tClient: " + socketConnection->getLocalAddress().toString();
+                request.upgrade("/ws/", "websocket");
+            },
+            [](web::http::client::Request& request, web::http::client::Response& response) -> void {
+                response.upgrade(request);
+            },
+            [](int status, const std::string& reason) -> void {
+                VLOG(0) << "OnResponseError";
+                VLOG(0) << "     Status: " << status;
+                VLOG(0) << "     Reason: " << reason;
+            });
 
         doConnect(wsMqttLegacyIntegrator, true);
-    });
-
-    doConnect(wsMqttLegacyIntegrator, true);
+    }
 
     return core::SNodeC::start();
 }

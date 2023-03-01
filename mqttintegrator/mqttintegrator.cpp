@@ -34,7 +34,15 @@
 template <typename Client>
 void doConnect(Client& client, bool reconnect = false) {
     if (core::SNodeC::state() == core::State::RUNNING || core::SNodeC::state() == core::State::INITIALIZED) {
-        client.connect([&client, reconnect](const typename Client::SocketAddress& socketAddress, int errnum) -> void {
+        client.onDisconnect([client](typename Client::SocketConnection* socketConnection) mutable -> void {
+            VLOG(0) << "OnDisconnect";
+
+            VLOG(0) << "\tServer: " + socketConnection->getRemoteAddress().toString();
+            VLOG(0) << "\tClient: " + socketConnection->getLocalAddress().toString();
+
+            doConnect(client, true);
+        });
+        client.connect([client, reconnect](const typename Client::SocketAddress& socketAddress, int errnum) mutable -> void {
             if (errnum == 0) {
                 VLOG(0) << "Client Instance '" << client.getConfig().getInstanceName() << "' connected to " << socketAddress.toString();
             } else {
@@ -43,7 +51,7 @@ void doConnect(Client& client, bool reconnect = false) {
                 if (reconnect) {
                     LOG(INFO) << "  ... retrying";
                     core::timer::Timer::singleshotTimer(
-                        [&client]() -> void {
+                        [client]() mutable -> void {
                             doConnect(client, true);
                         },
                         1);
@@ -61,19 +69,12 @@ int main(int argc, char* argv[]) {
 
     setenv("MQTT_SESSION_STORE", utils::Config::get_string_option_value("--mqtt-session-store").data(), 0);
 
-    using InMqttTlsIntegrator = net::in::stream::tls::SocketClient<mqtt::mqttintegrator::SocketContextFactory>;
-    InMqttTlsIntegrator inMqttTlsIntegrator("mqtttlsintegrator");
-
-    inMqttTlsIntegrator.onDisconnect([&inMqttTlsIntegrator](InMqttTlsIntegrator::SocketConnection* socketConnection) -> void {
-        VLOG(0) << "OnDisconnect";
-
-        VLOG(0) << "\tServer: " + socketConnection->getRemoteAddress().toString();
-        VLOG(0) << "\tClient: " + socketConnection->getLocalAddress().toString();
+    {
+        using InMqttTlsIntegrator = net::in::stream::tls::SocketClient<mqtt::mqttintegrator::SocketContextFactory>;
+        InMqttTlsIntegrator inMqttTlsIntegrator("mqtttlsintegrator");
 
         doConnect(inMqttTlsIntegrator, true);
-    });
-
-    doConnect(inMqttTlsIntegrator, true);
+    }
 
     return core::SNodeC::start();
 }
