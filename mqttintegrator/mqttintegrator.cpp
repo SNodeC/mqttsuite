@@ -34,13 +34,13 @@
 template <typename Client>
 void doConnect(Client& client, bool reconnect = false) {
     if (core::SNodeC::state() == core::State::RUNNING || core::SNodeC::state() == core::State::INITIALIZED) {
-        client.onDisconnect([client](typename Client::SocketConnection* socketConnection) mutable -> void {
+        client.onDisconnect([client, reconnect](typename Client::SocketConnection* socketConnection) mutable -> void {
             VLOG(0) << "OnDisconnect";
 
             VLOG(0) << "\tServer: " + socketConnection->getRemoteAddress().toString();
             VLOG(0) << "\tClient: " + socketConnection->getLocalAddress().toString();
 
-            doConnect(client, true);
+            doConnect(client, reconnect);
         });
         client.connect([client, reconnect](const typename Client::SocketAddress& socketAddress, int errnum) mutable -> void {
             if (errnum == 0) {
@@ -51,8 +51,8 @@ void doConnect(Client& client, bool reconnect = false) {
                 if (reconnect) {
                     LOG(INFO) << "  ... retrying";
                     core::timer::Timer::singleshotTimer(
-                        [client]() mutable -> void {
-                            doConnect(client, true);
+                        [client, reconnect]() mutable -> void {
+                            doConnect(client, reconnect);
                         },
                         1);
                 }

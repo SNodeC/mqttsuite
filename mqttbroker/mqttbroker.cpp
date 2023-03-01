@@ -53,8 +53,8 @@ void doListen(Server& server, bool reconnect = false) {
                 if (reconnect) {
                     LOG(INFO) << "  ... retrying";
                     core::timer::Timer::singleshotTimer(
-                        [server]() mutable -> void {
-                            doListen(server, true);
+                        [server, reconnect]() mutable -> void {
+                            doListen(server, reconnect);
                         },
                         1);
                 }
