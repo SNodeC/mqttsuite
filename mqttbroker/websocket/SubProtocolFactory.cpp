@@ -35,15 +35,16 @@ namespace mqtt::mqttbroker::websocket {
 #define NAME "mqtt"
 
     SubProtocolFactory::SubProtocolFactory()
-        : web::websocket::SubProtocolFactory<iot::mqtt::server::SubProtocol>::SubProtocolFactory(NAME)
-        , mappingJson(mqtt::lib::JsonMappingReader::readMappingFromFile(utils::Config::get_string_option_value("--mqtt-mapping-file"))) {
+        : web::websocket::SubProtocolFactory<iot::mqtt::server::SubProtocol>::SubProtocolFactory(NAME) {
     }
 
     iot::mqtt::server::SubProtocol* SubProtocolFactory::create(web::websocket::SubProtocolContext* subProtocolContext) {
         return new iot::mqtt::server::SubProtocol(
             subProtocolContext,
             getName(),
-            new mqtt::mqttbroker::lib::Mqtt(iot::mqtt::server::broker::Broker::instance(SUBSCRIBTION_MAX_QOS), mappingJson["mapping"]));
+            new mqtt::mqttbroker::lib::Mqtt(iot::mqtt::server::broker::Broker::instance(SUBSCRIBTION_MAX_QOS),
+                                            mqtt::lib::JsonMappingReader::readMappingFromFile(
+                                                utils::Config::get_string_option_value("--mqtt-mapping-file"))["mapping"]));
     }
 
 } // namespace mqtt::mqttbroker::websocket

@@ -24,8 +24,6 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <nlohmann/json_fwd.hpp>
-
 #endif
 
 namespace core::socket::stream {
@@ -36,12 +34,7 @@ namespace mqtt::mqttintegrator {
 
     class SocketContextFactory : public core::socket::stream::SocketContextFactory {
     public:
-        SocketContextFactory();
-
         core::socket::stream::SocketContext* create(core::socket::stream::SocketConnection* socketConnection) final;
-
-    private:
-        nlohmann::json& mappingJson;
     };
 
 } // namespace mqtt::mqttintegrator

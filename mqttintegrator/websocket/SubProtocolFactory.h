@@ -28,8 +28,6 @@ namespace web::websocket {
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <nlohmann/json_fwd.hpp>
-
 #endif
 
 namespace mqtt::mqttintegrator::websocket {
@@ -40,8 +38,6 @@ namespace mqtt::mqttintegrator::websocket {
 
     private:
         iot::mqtt::client::SubProtocol* create(web::websocket::SubProtocolContext* subProtocolContext) override;
-
-        nlohmann::json& mappingJson;
     };
 
 } // namespace mqtt::mqttintegrator::websocket

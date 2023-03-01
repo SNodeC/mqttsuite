@@ -32,13 +32,13 @@
 
 namespace mqtt::mqttbroker {
 
-    SharedSocketContextFactory::SharedSocketContextFactory()
-        : mappingJson(mqtt::lib::JsonMappingReader::readMappingFromFile(utils::Config::get_string_option_value("--mqtt-mapping-file"))) {
-    }
-
     core::socket::stream::SocketContext* SharedSocketContextFactory::create(core::socket::stream::SocketConnection* socketConnection,
-                                                                            std::shared_ptr<iot::mqtt::server::broker::Broker>& broker) {
-        return new iot::mqtt::SocketContext(socketConnection, new mqtt::mqttbroker::lib::Mqtt(broker, mappingJson["mapping"]));
+                                                                            std::shared_ptr<iot::mqtt::server::broker::Broker> broker) {
+        return new iot::mqtt::SocketContext(
+            socketConnection,
+            new mqtt::mqttbroker::lib::Mqtt(broker,
+                                            mqtt::lib::JsonMappingReader::readMappingFromFile(
+                                                utils::Config::get_string_option_value("--mqtt-mapping-file"))["mapping"]));
     }
 
 } // namespace mqtt::mqttbroker

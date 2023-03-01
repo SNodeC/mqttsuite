@@ -34,12 +34,14 @@ namespace mqtt::mqttintegrator::websocket {
 #define NAME "mqtt"
 
     SubProtocolFactory::SubProtocolFactory()
-        : web::websocket::SubProtocolFactory<iot::mqtt::client::SubProtocol>::SubProtocolFactory(NAME)
-        , mappingJson(mqtt::lib::JsonMappingReader::readMappingFromFile(utils::Config::get_string_option_value("--mqtt-mapping-file"))) {
+        : web::websocket::SubProtocolFactory<iot::mqtt::client::SubProtocol>::SubProtocolFactory(NAME) {
     }
 
     iot::mqtt::client::SubProtocol* SubProtocolFactory::create(web::websocket::SubProtocolContext* subProtocolContext) {
         iot::mqtt::client::SubProtocol* subProtocol = nullptr;
+
+        nlohmann::json& mappingJson =
+            mqtt::lib::JsonMappingReader::readMappingFromFile(utils::Config::get_string_option_value("--mqtt-mapping-file"));
 
         if (mappingJson.contains("connection")) {
             subProtocol = new iot::mqtt::client::SubProtocol(

@@ -25,7 +25,6 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <memory>
-#include <nlohmann/json_fwd.hpp>
 
 #endif
 
@@ -41,13 +40,8 @@ namespace mqtt::mqttbroker {
 
     class SharedSocketContextFactory : public iot::mqtt::server::SharedSocketContextFactory {
     public:
-        SharedSocketContextFactory();
-
         core::socket::stream::SocketContext* create(core::socket::stream::SocketConnection* socketConnection,
-                                                    std::shared_ptr<iot::mqtt::server::broker::Broker>& broker) final;
-
-    private:
-        nlohmann::json& mappingJson;
+                                                    std::shared_ptr<iot::mqtt::server::broker::Broker> broker) final;
     };
 
 } // namespace mqtt::mqttbroker
