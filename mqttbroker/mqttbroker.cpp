@@ -46,10 +46,9 @@ void doListen(Server& server, bool reconnect = false) {
     if (core::SNodeC::state() == core::State::RUNNING || core::SNodeC::state() == core::State::INITIALIZED) {
         server.listen([server, reconnect](const typename Server::SocketAddress& socketAddress, int errnum) mutable -> void {
             if (errnum == 0) {
-                VLOG(0) << "Client Instance '" << server.getConfig().getInstanceName() << "' connected to " << socketAddress.toString();
+                VLOG(0) << "Server instance '" << server.getConfig().getInstanceName() << "' listening on " << socketAddress.toString();
             } else {
-                PLOG(ERROR) << "Client Instance '" << server.getConfig().getInstanceName() << "' connecting to "
-                            << socketAddress.toString();
+                PLOG(ERROR) << "Server instance '" << server.getConfig().getInstanceName() << "' listening on " << socketAddress.toString();
                 if (reconnect) {
                     LOG(INFO) << "  ... retrying";
                     core::timer::Timer::singleshotTimer(

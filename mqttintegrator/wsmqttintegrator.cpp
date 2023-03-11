@@ -57,9 +57,9 @@ void doConnect(Client& client, bool reconnect = false) {
         });
         client.connect([client, reconnect](const typename Client::SocketAddress& socketAddress, int errnum) mutable -> void {
             if (errnum == 0) {
-                VLOG(0) << "Client Instance '" << client.getConfig().getInstanceName() << "' connected to " << socketAddress.toString();
+                VLOG(0) << "Client instance '" << client.getConfig().getInstanceName() << "' connected to " << socketAddress.toString();
             } else {
-                PLOG(ERROR) << "Client Instance '" << client.getConfig().getInstanceName() << "' connecting to "
+                PLOG(ERROR) << "Client instance '" << client.getConfig().getInstanceName() << "' connecting to "
                             << socketAddress.toString();
                 if (reconnect) {
                     LOG(INFO) << "  ... retrying";
