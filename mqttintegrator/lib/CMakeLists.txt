@@ -22,7 +22,6 @@ target_link_libraries(
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     target_compile_options(
         mqtt-integrator PRIVATE -Wno-shadow-field-in-constructor
-                                -Wno-weak-vtables
     )
 endif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 

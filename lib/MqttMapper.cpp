@@ -44,6 +44,9 @@ namespace mqtt::lib {
         : mappingJson(mappingJson) {
     }
 
+    MqttMapper::~MqttMapper() {
+    }
+
     std::string MqttMapper::dump() {
         return mappingJson.dump();
     }

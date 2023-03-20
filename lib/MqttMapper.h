@@ -41,7 +41,7 @@ namespace mqtt::lib {
     public:
         MqttMapper(const nlohmann::json& mappingJson);
 
-        virtual ~MqttMapper() = default;
+        virtual ~MqttMapper();
 
     protected:
         std::string dump();

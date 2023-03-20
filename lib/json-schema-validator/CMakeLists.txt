@@ -71,7 +71,6 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR "${CMAKE_CXX_COMPILER_ID}"
 )
     target_compile_options(
         nlohmann_json_schema_validator PRIVATE -Wall -Wextra -Wshadow
-                                               -Wno-float-equal
     )
 endif()
 
