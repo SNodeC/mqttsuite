@@ -42,9 +42,9 @@ namespace iot::mqtt::packets {
 }
 
 template <typename Server>
-void doListen(Server& server, bool reconnect = false) {
+void doListen(Server server, bool reconnect = false) {
     if (core::SNodeC::state() == core::State::RUNNING || core::SNodeC::state() == core::State::INITIALIZED) {
-        server.listen([server, reconnect](const typename Server::SocketAddress& socketAddress, int errnum) mutable -> void {
+        server.listen([server, reconnect](const typename Server::SocketAddress& socketAddress, int errnum) -> void {
             if (errnum == 0) {
                 VLOG(0) << "Server instance '" << server.getConfig().getInstanceName() << "' listening on " << socketAddress.toString();
             } else {

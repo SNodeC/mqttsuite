@@ -32,7 +32,7 @@
 #endif
 
 template <typename Client>
-void doConnect(Client& client, bool reconnect = false) {
+void doConnect(Client client, bool reconnect = false) {
     if (core::SNodeC::state() == core::State::RUNNING || core::SNodeC::state() == core::State::INITIALIZED) {
         client.setOnDisconnect([client, reconnect](typename Client::SocketConnection* socketConnection) mutable -> void {
             VLOG(0) << "OnDisconnect";
@@ -42,7 +42,7 @@ void doConnect(Client& client, bool reconnect = false) {
 
             doConnect(client, reconnect);
         });
-        client.connect([client, reconnect](const typename Client::SocketAddress& socketAddress, int errnum) mutable -> void {
+        client.connect([client, reconnect](const typename Client::SocketAddress& socketAddress, int errnum) -> void {
             if (errnum == 0) {
                 VLOG(0) << "Client instance '" << client.getConfig().getInstanceName() << "' connected to " << socketAddress.toString();
             } else {
