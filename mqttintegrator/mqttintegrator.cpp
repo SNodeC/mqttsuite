@@ -34,7 +34,7 @@
 template <typename Client>
 void doConnect(Client& client, bool reconnect = false) {
     if (core::SNodeC::state() == core::State::RUNNING || core::SNodeC::state() == core::State::INITIALIZED) {
-        client.onDisconnect([client, reconnect](typename Client::SocketConnection* socketConnection) mutable -> void {
+        client.setOnDisconnect([client, reconnect](typename Client::SocketConnection* socketConnection) mutable -> void {
             VLOG(0) << "OnDisconnect";
 
             VLOG(0) << "\tServer: " + socketConnection->getRemoteAddress().toString();
