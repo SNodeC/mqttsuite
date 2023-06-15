@@ -20,6 +20,8 @@ target_compile_options(
            -Wno-weak-vtables
 )
 
+set_target_properties(nlohmann_json_schema_validator PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 # Create mapping-schema.json.h in case mapping-schema.json has changed on disk.
 add_custom_command(
     PRE_BUILD
@@ -37,7 +39,7 @@ add_library(
                         JsonMappingReader.h MqttMapper.h mapping-schema.json.h
 )
 
-set_property(TARGET mqtt-mapping PROPERTY POSITION_INDEPENDENT_CODE ON)
+set_target_properties(mqtt-mapping PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 target_include_directories(mqtt-mapping PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
