@@ -20,7 +20,25 @@ target_compile_options(
            -Wno-weak-vtables
 )
 
-set_target_properties(nlohmann_json_schema_validator PROPERTIES POSITION_INDEPENDENT_CODE ON)
+set_target_properties(
+    nlohmann_json_schema_validator PROPERTIES POSITION_INDEPENDENT_CODE ON
+)
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 16.0)
+        # Yes, there are some unsafe-buffer-usage
+        set(DISABLED_WARNINGS "-Wno-unsafe-buffer-usage")
+    endif()
+    set(DISABLED_WARNINGS
+        "${DISABLED_WARNINGS} -Wno-unused-const-variable -Wno-unused-member-function -Wno-reserved-identifier -Wno-old-style-cast -Wno-documentation -Wno-extra-semi -Wno-unused-const-variable -Wno-missing-variable-declarations -Wno-deprecated-copy-with-dtor -Wno-unreachable-code-return"
+    )
+endif()
+
+if(NOT "${DISABLED_WARNINGS}" STREQUAL "")
+    set_target_properties(
+        nlohmann_json_schema_validator PROPERTIES COMPILE_FLAGS
+                                                  ${DISABLED_WARNINGS}
+    )
+endif()
 
 # Create mapping-schema.json.h in case mapping-schema.json has changed on disk.
 add_custom_command(
@@ -38,6 +56,14 @@ add_library(
     mqtt-mapping STATIC JsonMappingReader.cpp MqttMapper.cpp
                         JsonMappingReader.h MqttMapper.h mapping-schema.json.h
 )
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 16.0)
+        set_source_files_properties(
+            MqttMapper.cpp PROPERTIES COMPILE_FLAGS -Wno-unsafe-buffer-usage
+        )
+    endif()
+endif()
 
 set_target_properties(mqtt-mapping PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
