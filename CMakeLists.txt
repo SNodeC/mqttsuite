@@ -36,6 +36,10 @@ add_compile_options(
 )
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 16.0)
+        # Yes, there are some unsafe-buffer-usage
+        set(DISABLED_WARNINGS -Wno-cast-function-type-strict)
+    endif()
     add_compile_options(-Weverything -Wno-c++98-compat -Wno-padded)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     # using GCC
@@ -44,6 +48,7 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     # using Visual Studio C++
 endif()
+add_compile_options(${DISABLED_WARNINGS})
 
 add_subdirectory(lib)
 add_subdirectory(mqttbroker)
