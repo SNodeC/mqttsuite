@@ -7,3 +7,5 @@ The MQTT-Broker project consist of three applications *mqttbroker*, *mqttintegra
 - **mqttintegrator**: Is a IoT-integration application controlled by a JSON-mapping description. It connects via SSL/TLS to an MQTT-broker.
 - **wsmqttintegrator**: Is the very same as the mqttintegrator above but communicates via unencrypted WebSockets with a broker.
 
+[//]: # (git submodule update --init --recursive)
+
