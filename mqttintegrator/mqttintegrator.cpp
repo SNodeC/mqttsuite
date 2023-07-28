@@ -40,7 +40,14 @@ void doConnect(Client client, bool reconnect = false) {
             VLOG(0) << "\tServer: " + socketConnection->getRemoteAddress().toString();
             VLOG(0) << "\tClient: " + socketConnection->getLocalAddress().toString();
 
-            doConnect(client, reconnect);
+            if (reconnect) {
+                LOG(INFO) << "  ... retrying";
+                core::timer::Timer::singleshotTimer(
+                    [client, reconnect]() mutable -> void {
+                        doConnect(client, reconnect);
+                    },
+                    1);
+            }
         });
         client.connect([client, reconnect](const typename Client::SocketAddress& socketAddress, int errnum) -> void {
             if (errnum == 0) {
