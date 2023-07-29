@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "SharedSocketContextFactory.h" // IWYU pragma: export
+#include "SharedSocketContextFactory.h"
 
 #include "lib/JsonMappingReader.h"
 #include "mqttbroker/lib/Mqtt.h"

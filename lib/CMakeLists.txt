@@ -3,10 +3,14 @@ cmake_minimum_required(VERSION 3.5)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(TMP_CMAKE_CXX_INCLUDE_WHAT_YOU_USE ${CMAKE_CXX_INCLUDE_WHAT_YOU_USE})
+# Do not use iwyu for json-schema-validator
+unset(CMAKE_CXX_INCLUDE_WHAT_YOU_USE)
+add_subdirectory(json-schema-validator)
+set(CMAKE_CXX_INCLUDE_WHAT_YOU_USE ${TMP_CMAKE_CXX_INCLUDE_WHAT_YOU_USE})
+
 find_package(nlohmann_json 3.7.0)
 find_package(snodec COMPONENTS mqtt)
-
-add_subdirectory(json-schema-validator)
 
 target_compile_options(
     nlohmann_json_schema_validator
@@ -33,12 +37,10 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     )
 endif()
 
-if(NOT "${DISABLED_WARNINGS}" STREQUAL "")
-    set_target_properties(
-        nlohmann_json_schema_validator PROPERTIES COMPILE_FLAGS
-                                                  ${DISABLED_WARNINGS}
-    )
-endif()
+set_target_properties(
+    nlohmann_json_schema_validator PROPERTIES COMPILE_FLAGS
+                                              "${DISABLED_WARNINGS}"
+)
 
 # Create mapping-schema.json.h in case mapping-schema.json has changed on disk.
 add_custom_command(
@@ -65,17 +67,15 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     endif()
 endif()
 
-set_target_properties(mqtt-mapping PROPERTIES POSITION_INDEPENDENT_CODE ON)
-
 target_include_directories(mqtt-mapping PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 target_link_libraries(
-    mqtt-mapping PRIVATE snodec::mqtt nlohmann_json_schema_validator
-                         nlohmann_json::nlohmann_json
+    mqtt-mapping PUBLIC snodec::mqtt nlohmann_json_schema_validator
+                        nlohmann_json::nlohmann_json
 )
 
+set_target_properties(mqtt-mapping PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    target_compile_options(
-        mqtt-mapping PRIVATE -Wno-shadow-field-in-constructor -Wno-shadow-field
-    )
+    target_compile_options(mqtt-mapping PRIVATE -Wno-shadow-field)
 endif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")

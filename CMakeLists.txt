@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.5)
 
 project(MQTTBroker LANGUAGES CXX)
 
+include(GNUInstallDirs)
+
 set(ignoreMe ${CMAKE_VERBOSE_MAKEFILE})
 
 get_filename_component(
@@ -17,8 +19,6 @@ include(iwyu)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-include(GNUInstallDirs)
 
 add_compile_options(
     -Werror
@@ -36,10 +36,7 @@ add_compile_options(
 )
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 16.0)
-        # Yes, there are some unsafe-buffer-usage
-        set(DISABLED_WARNINGS -Wno-cast-function-type-strict)
-    endif()
+    # using Clang
     add_compile_options(-Weverything -Wno-c++98-compat -Wno-padded)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     # using GCC
@@ -48,7 +45,8 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     # using Visual Studio C++
 endif()
-add_compile_options(${DISABLED_WARNINGS})
+
+add_link_options(LINKER:--no-undefined)
 
 add_subdirectory(lib)
 add_subdirectory(mqttbroker)

@@ -16,9 +16,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "MqttModel.h"
 #include "SharedSocketContextFactory.h" // IWYU pragma: keep
 #include "lib/Mqtt.h"
+#include "lib/MqttModel.h"
 
 #include <core/SNodeC.h>
 #include <core/socket/SocketAddress.h>

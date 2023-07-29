@@ -1,42 +1,34 @@
 cmake_minimum_required(VERSION 3.5)
 
-find_package(nlohmann_json)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(snodec COMPONENTS websocket-server)
-
-get_target_property(
-    WEBSOCKET_SUBPROTOCOL_SERVER_INSTALL_LIBDIR snodec::websocket-server
-    WEBSOCKET_SUBPROTOCOL_SERVER_INSTALL_LIBDIR
-)
+find_package(nlohmann_json 3.7.0)
+find_package(snodec COMPONENTS websocket-server mqtt-server)
 
 get_target_property(
-    WEBSOCKET_SUBPROTOCOL_SERVER_INCLUDE_DIRS snodec::websocket-server
-    WEBSOCKET_SUBPROTOCOL_SERVER_INCLUDE_DIRS
+    WEBSOCKET_SUBPROTOCOL_INSTALL_LIBDIR snodec::websocket-server
+    WEBSOCKET_SUBPROTOCOL_INSTALL_LIBDIR
 )
 
 set(MQTTSERVERSUBPROTOCOL_CPP SubProtocolFactory.cpp)
-
 set(MQTTSERVERSUBPROTOCOL_H SubProtocolFactory.h)
 
 add_library(
-    mqttserversubprotocol SHARED ${MQTTSERVERSUBPROTOCOL_CPP}
+    websocket-mqtt-server SHARED ${MQTTSERVERSUBPROTOCOL_CPP}
                                  ${MQTTSERVERSUBPROTOCOL_H}
 )
 
 target_link_libraries(
-    mqttserversubprotocol PUBLIC mqtt-broker nlohmann_json::nlohmann_json
-)
-
-target_include_directories(
-    mqttserversubprotocol PUBLIC ${WEBSOCKET_SUBPROTOCOL_SERVER_INCLUDE_DIRS}
-                                 ${PROJECT_SOURCE_DIR}
+    websocket-mqtt-server PUBLIC mqtt-broker snodec::websocket-server
+                                 nlohmann_json::nlohmann_json
 )
 
 set_target_properties(
-    mqttserversubprotocol PROPERTIES OUTPUT_NAME "snodec-websocket-mqtt"
-                                     SOVERSION 1 # PREFIX "ssp"
+    websocket-mqtt-server PROPERTIES OUTPUT_NAME "snodec-websocket-mqtt-server"
+                                     SOVERSION "${SNODEC_SOVERSION}"
 )
 
-install(TARGETS mqttserversubprotocol
-        LIBRARY DESTINATION ${WEBSOCKET_SUBPROTOCOL_SERVER_INSTALL_LIBDIR}
+install(TARGETS websocket-mqtt-server
+        LIBRARY DESTINATION ${WEBSOCKET_SUBPROTOCOL_INSTALL_LIBDIR}
 )

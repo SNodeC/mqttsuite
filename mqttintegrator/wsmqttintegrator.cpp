@@ -82,12 +82,12 @@ void doConnect(Client client, bool reconnect = false) {
 }
 
 int main(int argc, char* argv[]) {
-#ifdef LINK_SUBPROTOCOL_STATIC
-    web::websocket::client::SubProtocolFactorySelector::link("mqtt", mqttClientSubProtocolFactory);
-#endif
-
 #if defined(LINK_WEBSOCKET_STATIC) || defined(LINK_SUBPROTOCOL_STATIC)
     web::websocket::client::SocketContextUpgradeFactory::link();
+#endif
+
+#ifdef LINK_SUBPROTOCOL_STATIC
+    web::websocket::client::SubProtocolFactorySelector::link("mqtt", mqttClientSubProtocolFactory);
 #endif
 
     utils::Config::add_string_option("--mqtt-mapping-file", "MQTT mapping file (json format) for integration", "[path]");

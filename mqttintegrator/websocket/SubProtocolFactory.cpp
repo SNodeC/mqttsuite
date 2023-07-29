@@ -21,6 +21,9 @@
 #include "lib/JsonMappingReader.h"
 #include "mqttintegrator/lib/Mqtt.h"
 
+// IWYU pragma: no_include "iot/mqtt/client/SubProtocol.h"
+// IWYU pragma: no_include "web/websocket/SubProtocolFactory.h"
+
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <map>
@@ -53,6 +56,6 @@ namespace mqtt::mqttintegrator::websocket {
 
 } // namespace mqtt::mqttintegrator::websocket
 
-extern "C" void* mqttClientSubProtocolFactory() {
+extern "C" mqtt::mqttintegrator::websocket::SubProtocolFactory* mqttClientSubProtocolFactory() {
     return new mqtt::mqttintegrator::websocket::SubProtocolFactory();
 }
