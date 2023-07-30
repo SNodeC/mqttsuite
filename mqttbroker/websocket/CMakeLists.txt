@@ -6,11 +6,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(nlohmann_json 3.7.0)
 find_package(snodec COMPONENTS websocket-server mqtt-server)
 
-get_target_property(
-    WEBSOCKET_SUBPROTOCOL_INSTALL_LIBDIR snodec::websocket-server
-    WEBSOCKET_SUBPROTOCOL_INSTALL_LIBDIR
-)
-
 set(MQTTSERVERSUBPROTOCOL_CPP SubProtocolFactory.cpp)
 set(MQTTSERVERSUBPROTOCOL_H SubProtocolFactory.h)
 

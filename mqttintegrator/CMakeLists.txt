@@ -57,11 +57,6 @@ target_link_libraries(
            snodec::http-client snodec::websocket-client snodec::mqtt-client
 )
 
-get_target_property(
-    WEBSOCKET_SUBPROTOCOL_INSTALL_LIBDIR snodec::websocket-client
-    WEBSOCKET_SUBPROTOCOL_INSTALL_LIBDIR
-)
-
 set_target_properties(
     wsmqttintegrator-dynamic
     PROPERTIES INSTALL_RPATH
