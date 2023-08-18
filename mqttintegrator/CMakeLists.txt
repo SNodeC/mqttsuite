@@ -34,7 +34,7 @@ set(WSMQTTINTEGRATOR_H)
 add_executable(wsmqttintegrator ${WSMQTTINTEGRATOR_CPP} ${WSMQTTINTEGRATOR_H})
 
 target_link_libraries(
-    wsmqttintegrator PUBLIC snodec::net-in-stream-legacy snodec::http-client
+    wsmqttintegrator PUBLIC snodec::net-in-stream-legacy snodec::net-in-stream-tls snodec::http-client
 )
 
 install(TARGETS wsmqttintegrator RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
@@ -53,7 +53,7 @@ target_include_directories(
 )
 target_link_libraries(
     wsmqttintegrator-dynamic
-    PUBLIC websocket-mqtt-client snodec::net-in-stream-legacy
+    PUBLIC websocket-mqtt-client snodec::net-in-stream-legacy snodec::net-in-stream-tls
            snodec::http-client snodec::websocket-client snodec::mqtt-client
 )
 

@@ -21,6 +21,7 @@
 #include <web/http/client/Request.h>
 #include <web/http/client/Response.h>
 #include <web/http/legacy/in/Client.h>
+#include <web/http/tls/in/Client.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
@@ -116,6 +117,25 @@ int main(int argc, char* argv[]) {
             });
 
         doConnect(wsMqttLegacyIntegrator, true);
+
+        using WsMqttTlsIntegrator = web::http::tls::in::Client<web::http::client::Request, web::http::client::Response>;
+        WsMqttTlsIntegrator wsMqttTlsIntegrator(
+            "tls",
+            [](web::http::client::Request& request) -> void {
+                request.set("Sec-WebSocket-Protocol", "mqtt");
+
+                request.upgrade("/ws/", "websocket");
+            },
+            [](web::http::client::Request& request, web::http::client::Response& response) -> void {
+                response.upgrade(request);
+            },
+            [](int status, const std::string& reason) -> void {
+                VLOG(0) << "OnResponseError";
+                VLOG(0) << "     Status: " << status;
+                VLOG(0) << "     Reason: " << reason;
+            });
+
+        doConnect(wsMqttTlsIntegrator, true);
     }
 
     return core::SNodeC::start();
