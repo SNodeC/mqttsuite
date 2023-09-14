@@ -27,7 +27,6 @@
 #include <net/in/stream/tls/SocketServer.h>    // IWYU pragma: keep
 #include <net/un/stream/legacy/SocketServer.h> // IWYU pragma: keep
 #include <utils/Config.h>
-#include <web/http/http_utils.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
@@ -90,18 +89,14 @@ express::Router getRouter() {
     });
 
     router.get("/ws/", [] APPLICATION(req, res) -> void {
-        if (httputils::ci_contains(req.get("connection"), "Upgrade")) {
-            res.upgrade(req);
-        } else {
-            res.sendStatus(404);
+        if (!res.upgrade(req)) {
+            res.end();
         }
     });
 
     router.get("/", [] APPLICATION(req, res) -> void {
-        if (httputils::ci_contains(req.get("connection"), "Upgrade")) {
-            res.upgrade(req);
-        } else {
-            res.sendStatus(404);
+        if (!res.upgrade(req)) {
+            res.end();
         }
     });
 
