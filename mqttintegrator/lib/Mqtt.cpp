@@ -23,6 +23,7 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include <cstring>
 #include <list>
 #include <log/Logger.h>
 #include <map>
@@ -63,8 +64,8 @@ namespace mqtt::mqttintegrator::lib {
         sendConnect(keepAlive, clientId, cleanSession, willTopic, willMessage, willQoS, willRetain, username, password);
     }
 
-    void Mqtt::onExit() {
-        VLOG(0) << "On Exit";
+    void Mqtt::onExit(int signum) {
+        VLOG(0) << "On Exit due to '" << strsignal(signum) << "' (SIG" << sigabbrev_np(signum) << " = " << signum << ")";
 
         sendDisconnect();
     }
