@@ -45,43 +45,6 @@
 
 #endif
 
-template <typename Client>
-void doConnect(Client client, bool reconnect = false) {
-    if (core::SNodeC::state() == core::State::RUNNING || core::SNodeC::state() == core::State::INITIALIZED) {
-        client.setOnDisconnect([client, reconnect](typename Client::SocketConnection* socketConnection) mutable -> void {
-            VLOG(0) << "OnDisconnect";
-
-            VLOG(0) << "\tServer: " + socketConnection->getRemoteAddress().toString();
-            VLOG(0) << "\tClient: " + socketConnection->getLocalAddress().toString();
-
-            if (reconnect) {
-                LOG(INFO) << "  ... retrying";
-                core::timer::Timer::singleshotTimer(
-                    [client, reconnect]() mutable -> void {
-                        doConnect(client, reconnect);
-                    },
-                    1);
-            }
-        });
-        client.connect([client, reconnect](const typename Client::SocketAddress& socketAddress, int errnum) -> void {
-            if (errnum == 0) {
-                VLOG(0) << "Client instance '" << client.getConfig().getInstanceName() << "' connected to " << socketAddress.toString();
-            } else {
-                PLOG(ERROR) << "Client instance '" << client.getConfig().getInstanceName() << "' connecting to "
-                            << socketAddress.toString();
-                if (reconnect) {
-                    LOG(INFO) << "  ... retrying";
-                    core::timer::Timer::singleshotTimer(
-                        [client, reconnect]() mutable -> void {
-                            doConnect(client, reconnect);
-                        },
-                        1);
-                }
-            }
-        });
-    }
-}
-
 int main(int argc, char* argv[]) {
 #if defined(LINK_WEBSOCKET_STATIC) || defined(LINK_SUBPROTOCOL_STATIC)
     web::websocket::client::SocketContextUpgradeFactory::link();
@@ -100,6 +63,8 @@ int main(int argc, char* argv[]) {
 
     {
         using WsMqttLegacyIntegrator = web::http::legacy::in::Client<web::http::client::Request, web::http::client::Response>;
+        using WsMqttLegacySocketAddress = WsMqttLegacyIntegrator::SocketAddress;
+
         WsMqttLegacyIntegrator wsMqttLegacyIntegrator(
             "legacy",
             [](web::http::client::Request& request) -> void {
@@ -116,9 +81,19 @@ int main(int argc, char* argv[]) {
                 VLOG(0) << "     Reason: " << reason;
             });
 
-        doConnect(wsMqttLegacyIntegrator, true);
+        wsMqttLegacyIntegrator.connect([wsMqttLegacyIntegrator](const WsMqttLegacySocketAddress& socketAddress, int errnum) -> void {
+            if (errnum < 0) {
+                PLOG(ERROR) << "OnError";
+            } else if (errnum > 0) {
+                PLOG(ERROR) << "OnError: " << socketAddress.toString();
+            } else {
+                VLOG(0) << wsMqttLegacyIntegrator.getConfig().getInstanceName() << " listening on " << socketAddress.toString();
+            }
+        });
 
         using WsMqttTlsIntegrator = web::http::tls::in::Client<web::http::client::Request, web::http::client::Response>;
+        using InMqttTlsSocketAddress = WsMqttTlsIntegrator::SocketAddress;
+
         WsMqttTlsIntegrator wsMqttTlsIntegrator(
             "tls",
             [](web::http::client::Request& request) -> void {
@@ -135,7 +110,15 @@ int main(int argc, char* argv[]) {
                 VLOG(0) << "     Reason: " << reason;
             });
 
-        doConnect(wsMqttTlsIntegrator, true);
+        wsMqttTlsIntegrator.connect([wsMqttTlsIntegrator](const InMqttTlsSocketAddress& socketAddress, int errnum) -> void {
+            if (errnum < 0) {
+                PLOG(ERROR) << "OnError";
+            } else if (errnum > 0) {
+                PLOG(ERROR) << "OnError: " << socketAddress.toString();
+            } else {
+                VLOG(0) << wsMqttTlsIntegrator.getConfig().getInstanceName() << " listening on " << socketAddress.toString();
+            }
+        });
     }
 
     return core::SNodeC::start();

@@ -39,27 +39,6 @@ namespace iot::mqtt::packets {
     class Connect;
 }
 
-template <typename Server>
-void doListen(Server server, bool reconnect = false) {
-    if (core::SNodeC::state() == core::State::RUNNING || core::SNodeC::state() == core::State::INITIALIZED) {
-        server.listen([server, reconnect](const typename Server::SocketAddress& socketAddress, int errnum) -> void {
-            if (errnum == 0) {
-                VLOG(0) << "Server instance '" << server.getConfig().getInstanceName() << "' listening on " << socketAddress.toString();
-            } else {
-                PLOG(ERROR) << "Server instance '" << server.getConfig().getInstanceName() << "' listening on " << socketAddress.toString();
-                if (reconnect) {
-                    LOG(INFO) << "  ... retrying";
-                    core::timer::Timer::singleshotTimer(
-                        [server, reconnect]() mutable -> void {
-                            doListen(server, reconnect);
-                        },
-                        1);
-                }
-            }
-        });
-    }
-}
-
 express::Router getRouter();
 express::Router getRouter() {
     express::Router router;
@@ -113,24 +92,74 @@ int main(int argc, char* argv[]) {
 
     {
         using MQTTLegacyInServer = net::in::stream::legacy::SocketServer<mqtt::mqttbroker::SharedSocketContextFactory>;
+        using MQTTLegacyInSocketAddress = MQTTLegacyInServer::SocketAddress;
+
         MQTTLegacyInServer mqttLegacyInServer("legacyin");
-        doListen(mqttLegacyInServer, true);
+        mqttLegacyInServer.listen([mqttLegacyInServer](const MQTTLegacyInSocketAddress& socketAddress, int errnum) -> void {
+            if (errnum == 0) {
+                VLOG(0) << "Server instance '" << mqttLegacyInServer.getConfig().getInstanceName() << "' listening on "
+                        << socketAddress.toString();
+            } else {
+                PLOG(ERROR) << "Server instance '" << mqttLegacyInServer.getConfig().getInstanceName() << "' listening on "
+                            << socketAddress.toString();
+            }
+        });
 
         using MQTTTLSInServer = net::in::stream::tls::SocketServer<mqtt::mqttbroker::SharedSocketContextFactory>;
+        using MQTTTLSInSocketAddress = MQTTTLSInServer::SocketAddress;
+
         MQTTTLSInServer mqttTLSInServer("tlsin");
-        doListen(mqttTLSInServer, true);
+        mqttTLSInServer.listen([mqttTLSInServer](const MQTTTLSInSocketAddress& socketAddress, int errnum) -> void {
+            if (errnum == 0) {
+                VLOG(0) << "Server instance '" << mqttTLSInServer.getConfig().getInstanceName() << "' listening on "
+                        << socketAddress.toString();
+            } else {
+                PLOG(ERROR) << "Server instance '" << mqttTLSInServer.getConfig().getInstanceName() << "' listening on "
+                            << socketAddress.toString();
+            }
+        });
 
         using MQTTLegacyUnServer = net::un::stream::legacy::SocketServer<mqtt::mqttbroker::SharedSocketContextFactory>;
+        using MQTTLegacyUnSocketAddress = MQTTLegacyUnServer::SocketAddress;
+
         MQTTLegacyUnServer mqttLegacyUnServer("legacyun");
-        doListen(mqttLegacyUnServer, true);
+        mqttLegacyUnServer.listen([mqttLegacyUnServer](const MQTTLegacyUnSocketAddress& socketAddress, int errnum) -> void {
+            if (errnum == 0) {
+                VLOG(0) << "Server instance '" << mqttLegacyUnServer.getConfig().getInstanceName() << "' listening on "
+                        << socketAddress.toString();
+            } else {
+                PLOG(ERROR) << "Server instance '" << mqttLegacyUnServer.getConfig().getInstanceName() << "' listening on "
+                            << socketAddress.toString();
+            }
+        });
 
         using MQTTTLSWebView = express::tls::in::WebApp;
+        using MQTTTLSWebSocketAddress = MQTTTLSWebView::SocketAddress;
+
         MQTTTLSWebView mqttTLSWebView("mqtttlswebview", getRouter());
-        doListen(mqttTLSWebView, true);
+        mqttTLSWebView.listen([mqttTLSWebView](const MQTTTLSWebSocketAddress& socketAddress, int errnum) -> void {
+            if (errnum == 0) {
+                VLOG(0) << "Server instance '" << mqttTLSWebView.getConfig().getInstanceName() << "' listening on "
+                        << socketAddress.toString();
+            } else {
+                PLOG(ERROR) << "Server instance '" << mqttTLSWebView.getConfig().getInstanceName() << "' listening on "
+                            << socketAddress.toString();
+            }
+        });
 
         using MQTTLegacyWebView = express::legacy::in::WebApp;
+        using MQTTLegacyWebSocketAddress = MQTTLegacyWebView::SocketAddress;
+
         MQTTLegacyWebView mqttLegacyWebView("mqttlegacywebview", mqttTLSWebView);
-        doListen(mqttLegacyWebView, true);
+        mqttLegacyWebView.listen([mqttLegacyWebView](const MQTTLegacyWebSocketAddress& socketAddress, int errnum) -> void {
+            if (errnum == 0) {
+                VLOG(0) << "Server instance '" << mqttLegacyWebView.getConfig().getInstanceName() << "' listening on "
+                        << socketAddress.toString();
+            } else {
+                PLOG(ERROR) << "Server instance '" << mqttLegacyWebView.getConfig().getInstanceName() << "' listening on "
+                            << socketAddress.toString();
+            }
+        });
     }
 
     return core::SNodeC::start();

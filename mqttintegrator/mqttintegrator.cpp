@@ -31,43 +31,6 @@
 
 #endif
 
-template <typename Client>
-void doConnect(Client client, bool reconnect = false) {
-    if (core::SNodeC::state() == core::State::RUNNING || core::SNodeC::state() == core::State::INITIALIZED) {
-        client.setOnDisconnect([client, reconnect](typename Client::SocketConnection* socketConnection) mutable -> void {
-            VLOG(0) << "OnDisconnect";
-
-            VLOG(0) << "\tServer: " + socketConnection->getRemoteAddress().toString();
-            VLOG(0) << "\tClient: " + socketConnection->getLocalAddress().toString();
-
-            if (reconnect) {
-                LOG(INFO) << "  ... retrying";
-                core::timer::Timer::singleshotTimer(
-                    [client, reconnect]() mutable -> void {
-                        doConnect(client, reconnect);
-                    },
-                    1);
-            }
-        });
-        client.connect([client, reconnect](const typename Client::SocketAddress& socketAddress, int errnum) -> void {
-            if (errnum == 0) {
-                VLOG(0) << "Client instance '" << client.getConfig().getInstanceName() << "' connected to " << socketAddress.toString();
-            } else {
-                PLOG(ERROR) << "Client instance '" << client.getConfig().getInstanceName() << "' connecting to "
-                            << socketAddress.toString();
-                if (reconnect) {
-                    LOG(INFO) << "  ... retrying";
-                    core::timer::Timer::singleshotTimer(
-                        [client, reconnect]() mutable -> void {
-                            doConnect(client, reconnect);
-                        },
-                        1);
-                }
-            }
-        });
-    }
-}
-
 int main(int argc, char* argv[]) {
     utils::Config::add_string_option("--mqtt-mapping-file", "MQTT mapping file (json format) for integration", "[path]");
     utils::Config::add_string_option("--mqtt-session-store", "Path to file for the persistent session store", "[path]", "");
@@ -79,8 +42,17 @@ int main(int argc, char* argv[]) {
     {
         using InMqttTlsIntegrator = net::in::stream::tls::SocketClient<mqtt::mqttintegrator::SocketContextFactory>;
         InMqttTlsIntegrator inMqttTlsIntegrator("mqtttlsintegrator");
+        using InMqttTlsSocketAddress = InMqttTlsIntegrator::SocketAddress;
 
-        doConnect(inMqttTlsIntegrator, true);
+        inMqttTlsIntegrator.connect([inMqttTlsIntegrator](const InMqttTlsSocketAddress& socketAddress, int errnum) -> void {
+            if (errnum < 0) {
+                PLOG(ERROR) << "OnError";
+            } else if (errnum > 0) {
+                PLOG(ERROR) << "OnError: " << socketAddress.toString();
+            } else {
+                VLOG(0) << inMqttTlsIntegrator.getConfig().getInstanceName() << " listening on " << socketAddress.toString();
+            }
+        });
     }
 
     return core::SNodeC::start();
