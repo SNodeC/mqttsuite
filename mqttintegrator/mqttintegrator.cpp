@@ -19,7 +19,6 @@
 #include "SocketContextFactory.h" // IWYU pragma: keep
 
 #include <core/SNodeC.h>
-#include <core/timer/Timer.h>
 #include <net/in/stream/tls/SocketClient.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS

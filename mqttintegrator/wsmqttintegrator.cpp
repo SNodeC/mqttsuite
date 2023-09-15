@@ -17,7 +17,6 @@
  */
 
 #include <core/SNodeC.h>
-#include <core/timer/Timer.h>
 #include <web/http/client/Request.h>
 #include <web/http/client/Response.h>
 #include <web/http/legacy/in/Client.h>
