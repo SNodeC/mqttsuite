@@ -36,7 +36,7 @@ namespace iot::mqtt::server::broker {
     class Broker;
 }
 
-namespace mqtt::mqttbroker {
+namespace mqtt::mqttbroker::lib {
 
     class SharedSocketContextFactory : public iot::mqtt::server::SharedSocketContextFactory {
     public:
@@ -44,6 +44,6 @@ namespace mqtt::mqttbroker {
                                                     std::shared_ptr<iot::mqtt::server::broker::Broker> broker) final;
     };
 
-} // namespace mqtt::mqttbroker
+} // namespace mqtt::mqttbroker::lib
 
 #endif // APPS_MQTTBROKER_BROKER_SOCKETCONTEXTFACTORY_H

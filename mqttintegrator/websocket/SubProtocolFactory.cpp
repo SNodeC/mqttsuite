@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "SubProtocolFactory.h"
+#include "mqttintegrator/websocket/SubProtocolFactory.h"
 
 #include "lib/JsonMappingReader.h"
 #include "mqttintegrator/lib/Mqtt.h"

@@ -12,8 +12,8 @@ find_package(
                       net-un-stream-legacy http-server-express mqtt-server
 )
 
-set(MQTTBROKER_CPP mqttbroker.cpp SharedSocketContextFactory.cpp)
-set(MQTTBROKER_H SharedSocketContextFactory.h)
+set(MQTTBROKER_CPP mqttbroker.cpp)
+set(MQTTBROKER_H)
 
 add_executable(mqttbroker ${MQTTBROKER_CPP} ${MQTTBROKER_H})
 

@@ -16,9 +16,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "SharedSocketContextFactory.h" // IWYU pragma: keep
 #include "lib/Mqtt.h"
 #include "lib/MqttModel.h"
+#include "lib/SharedSocketContextFactory.h" // IWYU pragma: keep
 
 #include <core/SNodeC.h>
 #include <express/legacy/in/WebApp.h>
@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
     setenv("MQTT_SESSION_STORE", utils::Config::get_string_option_value("--mqtt-session-store").data(), 0);
 
     {
-        using MQTTLegacyInServer = net::in::stream::legacy::SocketServer<mqtt::mqttbroker::SharedSocketContextFactory>;
+        using MQTTLegacyInServer = net::in::stream::legacy::SocketServer<mqtt::mqttbroker::lib::SharedSocketContextFactory>;
         using MQTTLegacyInSocketAddress = MQTTLegacyInServer::SocketAddress;
 
         MQTTLegacyInServer mqttLegacyInServer("legacyin");
@@ -105,7 +105,7 @@ int main(int argc, char* argv[]) {
             }
         });
 
-        using MQTTTLSInServer = net::in::stream::tls::SocketServer<mqtt::mqttbroker::SharedSocketContextFactory>;
+        using MQTTTLSInServer = net::in::stream::tls::SocketServer<mqtt::mqttbroker::lib::SharedSocketContextFactory>;
         using MQTTTLSInSocketAddress = MQTTTLSInServer::SocketAddress;
 
         MQTTTLSInServer mqttTLSInServer("tlsin");
@@ -119,7 +119,7 @@ int main(int argc, char* argv[]) {
             }
         });
 
-        using MQTTLegacyUnServer = net::un::stream::legacy::SocketServer<mqtt::mqttbroker::SharedSocketContextFactory>;
+        using MQTTLegacyUnServer = net::un::stream::legacy::SocketServer<mqtt::mqttbroker::lib::SharedSocketContextFactory>;
         using MQTTLegacyUnSocketAddress = MQTTLegacyUnServer::SocketAddress;
 
         MQTTLegacyUnServer mqttLegacyUnServer("legacyun");
