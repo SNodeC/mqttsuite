@@ -92,73 +92,33 @@ int main(int argc, char* argv[]) {
 
     {
         using MQTTLegacyInServer = net::in::stream::legacy::SocketServer<mqtt::mqttbroker::lib::SharedSocketContextFactory>;
-        using MQTTLegacyInSocketAddress = MQTTLegacyInServer::SocketAddress;
-
         MQTTLegacyInServer mqttLegacyInServer("legacyin");
-        mqttLegacyInServer.listen([mqttLegacyInServer](const MQTTLegacyInSocketAddress& socketAddress, int errnum) -> void {
-            if (errnum == 0) {
-                VLOG(0) << "Server instance '" << mqttLegacyInServer.getConfig().getInstanceName() << "' listening on "
-                        << socketAddress.toString();
-            } else {
-                PLOG(ERROR) << "Server instance '" << mqttLegacyInServer.getConfig().getInstanceName() << "' listening on "
-                            << socketAddress.toString();
-            }
+        mqttLegacyInServer.listen([](const core::ProgressLog& progressLog) -> void {
+            progressLog.logProgress();
         });
 
         using MQTTTLSInServer = net::in::stream::tls::SocketServer<mqtt::mqttbroker::lib::SharedSocketContextFactory>;
-        using MQTTTLSInSocketAddress = MQTTTLSInServer::SocketAddress;
-
         MQTTTLSInServer mqttTLSInServer("tlsin");
-        mqttTLSInServer.listen([mqttTLSInServer](const MQTTTLSInSocketAddress& socketAddress, int errnum) -> void {
-            if (errnum == 0) {
-                VLOG(0) << "Server instance '" << mqttTLSInServer.getConfig().getInstanceName() << "' listening on "
-                        << socketAddress.toString();
-            } else {
-                PLOG(ERROR) << "Server instance '" << mqttTLSInServer.getConfig().getInstanceName() << "' listening on "
-                            << socketAddress.toString();
-            }
+        mqttTLSInServer.listen([](const core::ProgressLog& progressLog) -> void {
+            progressLog.logProgress();
         });
 
         using MQTTLegacyUnServer = net::un::stream::legacy::SocketServer<mqtt::mqttbroker::lib::SharedSocketContextFactory>;
-        using MQTTLegacyUnSocketAddress = MQTTLegacyUnServer::SocketAddress;
-
         MQTTLegacyUnServer mqttLegacyUnServer("legacyun");
-        mqttLegacyUnServer.listen([mqttLegacyUnServer](const MQTTLegacyUnSocketAddress& socketAddress, int errnum) -> void {
-            if (errnum == 0) {
-                VLOG(0) << "Server instance '" << mqttLegacyUnServer.getConfig().getInstanceName() << "' listening on "
-                        << socketAddress.toString();
-            } else {
-                PLOG(ERROR) << "Server instance '" << mqttLegacyUnServer.getConfig().getInstanceName() << "' listening on "
-                            << socketAddress.toString();
-            }
+        mqttLegacyUnServer.listen([](const core::ProgressLog& progressLog) -> void {
+            progressLog.logProgress();
         });
 
         using MQTTTLSWebView = express::tls::in::WebApp;
-        using MQTTTLSWebSocketAddress = MQTTTLSWebView::SocketAddress;
-
         MQTTTLSWebView mqttTLSWebView("mqtttlswebview", getRouter());
-        mqttTLSWebView.listen([mqttTLSWebView](const MQTTTLSWebSocketAddress& socketAddress, int errnum) -> void {
-            if (errnum == 0) {
-                VLOG(0) << "Server instance '" << mqttTLSWebView.getConfig().getInstanceName() << "' listening on "
-                        << socketAddress.toString();
-            } else {
-                PLOG(ERROR) << "Server instance '" << mqttTLSWebView.getConfig().getInstanceName() << "' listening on "
-                            << socketAddress.toString();
-            }
+        mqttTLSWebView.listen([](const core::ProgressLog& progressLog) -> void {
+            progressLog.logProgress();
         });
 
         using MQTTLegacyWebView = express::legacy::in::WebApp;
-        using MQTTLegacyWebSocketAddress = MQTTLegacyWebView::SocketAddress;
-
         MQTTLegacyWebView mqttLegacyWebView("mqttlegacywebview", mqttTLSWebView);
-        mqttLegacyWebView.listen([mqttLegacyWebView](const MQTTLegacyWebSocketAddress& socketAddress, int errnum) -> void {
-            if (errnum == 0) {
-                VLOG(0) << "Server instance '" << mqttLegacyWebView.getConfig().getInstanceName() << "' listening on "
-                        << socketAddress.toString();
-            } else {
-                PLOG(ERROR) << "Server instance '" << mqttLegacyWebView.getConfig().getInstanceName() << "' listening on "
-                            << socketAddress.toString();
-            }
+        mqttLegacyWebView.listen([](const core::ProgressLog& progressLog) -> void {
+            progressLog.logProgress();
         });
     }
 

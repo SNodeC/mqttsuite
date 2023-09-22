@@ -62,7 +62,6 @@ int main(int argc, char* argv[]) {
 
     {
         using WsMqttLegacyIntegrator = web::http::legacy::in::Client<web::http::client::Request, web::http::client::Response>;
-        using WsMqttLegacySocketAddress = WsMqttLegacyIntegrator::SocketAddress;
 
         WsMqttLegacyIntegrator wsMqttLegacyIntegrator(
             "legacy",
@@ -80,18 +79,11 @@ int main(int argc, char* argv[]) {
                 VLOG(0) << "     Reason: " << reason;
             });
 
-        wsMqttLegacyIntegrator.connect([wsMqttLegacyIntegrator](const WsMqttLegacySocketAddress& socketAddress, int errnum) -> void {
-            if (errnum < 0) {
-                PLOG(ERROR) << "OnError";
-            } else if (errnum > 0) {
-                PLOG(ERROR) << "OnError: " << socketAddress.toString();
-            } else {
-                VLOG(0) << wsMqttLegacyIntegrator.getConfig().getInstanceName() << " listening on " << socketAddress.toString();
-            }
+        wsMqttLegacyIntegrator.connect([](const core::ProgressLog& progressLog) -> void {
+            progressLog.logProgress();
         });
 
         using WsMqttTlsIntegrator = web::http::tls::in::Client<web::http::client::Request, web::http::client::Response>;
-        using InMqttTlsSocketAddress = WsMqttTlsIntegrator::SocketAddress;
 
         WsMqttTlsIntegrator wsMqttTlsIntegrator(
             "tls",
@@ -109,14 +101,8 @@ int main(int argc, char* argv[]) {
                 VLOG(0) << "     Reason: " << reason;
             });
 
-        wsMqttTlsIntegrator.connect([wsMqttTlsIntegrator](const InMqttTlsSocketAddress& socketAddress, int errnum) -> void {
-            if (errnum < 0) {
-                PLOG(ERROR) << "OnError";
-            } else if (errnum > 0) {
-                PLOG(ERROR) << "OnError: " << socketAddress.toString();
-            } else {
-                VLOG(0) << wsMqttTlsIntegrator.getConfig().getInstanceName() << " listening on " << socketAddress.toString();
-            }
+        wsMqttTlsIntegrator.connect([](const core::ProgressLog& progressLog) -> void {
+            progressLog.logProgress();
         });
     }
 

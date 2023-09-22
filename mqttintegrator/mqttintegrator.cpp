@@ -24,7 +24,6 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <cstdlib>
-#include <log/Logger.h>
 #include <string>
 #include <utils/Config.h>
 
@@ -41,16 +40,8 @@ int main(int argc, char* argv[]) {
     {
         using InMqttTlsIntegrator = net::in::stream::tls::SocketClient<mqtt::mqttintegrator::SocketContextFactory>;
         InMqttTlsIntegrator inMqttTlsIntegrator("mqtttlsintegrator");
-        using InMqttTlsSocketAddress = InMqttTlsIntegrator::SocketAddress;
-
-        inMqttTlsIntegrator.connect([inMqttTlsIntegrator](const InMqttTlsSocketAddress& socketAddress, int errnum) -> void {
-            if (errnum < 0) {
-                PLOG(ERROR) << "OnError";
-            } else if (errnum > 0) {
-                PLOG(ERROR) << "OnError: " << socketAddress.toString();
-            } else {
-                VLOG(0) << inMqttTlsIntegrator.getConfig().getInstanceName() << " listening on " << socketAddress.toString();
-            }
+        inMqttTlsIntegrator.connect([](const core::ProgressLog& progressLog) -> void {
+            progressLog.logProgress();
         });
     }
 

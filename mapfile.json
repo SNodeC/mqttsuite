@@ -42,7 +42,21 @@
                 }
               },
               {
+                "mapped_topic": "test02/strip1/rgb/set",
+                "message_mapping": {
+                  "message": "pressed",
+                  "mapped_message": "front red"
+                }
+              },
+              {
                 "mapped_topic": "strip/strip1/brightness/set",
+                "message_mapping": {
+                  "message": "released",
+                  "mapped_message": "0"
+                }
+              },
+              {
+                "mapped_topic": "test02/strip1/brightness/set",
                 "message_mapping": {
                   "message": "released",
                   "mapped_message": "0"
