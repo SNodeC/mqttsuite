@@ -24,6 +24,7 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <cstdlib>
+#include <log/Logger.h>
 #include <string>
 #include <utils/Config.h>
 
@@ -40,6 +41,7 @@ int main(int argc, char* argv[]) {
     {
         using InMqttTlsIntegrator = net::in::stream::tls::SocketClient<mqtt::mqttintegrator::SocketContextFactory>;
         InMqttTlsIntegrator inMqttTlsIntegrator("mqtttlsintegrator");
+
         inMqttTlsIntegrator.connect([](const core::ProgressLog& progressLog) -> void {
             progressLog.logProgress();
         });

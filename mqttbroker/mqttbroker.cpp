@@ -92,30 +92,35 @@ int main(int argc, char* argv[]) {
 
     {
         using MQTTLegacyInServer = net::in::stream::legacy::SocketServer<mqtt::mqttbroker::lib::SharedSocketContextFactory>;
+
         MQTTLegacyInServer mqttLegacyInServer("legacyin");
         mqttLegacyInServer.listen([](const core::ProgressLog& progressLog) -> void {
             progressLog.logProgress();
         });
 
         using MQTTTLSInServer = net::in::stream::tls::SocketServer<mqtt::mqttbroker::lib::SharedSocketContextFactory>;
+
         MQTTTLSInServer mqttTLSInServer("tlsin");
         mqttTLSInServer.listen([](const core::ProgressLog& progressLog) -> void {
             progressLog.logProgress();
         });
 
         using MQTTLegacyUnServer = net::un::stream::legacy::SocketServer<mqtt::mqttbroker::lib::SharedSocketContextFactory>;
+
         MQTTLegacyUnServer mqttLegacyUnServer("legacyun");
         mqttLegacyUnServer.listen([](const core::ProgressLog& progressLog) -> void {
             progressLog.logProgress();
         });
 
         using MQTTTLSWebView = express::tls::in::WebApp;
+
         MQTTTLSWebView mqttTLSWebView("mqtttlswebview", getRouter());
         mqttTLSWebView.listen([](const core::ProgressLog& progressLog) -> void {
             progressLog.logProgress();
         });
 
         using MQTTLegacyWebView = express::legacy::in::WebApp;
+
         MQTTLegacyWebView mqttLegacyWebView("mqttlegacywebview", mqttTLSWebView);
         mqttLegacyWebView.listen([](const core::ProgressLog& progressLog) -> void {
             progressLog.logProgress();
