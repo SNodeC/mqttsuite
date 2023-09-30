@@ -21,7 +21,7 @@ target_link_libraries(
 
 set_target_properties(
     websocket-mqtt-client PROPERTIES OUTPUT_NAME "snodec-websocket-mqtt-client"
-                                     SOVERSION "${SNODEC_SOVERSION}"
+                                     SOVERSION "${SNODEC_SO_VERSION}"
 )
 
 install(TARGETS websocket-mqtt-client
