@@ -8,7 +8,7 @@ add_subdirectory(websocket)
 
 find_package(nlohmann_json 3.7.0)
 find_package(
-    snodec COMPONENTS net-in-stream-legacy net-in-stream-tls
+    snodec 0.90.0 COMPONENTS net-in-stream-legacy net-in-stream-tls
                       net-un-stream-legacy http-server-express mqtt-server
 )
 
