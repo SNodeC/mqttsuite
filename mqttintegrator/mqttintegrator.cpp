@@ -39,10 +39,25 @@ int main(int argc, char* argv[]) {
 
     {
         using InMqttTlsIntegrator = net::in::stream::tls::SocketClient<mqtt::mqttintegrator::SocketContextFactory>;
+        using SocketAddress = InMqttTlsIntegrator::SocketAddress;
+
         InMqttTlsIntegrator inMqttTlsIntegrator("mqtttlsintegrator");
 
-        inMqttTlsIntegrator.connect([](const core::ProgressLog& progressLog) -> void {
-            progressLog.logProgress();
+        inMqttTlsIntegrator.connect([](const SocketAddress& socketAddress, core::socket::State state) -> void {
+            switch (state) {
+                case core::socket::State::OK:
+                    VLOG(1) << "mqtttlsintegrator: connected to '" << socketAddress.toString() << "'";
+                    break;
+                case core::socket::State::DISABLED:
+                    VLOG(1) << "mqtttlsintegrator: disabled";
+                    break;
+                case core::socket::State::ERROR:
+                    VLOG(1) << "mqtttlsintegrator: non critical error occurred";
+                    break;
+                case core::socket::State::FATAL:
+                    VLOG(1) << "mqtttlsintegrator: critical error occurred";
+                    break;
+            }
         });
     }
 

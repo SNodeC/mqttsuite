@@ -62,6 +62,7 @@ int main(int argc, char* argv[]) {
 
     {
         using WsMqttLegacyIntegrator = web::http::legacy::in::Client<web::http::client::Request, web::http::client::Response>;
+        using LegacySocketAddress = WsMqttLegacyIntegrator::SocketAddress;
 
         WsMqttLegacyIntegrator wsMqttLegacyIntegrator(
             "legacy",
@@ -79,11 +80,25 @@ int main(int argc, char* argv[]) {
                 VLOG(0) << "     Reason: " << reason;
             });
 
-        wsMqttLegacyIntegrator.connect([](const core::ProgressLog& progressLog) -> void {
-            progressLog.logProgress();
+        wsMqttLegacyIntegrator.connect([](const LegacySocketAddress& socketAddress, core::socket::State state) -> void {
+            switch (state) {
+                case core::socket::State::OK:
+                    VLOG(1) << "legacy: connected to '" << socketAddress.toString() << "'";
+                    break;
+                case core::socket::State::DISABLED:
+                    VLOG(1) << "legacy: disabled";
+                    break;
+                case core::socket::State::ERROR:
+                    VLOG(1) << "legacy: non critical error occurred";
+                    break;
+                case core::socket::State::FATAL:
+                    VLOG(1) << "legacy: critical error occurred";
+                    break;
+            }
         });
 
         using WsMqttTlsIntegrator = web::http::tls::in::Client<web::http::client::Request, web::http::client::Response>;
+        using TlsSocketAddress = WsMqttLegacyIntegrator::SocketAddress;
 
         WsMqttTlsIntegrator wsMqttTlsIntegrator(
             "tls",
@@ -101,8 +116,21 @@ int main(int argc, char* argv[]) {
                 VLOG(0) << "     Reason: " << reason;
             });
 
-        wsMqttTlsIntegrator.connect([](const core::ProgressLog& progressLog) -> void {
-            progressLog.logProgress();
+        wsMqttTlsIntegrator.connect([](const TlsSocketAddress& socketAddress, core::socket::State state) -> void {
+            switch (state) {
+                case core::socket::State::OK:
+                    VLOG(1) << "tls: connected to '" << socketAddress.toString() << "'";
+                    break;
+                case core::socket::State::DISABLED:
+                    VLOG(1) << "tls: disabled";
+                    break;
+                case core::socket::State::ERROR:
+                    VLOG(1) << "tls: non critical error occurred";
+                    break;
+                case core::socket::State::FATAL:
+                    VLOG(1) << "tls: critical error occurred";
+                    break;
+            }
         });
     }
 
