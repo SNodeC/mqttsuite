@@ -83,16 +83,18 @@ int main(int argc, char* argv[]) {
         wsMqttLegacyIntegrator.connect([](const LegacySocketAddress& socketAddress, core::socket::State state) -> void {
             switch (state) {
                 case core::socket::State::OK:
-                    VLOG(1) << "legacy: connected to '" << socketAddress.toString() << "'";
+                    VLOG(1) << "legacy: connected to '" << socketAddress.toString() << "': " << state.what();
                     break;
                 case core::socket::State::DISABLED:
                     VLOG(1) << "legacy: disabled";
                     break;
                 case core::socket::State::ERROR:
-                    VLOG(1) << "legacy: non critical error occurred";
+                    VLOG(1) << "legacy: " << socketAddress.toString() << ": non critical error occurred";
+                    VLOG(1) << "    " << state.what();
                     break;
                 case core::socket::State::FATAL:
-                    VLOG(1) << "legacy: critical error occurred";
+                    VLOG(1) << "legacy: " << socketAddress.toString() << ": critical error occurred";
+                    VLOG(1) << "    " << state.what();
                     break;
             }
         });
@@ -119,16 +121,18 @@ int main(int argc, char* argv[]) {
         wsMqttTlsIntegrator.connect([](const TlsSocketAddress& socketAddress, core::socket::State state) -> void {
             switch (state) {
                 case core::socket::State::OK:
-                    VLOG(1) << "tls: connected to '" << socketAddress.toString() << "'";
+                    VLOG(1) << "tls: connecting to '" << socketAddress.toString() << "': " << state.what();
                     break;
                 case core::socket::State::DISABLED:
                     VLOG(1) << "tls: disabled";
                     break;
                 case core::socket::State::ERROR:
-                    VLOG(1) << "tls: non critical error occurred";
+                    VLOG(1) << "tls: " << socketAddress.toString() << ": non critical error occurred";
+                    VLOG(1) << "    " << state.what();
                     break;
                 case core::socket::State::FATAL:
-                    VLOG(1) << "tls: critical error occurred";
+                    VLOG(1) << "tls: " << socketAddress.toString() << ": critical error occurred";
+                    VLOG(1) << "    " << state.what();
                     break;
             }
         });

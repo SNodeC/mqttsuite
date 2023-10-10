@@ -31,6 +31,7 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <cstdlib>
+#include <log/Logger.h>
 
 #endif
 
@@ -94,19 +95,21 @@ int main(int argc, char* argv[]) {
         using MQTTLegacyInSocketAddress = MQTTLegacyInServer::SocketAddress;
 
         MQTTLegacyInServer mqttLegacyInServer("legacyin");
-        mqttLegacyInServer.listen([](const MQTTLegacyInSocketAddress& socketAddress, core::socket::State state) -> void {
+        mqttLegacyInServer.listen(1883, [](const MQTTLegacyInSocketAddress& socketAddress, core::socket::State state) -> void {
             switch (state) {
                 case core::socket::State::OK:
-                    VLOG(1) << "legacyin: listening on '" << socketAddress.toString() << "'";
+                    VLOG(1) << "legacyin: listening on '" << socketAddress.toString() << "': " << state.what();
                     break;
                 case core::socket::State::DISABLED:
                     VLOG(1) << "legacyin: disabled";
                     break;
                 case core::socket::State::ERROR:
-                    VLOG(1) << "legacyin: non critical error occurred";
+                    VLOG(1) << "legacyin: " << socketAddress.toString() << ": non critical error occurred";
+                    VLOG(1) << "    " << state.what();
                     break;
                 case core::socket::State::FATAL:
-                    VLOG(1) << "legacyin: critical error occurred";
+                    VLOG(1) << "legacyin: " << socketAddress.toString() << ": critical error occurred";
+                    VLOG(1) << "    " << state.what();
                     break;
             }
         });
@@ -115,19 +118,26 @@ int main(int argc, char* argv[]) {
         using MQTTTLSInSocketAddress = MQTTTLSInServer::SocketAddress;
 
         MQTTTLSInServer mqttTLSInServer("tlsin");
-        mqttTLSInServer.listen([](const MQTTTLSInSocketAddress& socketAddress, core::socket::State state) -> void {
+
+        mqttTLSInServer.getConfig().setCertChain("/home/voc/projects/mqttbroker/mqttbroker/certs/IoT-Server-Cert.pem");
+        mqttTLSInServer.getConfig().setCertKey("/home/voc/projects/mqttbroker/mqttbroker/certs/IoT-Server-Key.pem");
+        mqttTLSInServer.getConfig().setCertKeyPassword("pentium5");
+
+        mqttTLSInServer.listen(8883, [](const MQTTTLSInSocketAddress& socketAddress, core::socket::State state) -> void {
             switch (state) {
                 case core::socket::State::OK:
-                    VLOG(1) << "tlsin: listening on '" << socketAddress.toString() << "'";
+                    VLOG(1) << "tlsin: listening on '" << socketAddress.toString() << "': " << state.what();
                     break;
                 case core::socket::State::DISABLED:
                     VLOG(1) << "tlsin: disabled";
                     break;
                 case core::socket::State::ERROR:
-                    VLOG(1) << "tlsin: non critical error occurred";
+                    VLOG(1) << "tlsin: " << socketAddress.toString() << ": non critical error occurred";
+                    VLOG(1) << "    " << state.what();
                     break;
                 case core::socket::State::FATAL:
-                    VLOG(1) << "tlsin: critical error occurred";
+                    VLOG(1) << "tlsin: " << socketAddress.toString() << ": critical error occurred";
+                    VLOG(1) << "    " << state.what();
                     break;
             }
         });
@@ -136,40 +146,50 @@ int main(int argc, char* argv[]) {
         using MQTTTLSUnSocketAddress = MQTTLegacyUnServer::SocketAddress;
 
         MQTTLegacyUnServer mqttLegacyUnServer("legacyun");
-        mqttLegacyUnServer.listen([](const MQTTTLSUnSocketAddress& socketAddress, core::socket::State state) -> void {
-            switch (state) {
-                case core::socket::State::OK:
-                    VLOG(1) << "legacyun: listening on '" << socketAddress.toString() << "'";
-                    break;
-                case core::socket::State::DISABLED:
-                    VLOG(1) << "legacyun: disabled";
-                    break;
-                case core::socket::State::ERROR:
-                    VLOG(1) << "legacyun: non critical error occurred";
-                    break;
-                case core::socket::State::FATAL:
-                    VLOG(1) << "legacyun: critical error occurred";
-                    break;
-            }
-        });
+        mqttLegacyUnServer.listen("/tmp/" + utils::Config::getApplicationName(),
+                                  [](const MQTTTLSUnSocketAddress& socketAddress, core::socket::State state) -> void {
+                                      switch (state) {
+                                          case core::socket::State::OK:
+                                              VLOG(1) << "legacyun: listening on '" << socketAddress.toString() << "': " << state.what();
+                                              break;
+                                          case core::socket::State::DISABLED:
+                                              VLOG(1) << "legacyun: disabled";
+                                              break;
+                                          case core::socket::State::ERROR:
+                                              VLOG(1) << "legacyun: " << socketAddress.toString() << ": non critical error occurred";
+                                              VLOG(1) << "    " << state.what();
+                                              break;
+                                          case core::socket::State::FATAL:
+                                              VLOG(1) << "legacyun: " << socketAddress.toString() << ": critical error occurred";
+                                              VLOG(1) << "    " << state.what();
+                                              break;
+                                      }
+                                  });
 
         using MQTTTLSWebView = express::tls::in::WebApp;
         using MQTTTlSWebViewSocketAddress = MQTTTLSWebView::SocketAddress;
 
         MQTTTLSWebView mqttTLSWebView("mqtttlswebview", getRouter());
-        mqttTLSWebView.listen([](const MQTTTlSWebViewSocketAddress& socketAddress, core::socket::State state) -> void {
+
+        mqttTLSWebView.getConfig().setCertChain("/home/voc/projects/mqttbroker/mqttbroker/certs/IoT-Server-Cert.pem");
+        mqttTLSWebView.getConfig().setCertKey("/home/voc/projects/mqttbroker/mqttbroker/certs/IoT-Server-Key.pem");
+        mqttTLSWebView.getConfig().setCertKeyPassword("pentium5");
+
+        mqttTLSWebView.listen(8088, [](const MQTTTlSWebViewSocketAddress& socketAddress, core::socket::State state) -> void {
             switch (state) {
                 case core::socket::State::OK:
-                    VLOG(1) << "mqtttlswebview: listening on '" << socketAddress.toString() << "'";
+                    VLOG(1) << "mqtttlswebview: listening on '" << socketAddress.toString() << "': " << state.what();
                     break;
                 case core::socket::State::DISABLED:
                     VLOG(1) << "mqtttlswebview: disabled";
                     break;
                 case core::socket::State::ERROR:
-                    VLOG(1) << "mqtttlswebview: non critical error occurred";
+                    VLOG(1) << "mqtttlswebview: " << socketAddress.toString() << ": non critical error occurred";
+                    VLOG(1) << "    " << state.what();
                     break;
                 case core::socket::State::FATAL:
-                    VLOG(1) << "mqtttlswebview: critical error occurred";
+                    VLOG(1) << "mqtttlswebview: " << socketAddress.toString() << ": critical error occurred";
+                    VLOG(1) << "    " << state.what();
                     break;
             }
         });
@@ -178,19 +198,21 @@ int main(int argc, char* argv[]) {
         using MQTTLegacyWebViewSocketAddress = MQTTLegacyWebView::SocketAddress;
 
         MQTTLegacyWebView mqttLegacyWebView("mqttlegacywebview", mqttTLSWebView);
-        mqttLegacyWebView.listen([](const MQTTLegacyWebViewSocketAddress& socketAddress, core::socket::State state) -> void {
+        mqttLegacyWebView.listen(8080, [](const MQTTLegacyWebViewSocketAddress& socketAddress, core::socket::State state) -> void {
             switch (state) {
                 case core::socket::State::OK:
-                    VLOG(1) << "mqttlegacywebview: listening on '" << socketAddress.toString() << "'";
+                    VLOG(1) << "mqttlegacywebview: listening on '" << socketAddress.toString() << "': " << state.what();
                     break;
                 case core::socket::State::DISABLED:
                     VLOG(1) << "mqttlegacywebview: disabled";
                     break;
                 case core::socket::State::ERROR:
-                    VLOG(1) << "mqttlegacywebview: non critical error occurred";
+                    VLOG(1) << "mqttlegacywebview: " << socketAddress.toString() << ": non critical error occurred";
+                    VLOG(1) << "    " << state.what();
                     break;
                 case core::socket::State::FATAL:
-                    VLOG(1) << "mqttlegacywebview: critical error occurred";
+                    VLOG(1) << "mqttlegacywebview: " << socketAddress.toString() << ": critical error occurred";
+                    VLOG(1) << "    " << state.what();
                     break;
             }
         });
