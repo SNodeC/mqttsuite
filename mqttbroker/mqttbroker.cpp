@@ -95,7 +95,7 @@ int main(int argc, char* argv[]) {
         using MQTTLegacyInSocketAddress = MQTTLegacyInServer::SocketAddress;
 
         MQTTLegacyInServer mqttLegacyInServer("legacyin");
-        mqttLegacyInServer.listen(1883, [](const MQTTLegacyInSocketAddress& socketAddress, core::socket::State state) -> void {
+        mqttLegacyInServer.listen(1883, [](const MQTTLegacyInSocketAddress& socketAddress, const core::socket::State& state) -> void {
             switch (state) {
                 case core::socket::State::OK:
                     VLOG(1) << "legacyin: listening on '" << socketAddress.toString() << "': " << state.what();
@@ -123,7 +123,7 @@ int main(int argc, char* argv[]) {
         mqttTLSInServer.getConfig().setCertKey("/home/voc/projects/mqttbroker/mqttbroker/certs/IoT-Server-Key.pem");
         mqttTLSInServer.getConfig().setCertKeyPassword("pentium5");
 
-        mqttTLSInServer.listen(8883, [](const MQTTTLSInSocketAddress& socketAddress, core::socket::State state) -> void {
+        mqttTLSInServer.listen(8883, [](const MQTTTLSInSocketAddress& socketAddress, const core::socket::State& state) -> void {
             switch (state) {
                 case core::socket::State::OK:
                     VLOG(1) << "tlsin: listening on '" << socketAddress.toString() << "': " << state.what();
@@ -147,7 +147,7 @@ int main(int argc, char* argv[]) {
 
         MQTTLegacyUnServer mqttLegacyUnServer("legacyun");
         mqttLegacyUnServer.listen("/tmp/" + utils::Config::getApplicationName(),
-                                  [](const MQTTTLSUnSocketAddress& socketAddress, core::socket::State state) -> void {
+                                  [](const MQTTTLSUnSocketAddress& socketAddress, const core::socket::State& state) -> void {
                                       switch (state) {
                                           case core::socket::State::OK:
                                               VLOG(1) << "legacyun: listening on '" << socketAddress.toString() << "': " << state.what();
@@ -175,7 +175,7 @@ int main(int argc, char* argv[]) {
         mqttTLSWebView.getConfig().setCertKey("/home/voc/projects/mqttbroker/mqttbroker/certs/IoT-Server-Key.pem");
         mqttTLSWebView.getConfig().setCertKeyPassword("pentium5");
 
-        mqttTLSWebView.listen(8088, [](const MQTTTlSWebViewSocketAddress& socketAddress, core::socket::State state) -> void {
+        mqttTLSWebView.listen(8088, [](const MQTTTlSWebViewSocketAddress& socketAddress, const core::socket::State& state) -> void {
             switch (state) {
                 case core::socket::State::OK:
                     VLOG(1) << "mqtttlswebview: listening on '" << socketAddress.toString() << "': " << state.what();
@@ -198,7 +198,7 @@ int main(int argc, char* argv[]) {
         using MQTTLegacyWebViewSocketAddress = MQTTLegacyWebView::SocketAddress;
 
         MQTTLegacyWebView mqttLegacyWebView("mqttlegacywebview", mqttTLSWebView);
-        mqttLegacyWebView.listen(8080, [](const MQTTLegacyWebViewSocketAddress& socketAddress, core::socket::State state) -> void {
+        mqttLegacyWebView.listen(8080, [](const MQTTLegacyWebViewSocketAddress& socketAddress, const core::socket::State& state) -> void {
             switch (state) {
                 case core::socket::State::OK:
                     VLOG(1) << "mqttlegacywebview: listening on '" << socketAddress.toString() << "': " << state.what();

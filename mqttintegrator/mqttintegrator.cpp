@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
 
         InMqttTlsIntegrator inMqttTlsIntegrator("mqtttlsintegrator");
 
-        inMqttTlsIntegrator.connect([](const SocketAddress& socketAddress, core::socket::State state) -> void {
+        inMqttTlsIntegrator.connect([](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
             switch (state) {
                 case core::socket::State::OK:
                     VLOG(1) << "mqtttlsintegrator: connected to '" << socketAddress.toString() << "': " << state.what();

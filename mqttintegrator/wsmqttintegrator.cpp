@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
                 VLOG(0) << "     Reason: " << reason;
             });
 
-        wsMqttLegacyIntegrator.connect([](const LegacySocketAddress& socketAddress, core::socket::State state) -> void {
+        wsMqttLegacyIntegrator.connect([](const LegacySocketAddress& socketAddress, const core::socket::State& state) -> void {
             switch (state) {
                 case core::socket::State::OK:
                     VLOG(1) << "legacy: connected to '" << socketAddress.toString() << "': " << state.what();
@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
                 VLOG(0) << "     Reason: " << reason;
             });
 
-        wsMqttTlsIntegrator.connect([](const TlsSocketAddress& socketAddress, core::socket::State state) -> void {
+        wsMqttTlsIntegrator.connect([](const TlsSocketAddress& socketAddress, const core::socket::State& state) -> void {
             switch (state) {
                 case core::socket::State::OK:
                     VLOG(1) << "tls: connecting to '" << socketAddress.toString() << "': " << state.what();
