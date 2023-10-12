@@ -54,7 +54,6 @@ namespace mqtt::mqttintegrator::lib {
         const nlohmann::json& connectionJson;
 
         uint16_t keepAlive;
-        std::string clientId;
         bool cleanSession;
         std::string willTopic;
         std::string willMessage;

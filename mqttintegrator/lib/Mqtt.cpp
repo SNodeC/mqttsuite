@@ -38,10 +38,10 @@
 namespace mqtt::mqttintegrator::lib {
 
     Mqtt::Mqtt(const nlohmann::json& connectionJson, const nlohmann::json& mappingJson)
-        : mqtt::lib::MqttMapper(mappingJson)
+        : iot::mqtt::client::Mqtt(connectionJson["client_id"])
+        , mqtt::lib::MqttMapper(mappingJson)
         , connectionJson(connectionJson)
         , keepAlive(connectionJson["keep_alive"])
-        , clientId(connectionJson["client_id"])
         , cleanSession(connectionJson["clean_session"])
         , willTopic(connectionJson["will_topic"])
         , willMessage(connectionJson["will_message"])
@@ -76,7 +76,6 @@ namespace mqtt::mqttintegrator::lib {
     void Mqtt::onConnack(const iot::mqtt::packets::Connack& connack) {
         if (connack.getReturnCode() == 0 && !connack.getSessionPresent()) {
             sendPublish("snode.c/_cfg_/connection", connectionJson.dump(), 0, true);
-            sendPublish("snode.c/_cfg_/mapping", mqtt::lib::MqttMapper::dump(), 0, true);
 
             std::list<iot::mqtt::Topic> topicList = MqttMapper::extractTopics();
 
