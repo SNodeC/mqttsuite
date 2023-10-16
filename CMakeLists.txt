@@ -29,18 +29,10 @@ add_compile_options(
     -pedantic-errors
     -fexec-charset=UTF-8
     -Wno-shadow
+    $<$<CXX_COMPILER_ID:Clang>:-Weverything>
+    $<$<CXX_COMPILER_ID:Clang>:-Wno-c++98-compat>
+    $<$<CXX_COMPILER_ID:Clang>:-Wno-padded>
 )
-
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    # using Clang
-    add_compile_options(-Weverything -Wno-c++98-compat -Wno-padded)
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    # using GCC
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-    # using Intel C++
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    # using Visual Studio C++
-endif()
 
 add_link_options(LINKER:--no-undefined)
 
