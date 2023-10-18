@@ -90,8 +90,7 @@
             }
           }
         ]
-      },
-      {
+      }, {
         "name": "temperature",
         "topic_level": [
           {
@@ -119,8 +118,7 @@
                 ]
               }
             }
-          },
-          {
+          }, {
             "name": "kelvin",
             "topic_level": {
               "name": "set",
@@ -145,8 +143,7 @@
                 ]
               }
             }
-          },
-          {
+          }, {
             "name": "farenheit",
             "topic_level": {
               "name": "set",
@@ -173,6 +170,22 @@
             }
           }
         ]
+      }, {
+        "name": "gainit",
+        "topic_level": {
+          "name": "sensor01",
+          "topic_level": {
+            "name": "temp",
+            "subscription": {
+              "qos": 2,
+              "value": {
+                "mapped_topic": "gainit/aircondition/switch",
+                "mapping_template": "{% if float(value) <= 20 %}off{% else %}on{% endif %}",
+                "retain_message": false
+              }
+            }
+          }
+        }
       }
     ]
   }
