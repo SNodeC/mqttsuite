@@ -28,6 +28,25 @@ namespace iot::mqtt {
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wfloat-equal"
+#endif
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshadow-field"
+#if __has_warning("-Wunsafe-buffer-usage")
+#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+#endif
+#endif
+#include "inja.hpp"
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
+
 #include <cstdint>
 #include <list>
 #include <nlohmann/json_fwd.hpp> // IWYU pragma: export
@@ -71,6 +90,8 @@ namespace mqtt::lib {
         virtual void publishMapping(const std::string& topic, const std::string& message, uint8_t qoS, bool retain) = 0;
 
         const nlohmann::json& mappingJson;
+
+        inja::Environment injaEnvironment;
     };
 
 } // namespace mqtt::lib

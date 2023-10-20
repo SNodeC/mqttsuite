@@ -65,9 +65,17 @@
     "mapping": {
       "type": "object",
       "required": [
-        "topic_level"
+        "topic_level",
+        "plugins"
       ],
       "properties": {
+        "plugins" : {
+          "$id": "https://www.vchrist.at/mqttmapper/schemas/plugins",
+          "type": "array",
+          "items": {
+            "§ref": "#/defs/library"
+          }
+        },
         "topic_level": {
           "$id": "https://www.vchrist.at/mqttmapper/schemas/topic_level",
           "oneOf": [

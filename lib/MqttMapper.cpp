@@ -23,8 +23,6 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include "inja.hpp"
-
 #include <algorithm>
 #include <initializer_list>
 #include <log/Logger.h>
@@ -95,7 +93,7 @@ namespace mqtt::lib {
 
         try {
             // Render
-            std::string message = inja::render(mappingTemplate, json);
+            std::string message = injaEnvironment.render(mappingTemplate, json);
 
             bool retain = templateMapping["retain_message"];
             uint8_t qoS = templateMapping.value("qos_override", publish.getQoS());
