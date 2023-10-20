@@ -65,8 +65,7 @@
     "mapping": {
       "type": "object",
       "required": [
-        "topic_level",
-        "plugins"
+        "topic_level"
       ],
       "properties": {
         "plugins" : {

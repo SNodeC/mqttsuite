@@ -12,6 +12,33 @@
     "password": "Password"
   },
   "mapping": {
+    "plugins": [
+      {
+        "library" : "/path/to/plugin1.so",
+        "functions" : [
+          {
+            "name" : "functionName1",
+            "argcount" : 1
+          },
+          {
+            "name" : "functionName2",
+            "argcount" : 2
+          }
+        ]
+      }, {
+        "library" : "/path/to/plugin2.so",
+        "functions" : [
+          {
+            "name" : "functionName1",
+            "argcount" : 1
+          },
+          {
+            "name" : "functionName2",
+            "argcount" : 2
+          }
+        ]
+      }
+    ],
     "topic_level": [
       {
         "name": "test01",
