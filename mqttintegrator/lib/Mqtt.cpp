@@ -61,13 +61,13 @@ namespace mqtt::mqttintegrator::lib {
     }
 
     void Mqtt::onConnected() {
-        LOG(INFO) << "MQTT: Initiating Session";
+        VLOG(1) << "MQTT: Initiating Session";
 
         sendConnect(keepAlive, clientId, cleanSession, willTopic, willMessage, willQoS, willRetain, username, password);
     }
 
     void Mqtt::onExit(int signum) {
-        LOG(INFO) << "MQTT: On Exit due to '" << strsignal(signum) << "' (SIG" << utils::system::sigabbrev_np(signum) << " = " << signum
+        VLOG(1) << "MQTT: On Exit due to '" << strsignal(signum) << "' (SIG" << utils::system::sigabbrev_np(signum) << " = " << signum
                   << ")";
 
         sendDisconnect();
@@ -80,7 +80,7 @@ namespace mqtt::mqttintegrator::lib {
             std::list<iot::mqtt::Topic> topicList = MqttMapper::extractTopics();
 
             for (const iot::mqtt::Topic& topic : topicList) {
-                LOG(INFO) << "MQTT: Subscribe Topic: " << topic.getName() << ", qoS: " << static_cast<uint16_t>(topic.getQoS());
+                VLOG(1) << "MQTT: Subscribe Topic: " << topic.getName() << ", qoS: " << static_cast<uint16_t>(topic.getQoS());
             }
 
             sendSubscribe(topicList);
