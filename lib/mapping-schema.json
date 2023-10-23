@@ -72,7 +72,40 @@
           "$id": "https://www.vchrist.at/mqttmapper/schemas/plugins",
           "type": "array",
           "items": {
-            "§ref": "#/defs/library"
+            "$ref": "#/$defs/library"
+          },
+          "$defs": {
+            "library": {
+              "type": "object",
+              "required": [
+                "library",
+                "functions"
+              ],
+              "properties": {
+                "library": {
+                  "type": "string"
+                },
+                "functions": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "name",
+                      "argcount"
+                    ],
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "argcount": {
+                        "type": "integer",
+                        "default": 1
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "topic_level": {
@@ -88,6 +121,55 @@
             }
           ],
           "$defs": {
+            "library": {
+              "type": "object",
+              "required": [
+                "library",
+                "functions"
+              ],
+              "properties": {
+                "library": {
+                  "type": "string"
+                },
+                "functions": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "name",
+                      "argcount"
+                    ],
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "default": ""
+                      },
+                      "argcount": {
+                        "type": "integer",
+                        "default": 1
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "function": {
+              "type": "object",
+              "required": [
+                "name",
+                "argcount"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "default": ""
+                },
+                "argcount": {
+                  "type": "integer",
+                  "default": 1
+                }
+              }
+            },
             "topic_level": {
               "type": "object",
               "required": [
