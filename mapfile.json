@@ -13,7 +13,7 @@
   },
   "mapping": {
     "plugins": [
-      "/home/voc/projects/mqttbroker/build/build-mqttbroker-Desktop_CLANG_16-Debug/lib/libmqtt-mapping-plugin.so"
+      "libmqtt-mapping-plugin.so"
     ],
     "topic_level": [
       {
