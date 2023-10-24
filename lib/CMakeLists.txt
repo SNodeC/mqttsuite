@@ -85,5 +85,5 @@ target_compile_options(mqtt-mapping PUBLIC -Wno-float-equal)
 add_library(mqtt-mapping-plugin SHARED MqttMapperPlugin.cpp)
 
 target_compile_options(
-    mqtt-mapping-plugin PUBLIC -Wno-float-equal -Wno-return-type-c-linkage -Wno-missing-prototypes
+    mqtt-mapping-plugin PUBLIC -Wno-float-equal -Wno-return-type-c-linkage
 )
