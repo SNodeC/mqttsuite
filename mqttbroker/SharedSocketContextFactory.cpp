@@ -16,36 +16,30 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "mqttintegrator/lib/SocketContextFactory.h"
+#include "SharedSocketContextFactory.h"
 
 #include "lib/JsonMappingReader.h"
-#include "mqttintegrator/lib/Mqtt.h"
+#include "mqttbroker/lib/Mqtt.h"
 
 #include <iot/mqtt/SocketContext.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <map>
 #include <nlohmann/json.hpp>
 #include <stdexcept>
 #include <utils/Config.h>
 
 #endif
 
-namespace mqtt::mqttintegrator {
+namespace mqtt::mqttbroker {
 
-    core::socket::stream::SocketContext* SocketContextFactory::create(core::socket::stream::SocketConnection* socketConnection) {
-        iot::mqtt::SocketContext* socketContext = nullptr;
-
-        nlohmann::json& mappingJson =
-            mqtt::lib::JsonMappingReader::readMappingFromFile(utils::Config::get_string_option_value("--mqtt-mapping-file"));
-
-        if (mappingJson.contains("connection")) {
-            socketContext = new iot::mqtt::SocketContext(
-                socketConnection, new mqtt::mqttintegrator::lib::Mqtt(mappingJson["connection"], mappingJson["mapping"]));
-        }
-
-        return socketContext;
+    core::socket::stream::SocketContext* SharedSocketContextFactory::create(core::socket::stream::SocketConnection* socketConnection,
+                                                                            std::shared_ptr<iot::mqtt::server::broker::Broker> broker) {
+        return new iot::mqtt::SocketContext(
+            socketConnection,
+            new mqtt::mqttbroker::lib::Mqtt(broker,
+                                            mqtt::lib::JsonMappingReader::readMappingFromFile(
+                                                utils::Config::get_string_option_value("--mqtt-mapping-file"))["mapping"]));
     }
 
-} // namespace mqtt::mqttintegrator
+} // namespace mqtt::mqttbroker

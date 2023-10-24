@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "mqttintegrator/lib/SocketContextFactory.h" // IWYU pragma: keep
+#include "SocketContextFactory.h" // IWYU pragma: keep
 
 #include <core/SNodeC.h>
 #include <net/in/stream/tls/SocketClient.h>

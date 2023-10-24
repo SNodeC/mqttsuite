@@ -12,8 +12,8 @@ find_package(
                              websocket-client mqtt-client
 )
 
-set(MQTTINTEGRATOR_CPP mqttintegrator.cpp)
-set(MQTTINTEGRATOR_H)
+set(MQTTINTEGRATOR_CPP mqttintegrator.cpp SocketContextFactory.cpp)
+set(MQTTINTEGRATOR_H SocketContextFactory.h)
 
 add_executable(mqttintegrator ${MQTTINTEGRATOR_CPP} ${MQTTINTEGRATOR_H})
 

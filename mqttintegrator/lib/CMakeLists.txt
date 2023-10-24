@@ -6,10 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(nlohmann_json 3.7.0)
 find_package(snodec COMPONENTS mqtt-client)
 
-set(MQTTINTEGRATOR_CPP Mqtt.cpp SocketContextFactory.cpp)
-set(MQTTINTEGRATOR_H SocketContextFactory.h)
-
-add_library(mqtt-integrator SHARED ${MQTTINTEGRATOR_CPP} ${MQTTINTEGRATOR_H})
+add_library(mqtt-integrator SHARED Mqtt.cpp Mqtt.h)
 
 target_include_directories(mqtt-integrator PUBLIC ${PROJECT_SOURCE_DIR})
 
