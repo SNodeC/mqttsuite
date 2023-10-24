@@ -6,10 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(nlohmann_json 3.7.0)
 find_package(snodec COMPONENTS mqtt-server)
 
-set(MQTTBROKER_CPP Mqtt.cpp MqttModel.cpp SharedSocketContextFactory.cpp)
-set(MQTTBROKER_H MqttModel.h SharedSocketContextFactory.h)
-
-add_library(mqtt-broker SHARED ${MQTTBROKER_CPP} ${MQTTBROKER_H})
+add_library(mqtt-broker SHARED Mqtt.cpp Mqtt.h MqttModel.cpp MqttModel.h)
 
 set_source_files_properties(
     MqttModel.cpp PROPERTIES COMPILE_FLAGS -Wno-exit-time-destructors
