@@ -33,6 +33,7 @@ namespace iot::mqtt {
 #ifdef __has_warning
 #if __has_warning("-Wc++98-compat-pedantic")
 #pragma GCC diagnostic ignored "-Wc++98-compat-pedantic"
+#endif
 #if __has_warning("-Wcovered-switch-default")
 #pragma GCC diagnostic ignored "-Wcovered-switch-default"
 #endif
@@ -50,7 +51,6 @@ namespace iot::mqtt {
 #endif
 #if __has_warning("-Wweak-vtables")
 #pragma GCC diagnostic ignored "-Wweak-vtables"
-#endif
 #endif
 #endif
 #endif
