@@ -147,7 +147,7 @@ int main(int argc, char* argv[]) {
 
         MQTTLegacyUnServer mqttLegacyUnServer("legacyun");
         mqttLegacyUnServer.listen("/tmp/" + utils::Config::getApplicationName(),
-                                  [](const MQTTTLSUnSocketAddress& socketAddress, const core::socket::State& state) -> void {
+                                  [](const MQTTLegacyUnSocketAddress& socketAddress, const core::socket::State& state) -> void {
                                       switch (state) {
                                           case core::socket::State::OK:
                                               VLOG(1) << "legacyun: listening on '" << socketAddress.toString() << "': " << state.what();
