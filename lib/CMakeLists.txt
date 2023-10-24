@@ -87,3 +87,5 @@ add_library(mqtt-mapping-plugin SHARED MqttMapperPlugin.cpp)
 target_compile_options(
     mqtt-mapping-plugin PUBLIC -Wno-float-equal -Wno-return-type-c-linkage
 )
+
+install(TARGETS mqtt-mapping-plugin RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR})
