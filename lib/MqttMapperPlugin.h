@@ -42,6 +42,7 @@ namespace mqtt::lib {
 } // namespace mqtt::lib
 
 extern "C" {
+    std::vector<mqtt::lib::Function> getFunctions();
     std::vector<mqtt::lib::Function> getFunctions() {
         return mqtt::lib::functions;
     }
