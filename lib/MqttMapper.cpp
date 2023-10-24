@@ -54,14 +54,18 @@ namespace mqtt::lib {
                 std::vector<mqtt::lib::Function> (*getFunctions)() =
                     reinterpret_cast<std::vector<mqtt::lib::Function> (*)()>(dlsym(handle, "getFunctions"));
 
-                for (const mqtt::lib::Function& function : getFunctions()) {
-                    VLOG(1) << "Registering Function " << function.name;
+                if (getFunctions != nullptr) {
+                    for (const mqtt::lib::Function& function : getFunctions()) {
+                        VLOG(1) << "Registering Function " << function.name;
 
-                    if (function.numArgs >= 0) {
-                        injaEnvironment.add_callback(function.name, function.numArgs, function.function);
-                    } else {
-                        injaEnvironment.add_callback(function.name, function.function);
+                        if (function.numArgs >= 0) {
+                            injaEnvironment.add_callback(function.name, function.numArgs, function.function);
+                        } else {
+                            injaEnvironment.add_callback(function.name, function.function);
+                        }
                     }
+                } else {
+                    VLOG(1) << "No function getFunctions found";
                 }
             }
 
