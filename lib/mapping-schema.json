@@ -63,6 +63,7 @@
       }
     },
     "mapping": {
+      "$id": "https://www.vchrist.at/mqttmapper/schemas/mapping",
       "type": "object",
       "required": [
         "topic_level"
@@ -76,35 +77,7 @@
           },
           "$defs": {
             "library": {
-              "type": "object",
-              "required": [
-                "library",
-                "functions"
-              ],
-              "properties": {
-                "library": {
-                  "type": "string"
-                },
-                "functions": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "required": [
-                      "name",
-                      "argcount"
-                    ],
-                    "properties": {
-                      "name": {
-                        "type": "string"
-                      },
-                      "argcount": {
-                        "type": "integer",
-                        "default": 1
-                      }
-                    }
-                  }
-                }
-              }
+              "type": "string"
             }
           }
         },

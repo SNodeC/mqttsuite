@@ -30,24 +30,37 @@ namespace iot::mqtt {
 
 #ifdef __GNUC__
 #pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wfloat-equal"
+#ifdef __has_warning
+#if __has_warning("-Wc++98-compat-pedantic")
+#pragma GCC diagnostic ignored "-Wc++98-compat-pedantic"
+#if __has_warning("-Wcovered-switch-default")
+#pragma GCC diagnostic ignored "-Wcovered-switch-default"
 #endif
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wshadow-field"
-#if __has_warning("-Wunsafe-buffer-usage")
-#pragma clang diagnostic ignored "-Wunsafe-buffer-usage"
+#if __has_warning("-Wexit-time-destructors")
+#pragma GCC diagnostic ignored "-Wexit-time-destructors"
+#endif
+#if __has_warning("-Wglobal-constructors")
+#pragma GCC diagnostic ignored "-Wglobal-constructors"
+#endif
+#if __has_warning("-Wreserved-macro-identifier")
+#pragma GCC diagnostic ignored "-Wreserved-macro-identifier"
+#endif
+#if __has_warning("-Wswitch-enum")
+#pragma GCC diagnostic ignored "-Wswitch-enum"
+#endif
+#if __has_warning("-Wweak-vtables")
+#pragma GCC diagnostic ignored "-Wweak-vtables"
+#endif
+#endif
 #endif
 #endif
 #include "inja.hpp"
-#ifdef __clang__
-#pragma clang diagnostic pop
-#endif
-#ifdef __GNUC__
+#ifdef __GNUC_
 #pragma GCC diagnostic pop
 #endif
 
 #include <cstdint>
+#include <functional>
 #include <list>
 #include <nlohmann/json_fwd.hpp> // IWYU pragma: export
 #include <string>
@@ -92,6 +105,18 @@ namespace mqtt::lib {
         const nlohmann::json& mappingJson;
 
         inja::Environment injaEnvironment;
+    };
+
+    struct Function {
+        Function(const std::string& name, int numArgs, const std::function<inja::json(inja::Arguments&)>& function)
+            : name(name)
+            , numArgs(numArgs)
+            , function(function) {
+        }
+
+        std::string name;
+        int numArgs;
+        std::function<inja::json(inja::Arguments&)> function;
     };
 
 } // namespace mqtt::lib

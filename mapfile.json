@@ -13,31 +13,7 @@
   },
   "mapping": {
     "plugins": [
-      {
-        "library" : "/path/to/plugin1.so",
-        "functions" : [
-          {
-            "name" : "functionName1",
-            "argcount" : 1
-          },
-          {
-            "name" : "functionName2",
-            "argcount" : 2
-          }
-        ]
-      }, {
-        "library" : "/path/to/plugin2.so",
-        "functions" : [
-          {
-            "name" : "functionName1",
-            "argcount" : 1
-          },
-          {
-            "name" : "functionName2",
-            "argcount" : 2
-          }
-        ]
-      }
+      "/home/voc/projects/mqttbroker/build/build-mqttbroker-Desktop_CLANG_16-Debug/lib/libmqtt-mapping-plugin.so"
     ],
     "topic_level": [
       {
@@ -211,6 +187,17 @@
                 "retain_message": false
               }
             }
+          } 
+        }
+      },
+      {
+        "name": "double",
+        "subscription": {
+          "qos": 2,
+          "value": {
+            "mapped_topic": "result",
+            "mapping_template": "{{ double(float(value)) }}",
+            "retain_message": false
           }
         }
       }

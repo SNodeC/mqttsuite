@@ -79,3 +79,11 @@ set_target_properties(mqtt-mapping PROPERTIES POSITION_INDEPENDENT_CODE ON)
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     target_compile_options(mqtt-mapping PRIVATE -Wno-shadow-field)
 endif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+
+target_compile_options(mqtt-mapping PUBLIC -Wno-float-equal)
+
+add_library(mqtt-mapping-plugin SHARED MqttMapperPlugin.cpp)
+
+target_compile_options(
+    mqtt-mapping-plugin PUBLIC -Wno-float-equal -Wno-return-type-c-linkage -Wno-missing-prototypes
+)
