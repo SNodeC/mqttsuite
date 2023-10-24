@@ -6,7 +6,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(nlohmann_json 3.7.0)
 find_package(snodec COMPONENTS mqtt-client)
 
-
 set(MQTTINTEGRATOR_CPP Mqtt.cpp SocketContextFactory.cpp)
 set(MQTTINTEGRATOR_H SocketContextFactory.h)
 

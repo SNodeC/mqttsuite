@@ -6,7 +6,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(nlohmann_json 3.7.0)
 find_package(snodec COMPONENTS mqtt-server)
 
-
 set(MQTTBROKER_CPP Mqtt.cpp MqttModel.cpp SharedSocketContextFactory.cpp)
 set(MQTTBROKER_H MqttModel.h SharedSocketContextFactory.h)
 

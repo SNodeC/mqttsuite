@@ -18,12 +18,14 @@
 
 #include "MqttMapper.h"
 
+#include <core/DynamicLoader.h>
 #include <iot/mqtt/Topic.h>
 #include <iot/mqtt/packets/Publish.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <algorithm>
+#include <dlfcn.h>
 #include <initializer_list>
 #include <log/Logger.h>
 #include <map>
@@ -40,6 +42,31 @@ namespace mqtt::lib {
 
     MqttMapper::MqttMapper(const nlohmann::json& mappingJson)
         : mappingJson(mappingJson) {
+        if (mappingJson.contains("plugins")) {
+            VLOG(1) << "Loading plugins ...";
+
+            for (const nlohmann::json& pluginJson : mappingJson["plugins"]) {
+                std::string plugin = pluginJson;
+                VLOG(1) << "Loading plugin: " << plugin;
+
+                void* handle = dlOpen(plugin, RTLD_LOCAL | RTLD_LAZY);
+
+                std::vector<mqtt::lib::Function> (*getFunctions)() =
+                    reinterpret_cast<std::vector<mqtt::lib::Function> (*)()>(dlsym(handle, "getFunctions"));
+
+                for (const mqtt::lib::Function& function : getFunctions()) {
+                    VLOG(1) << "Registering Function " << function.name;
+
+                    if (function.numArgs >= 0) {
+                        injaEnvironment.add_callback(function.name, function.numArgs, function.function);
+                    } else {
+                        injaEnvironment.add_callback(function.name, function.function);
+                    }
+                }
+            }
+
+            VLOG(1) << "Loading plugins done";
+        }
     }
 
     MqttMapper::~MqttMapper() {

@@ -69,7 +69,7 @@ namespace mqtt::mqttintegrator::lib {
 
     void Mqtt::onExit(int signum) {
         VLOG(1) << "MQTT: On Exit due to '" << strsignal(signum) << "' (SIG" << utils::system::sigabbrev_np(signum) << " = " << signum
-                  << ")";
+                << ")";
 
         sendDisconnect();
     }

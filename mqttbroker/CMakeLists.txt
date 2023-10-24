@@ -8,8 +8,9 @@ add_subdirectory(websocket)
 
 find_package(nlohmann_json 3.7.0)
 find_package(
-    snodec 0.90.0 COMPONENTS net-in-stream-legacy net-in-stream-tls
-                      net-un-stream-legacy http-server-express mqtt-server
+    snodec 0.90.0
+    COMPONENTS net-in-stream-legacy net-in-stream-tls net-un-stream-legacy
+               http-server-express mqtt-server
 )
 
 set(MQTTBROKER_CPP mqttbroker.cpp)
