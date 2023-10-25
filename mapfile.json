@@ -18,56 +18,95 @@
     "topic_level": [
       {
         "name": "test01",
-        "topic_level": {
-          "name": "button1",
-          "subscription": {
-            "type": "binary_sensor",
-            "qos": 2,
-            "static": [
-              {
-                "mapped_topic": "mapping/value",
-                "message_mapping": [
-                  {
+        "topic_level": [
+          {
+            "name": "button1",
+            "subscription": {
+              "type": "binary_sensor",
+              "qos": 2,
+              "static": [
+                {
+                  "mapped_topic": "mapping/value",
+                  "message_mapping": [
+                    {
+                      "message": "pressed",
+                      "mapped_message": "on"
+                    },
+                    {
+                      "message": "released",
+                      "mapped_message": "off"
+                    }
+                  ]
+                },
+                {
+                  "mapped_topic": "strip/strip1/rgb/set",
+                  "message_mapping": {
                     "message": "pressed",
-                    "mapped_message": "on"
+                    "mapped_message": "front red"
+                  }
+                },
+                {
+                  "mapped_topic": "test02/strip1/rgb/set",
+                  "message_mapping": {
+                    "message": "pressed",
+                    "mapped_message": "front red"
+                  }
+                },
+                {
+                  "mapped_topic": "strip/strip1/brightness/set",
+                  "message_mapping": {
+                    "message": "released",
+                    "mapped_message": "0"
+                  }
+                },
+                {
+                  "mapped_topic": "test02/strip1/brightness/set",
+                  "message_mapping": {
+                    "message": "released",
+                    "mapped_message": "0"
+                  }
+                }
+              ]
+            }
+          }, {
+            "name": "rfid",
+            "topic_level": {
+              "name": "uid",
+              "subscription": {
+                "type": "rfid reader",
+                "static": [
+                  {
+                    "mapped_topic": "test02/strip1/rgb/set",
+                    "message_mapping": {
+                      "message": "739bb7a6",
+                      "mapped_message": "front green"
+                    }
+                  }, {
+                    "mapped_topic": "strip/strip1/rgb/set",
+                    "message_mapping": {
+                      "message": "739bb7a6",
+                      "mapped_message": "front green"
+                    }
                   },
                   {
-                    "message": "released",
-                    "mapped_message": "off"
+                    "mapped_topic": "strip/strip1/brightness/set",
+                    "message_mapping": {
+                      "message": "none",
+                      "mapped_message": "0"
+                    }
+                  },
+                  {
+                    "mapped_topic": "test02/strip1/brightness/set",
+                    "message_mapping": {
+                      "message": "none",
+                      "mapped_message": "0"
+                    }
                   }
                 ]
-              },
-              {
-                "mapped_topic": "strip/strip1/rgb/set",
-                "message_mapping": {
-                  "message": "pressed",
-                  "mapped_message": "front red"
-                }
-              },
-              {
-                "mapped_topic": "test02/strip1/rgb/set",
-                "message_mapping": {
-                  "message": "pressed",
-                  "mapped_message": "front red"
-                }
-              },
-              {
-                "mapped_topic": "strip/strip1/brightness/set",
-                "message_mapping": {
-                  "message": "released",
-                  "mapped_message": "0"
-                }
-              },
-              {
-                "mapped_topic": "test02/strip1/brightness/set",
-                "message_mapping": {
-                  "message": "released",
-                  "mapped_message": "0"
-                }
               }
-            ]
+            }
           }
-        }
+        ]
       }, {
         "name": "mapping",
         "topic_level": [
