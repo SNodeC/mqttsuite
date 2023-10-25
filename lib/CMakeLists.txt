@@ -14,11 +14,7 @@ find_package(snodec COMPONENTS mqtt)
 
 target_compile_options(
     nlohmann_json_schema_validator
-    PUBLIC -Wno-c++98-compat-pedantic
-           -Wno-covered-switch-default
-           -Wno-exit-time-destructors
-           -Wno-float-equal
-           -Wno-global-constructors
+    PUBLIC -Wno-float-equal
            -Wno-reserved-macro-identifier
            -Wno-switch-enum
            -Wno-weak-vtables
@@ -82,10 +78,4 @@ endif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 
 target_compile_options(mqtt-mapping PUBLIC -Wno-float-equal)
 
-add_library(mqtt-mapping-plugin SHARED MqttMapperPlugin.cpp)
-
-target_compile_options(
-    mqtt-mapping-plugin PUBLIC -Wno-float-equal -Wno-return-type-c-linkage
-)
-
-install(TARGETS mqtt-mapping-plugin RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR})
+add_subdirectory(plugins)

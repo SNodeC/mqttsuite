@@ -13,7 +13,7 @@
   },
   "mapping": {
     "plugins": [
-      "libmqtt-mapping-plugin.so"
+      "libmqtt-mapping-plugin-double.so"
     ],
     "topic_level": [
       {
