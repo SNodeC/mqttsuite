@@ -16,47 +16,18 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "MqttMapperPlugin.h"
+#include "lib/MqttMapperPlugin.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#ifdef __has_warning
-#if __has_warning("-Wc++98-compat-pedantic")
-#pragma GCC diagnostic ignored "-Wc++98-compat-pedantic"
-#endif
-#if __has_warning("-Wcovered-switch-default")
-#pragma GCC diagnostic ignored "-Wcovered-switch-default"
-#endif
-#if __has_warning("-Wexit-time-destructors")
-#pragma GCC diagnostic ignored "-Wexit-time-destructors"
-#endif
-#if __has_warning("-Wglobal-constructors")
-#pragma GCC diagnostic ignored "-Wglobal-constructors"
-#endif
-#if __has_warning("-Wreserved-macro-identifier")
-#pragma GCC diagnostic ignored "-Wreserved-macro-identifier"
-#endif
-#if __has_warning("-Wswitch-enum")
-#pragma GCC diagnostic ignored "-Wswitch-enum"
-#endif
-#if __has_warning("-Wweak-vtables")
-#pragma GCC diagnostic ignored "-Wweak-vtables"
-#endif
-#endif
-#endif
-#include "inja.hpp"
-#ifdef __GNUC_
-#pragma GCC diagnostic pop
-#endif
+#include "lib/inja.hpp"
 
 #include <map>
 #include <nlohmann/json.hpp>
 
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
-namespace mqtt::lib {
+namespace mqtt::lib::plugins::double_plugin {
 
     nlohmann::json myDouble(const inja::Arguments& args);
     nlohmann::json myDouble(const inja::Arguments& args) {
@@ -64,6 +35,11 @@ namespace mqtt::lib {
         return 2 * number;
     }
 
-    std::vector<Function> functions{{"double", 1, mqtt::lib::myDouble}, {"double", 2, mqtt::lib::myDouble}};
+} // namespace mqtt::lib::plugins::double_plugin
 
-} // namespace mqtt::lib
+namespace mqtt::lib {
+
+    std::vector<mqtt::lib::Function> functions{{"double", 1, mqtt::lib::plugins::double_plugin::myDouble},
+                                               {"double", 2, mqtt::lib::plugins::double_plugin::myDouble}};
+
+}

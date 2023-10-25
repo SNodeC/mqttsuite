@@ -19,12 +19,12 @@
 #ifndef MQTT_LIB_MQTTMAPPERPLUGIN_H
 #define MQTT_LIB_MQTTMAPPERPLUGIN_H
 
-#include "MqttMapper.h"
+#include "MqttMapper.h" // IWYU pragma: export
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <algorithm>
-#include <vector>
+#include <vector> // IWYU pragma: export
 
 // IWYU pragma: no_include <nlohmann/json.hpp>
 
