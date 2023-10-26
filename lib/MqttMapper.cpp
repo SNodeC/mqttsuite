@@ -128,19 +128,19 @@ namespace mqtt::lib {
             VLOG(1) << "     \"" << publish.getMessage() << "\" -> \"" << message << "\"";
 
             const nlohmann::json& suppressions = templateMapping["suppressions"];
-
             bool retain = templateMapping["retain_message"];
 
             if (std::find(suppressions.begin(), suppressions.end(), message) == suppressions.end() || (retain && message == "")) {
                 uint8_t qoS = templateMapping.value("qos_override", publish.getQoS());
 
-                VLOG(1) << "      send mapping: \"" << commandTopic << "\":\"" << message << "\"";
+                VLOG(1) << "      send mapping: " << commandTopic << ":" << message << "";
+                VLOG(1) << "                    qos:" << static_cast<int>(qoS);
 
                 publishMapping(commandTopic, message, qoS, retain);
             } else {
-                VLOG(1) << "       result message \"" << message << "\" in suppression list:";
+                VLOG(1) << "       result message '" << message << "' in suppression list:";
                 for (const nlohmann::json& item : suppressions) {
-                    VLOG(1) << "         \"" << item.get<std::string>() << "\"";
+                    VLOG(1) << "         '" << item.get<std::string>() << "'";
                 }
                 VLOG(1) << "      send mapping: suppressed";
             }
@@ -172,7 +172,8 @@ namespace mqtt::lib {
         uint8_t qoS = staticMapping.value("qos_override", publish.getQoS());
 
         VLOG(1) << "     \"" << publish.getMessage() << "\" -> \"" << message << "\"";
-        VLOG(1) << "      send mapping: \"" << commandTopic << "\":\"" << message << "\"";
+        VLOG(1) << "      send mapping: " << commandTopic << ":" << message;
+        VLOG(1) << "                    qos:" << static_cast<int>(qoS);
 
         publishMapping(commandTopic, message, qoS, retain);
     }
