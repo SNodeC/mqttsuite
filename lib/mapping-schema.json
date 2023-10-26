@@ -219,10 +219,10 @@
                   "type": "string",
                   "minLength": 1
                 },
-                "no_send": {
+                "suppressions": {
                   "type": "array",
                   "items": { "type": "string" },
-                  "default": [ "void" ]
+                  "default": [ "" ]
                 }
               }
             },

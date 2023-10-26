@@ -127,21 +127,21 @@ namespace mqtt::lib {
             std::string message = injaEnvironment.render(mappingTemplate, json);
             VLOG(1) << "     \"" << publish.getMessage() << "\" -> \"" << message << "\"";
 
-            const nlohmann::json& noSendArray = templateMapping["no_send"];
+            const nlohmann::json& suppressions = templateMapping["suppressions"];
 
-            if (std::find(noSendArray.begin(), noSendArray.end(), message) == noSendArray.end()) {
+            if (std::find(suppressions.begin(), suppressions.end(), message) == suppressions.end()) {
                 bool retain = templateMapping["retain_message"];
                 uint8_t qoS = templateMapping.value("qos_override", publish.getQoS());
 
-                VLOG(1) << "  ... send mapping: \"" << commandTopic << "\":\"" << message << "\"";
+                VLOG(1) << "      send mapping: \"" << commandTopic << "\":\"" << message << "\"";
 
                 publishMapping(commandTopic, message, qoS, retain);
             } else {
-                VLOG(1) << "       result message '" << message << "' in 'no_send' list:";
-                for (const nlohmann::json& item : noSendArray) {
-                    VLOG(1) << "         " << item.get<std::string>();
+                VLOG(1) << "       result message \"" << message << "\" in suppression list:";
+                for (const nlohmann::json& item : suppressions) {
+                    VLOG(1) << "         \"" << item.get<std::string>() << "\"";
                 }
-                VLOG(1) << "  ... not sending";
+                VLOG(1) << "      send mapping: suppressed";
             }
         } catch (const inja::InjaError& e) {
             LOG(ERROR) << e.what();
@@ -171,7 +171,7 @@ namespace mqtt::lib {
         uint8_t qoS = staticMapping.value("qos_override", publish.getQoS());
 
         VLOG(1) << "     \"" << publish.getMessage() << "\" -> \"" << message << "\"";
-        VLOG(1) << "  ... send mapping: \"" << commandTopic << "\":\"" << message << "\"";
+        VLOG(1) << "      send mapping: \"" << commandTopic << "\":\"" << message << "\"";
 
         publishMapping(commandTopic, message, qoS, retain);
     }
@@ -185,7 +185,7 @@ namespace mqtt::lib {
             if (messageMapping["message"] == publish.getMessage()) {
                 publishMappedMessage(staticMapping, messageMapping["mapped_message"], publish);
             } else {
-                VLOG(1) << "  ... no matching mapped message found";
+                VLOG(1) << "      no matching mapped message found";
             }
         } else {
             const nlohmann::json::const_iterator matchedMessageMappingIterator =
@@ -200,7 +200,7 @@ namespace mqtt::lib {
             if (matchedMessageMappingIterator != messageMapping.end()) {
                 publishMappedMessage(staticMapping, (*matchedMessageMappingIterator)["mapped_message"], publish);
             } else {
-                VLOG(1) << "  ... no matching mapped message found";
+                VLOG(1) << "      no matching mapped message found";
             }
         }
     }
