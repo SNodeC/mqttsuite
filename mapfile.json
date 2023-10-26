@@ -31,35 +31,30 @@
                     {
                       "message": "pressed",
                       "mapped_message": "on"
-                    },
-                    {
+                    }, {
                       "message": "released",
                       "mapped_message": "off"
                     }
                   ]
-                },
-                {
+                }, {
                   "mapped_topic": "strip/strip1/rgb/set",
                   "message_mapping": {
                     "message": "pressed",
                     "mapped_message": "front red"
                   }
-                },
-                {
+                }, {
                   "mapped_topic": "test02/strip1/rgb/set",
                   "message_mapping": {
                     "message": "pressed",
                     "mapped_message": "front red"
                   }
-                },
-                {
+                }, {
                   "mapped_topic": "strip/strip1/brightness/set",
                   "message_mapping": {
                     "message": "released",
                     "mapped_message": "0"
                   }
-                },
-                {
+                }, {
                   "mapped_topic": "test02/strip1/brightness/set",
                   "message_mapping": {
                     "message": "released",
@@ -87,15 +82,13 @@
                       "message": "739bb7a6",
                       "mapped_message": "front green"
                     }
-                  },
-                  {
+                  }, {
                     "mapped_topic": "strip/strip1/brightness/set",
                     "message_mapping": {
                       "message": "none",
                       "mapped_message": "0"
                     }
-                  },
-                  {
+                  }, {
                     "mapped_topic": "test02/strip1/brightness/set",
                     "message_mapping": {
                       "message": "none",
@@ -146,13 +139,11 @@
                     "mapped_topic": "temperature/celsius",
                     "mapping_template": "{{ round(float(value), 2) }}",
                     "retain_message": true
-                  },
-                  {
+                  }, {
                     "mapped_topic": "temperature/kelvin",
                     "mapping_template": "{{ round(float(value) + 273.15, 2) }}",
                     "retain_message": true
-                  },
-                  {
+                  }, {
                     "mapped_topic": "temperature/farenheit",
                     "mapping_template": "{{ round(float(value) * 1.8 + 32, 2) }}",
                     "retain_message": true
@@ -171,13 +162,11 @@
                     "mapped_topic": "temperature/celsius",
                     "mapping_template": "{{ round(float(value) - 273.15, 2) }}",
                     "retain_message": true
-                  },
-                  {
+                  }, {
                     "mapped_topic": "temperature/kelvin",
                     "mapping_template": "{{ round(float(value), 2) }}",
                     "retain_message": true
-                  },
-                  {
+                  }, {
                     "mapped_topic": "temperature/farenheit",
                     "mapping_template": "{{ round((float(value) - 273.15) * 1.8 + 32, 2) }}",
                     "retain_message": true
@@ -196,13 +185,11 @@
                     "mapped_topic": "temperature/celsius",
                     "mapping_template": "{{ round((float(value) - 32) / 1.8, 2) }}",
                     "retain_message": true
-                  },
-                  {
+                  }, {
                     "mapped_topic": "temperature/kelvin",
                     "mapping_template": "{{ round((float(value) - 32) / 1.8 + 273.15, 2) }}",
                     "retain_message": true
-                  },
-                  {
+                  }, {
                     "mapped_topic": "temperature/farenheit",
                     "mapping_template": "{{ round(float(value), 2) }}",
                     "retain_message": true
@@ -226,10 +213,9 @@
                 "retain_message": false
               }
             }
-          } 
+          }
         }
-      },
-      {
+      }, {
         "name": "double",
         "subscription": {
           "qos": 2,
