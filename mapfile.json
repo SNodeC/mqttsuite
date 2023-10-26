@@ -13,7 +13,8 @@
   },
   "mapping": {
     "plugins": [
-      "libmqtt-mapping-plugin-double.so"
+      "libmqtt-mapping-plugin-double.so",
+      "libmqtt-mapping-plugin-storage.so"
     ],
     "topic_level": [
       {
@@ -207,7 +208,7 @@
           "qos": 2,
           "value": {
             "mapped_topic": "result",
-            "mapping_template": "{{ double(float(value)) }}",
+            "mapping_template": "{{ double(float(value)) + recall_as_int(\"name\") }}{{ store(\"name\", value) }}",
             "retain_message": false
           }
         }
