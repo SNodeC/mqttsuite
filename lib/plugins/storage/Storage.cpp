@@ -99,4 +99,5 @@ namespace mqtt::lib {
                                                {"recall_as_float", 1, mqtt::lib::plugins::storage_plugin::Storage::recall_as_float},
                                                {"is_empty", 1, mqtt::lib::plugins::storage_plugin::Storage::is_empty},
                                                {"exists", 1, mqtt::lib::plugins::storage_plugin::Storage::exists}};
+
 }
