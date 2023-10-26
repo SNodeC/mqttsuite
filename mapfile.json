@@ -72,10 +72,10 @@
                 "type": "rfid reader",
                 "value": [{
                   "mapped_topic": "test02/strip1/rgb/set",
-                  "mapping_template": "{% if value == \"739bb7a6\" %}{front green}{% endif %}"
+                  "mapping_template": "{% if value == \"739bb7a6\" %}front green{% endif %}"
                 }, {
                   "mapped_topic": "strip/strip1/rgb/set",
-                  "mapping_template": "{% if value == \"739bb7a6\" %}{front green}{% endif %}"
+                  "mapping_template": "{% if value == \"739bb7a6\" %}front green{% endif %}"
                 }, {
                   "mapped_topic": "strip/strip1/brightness/set",
                   "mapping_template": "{% if value == \"none\" %}0{% endif %}"
