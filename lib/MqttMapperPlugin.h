@@ -37,7 +37,9 @@ namespace inja {
 
 namespace mqtt::lib {
 
-    extern std::vector<Function> functions;
+    extern "C" {
+        extern std::vector<Function> functions;
+    }
 
 } // namespace mqtt::lib
 
