@@ -129,8 +129,9 @@ namespace mqtt::lib {
 
             const nlohmann::json& suppressions = templateMapping["suppressions"];
 
-            if (std::find(suppressions.begin(), suppressions.end(), message) == suppressions.end()) {
-                bool retain = templateMapping["retain_message"];
+            bool retain = templateMapping["retain_message"];
+
+            if (std::find(suppressions.begin(), suppressions.end(), message) == suppressions.end() || (retain && message == "")) {
                 uint8_t qoS = templateMapping.value("qos_override", publish.getQoS());
 
                 VLOG(1) << "      send mapping: \"" << commandTopic << "\":\"" << message << "\"";
