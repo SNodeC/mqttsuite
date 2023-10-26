@@ -109,7 +109,8 @@
               "value": {
                 "mapped_topic": "mapping/json",
                 "mapping_template": "{\"state\":\"{{value}}\"}",
-                "mapping_template_also_works": "{% if value == \"on\" %}{\"state\": \"on\"}{% else if value == \"off\" %}{\"state\": \"off\"}{% endif %}"
+                "mapping_template_also_works": "{% if value == \"on\" %}{\"state\": \"on\"}{% else if value == \"off\" %}{\"state\": \"off\"}{% endif %}",
+                "no_send": [ "{\"state\":\"on\"}", "{\"state\":\"off\"}" ]
               }
             }
           },
