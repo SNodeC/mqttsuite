@@ -218,14 +218,17 @@
                 "mapping_template": {
                   "type": "string",
                   "minLength": 1
+                },
+                "no_send": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "default": [ "void" ]
                 }
               }
             },
             "mapping_commons": {
               "type": "object",
-              "required": [
-                "mapped_topic"
-              ],
+              "required": [ "mapped_topic" ],
               "properties": {
                 "mapped_topic": {
                   "type": "string",

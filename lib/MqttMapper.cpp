@@ -125,15 +125,23 @@ namespace mqtt::lib {
         try {
             // Render
             std::string message = injaEnvironment.render(mappingTemplate, json);
+            VLOG(1) << "     \"" << publish.getMessage() << "\" -> \"" << message << "\"";
 
-            bool retain = templateMapping["retain_message"];
-            uint8_t qoS = templateMapping.value("qos_override", publish.getQoS());
+            const nlohmann::json& noSendArray = templateMapping["no_send"];
 
-            if (!message.empty()) {
-                VLOG(1) << "     \"" << publish.getMessage() << "\" -> \"" << message << "\"";
+            if (std::find(noSendArray.begin(), noSendArray.end(), message) == noSendArray.end()) {
+                bool retain = templateMapping["retain_message"];
+                uint8_t qoS = templateMapping.value("qos_override", publish.getQoS());
+
                 VLOG(1) << "  ... send mapping: \"" << commandTopic << "\":\"" << message << "\"";
 
                 publishMapping(commandTopic, message, qoS, retain);
+            } else {
+                VLOG(1) << "       result message '" << message << "' in 'no_send' list:";
+                for (const nlohmann::json& item : noSendArray) {
+                    VLOG(1) << "         " << item.get<std::string>();
+                }
+                VLOG(1) << "  ... not sending";
             }
         } catch (const inja::InjaError& e) {
             LOG(ERROR) << e.what();
