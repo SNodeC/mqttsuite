@@ -69,31 +69,19 @@
               "name": "uid",
               "subscription": {
                 "type": "rfid reader",
-                "static": [
+                "value": [
                   {
                     "mapped_topic": "test02/strip1/rgb/set",
-                    "message_mapping": {
-                      "message": "739bb7a6",
-                      "mapped_message": "front green"
-                    }
+                    "mapping_template": "{% if value == \"739bb7a6\" %}{front green}{% else %}void{% endif %}"
                   }, {
                     "mapped_topic": "strip/strip1/rgb/set",
-                    "message_mapping": {
-                      "message": "739bb7a6",
-                      "mapped_message": "front green"
-                    }
+                    "mapping_template": "{% if value == \"739bb7a6\" %}{front green}{% else %}void{% endif %}"
                   }, {
                     "mapped_topic": "strip/strip1/brightness/set",
-                    "message_mapping": {
-                      "message": "none",
-                      "mapped_message": "0"
-                    }
+                    "mapping_template": "{% if value == \"none\" %}0{% else %}void{% endif %}"
                   }, {
                     "mapped_topic": "test02/strip1/brightness/set",
-                    "message_mapping": {
-                      "message": "none",
-                      "mapped_message": "0"
-                    }
+                    "mapping_template": "{% if value == \"none\" %}0{% else %}void{% endif %}"
                   }
                 ]
               }
@@ -109,8 +97,7 @@
               "value": {
                 "mapped_topic": "mapping/json",
                 "mapping_template": "{\"state\":\"{{value}}\"}",
-                "mapping_template_also_works": "{% if value == \"on\" %}{\"state\": \"on\"}{% else if value == \"off\" %}{\"state\": \"off\"}{% endif %}",
-                "no_send": [ "{\"state\":\"on\"}", "{\"state\":\"off\"}" ]
+                "mapping_template_also_works": "{% if value == \"on\" %}{\"state\": \"on\"}{% else if value == \"off\" %}{\"state\": \"off\"}{% endif %}"
               }
             }
           },
