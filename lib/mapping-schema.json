@@ -74,15 +74,14 @@
         },
         "topic_level": {
           "$id": "https://www.vchrist.at/mqttmapper/schemas/topic_level",
-          "oneOf": [
-            { "$ref": "#/$defs/topic_level" },
-            {
-              "type": "array",
-              "items": {
-                "$ref": "#/$defs/topic_level"
-              }
+          "oneOf": [{
+            "$ref": "#/$defs/topic_level"
+          }, {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/topic_level"
             }
-          ],
+          }],
           "$defs": {
             "topic_level": {
               "type": "object",
@@ -124,15 +123,14 @@
               "required": [ "static" ],
               "properties": {
                 "static": {
-                  "oneOf": [
-                    { "$ref": "#/$defs/static_mapping" },
-                    {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/$defs/static_mapping"
-                      }
+                  "oneOf": [{
+                    "$ref": "#/$defs/static_mapping"
+                  }, {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/static_mapping"
                     }
-                  ]
+                  }]
                 }
               }
             },
@@ -141,15 +139,14 @@
               "required": [ "value" ],
               "properties": {
                 "value": {
-                  "oneOf": [
-                    { "$ref": "#/$defs/template_mapping" },
-                    {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/$defs/template_mapping"
-                      }
+                  "oneOf": [{
+                    "$ref": "#/$defs/template_mapping"
+                  }, {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/template_mapping"
                     }
-                  ]
+                  }]
                 }
               }
             },
@@ -158,45 +155,38 @@
               "required": [ "json" ],
               "properties": {
                 "json": {
-                  "oneOf": [
-                    { "$ref": "#/$defs/template_mapping" },
-                    {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/$defs/template_mapping"
-                      }
+                  "oneOf": [{
+                    "$ref": "#/$defs/template_mapping"
+                  },{
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/template_mapping"
                     }
-                  ]
+                  }]
                 }
               }
             },
             "static_mapping": {
               "type": "object",
               "allOf": [{ "$ref": "#/$defs/mapping_commons" }],
-              "required": [
-                "message_mapping"
-              ],
+              "required": [ "message_mapping" ],
               "properties": {
                 "message_mapping": {
-                  "oneOf": [
-                    { "$ref": "#/$defs/message_mapping" },
-                    {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/$defs/message_mapping"
-                      },
-                     "minItems": 1
-                    }
-                  ]
+                  "oneOf": [{
+                    "$ref": "#/$defs/message_mapping"
+                  }, {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/message_mapping"
+                    },
+                   "minItems": 1
+                  }]
                 }
               }
             },
             "message_mapping": {
               "type": "object",
-              "required": [
-                "message",
-                "mapped_message"
-              ],
+              "required": [ "message", "mapped_message" ],
               "properties": {
                 "message": {
                   "type": "string",
@@ -211,9 +201,7 @@
             "template_mapping": {
               "type": "object",
               "allOf": [{ "$ref": "#/$defs/mapping_commons" }],
-              "required": [
-                "mapping_template"
-              ],
+              "required": [ "mapping_template" ],
               "properties": {
                 "mapping_template": {
                   "type": "string",
