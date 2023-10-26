@@ -50,10 +50,12 @@ namespace mqtt::lib::plugins::storage_plugin {
     int Storage::recall_as_int(const inja::Arguments& args) {
         int result = 0;
 
-        try {
-            result = std::stoi(instance().storage[args.at(0)->get<std::string>()]);
-        } catch (const std::logic_error&) {
-            // no error if not exist - just return '0'
+        if (exists(args)) {
+            try {
+                result = std::stoi(instance().storage[args.at(0)->get<std::string>()]);
+            } catch (const std::logic_error&) {
+                // no error if not exist - just return '0'
+            }
         }
 
         return result;
@@ -62,16 +64,28 @@ namespace mqtt::lib::plugins::storage_plugin {
     double Storage::recall_as_float(const inja::Arguments& args) {
         double result = 0;
 
-        try {
-            result = std::stod(instance().storage[args.at(0)->get<std::string>()]);
-        } catch (const std::logic_error&) {
-            // no error if not exist - just return '0'
+        if (exists(args)) {
+            try {
+                result = std::stod(instance().storage[args.at(0)->get<std::string>()]);
+            } catch (const std::logic_error&) {
+                // no error if not exist - just return '0'
+            }
         }
 
         return result;
     }
 
-    bool Storage::contains(const inja::Arguments& args) {
+    bool Storage::is_empty(const inja::Arguments& args) {
+        bool result = true;
+
+        if (exists(args)) {
+            result = instance().storage[args.at(0)->get<std::string>()].empty();
+        }
+
+        return result;
+    }
+
+    bool Storage::exists(const inja::Arguments& args) {
         return instance().storage.contains(args.at(0)->get<std::string>());
     }
 
@@ -83,5 +97,6 @@ namespace mqtt::lib {
                                                {"recall", 1, mqtt::lib::plugins::storage_plugin::Storage::recall},
                                                {"recall_as_int", 1, mqtt::lib::plugins::storage_plugin::Storage::recall_as_int},
                                                {"recall_as_float", 1, mqtt::lib::plugins::storage_plugin::Storage::recall_as_float},
-                                               {"contains", 1, mqtt::lib::plugins::storage_plugin::Storage::contains}};
+                                               {"is_empty", 1, mqtt::lib::plugins::storage_plugin::Storage::is_empty},
+                                               {"exists", 1, mqtt::lib::plugins::storage_plugin::Storage::exists}};
 }
