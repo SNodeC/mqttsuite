@@ -181,7 +181,7 @@
             "qos": 2,
             "value": {
               "mapped_topic": "gainit/aircondition/switch",
-              "mapping_template": "{% if float(value) <= 20 %}off{% else %}on{% endif %}",
+              "mapping_template": "{% if float(message) <= 20 %}off{% else %}on{% endif %}",
               "retain_message": false
             }
           }
