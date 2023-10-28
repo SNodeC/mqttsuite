@@ -115,14 +115,16 @@ namespace mqtt::lib {
     }
 
     void MqttMapper::publishMappedTemplate(const nlohmann::json& templateMapping,
-                                           const nlohmann::json& json,
+                                           nlohmann::json& json,
                                            const iot::mqtt::packets::Publish& publish) {
-        VLOG(1) << "  -> " << templateMapping["mapped_topic"] << ":" << templateMapping["mapping_template"].dump();
-
-        const std::string& commandTopic = templateMapping["mapped_topic"];
         const std::string& mappingTemplate = templateMapping["mapping_template"];
 
         try {
+            const std::string& mappedTopic = templateMapping["mapped_topic"];
+
+            VLOG(1) << "  -> " << mappedTopic << ":" << mappingTemplate;
+
+            json["mapped_topic"] = mappedTopic;
             // Render
             std::string message = injaEnvironment.render(mappingTemplate, json);
             VLOG(1) << "     \"" << publish.getMessage() << "\" -> \"" << message << "\"";
@@ -133,10 +135,10 @@ namespace mqtt::lib {
             if (std::find(suppressions.begin(), suppressions.end(), message) == suppressions.end() || (retain && message == "")) {
                 uint8_t qoS = templateMapping.value("qos_override", publish.getQoS());
 
-                VLOG(1) << "      send mapping: " << commandTopic << ":" << message << "";
+                VLOG(1) << "      send mapping: " << mappedTopic << ":" << message << "";
                 VLOG(1) << "                    qos:" << static_cast<int>(qoS);
 
-                publishMapping(commandTopic, message, qoS, retain);
+                publishMapping(mappedTopic, message, qoS, retain);
             } else {
                 VLOG(1) << "       result message '" << message << "' in suppression list:";
                 for (const nlohmann::json& item : suppressions) {
@@ -153,7 +155,7 @@ namespace mqtt::lib {
     }
 
     void MqttMapper::publishMappedTemplates(const nlohmann::json& templateMapping,
-                                            const nlohmann::json& json,
+                                            nlohmann::json& json,
                                             const iot::mqtt::packets::Publish& publish) {
         if (templateMapping.is_object()) {
             publishMappedTemplate(templateMapping, json, publish);
@@ -167,15 +169,15 @@ namespace mqtt::lib {
     void MqttMapper::publishMappedMessage(const nlohmann::json& staticMapping,
                                           const std::string& message,
                                           const iot::mqtt::packets::Publish& publish) {
-        const std::string& commandTopic = staticMapping["mapped_topic"];
+        const std::string& mappedTopic = staticMapping["mapped_topic"];
         bool retain = staticMapping["retain_message"];
         uint8_t qoS = staticMapping.value("qos_override", publish.getQoS());
 
         VLOG(1) << "     \"" << publish.getMessage() << "\" -> \"" << message << "\"";
-        VLOG(1) << "      send mapping: " << commandTopic << ":" << message;
+        VLOG(1) << "      send mapping: " << mappedTopic << ":" << message;
         VLOG(1) << "                    qos:" << static_cast<int>(qoS);
 
-        publishMapping(commandTopic, message, qoS, retain);
+        publishMapping(mappedTopic, message, qoS, retain);
     }
 
     void MqttMapper::publishMappedMessage(const nlohmann::json& staticMapping, const iot::mqtt::packets::Publish& publish) {
@@ -252,7 +254,7 @@ namespace mqtt::lib {
                 const nlohmann::json& mapping = matchingTopicLevel["subscription"];
 
                 if (mapping.contains("static")) {
-                    VLOG(1) << "Topic mapping (static) found: \"" << publish.getTopic() << "\":\"" << publish.getMessage() << "\"";
+                    VLOG(1) << "Topic mapping (static) found: \"" << publish.getTopic() << "\": \"" << publish.getMessage() << "\"";
 
                     publishMappedMessages(mapping["static"], publish);
                 } else {
@@ -260,19 +262,21 @@ namespace mqtt::lib {
                     nlohmann::json templateMapping;
 
                     if (mapping.contains("value")) {
-                        VLOG(1) << "Topic mapping (value) found: \"" << publish.getTopic() << "\":\"" << publish.getMessage() << "\"";
+                        VLOG(1) << "Topic mapping (value) found: \"" << publish.getTopic() << "\": {\"message\": \"" << publish.getMessage()
+                                << "\"}";
 
                         templateMapping = mapping["value"];
 
-                        json["value"] = publish.getMessage();
+                        json["message"] = publish.getMessage();
 
                     } else if (mapping.contains("json")) {
-                        VLOG(1) << "Topic mapping (json) found: \"" << publish.getTopic() << "\":\"" << publish.getMessage() << "\"";
+                        VLOG(1) << "Topic mapping (json) found: \"" << publish.getTopic() << "\": {\"message\": \"" << publish.getMessage()
+                                << "\"}";
 
                         templateMapping = mapping["json"];
 
                         try {
-                            json = nlohmann::json::parse(publish.getMessage());
+                            json["message"] = nlohmann::json::parse(publish.getMessage());
                         } catch (const nlohmann::json::parse_error& e) {
                             LOG(ERROR) << e.what() << ": " << e.id;
                             LOG(ERROR) << "Parsing message into json failed: " << publish.getMessage();
@@ -284,6 +288,11 @@ namespace mqtt::lib {
                     }
 
                     if (!json.empty()) {
+                        json["topic"] = publish.getTopic();
+                        json["qos"] = publish.getQoS();
+                        json["retain"] = publish.getRetain();
+                        json["package_identifier"] = publish.getPacketIdentifier();
+
                         publishMappedTemplates(templateMapping, json, publish);
                     } else {
                         VLOG(1) << "No valid mapping section found: " << matchingTopicLevel.dump();

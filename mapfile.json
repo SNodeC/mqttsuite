@@ -68,16 +68,16 @@
             "type": "rfid reader",
             "value": [{
               "mapped_topic": "test02/strip1/rgb/set",
-              "mapping_template": "{% if value == \"739bb7a6\" %}front green{% endif %}"
+              "mapping_template": "{% if message == \"739bb7a6\" %}front green{% endif %}"
             }, {
               "mapped_topic": "strip/strip1/rgb/set",
-              "mapping_template": "{% if value == \"739bb7a6\" %}front green{% endif %}"
+              "mapping_template": "{% if message == \"739bb7a6\" %}front green{% endif %}"
             }, {
               "mapped_topic": "strip/strip1/brightness/set",
-              "mapping_template": "{% if value == \"none\" %}0{% endif %}"
+              "mapping_template": "{% if message == \"none\" %}0{% endif %}"
             }, {
               "mapped_topic": "test02/strip1/brightness/set",
-              "mapping_template": "{% if value == \"none\" %}0{% endif %}"
+              "mapping_template": "{% if message == \"none\" %}0{% endif %}"
             }]
           }
         }
@@ -89,8 +89,8 @@
         "subscription": {
           "value": {
             "mapped_topic": "mapping/json",
-            "mapping_template": "{\"state\":\"{{value}}\"}",
-            "mapping_template_also_works": "{% if value == \"on\" %}{\"state\": \"on\"}{% else if value == \"off\" %}{\"state\": \"off\"}{% endif %}"
+            "mapping_template": "{\"state\":\"{{message}}\"}",
+            "mapping_template_also_works": "{% if message == \"on\" %}{\"state\": \"on\"}{% else if message == \"off\" %}{\"state\": \"off\"}{% endif %}"
           }
         }
       },
@@ -100,7 +100,7 @@
           "qos": 0,
           "json": {
             "mapped_topic": "test02/onboard/set",
-            "mapping_template": "{% if state == \"on\" %}on{% else if state == \"off\" %}off{% endif %}",
+            "mapping_template": "{% if message.state == \"on\" %}on{% else if message.state == \"off\" %}off{% endif %}",
             "retain_message": false
           }
         }
@@ -115,15 +115,15 @@
             "qos": 2,
             "value": [{
               "mapped_topic": "temperature/celsius",
-              "mapping_template": "{{ round(float(value), 2) }}",
+              "mapping_template": "{{ round(float(message), 2) }}",
               "retain_message": true
             }, {
               "mapped_topic": "temperature/kelvin",
-              "mapping_template": "{{ round(float(value) + 273.15, 2) }}",
+              "mapping_template": "{{ round(float(message) + 273.15, 2) }}",
               "retain_message": true
             }, {
               "mapped_topic": "temperature/farenheit",
-              "mapping_template": "{{ round(float(value) * 1.8 + 32, 2) }}",
+              "mapping_template": "{{ round(float(message) * 1.8 + 32, 2) }}",
               "retain_message": true
             }]
           }
@@ -136,15 +136,15 @@
             "qos": 2,
             "value": [{
               "mapped_topic": "temperature/celsius",
-              "mapping_template": "{{ round(float(value) - 273.15, 2) }}",
+              "mapping_template": "{{ round(float(message) - 273.15, 2) }}",
               "retain_message": true
             }, {
               "mapped_topic": "temperature/kelvin",
-              "mapping_template": "{{ round(float(value), 2) }}",
+              "mapping_template": "{{ round(float(message), 2) }}",
               "retain_message": true
             }, {
               "mapped_topic": "temperature/farenheit",
-              "mapping_template": "{{ round((float(value) - 273.15) * 1.8 + 32, 2) }}",
+              "mapping_template": "{{ round((float(message) - 273.15) * 1.8 + 32, 2) }}",
               "retain_message": true
             }]
           }
@@ -157,15 +157,15 @@
             "qos": 2,
             "value": [{
               "mapped_topic": "temperature/celsius",
-              "mapping_template": "{{ round((float(value) - 32) / 1.8, 2) }}",
+              "mapping_template": "{{ round((float(message) - 32) / 1.8, 2) }}",
               "retain_message": true
             }, {
               "mapped_topic": "temperature/kelvin",
-              "mapping_template": "{{ round((float(value) - 32) / 1.8 + 273.15, 2) }}",
+              "mapping_template": "{{ round((float(message) - 32) / 1.8 + 273.15, 2) }}",
               "retain_message": true
             }, {
               "mapped_topic": "temperature/farenheit",
-              "mapping_template": "{{ round(float(value), 2) }}",
+              "mapping_template": "{{ round(float(message), 2) }}",
               "retain_message": true
             }
           ]}
@@ -193,7 +193,7 @@
         "qos": 2,
         "value": {
           "mapped_topic": "result",
-          "mapping_template": "{{ double(float(value)) + recall_as_int(\"name\") }}{{ store(\"name\", value) }}",
+          "mapping_template": "{{ double(float(message)) + recall_as_int(\"name\") }}{{ store(\"name\", message) }}",
           "retain_message": false
         }
       }
