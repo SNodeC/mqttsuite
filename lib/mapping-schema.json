@@ -222,11 +222,10 @@
                   "type": "string",
                   "minLength": 1
                 },
-                "retain_message": {
-                  "type": "boolean",
-                  "default": false
+                "retain": {
+                  "type": "boolean"
                 },
-                "qos_override": {
+                "qos": {
                   "type": "integer",
                   "minimum": 0,
                   "maximum": 2
