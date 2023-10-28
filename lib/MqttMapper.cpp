@@ -169,7 +169,7 @@ namespace mqtt::lib {
         json["retain"] = publish.getRetain();
         json["package_identifier"] = publish.getPacketIdentifier();
 
-        VLOG(0) << "  Constructed render data: " << json.dump();
+        VLOG(0) << "  Render data: " << json.dump();
 
         if (templateMapping.is_object()) {
             publishMappedTemplate(templateMapping, json, publish);
@@ -271,7 +271,8 @@ namespace mqtt::lib {
                 const nlohmann::json& mapping = matchingTopicLevel["subscription"];
 
                 if (mapping.contains("static")) {
-                    VLOG(1) << "Topic mapping (static) found:";
+                    VLOG(1) << "Topic mapping found:";
+                    VLOG(1) << "  Type: static";
                     VLOG(1) << "  Topic: " << publish.getTopic();
                     VLOG(1) << "  Message: " << publish.getMessage();
 
@@ -281,7 +282,8 @@ namespace mqtt::lib {
                     nlohmann::json templateMapping;
 
                     if (mapping.contains("value")) {
-                        VLOG(1) << "Topic mapping (value) found:";
+                        VLOG(1) << "Topic mapping found:";
+                        VLOG(1) << "  Type: value";
                         VLOG(1) << "  Topic: " << publish.getTopic();
                         VLOG(1) << "  Message: " << publish.getMessage();
 
@@ -290,7 +292,8 @@ namespace mqtt::lib {
                         json["message"] = publish.getMessage();
 
                     } else if (mapping.contains("json")) {
-                        VLOG(1) << "Topic mapping (json) found:";
+                        VLOG(1) << "Topic mapping found";
+                        VLOG(1) << "  Type: json";
                         VLOG(1) << "  Topic: " << publish.getTopic();
                         VLOG(1) << "  Message: " << publish.getMessage();
 
