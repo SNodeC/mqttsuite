@@ -121,30 +121,35 @@ namespace mqtt::lib {
 
         try {
             const std::string& mappedTopic = templateMapping["mapped_topic"];
+            std::string renderedTopic = injaEnvironment.render(mappedTopic, json);
+            json["mapped_topic"] = renderedTopic;
 
-            VLOG(1) << "  -> " << mappedTopic << ":" << mappingTemplate;
+            VLOG(1) << "  Mapped topic template: " << mappedTopic;
+            VLOG(1) << "    -> " << renderedTopic;
 
-            json["mapped_topic"] = mappedTopic;
             // Render
-            std::string message = injaEnvironment.render(mappingTemplate, json);
-            VLOG(1) << "     \"" << publish.getMessage() << "\" -> \"" << message << "\"";
+            std::string renderedMessage = injaEnvironment.render(mappingTemplate, json);
+            VLOG(1) << "  Mapped message template: " << mappingTemplate;
+            VLOG(1) << "    -> " << renderedMessage;
 
             const nlohmann::json& suppressions = templateMapping["suppressions"];
-            bool retain = templateMapping["retain_message"];
+            bool retain = templateMapping.value("retain", publish.getRetain());
 
-            if (std::find(suppressions.begin(), suppressions.end(), message) == suppressions.end() || (retain && message == "")) {
-                uint8_t qoS = templateMapping.value("qos_override", publish.getQoS());
+            if (std::find(suppressions.begin(), suppressions.end(), renderedMessage) == suppressions.end() ||
+                (retain && renderedMessage == "")) {
+                uint8_t qoS = templateMapping.value("qos", publish.getQoS());
 
-                VLOG(1) << "      send mapping: " << mappedTopic << ":" << message << "";
-                VLOG(1) << "                    qos:" << static_cast<int>(qoS);
+                VLOG(1) << "  send mapping: " << renderedTopic << ":" << renderedMessage << "";
+                VLOG(1) << "    qos: " << static_cast<int>(qoS);
+                VLOG(1) << "    retain: " << retain;
 
-                publishMapping(mappedTopic, message, qoS, retain);
+                publishMapping(renderedTopic, renderedMessage, qoS, retain);
             } else {
-                VLOG(1) << "       result message '" << message << "' in suppression list:";
+                VLOG(1) << "    rendered message '" << renderedMessage << "' in suppression list:";
                 for (const nlohmann::json& item : suppressions) {
                     VLOG(1) << "         '" << item.get<std::string>() << "'";
                 }
-                VLOG(1) << "      send mapping: suppressed";
+                VLOG(1) << "  send mapping: suppressed";
             }
         } catch (const inja::InjaError& e) {
             LOG(ERROR) << e.what();
@@ -157,6 +162,13 @@ namespace mqtt::lib {
     void MqttMapper::publishMappedTemplates(const nlohmann::json& templateMapping,
                                             nlohmann::json& json,
                                             const iot::mqtt::packets::Publish& publish) {
+        json["topic"] = publish.getTopic();
+        json["qos"] = publish.getQoS();
+        json["retain"] = publish.getRetain();
+        json["package_identifier"] = publish.getPacketIdentifier();
+
+        VLOG(0) << "  Constructed render data: " << json.dump();
+
         if (templateMapping.is_object()) {
             publishMappedTemplate(templateMapping, json, publish);
         } else {
@@ -170,12 +182,13 @@ namespace mqtt::lib {
                                           const std::string& message,
                                           const iot::mqtt::packets::Publish& publish) {
         const std::string& mappedTopic = staticMapping["mapped_topic"];
-        bool retain = staticMapping["retain_message"];
-        uint8_t qoS = staticMapping.value("qos_override", publish.getQoS());
+        bool retain = staticMapping.value("retain", publish.getRetain());
+        uint8_t qoS = staticMapping.value("qos", publish.getQoS());
 
         VLOG(1) << "     \"" << publish.getMessage() << "\" -> \"" << message << "\"";
         VLOG(1) << "      send mapping: " << mappedTopic << ":" << message;
-        VLOG(1) << "                    qos:" << static_cast<int>(qoS);
+        VLOG(1) << "        qos: " << static_cast<int>(qoS);
+        VLOG(1) << "        retain: " << retain;
 
         publishMapping(mappedTopic, message, qoS, retain);
     }
@@ -288,11 +301,6 @@ namespace mqtt::lib {
                     }
 
                     if (!json.empty()) {
-                        json["topic"] = publish.getTopic();
-                        json["qos"] = publish.getQoS();
-                        json["retain"] = publish.getRetain();
-                        json["package_identifier"] = publish.getPacketIdentifier();
-
                         publishMappedTemplates(templateMapping, json, publish);
                     } else {
                         VLOG(1) << "No valid mapping section found: " << matchingTopicLevel.dump();
