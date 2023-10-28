@@ -101,7 +101,7 @@
           "json": {
             "mapped_topic": "test02/onboard/set",
             "mapping_template": "{% if message.state == \"on\" %}on{% else if message.state == \"off\" %}off{% endif %}",
-            "retain_message": false
+            "retain": false
           }
         }
       }]
@@ -116,15 +116,15 @@
             "value": [{
               "mapped_topic": "temperature/celsius",
               "mapping_template": "{{ round(float(message), 2) }}",
-              "retain_message": true
+              "retain": true
             }, {
               "mapped_topic": "temperature/kelvin",
               "mapping_template": "{{ round(float(message) + 273.15, 2) }}",
-              "retain_message": true
+              "retain": true
             }, {
               "mapped_topic": "temperature/farenheit",
               "mapping_template": "{{ round(float(message) * 1.8 + 32, 2) }}",
-              "retain_message": true
+              "retain": true
             }]
           }
         }
@@ -137,15 +137,15 @@
             "value": [{
               "mapped_topic": "temperature/celsius",
               "mapping_template": "{{ round(float(message) - 273.15, 2) }}",
-              "retain_message": true
+              "retain": true
             }, {
               "mapped_topic": "temperature/kelvin",
               "mapping_template": "{{ round(float(message), 2) }}",
-              "retain_message": true
+              "retain": true
             }, {
               "mapped_topic": "temperature/farenheit",
               "mapping_template": "{{ round((float(message) - 273.15) * 1.8 + 32, 2) }}",
-              "retain_message": true
+              "retain": true
             }]
           }
         }
@@ -158,15 +158,15 @@
             "value": [{
               "mapped_topic": "temperature/celsius",
               "mapping_template": "{{ round((float(message) - 32) / 1.8, 2) }}",
-              "retain_message": true
+              "retain": true
             }, {
               "mapped_topic": "temperature/kelvin",
               "mapping_template": "{{ round((float(message) - 32) / 1.8 + 273.15, 2) }}",
-              "retain_message": true
+              "retain": true
             }, {
               "mapped_topic": "temperature/farenheit",
               "mapping_template": "{{ round(float(message), 2) }}",
-              "retain_message": true
+              "retain": true
             }
           ]}
         }
@@ -192,9 +192,10 @@
       "subscription": {
         "qos": 2,
         "value": {
-          "mapped_topic": "result",
-          "mapping_template": "{{ double(float(message)) + recall_as_int(\"name\") }}{{ store(\"name\", message) }}",
-          "retain_message": false
+          "mapped_topic": "{{ topic + \"_result\" }}",
+          "mapping_template": "{{ double(float(message)) + recall_as_int(topic + \"currentValue\") }}{{ store(topic + \"currentValue\", message) }}",
+          "retain": true,
+          "qos": 2
         }
       }
     }]
