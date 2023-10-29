@@ -119,10 +119,6 @@ int main(int argc, char* argv[]) {
 
         MQTTTLSInServer mqttTLSInServer("tlsin");
 
-        mqttTLSInServer.getConfig().setCertChain("/home/voc/projects/mqttbroker/mqttbroker/certs/IoT-Server-Cert.pem");
-        mqttTLSInServer.getConfig().setCertKey("/home/voc/projects/mqttbroker/mqttbroker/certs/IoT-Server-Key.pem");
-        mqttTLSInServer.getConfig().setCertKeyPassword("pentium5");
-
         mqttTLSInServer.listen(8883, [](const MQTTTLSInSocketAddress& socketAddress, const core::socket::State& state) -> void {
             switch (state) {
                 case core::socket::State::OK:
@@ -170,10 +166,6 @@ int main(int argc, char* argv[]) {
         using MQTTTlSWebViewSocketAddress = MQTTTLSWebView::SocketAddress;
 
         MQTTTLSWebView mqttTLSWebView("mqtttlswebview", getRouter());
-
-        mqttTLSWebView.getConfig().setCertChain("/home/voc/projects/mqttbroker/mqttbroker/certs/IoT-Server-Cert.pem");
-        mqttTLSWebView.getConfig().setCertKey("/home/voc/projects/mqttbroker/mqttbroker/certs/IoT-Server-Key.pem");
-        mqttTLSWebView.getConfig().setCertKeyPassword("pentium5");
 
         mqttTLSWebView.listen(8088, [](const MQTTTlSWebViewSocketAddress& socketAddress, const core::socket::State& state) -> void {
             switch (state) {
