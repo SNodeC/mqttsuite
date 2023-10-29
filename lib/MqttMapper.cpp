@@ -187,12 +187,15 @@ namespace mqtt::lib {
         bool retain = staticMapping.value("retain", publish.getRetain());
         uint8_t qoS = staticMapping.value("qos", publish.getQoS());
 
-        VLOG(1) << "     \"" << publish.getMessage() << "\" -> \"" << message << "\"";
-        VLOG(1) << "      Send mapping:";
-        VLOG(1) << "        Topic: " << mappedTopic;
-        VLOG(1) << "        Message: " << message;
-        VLOG(1) << "        qos: " << static_cast<int>(qoS);
-        VLOG(1) << "        retain: " << retain;
+        VLOG(1) << "  Mapped topic:";
+        VLOG(1) << "    -> " << mappedTopic;
+        VLOG(1) << "  Mapped message:";
+        VLOG(1) << "    -> " << message;
+        VLOG(1) << "  Send mapping:";
+        VLOG(1) << "    Topic: " << mappedTopic;
+        VLOG(1) << "    Message: " << message;
+        VLOG(1) << "    qos: " << static_cast<int>(qoS);
+        VLOG(1) << "    retain: " << retain;
 
         publishMapping(mappedTopic, message, qoS, retain);
     }
@@ -200,28 +203,24 @@ namespace mqtt::lib {
     void MqttMapper::publishMappedMessage(const nlohmann::json& staticMapping, const iot::mqtt::packets::Publish& publish) {
         const nlohmann::json& messageMapping = staticMapping["message_mapping"];
 
-        if (messageMapping.is_object()) {
-            VLOG(1) << "  -> " << staticMapping["mapped_topic"] << ":" << messageMapping.dump();
+        VLOG(0) << "  Message mapping: " << messageMapping.dump();
 
+        if (messageMapping.is_object()) {
             if (messageMapping["message"] == publish.getMessage()) {
                 publishMappedMessage(staticMapping, messageMapping["mapped_message"], publish);
             } else {
-                VLOG(1) << "      no matching mapped message found";
+                VLOG(1) << "    no matching mapped message found";
             }
         } else {
             const nlohmann::json::const_iterator matchedMessageMappingIterator =
-                std::find_if(messageMapping.begin(),
-                             messageMapping.end(),
-                             [&publish, &messageMapping, &staticMapping](const nlohmann::json& messageMappingCandidat) {
-                                 VLOG(1) << "  -> " << staticMapping["mapped_topic"] << ":" << messageMapping.dump();
-
-                                 return messageMappingCandidat["message"] == publish.getMessage();
-                             });
+                std::find_if(messageMapping.begin(), messageMapping.end(), [&publish](const nlohmann::json& messageMappingCandidat) {
+                    return messageMappingCandidat["message"] == publish.getMessage();
+                });
 
             if (matchedMessageMappingIterator != messageMapping.end()) {
                 publishMappedMessage(staticMapping, (*matchedMessageMappingIterator)["mapped_message"], publish);
             } else {
-                VLOG(1) << "      no matching mapped message found";
+                VLOG(1) << "    no matching mapped message found";
             }
         }
     }
