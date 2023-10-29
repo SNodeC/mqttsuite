@@ -118,46 +118,54 @@ namespace mqtt::lib {
                                            nlohmann::json& json,
                                            const iot::mqtt::packets::Publish& publish) {
         const std::string& mappingTemplate = templateMapping["mapping_template"];
+        const std::string& mappedTopic = templateMapping["mapped_topic"];
 
         try {
-            const std::string& mappedTopic = templateMapping["mapped_topic"];
+            // Render topic
             std::string renderedTopic = injaEnvironment.render(mappedTopic, json);
             json["mapped_topic"] = renderedTopic;
 
             VLOG(1) << "  Mapped topic template: " << mappedTopic;
             VLOG(1) << "    -> " << renderedTopic;
 
-            // Render
-            std::string renderedMessage = injaEnvironment.render(mappingTemplate, json);
-            VLOG(1) << "  Mapped message template: " << mappingTemplate;
-            VLOG(1) << "    -> " << renderedMessage;
+            try {
+                // Render message
+                std::string renderedMessage = injaEnvironment.render(mappingTemplate, json);
+                VLOG(1) << "  Mapped message template: " << mappingTemplate;
+                VLOG(1) << "    -> " << renderedMessage;
 
-            const nlohmann::json& suppressions = templateMapping["suppressions"];
-            bool retain = templateMapping.value("retain", publish.getRetain());
+                const nlohmann::json& suppressions = templateMapping["suppressions"];
+                bool retain = templateMapping.value("retain", publish.getRetain());
 
-            if (std::find(suppressions.begin(), suppressions.end(), renderedMessage) == suppressions.end() ||
-                (retain && renderedMessage == "")) {
-                uint8_t qoS = templateMapping.value("qos", publish.getQoS());
+                if (std::find(suppressions.begin(), suppressions.end(), renderedMessage) == suppressions.end() ||
+                    (retain && renderedMessage == "")) {
+                    uint8_t qoS = templateMapping.value("qos", publish.getQoS());
 
-                VLOG(1) << "  Send mapping:";
-                VLOG(1) << "    Topic: " << renderedTopic;
-                VLOG(1) << "    Message: " << renderedMessage << "";
-                VLOG(1) << "    qos: " << static_cast<int>(qoS);
-                VLOG(1) << "    retain: " << retain;
+                    VLOG(1) << "  Send mapping:";
+                    VLOG(1) << "    Topic: " << renderedTopic;
+                    VLOG(1) << "    Message: " << renderedMessage << "";
+                    VLOG(1) << "    qos: " << static_cast<int>(qoS);
+                    VLOG(1) << "    retain: " << retain;
 
-                publishMapping(renderedTopic, renderedMessage, qoS, retain);
-            } else {
-                VLOG(1) << "    rendered message '" << renderedMessage << "' in suppression list:";
-                for (const nlohmann::json& item : suppressions) {
-                    VLOG(1) << "         '" << item.get<std::string>() << "'";
+                    publishMapping(renderedTopic, renderedMessage, qoS, retain);
+                } else {
+                    VLOG(1) << "    rendered message '" << renderedMessage << "' in suppression list:";
+                    for (const nlohmann::json& item : suppressions) {
+                        VLOG(1) << "         '" << item.get<std::string>() << "'";
+                    }
+                    VLOG(1) << "  send mapping: suppressed";
                 }
-                VLOG(1) << "  send mapping: suppressed";
+            } catch (const inja::InjaError& e) {
+                LOG(ERROR) << "  Message template rendering failed: " << mappingTemplate << " : " << json.dump();
+                LOG(ERROR) << "    What: " << e.what();
+                LOG(ERROR) << "    INJA: " << e.type << ": " << e.message;
+                LOG(ERROR) << "    INJA (line:column):" << e.location.line << ":" << e.location.column;
             }
         } catch (const inja::InjaError& e) {
-            LOG(ERROR) << e.what();
-            LOG(ERROR) << "INJA " << e.type << ": " << e.message;
-            LOG(ERROR) << "INJA (line:column):" << e.location.line << ":" << e.location.column;
-            LOG(ERROR) << "Template rendering failed: " << mappingTemplate << " : " << json.dump();
+            LOG(ERROR) << "  Topic template rendering failed: " << mappingTemplate << " : " << json.dump();
+            LOG(ERROR) << "    What: " << e.what();
+            LOG(ERROR) << "    INJA: " << e.type << ": " << e.message;
+            LOG(ERROR) << "    INJA (line:column):" << e.location.line << ":" << e.location.column;
         }
     }
 
@@ -267,53 +275,45 @@ namespace mqtt::lib {
             nlohmann::json matchingTopicLevel = findMatchingTopicLevel(mappingJson["topic_level"], publish.getTopic());
 
             if (!matchingTopicLevel.empty()) {
-                const nlohmann::json& mapping = matchingTopicLevel["subscription"];
+                const nlohmann::json& subscription = matchingTopicLevel["subscription"];
 
-                if (mapping.contains("static")) {
+                if (subscription.contains("static")) {
                     VLOG(1) << "Topic mapping found:";
                     VLOG(1) << "  Type: static";
                     VLOG(1) << "  Topic: " << publish.getTopic();
                     VLOG(1) << "  Message: " << publish.getMessage();
 
-                    publishMappedMessages(mapping["static"], publish);
-                } else {
+                    publishMappedMessages(subscription["static"], publish);
+                }
+
+                if (subscription.contains("value")) {
+                    VLOG(1) << "Topic mapping found:";
+                    VLOG(1) << "  Type: value";
+                    VLOG(1) << "  Topic: " << publish.getTopic();
+                    VLOG(1) << "  Message: " << publish.getMessage();
+
                     nlohmann::json json;
-                    nlohmann::json templateMapping;
+                    json["message"] = publish.getMessage();
 
-                    if (mapping.contains("value")) {
-                        VLOG(1) << "Topic mapping found:";
-                        VLOG(1) << "  Type: value";
-                        VLOG(1) << "  Topic: " << publish.getTopic();
-                        VLOG(1) << "  Message: " << publish.getMessage();
+                    publishMappedTemplates(subscription["value"], json, publish);
+                }
 
-                        templateMapping = mapping["value"];
+                if (subscription.contains("json")) {
+                    VLOG(1) << "Topic mapping found";
+                    VLOG(1) << "  Type: json";
+                    VLOG(1) << "  Topic: " << publish.getTopic();
+                    VLOG(1) << "  Message: " << publish.getMessage();
 
-                        json["message"] = publish.getMessage();
+                    try {
+                        nlohmann::json json;
+                        json["message"] = nlohmann::json::parse(publish.getMessage());
 
-                    } else if (mapping.contains("json")) {
-                        VLOG(1) << "Topic mapping found";
-                        VLOG(1) << "  Type: json";
-                        VLOG(1) << "  Topic: " << publish.getTopic();
-                        VLOG(1) << "  Message: " << publish.getMessage();
-
-                        templateMapping = mapping["json"];
-
-                        try {
-                            json["message"] = nlohmann::json::parse(publish.getMessage());
-                        } catch (const nlohmann::json::parse_error& e) {
-                            LOG(ERROR) << e.what() << ": " << e.id;
-                            LOG(ERROR) << "  Parsing message into json failed: " << publish.getMessage();
-                            LOG(ERROR) << "     Parse Error: Message: " << e.what() << '\n'
-                                       << "     Exception Id: " << e.id << '\n'
-                                       << "     Byte position of error: " << e.byte;
-                            json.clear();
-                        }
-                    }
-
-                    if (!json.empty()) {
-                        publishMappedTemplates(templateMapping, json, publish);
-                    } else {
-                        VLOG(1) << "No valid mapping found: " << matchingTopicLevel.dump();
+                        publishMappedTemplates(subscription["json"], json, publish);
+                    } catch (const nlohmann::json::parse_error& e) {
+                        LOG(ERROR) << "  Parsing message into json failed: " << publish.getMessage();
+                        LOG(ERROR) << "     What: " << e.what() << '\n'
+                                   << "     Exception Id: " << e.id << '\n'
+                                   << "     Byte position of error: " << e.byte;
                     }
                 }
             }
