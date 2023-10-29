@@ -110,7 +110,7 @@
                       "default": ""
                     }
                   },
-                  "oneOf": [
+                  "anyOf": [
                     { "$ref": "#/$defs/mapping_static" },
                     { "$ref": "#/$defs/mapping_value" },
                     { "$ref": "#/$defs/mapping_json" }
