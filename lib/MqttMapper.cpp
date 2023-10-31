@@ -80,7 +80,66 @@ namespace mqtt::lib {
         return mappingJson.dump();
     }
 
-    void MqttMapper::extractTopic(const nlohmann::json& topicLevel, const std::string& topic, std::list<iot::mqtt::Topic>& topicList) {
+    std::list<iot::mqtt::Topic> MqttMapper::extractSubscriptions() {
+        std::list<iot::mqtt::Topic> topicList;
+
+        extractSubscriptions(mappingJson, "", topicList);
+
+        return topicList;
+    }
+
+    void MqttMapper::publishMappings(const iot::mqtt::packets::Publish& publish) {
+        if (!mappingJson.empty()) {
+            nlohmann::json matchingTopicLevel = findMatchingTopicLevel(mappingJson["topic_level"], publish.getTopic());
+
+            if (!matchingTopicLevel.empty()) {
+                const nlohmann::json& subscription = matchingTopicLevel["subscription"];
+
+                if (subscription.contains("static")) {
+                    VLOG(1) << "Topic mapping found:";
+                    VLOG(1) << "  Type: static";
+                    VLOG(1) << "  Topic: " << publish.getTopic();
+                    VLOG(1) << "  Message: " << publish.getMessage();
+
+                    publishMappedMessages(subscription["static"], publish);
+                }
+
+                if (subscription.contains("value")) {
+                    VLOG(1) << "Topic mapping found:";
+                    VLOG(1) << "  Type: value";
+                    VLOG(1) << "  Topic: " << publish.getTopic();
+                    VLOG(1) << "  Message: " << publish.getMessage();
+
+                    nlohmann::json json;
+                    json["message"] = publish.getMessage();
+
+                    publishMappedTemplates(subscription["value"], json, publish);
+                }
+
+                if (subscription.contains("json")) {
+                    VLOG(1) << "Topic mapping found";
+                    VLOG(1) << "  Type: json";
+                    VLOG(1) << "  Topic: " << publish.getTopic();
+                    VLOG(1) << "  Message: " << publish.getMessage();
+
+                    try {
+                        nlohmann::json json;
+                        json["message"] = nlohmann::json::parse(publish.getMessage());
+
+                        publishMappedTemplates(subscription["json"], json, publish);
+                    } catch (const nlohmann::json::parse_error& e) {
+                        LOG(ERROR) << "  Parsing message into json failed: " << publish.getMessage();
+                        LOG(ERROR) << "     What: " << e.what() << '\n'
+                                   << "     Exception Id: " << e.id << '\n'
+                                   << "     Byte position of error: " << e.byte;
+                    }
+                }
+            }
+        }
+    }
+
+    void
+    MqttMapper::extractSubscription(const nlohmann::json& topicLevel, const std::string& topic, std::list<iot::mqtt::Topic>& topicList) {
         std::string name = topicLevel["name"];
 
         if (topicLevel.contains("subscription")) {
@@ -90,28 +149,48 @@ namespace mqtt::lib {
         }
 
         if (topicLevel.contains("topic_level")) {
-            extractTopics(topicLevel, topic + ((topic.empty() || topic == "/") && !name.empty() ? "" : "/") + name, topicList);
+            extractSubscriptions(topicLevel, topic + ((topic.empty() || topic == "/") && !name.empty() ? "" : "/") + name, topicList);
         }
     }
 
-    void MqttMapper::extractTopics(const nlohmann::json& mappingJson, const std::string& topic, std::list<iot::mqtt::Topic>& topicList) {
+    void
+    MqttMapper::extractSubscriptions(const nlohmann::json& mappingJson, const std::string& topic, std::list<iot::mqtt::Topic>& topicList) {
         const nlohmann::json& topicLevels = mappingJson["topic_level"];
 
         if (topicLevels.is_object()) {
-            extractTopic(topicLevels, topic, topicList);
+            extractSubscription(topicLevels, topic, topicList);
         } else {
             for (const nlohmann::json& topicLevel : topicLevels) {
-                extractTopic(topicLevel, topic, topicList);
+                extractSubscription(topicLevel, topic, topicList);
             }
         }
     }
 
-    std::list<iot::mqtt::Topic> MqttMapper::extractTopics() {
-        std::list<iot::mqtt::Topic> topicList;
+    nlohmann::json MqttMapper::findMatchingTopicLevel(const nlohmann::json& topicLevel, const std::string& topic) {
+        nlohmann::json foundTopicLevel;
 
-        extractTopics(mappingJson, "", topicList);
+        if (topicLevel.is_object()) {
+            std::string::size_type slashPosition = topic.find("/");
+            std::string topicLevelName = topic.substr(0, slashPosition);
 
-        return topicList;
+            if (topicLevel["name"] == topicLevelName) {
+                if (slashPosition == std::string::npos) {
+                    foundTopicLevel = topicLevel;
+                } else if (topicLevel.contains("topic_level")) {
+                    foundTopicLevel = findMatchingTopicLevel(topicLevel["topic_level"], topic.substr(slashPosition + 1));
+                }
+            }
+        } else if (topicLevel.is_array()) {
+            for (const nlohmann::json& topicLevelEntry : topicLevel) {
+                foundTopicLevel = findMatchingTopicLevel(topicLevelEntry, topic);
+
+                if (!foundTopicLevel.empty()) {
+                    break;
+                }
+            }
+        }
+
+        return foundTopicLevel;
     }
 
     void MqttMapper::publishMappedTemplate(const nlohmann::json& templateMapping,
@@ -239,83 +318,6 @@ namespace mqtt::lib {
         } else if (staticMapping.is_array()) {
             for (const nlohmann::json& concreteStaticMapping : staticMapping) {
                 publishMappedMessage(concreteStaticMapping, publish);
-            }
-        }
-    }
-
-    nlohmann::json MqttMapper::findMatchingTopicLevel(const nlohmann::json& topicLevel, const std::string& topic) {
-        nlohmann::json foundTopicLevel;
-
-        if (topicLevel.is_object()) {
-            std::string::size_type slashPosition = topic.find("/");
-            std::string topicLevelName = topic.substr(0, slashPosition);
-
-            if (topicLevel["name"] == topicLevelName) {
-                if (slashPosition == std::string::npos) {
-                    foundTopicLevel = topicLevel;
-                } else if (topicLevel.contains("topic_level")) {
-                    foundTopicLevel = findMatchingTopicLevel(topicLevel["topic_level"], topic.substr(slashPosition + 1));
-                }
-            }
-        } else if (topicLevel.is_array()) {
-            for (const nlohmann::json& topicLevelEntry : topicLevel) {
-                foundTopicLevel = findMatchingTopicLevel(topicLevelEntry, topic);
-
-                if (!foundTopicLevel.empty()) {
-                    break;
-                }
-            }
-        }
-
-        return foundTopicLevel;
-    }
-
-    void MqttMapper::publishMappings(const iot::mqtt::packets::Publish& publish) {
-        if (!mappingJson.empty()) {
-            nlohmann::json matchingTopicLevel = findMatchingTopicLevel(mappingJson["topic_level"], publish.getTopic());
-
-            if (!matchingTopicLevel.empty()) {
-                const nlohmann::json& subscription = matchingTopicLevel["subscription"];
-
-                if (subscription.contains("static")) {
-                    VLOG(1) << "Topic mapping found:";
-                    VLOG(1) << "  Type: static";
-                    VLOG(1) << "  Topic: " << publish.getTopic();
-                    VLOG(1) << "  Message: " << publish.getMessage();
-
-                    publishMappedMessages(subscription["static"], publish);
-                }
-
-                if (subscription.contains("value")) {
-                    VLOG(1) << "Topic mapping found:";
-                    VLOG(1) << "  Type: value";
-                    VLOG(1) << "  Topic: " << publish.getTopic();
-                    VLOG(1) << "  Message: " << publish.getMessage();
-
-                    nlohmann::json json;
-                    json["message"] = publish.getMessage();
-
-                    publishMappedTemplates(subscription["value"], json, publish);
-                }
-
-                if (subscription.contains("json")) {
-                    VLOG(1) << "Topic mapping found";
-                    VLOG(1) << "  Type: json";
-                    VLOG(1) << "  Topic: " << publish.getTopic();
-                    VLOG(1) << "  Message: " << publish.getMessage();
-
-                    try {
-                        nlohmann::json json;
-                        json["message"] = nlohmann::json::parse(publish.getMessage());
-
-                        publishMappedTemplates(subscription["json"], json, publish);
-                    } catch (const nlohmann::json::parse_error& e) {
-                        LOG(ERROR) << "  Parsing message into json failed: " << publish.getMessage();
-                        LOG(ERROR) << "     What: " << e.what() << '\n'
-                                   << "     Exception Id: " << e.id << '\n'
-                                   << "     Byte position of error: " << e.byte;
-                    }
-                }
             }
         }
     }

@@ -78,26 +78,25 @@ namespace mqtt::lib {
     protected:
         std::string dump();
 
-        std::list<iot::mqtt::Topic> extractTopics();
+        std::list<iot::mqtt::Topic> extractSubscriptions();
         void publishMappings(const iot::mqtt::packets::Publish& publish);
 
     private:
-        static void extractTopic(const nlohmann::json& json, const std::string& topic, std::list<iot::mqtt::Topic>& topicList);
-        static void extractTopics(const nlohmann::json& json, const std::string& topic, std::list<iot::mqtt::Topic>& topicList);
+        virtual void publishMapping(const std::string& topic, const std::string& message, uint8_t qoS, bool retain) = 0;
+
+        static void extractSubscription(const nlohmann::json& json, const std::string& topic, std::list<iot::mqtt::Topic>& topicList);
+        static void extractSubscriptions(const nlohmann::json& json, const std::string& topic, std::list<iot::mqtt::Topic>& topicList);
 
         nlohmann::json findMatchingTopicLevel(const nlohmann::json& topicLevel, const std::string& topic);
 
-        void publishMappedTemplate(const nlohmann::json& mappingSubJson, nlohmann::json& json, const iot::mqtt::packets::Publish& publish);
-        void publishMappedTemplates(const nlohmann::json& mappingSubJson, nlohmann::json& json, const iot::mqtt::packets::Publish& publish);
+        void publishMappedTemplate(const nlohmann::json& templateMapping, nlohmann::json& json, const iot::mqtt::packets::Publish& publish);
+        void
+        publishMappedTemplates(const nlohmann::json& templateMapping, nlohmann::json& json, const iot::mqtt::packets::Publish& publish);
 
         void
         publishMappedMessage(const nlohmann::json& staticMapping, const std::string& message, const iot::mqtt::packets::Publish& publish);
-
         void publishMappedMessage(const nlohmann::json& staticMapping, const iot::mqtt::packets::Publish& publish);
-
         void publishMappedMessages(const nlohmann::json& staticMapping, const iot::mqtt::packets::Publish& publish);
-
-        virtual void publishMapping(const std::string& topic, const std::string& message, uint8_t qoS, bool retain) = 0;
 
         const nlohmann::json& mappingJson;
 
