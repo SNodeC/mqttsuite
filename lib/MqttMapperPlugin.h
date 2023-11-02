@@ -39,6 +39,10 @@ namespace mqtt::lib {
 
     extern "C" {
         extern std::vector<Function> functions;
+        extern std::vector<VoidFunction> voidFunctions;
+
+        //        std::vector<Function> functions __attribute__((weak));
+        //        std::vector<VoidFunction> voidFunctions __attribute__((weak));
     }
 
 } // namespace mqtt::lib
@@ -47,6 +51,11 @@ extern "C" {
     std::vector<mqtt::lib::Function> getFunctions();
     std::vector<mqtt::lib::Function> getFunctions() {
         return mqtt::lib::functions;
+    }
+
+    std::vector<mqtt::lib::VoidFunction> getVoidFunctions();
+    std::vector<mqtt::lib::VoidFunction> getVoidFunctions() {
+        return mqtt::lib::voidFunctions;
     }
 }
 

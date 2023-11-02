@@ -103,16 +103,32 @@ namespace mqtt::lib {
         inja::Environment injaEnvironment;
     };
 
-    struct Function {
-        Function(const std::string& name, int numArgs, const std::function<inja::json(inja::Arguments&)>& function)
+    struct FunctionBase {
+        FunctionBase(const std::string& name, int numArgs)
             : name(name)
-            , numArgs(numArgs)
-            , function(function) {
+            , numArgs(numArgs) {
         }
 
         std::string name;
         int numArgs;
+    };
+
+    struct Function : FunctionBase {
+        Function(const std::string& name, int numArgs, const std::function<inja::json(inja::Arguments&)>& function)
+            : FunctionBase(name, numArgs)
+            , function(function) {
+        }
+
         std::function<inja::json(inja::Arguments&)> function;
+    };
+
+    struct VoidFunction : FunctionBase {
+        VoidFunction(const std::string& name, int numArgs, const std::function<void(inja::Arguments&)>& function)
+            : FunctionBase(name, numArgs)
+            , function(function) {
+        }
+
+        std::function<void(inja::Arguments&)> function;
     };
 
 } // namespace mqtt::lib

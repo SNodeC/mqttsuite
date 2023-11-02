@@ -41,7 +41,7 @@ namespace mqtt::lib::plugins::storage_plugin {
     public:
         static Storage& instance();
 
-        static const std::string store(const inja::Arguments& args);
+        static void store(const inja::Arguments& args);
 
         static const std::string& recall(const inja::Arguments& args);
         static int recall_as_int(const inja::Arguments& args);

@@ -67,6 +67,23 @@ namespace mqtt::lib {
                 } else {
                     VLOG(1) << "No function getFunctions found";
                 }
+
+                std::vector<mqtt::lib::VoidFunction> (*getVoidFunctions)() =
+                    reinterpret_cast<std::vector<mqtt::lib::VoidFunction> (*)()>(dlsym(handle, "getVoidFunctions"));
+
+                if (getVoidFunctions != nullptr) {
+                    for (const mqtt::lib::VoidFunction& voidFunction : getVoidFunctions()) {
+                        VLOG(1) << "Registering VoidFunction " << voidFunction.name;
+
+                        if (voidFunction.numArgs >= 0) {
+                            injaEnvironment.add_void_callback(voidFunction.name, voidFunction.numArgs, voidFunction.function);
+                        } else {
+                            injaEnvironment.add_void_callback(voidFunction.name, voidFunction.function);
+                        }
+                    }
+                } else {
+                    VLOG(1) << "No function getVoidFunctions found";
+                }
             }
 
             VLOG(1) << "Loading plugins done";

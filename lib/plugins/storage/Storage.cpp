@@ -37,10 +37,8 @@ namespace mqtt::lib::plugins::storage_plugin {
         return storage;
     }
 
-    const std::string Storage::store(const inja::Arguments& args) {
+    void Storage::store(const inja::Arguments& args) {
         instance().storage[args.at(0)->get<std::string>()] = args.at(1)->get<std::string>();
-
-        return "";
     }
 
     const std::string& Storage::recall(const inja::Arguments& args) {
@@ -93,11 +91,12 @@ namespace mqtt::lib::plugins::storage_plugin {
 
 namespace mqtt::lib {
 
-    std::vector<mqtt::lib::Function> functions{{"store", 2, mqtt::lib::plugins::storage_plugin::Storage::store},
-                                               {"recall", 1, mqtt::lib::plugins::storage_plugin::Storage::recall},
+    std::vector<mqtt::lib::Function> functions{{"recall", 1, mqtt::lib::plugins::storage_plugin::Storage::recall},
                                                {"recall_as_int", 1, mqtt::lib::plugins::storage_plugin::Storage::recall_as_int},
                                                {"recall_as_float", 1, mqtt::lib::plugins::storage_plugin::Storage::recall_as_float},
                                                {"is_empty", 1, mqtt::lib::plugins::storage_plugin::Storage::is_empty},
                                                {"exists", 1, mqtt::lib::plugins::storage_plugin::Storage::exists}};
 
-}
+    std::vector<mqtt::lib::VoidFunction> voidFunctions{{"store", 2, mqtt::lib::plugins::storage_plugin::Storage::store}};
+
+} // namespace mqtt::lib
