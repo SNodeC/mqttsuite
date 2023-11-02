@@ -42,4 +42,6 @@ namespace mqtt::lib {
     std::vector<mqtt::lib::Function> functions{{"double", 1, mqtt::lib::plugins::double_plugin::myDouble},
                                                {"double", 2, mqtt::lib::plugins::double_plugin::myDouble}};
 
-}
+    std::vector<mqtt::lib::VoidFunction> voidFunctions;
+
+} // namespace mqtt::lib
