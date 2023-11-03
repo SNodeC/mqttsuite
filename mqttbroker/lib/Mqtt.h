@@ -56,7 +56,7 @@ namespace mqtt::mqttbroker::lib {
         // inherited from core::socket::SocketContext (the root class of all SocketContext classes) via iot::mqtt::server::SocketContext
         void onDisconnected() final;
 
-        // inherited from apps::mqtt::lib::MqttMapper
+        // implement poor virtual method from apps::mqtt::lib::MqttMapper
         void publishMapping(const std::string& topic, const std::string& message, uint8_t qoS, bool retain) final;
     };
 

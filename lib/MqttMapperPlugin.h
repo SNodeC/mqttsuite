@@ -66,9 +66,7 @@ namespace mqtt::lib {
 
 } // namespace mqtt::lib
 
-extern "C" {
-    extern std::vector<mqtt::lib::Function> functions;
-    extern std::vector<mqtt::lib::VoidFunction> voidFunctions;
-}
+extern "C" std::vector<mqtt::lib::Function> functions;
+extern "C" std::vector<mqtt::lib::VoidFunction> voidFunctions;
 
 #endif // MQTT_LIB_MQTTMAPPERPLUGIN_H
