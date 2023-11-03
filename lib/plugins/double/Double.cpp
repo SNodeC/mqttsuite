@@ -39,6 +39,5 @@ namespace mqtt::lib::plugins::double_plugin {
 } // namespace mqtt::lib::plugins::double_plugin
 
 extern "C" {
-    std::vector<mqtt::lib::Function> functions{{"double", 1, mqtt::lib::plugins::double_plugin::myDouble},
-                                               {"double", 2, mqtt::lib::plugins::double_plugin::myDouble}};
+    std::vector<mqtt::lib::Function> functions{{"double", 1, mqtt::lib::plugins::double_plugin::myDouble}};
 }
