@@ -58,9 +58,9 @@ namespace mqtt::lib {
                     std::vector<mqtt::lib::Function>* functions =
                         static_cast<std::vector<mqtt::lib::Function>*>(dlsym(handle, "functions"));
                     if (functions != nullptr) {
-                        VLOG(0) << "  Registering none void functions";
+                        VLOG(0) << "  Registering inja none void callbacks";
                         for (const mqtt::lib::Function& function : *functions) {
-                            VLOG(1) << "    Registering Function " << function.name;
+                            VLOG(1) << "    " << function.name;
 
                             if (function.numArgs >= 0) {
                                 injaEnvironment.add_callback(function.name, function.numArgs, function.function);
@@ -68,17 +68,17 @@ namespace mqtt::lib {
                                 injaEnvironment.add_callback(function.name, function.function);
                             }
                         }
-                        VLOG(0) << "  Registering none functions done";
+                        VLOG(0) << "  Registering inja none void callbacks done";
                     } else {
-                        VLOG(1) << "  No none void functions found in plugin " << plugin;
+                        VLOG(1) << "  No inja none void callbacks found in plugin " << plugin;
                     }
 
                     std::vector<mqtt::lib::VoidFunction>* voidFunctions =
                         static_cast<std::vector<mqtt::lib::VoidFunction>*>(dlsym(handle, "voidFunctions"));
                     if (voidFunctions != nullptr) {
-                        VLOG(0) << "  Registering void functions";
+                        VLOG(0) << "  Registering inja void callbacks";
                         for (const mqtt::lib::VoidFunction& voidFunction : *voidFunctions) {
-                            VLOG(1) << "    Registering VoidFunction " << voidFunction.name;
+                            VLOG(1) << "    " << voidFunction.name;
 
                             if (voidFunction.numArgs >= 0) {
                                 injaEnvironment.add_void_callback(voidFunction.name, voidFunction.numArgs, voidFunction.function);
@@ -86,9 +86,9 @@ namespace mqtt::lib {
                                 injaEnvironment.add_void_callback(voidFunction.name, voidFunction.function);
                             }
                         }
-                        VLOG(0) << "  Registering void functions done";
+                        VLOG(0) << "  Registering inja void callbacks done";
                     } else {
-                        VLOG(1) << "  No void functions found in plugin " << plugin;
+                        VLOG(1) << "  No inja void callbacks found in plugin " << plugin;
                     }
                 } else {
                     VLOG(1) << "  Error loading plugin: " << plugin;
