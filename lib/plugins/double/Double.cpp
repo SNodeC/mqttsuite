@@ -24,6 +24,7 @@
 
 #include <map>
 #include <nlohmann/json.hpp>
+#include <vector>
 
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
@@ -37,11 +38,7 @@ namespace mqtt::lib::plugins::double_plugin {
 
 } // namespace mqtt::lib::plugins::double_plugin
 
-namespace mqtt::lib {
-
+extern "C" {
     std::vector<mqtt::lib::Function> functions{{"double", 1, mqtt::lib::plugins::double_plugin::myDouble},
                                                {"double", 2, mqtt::lib::plugins::double_plugin::myDouble}};
-
-    std::vector<mqtt::lib::VoidFunction> voidFunctions;
-
-} // namespace mqtt::lib
+}

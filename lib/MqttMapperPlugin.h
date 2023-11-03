@@ -19,14 +19,14 @@
 #ifndef MQTT_LIB_MQTTMAPPERPLUGIN_H
 #define MQTT_LIB_MQTTMAPPERPLUGIN_H
 
-#include "MqttMapper.h" // IWYU pragma: export
+// #include "MqttMapper.h" // IWYU pragma: export
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <algorithm>
-#include <vector> // IWYU pragma: export
-
-// IWYU pragma: no_include <nlohmann/json.hpp>
+#include <functional>
+#include <nlohmann/json_fwd.hpp> // IWYU pragma: export
+#include <vector>
 
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
@@ -36,27 +36,39 @@ namespace inja {
 } // namespace inja
 
 namespace mqtt::lib {
+    struct FunctionBase {
+        FunctionBase(const std::string& name, int numArgs)
+            : name(name)
+            , numArgs(numArgs) {
+        }
 
-    extern "C" {
-        extern std::vector<Function> functions;
-        extern std::vector<VoidFunction> voidFunctions;
+        std::string name;
+        int numArgs;
+    };
 
-        //        std::vector<Function> functions __attribute__((weak));
-        //        std::vector<VoidFunction> voidFunctions __attribute__((weak));
-    }
+    struct Function : FunctionBase {
+        Function(const std::string& name, int numArgs, const std::function<inja::json(inja::Arguments&)>& function)
+            : FunctionBase(name, numArgs)
+            , function(function) {
+        }
+
+        std::function<inja::json(inja::Arguments&)> function;
+    };
+
+    struct VoidFunction : FunctionBase {
+        VoidFunction(const std::string& name, int numArgs, const std::function<void(inja::Arguments&)>& function)
+            : FunctionBase(name, numArgs)
+            , function(function) {
+        }
+
+        std::function<void(inja::Arguments&)> function;
+    };
 
 } // namespace mqtt::lib
 
 extern "C" {
-    std::vector<mqtt::lib::Function> getFunctions();
-    std::vector<mqtt::lib::Function> getFunctions() {
-        return mqtt::lib::functions;
-    }
-
-    std::vector<mqtt::lib::VoidFunction> getVoidFunctions();
-    std::vector<mqtt::lib::VoidFunction> getVoidFunctions() {
-        return mqtt::lib::voidFunctions;
-    }
+    extern std::vector<mqtt::lib::Function> functions;
+    extern std::vector<mqtt::lib::VoidFunction> voidFunctions;
 }
 
 #endif // MQTT_LIB_MQTTMAPPERPLUGIN_H
