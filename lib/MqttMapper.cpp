@@ -18,6 +18,8 @@
 
 #include "MqttMapper.h"
 
+#include "MqttMapperPlugin.h"
+
 #include <core/DynamicLoader.h>
 #include <iot/mqtt/Topic.h>
 #include <iot/mqtt/packets/Publish.h>
@@ -26,6 +28,7 @@
 
 #include <algorithm>
 #include <dlfcn.h>
+// #include <functional>
 #include <initializer_list>
 #include <log/Logger.h>
 #include <map>
@@ -51,38 +54,40 @@ namespace mqtt::lib {
 
                 void* handle = dlOpen(plugin, RTLD_LOCAL | RTLD_LAZY);
 
-                std::vector<mqtt::lib::Function> (*getFunctions)() =
-                    reinterpret_cast<std::vector<mqtt::lib::Function> (*)()>(dlsym(handle, "getFunctions"));
+                if (handle != nullptr) {
+                    std::vector<mqtt::lib::Function>* functions =
+                        static_cast<std::vector<mqtt::lib::Function>*>(dlsym(handle, "functions"));
+                    if (functions != nullptr) {
+                        for (const mqtt::lib::Function& function : *functions) {
+                            VLOG(1) << "Registering Function " << function.name;
 
-                if (getFunctions != nullptr) {
-                    for (const mqtt::lib::Function& function : getFunctions()) {
-                        VLOG(1) << "Registering Function " << function.name;
-
-                        if (function.numArgs >= 0) {
-                            injaEnvironment.add_callback(function.name, function.numArgs, function.function);
-                        } else {
-                            injaEnvironment.add_callback(function.name, function.function);
+                            if (function.numArgs >= 0) {
+                                injaEnvironment.add_callback(function.name, function.numArgs, function.function);
+                            } else {
+                                injaEnvironment.add_callback(function.name, function.function);
+                            }
                         }
+                    } else {
+                        VLOG(1) << "No symbol 'functions' found in plugin " << plugin;
+                    }
+
+                    std::vector<mqtt::lib::VoidFunction>* voidFunctions =
+                        static_cast<std::vector<mqtt::lib::VoidFunction>*>(dlsym(handle, "voidFunctions"));
+                    if (voidFunctions != nullptr) {
+                        for (const mqtt::lib::VoidFunction& voidFunction : *voidFunctions) {
+                            VLOG(1) << "Registering VoidFunction " << voidFunction.name;
+
+                            if (voidFunction.numArgs >= 0) {
+                                injaEnvironment.add_void_callback(voidFunction.name, voidFunction.numArgs, voidFunction.function);
+                            } else {
+                                injaEnvironment.add_void_callback(voidFunction.name, voidFunction.function);
+                            }
+                        }
+                    } else {
+                        VLOG(1) << "No symbol 'voidFunctions' found in plugin " << plugin;
                     }
                 } else {
-                    VLOG(1) << "No function getFunctions found";
-                }
-
-                std::vector<mqtt::lib::VoidFunction> (*getVoidFunctions)() =
-                    reinterpret_cast<std::vector<mqtt::lib::VoidFunction> (*)()>(dlsym(handle, "getVoidFunctions"));
-
-                if (getVoidFunctions != nullptr) {
-                    for (const mqtt::lib::VoidFunction& voidFunction : getVoidFunctions()) {
-                        VLOG(1) << "Registering VoidFunction " << voidFunction.name;
-
-                        if (voidFunction.numArgs >= 0) {
-                            injaEnvironment.add_void_callback(voidFunction.name, voidFunction.numArgs, voidFunction.function);
-                        } else {
-                            injaEnvironment.add_void_callback(voidFunction.name, voidFunction.function);
-                        }
-                    }
-                } else {
-                    VLOG(1) << "No function getVoidFunctions found";
+                    VLOG(1) << "Error loading plugin: " << plugin;
                 }
             }
 

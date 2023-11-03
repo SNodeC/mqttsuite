@@ -24,6 +24,7 @@
 
 #include <nlohmann/json.hpp>
 #include <stdexcept>
+#include <vector>
 
 // IWYU pragma: no_include <nlohmann/detail/json_pointer.hpp>
 
@@ -89,8 +90,7 @@ namespace mqtt::lib::plugins::storage_plugin {
 
 } // namespace mqtt::lib::plugins::storage_plugin
 
-namespace mqtt::lib {
-
+extern "C" {
     std::vector<mqtt::lib::Function> functions{{"recall", 1, mqtt::lib::plugins::storage_plugin::Storage::recall},
                                                {"recall_as_int", 1, mqtt::lib::plugins::storage_plugin::Storage::recall_as_int},
                                                {"recall_as_float", 1, mqtt::lib::plugins::storage_plugin::Storage::recall_as_float},
@@ -98,5 +98,4 @@ namespace mqtt::lib {
                                                {"exists", 1, mqtt::lib::plugins::storage_plugin::Storage::exists}};
 
     std::vector<mqtt::lib::VoidFunction> voidFunctions{{"store", 2, mqtt::lib::plugins::storage_plugin::Storage::store}};
-
-} // namespace mqtt::lib
+}
