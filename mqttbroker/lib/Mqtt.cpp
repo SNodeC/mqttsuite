@@ -25,6 +25,8 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include <log/Logger.h>
+
 #endif
 
 namespace mqtt::mqttbroker::lib {
@@ -35,6 +37,7 @@ namespace mqtt::mqttbroker::lib {
     }
 
     void Mqtt::onConnect(const iot::mqtt::packets::Connect& connect) {
+        VLOG(1) << "MQTT: Connected";
         MqttModel::instance().addConnectedClient(this, connect);
     }
 
@@ -44,6 +47,7 @@ namespace mqtt::mqttbroker::lib {
 
     void Mqtt::onDisconnected() {
         MqttModel::instance().delDisconnectedClient(this);
+        VLOG(1) << "MQTT: Disconnected";
     }
 
     void Mqtt::publishMapping(const std::string& topic, const std::string& message, uint8_t qoS, bool retain) {
