@@ -49,7 +49,7 @@ express::Router getRouter() {
 
         std::string responseString = "<html>"
                                      "  <head>"
-                                     "    <title>Response from MqttWebFrontend</title>"
+                                     "    <title>Mqtt Broker</title>"
                                      "  </head>"
                                      "  <body>"
                                      "    <h1>List of all Connected Clients</h1>"
@@ -110,46 +110,53 @@ int main(int argc, char* argv[]) {
     core::SNodeC::init(argc, argv);
 
     setenv("MQTT_SESSION_STORE", utils::Config::get_string_option_value("--mqtt-session-store").data(), 0);
-
     {
-        using MQTTLegacyInServer = net::in::stream::legacy::SocketServer<mqtt::mqttbroker::SharedSocketContextFactory>;
-        using MQTTLegacyInSocketAddress = MQTTLegacyInServer::SocketAddress;
+        using MqttBroker = net::in::stream::legacy::SocketServer<mqtt::mqttbroker::SharedSocketContextFactory>;
+        using SocketAddress = MqttBroker::SocketAddress;
 
-        MQTTLegacyInServer mqttLegacyInServer("in-mqtt");
-        mqttLegacyInServer.listen(1883, [](const MQTTLegacyInSocketAddress& socketAddress, const core::socket::State& state) -> void {
+        MqttBroker mqttBroker("in-mqtt");
+        mqttBroker.listen(1883, [](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
             reportState("in-mqtt", socketAddress, state);
         });
+    }
 
-        using MQTTTLSInServer = net::in::stream::tls::SocketServer<mqtt::mqttbroker::SharedSocketContextFactory>;
-        using MQTTTLSInSocketAddress = MQTTTLSInServer::SocketAddress;
+    {
+        using MqttBroker = net::in::stream::tls::SocketServer<mqtt::mqttbroker::SharedSocketContextFactory>;
+        using SocketAddress = MqttBroker::SocketAddress;
 
-        MQTTTLSInServer mqttTLSInServer("in-mqtts");
-        mqttTLSInServer.listen(8883, [](const MQTTTLSInSocketAddress& socketAddress, const core::socket::State& state) -> void {
+        MqttBroker mqttBroker("in-mqtts");
+        mqttBroker.listen(8883, [](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
             reportState("in-mqtts", socketAddress, state);
         });
+    }
 
-        using MQTTLegacyUnServer = net::un::stream::legacy::SocketServer<mqtt::mqttbroker::SharedSocketContextFactory>;
-        using MQTTLegacyUnSocketAddress = MQTTLegacyUnServer::SocketAddress;
+    {
+        using MqttBroker = net::un::stream::legacy::SocketServer<mqtt::mqttbroker::SharedSocketContextFactory>;
+        using SocketAddress = MqttBroker::SocketAddress;
 
-        MQTTLegacyUnServer mqttLegacyUnServer("un-mqtt");
-        mqttLegacyUnServer.listen("/tmp/" + utils::Config::getApplicationName(),
-                                  [](const MQTTLegacyUnSocketAddress& socketAddress, const core::socket::State& state) -> void {
-                                      reportState("un-mqtt", socketAddress, state);
-                                  });
+        MqttBroker mqttBroker("un-mqtt");
+        mqttBroker.listen("/tmp/" + utils::Config::getApplicationName(),
+                          [](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
+                              reportState("un-mqtt", socketAddress, state);
+                          });
+    }
 
-        using MQTTLegacyWebView = express::legacy::in::WebApp;
-        using MQTTLegacyWebViewSocketAddress = MQTTLegacyWebView::SocketAddress;
+    {
+        using MqttBroker = express::legacy::in::WebApp;
+        using SocketAddress = MqttBroker::SocketAddress;
 
-        MQTTLegacyWebView mqttLegacyWebView("in-http", getRouter());
-        mqttLegacyWebView.listen(8080, [](const MQTTLegacyWebViewSocketAddress& socketAddress, const core::socket::State& state) -> void {
+        MqttBroker mqttBroker("in-http", getRouter());
+        mqttBroker.listen(8080, [](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
             reportState("in-http", socketAddress, state);
         });
+    }
 
-        using MQTTTLSWebView = express::tls::in::WebApp;
-        using MQTTTlSWebViewSocketAddress = MQTTTLSWebView::SocketAddress;
+    {
+        using MqttBroker = express::tls::in::WebApp;
+        using SocketAddress = MqttBroker::SocketAddress;
 
-        MQTTTLSWebView mqttTLSWebView("in-https", mqttLegacyWebView);
-        mqttTLSWebView.listen(8088, [](const MQTTTlSWebViewSocketAddress& socketAddress, const core::socket::State& state) -> void {
+        MqttBroker mqttBroker("in-https", getRouter());
+        mqttBroker.listen(8088, [](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
             reportState("in-https", socketAddress, state);
         });
     }

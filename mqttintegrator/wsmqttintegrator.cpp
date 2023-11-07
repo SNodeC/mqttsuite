@@ -82,10 +82,10 @@ int main(int argc, char* argv[]) {
     setenv("MQTT_SESSION_STORE", utils::Config::get_string_option_value("--mqtt-session-store").data(), 0);
 
     {
-        using WsMqttLegacyIntegrator = web::http::legacy::in::Client<web::http::client::Request, web::http::client::Response>;
-        using LegacySocketAddress = WsMqttLegacyIntegrator::SocketAddress;
+        using WsIntegrator = web::http::legacy::in::Client<web::http::client::Request, web::http::client::Response>;
+        using SocketAddress = WsIntegrator::SocketAddress;
 
-        WsMqttLegacyIntegrator wsMqttLegacyIntegrator(
+        WsIntegrator wsIntegrator(
             "in-wsmqtt",
             [](web::http::client::Request& request) -> void {
                 request.set("Sec-WebSocket-Protocol", "mqtt");
@@ -101,15 +101,17 @@ int main(int argc, char* argv[]) {
                 VLOG(0) << "     Reason: " << reason;
             });
 
-        wsMqttLegacyIntegrator.getConfig().Remote::setPort(8080);
-        wsMqttLegacyIntegrator.connect([](const LegacySocketAddress& socketAddress, const core::socket::State& state) -> void {
+        wsIntegrator.getConfig().Remote::setPort(8080);
+        wsIntegrator.connect([](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
             reportState("in-wsmqtt", socketAddress, state);
         });
+    }
 
-        using WsMqttTlsIntegrator = web::http::tls::in::Client<web::http::client::Request, web::http::client::Response>;
-        using TlsSocketAddress = WsMqttLegacyIntegrator::SocketAddress;
+    {
+        using WsIntegrator = web::http::tls::in::Client<web::http::client::Request, web::http::client::Response>;
+        using SocketAddress = WsIntegrator::SocketAddress;
 
-        WsMqttTlsIntegrator wsMqttTlsIntegrator(
+        WsIntegrator wsIntegrator(
             "in-wsmqtts",
             [](web::http::client::Request& request) -> void {
                 request.set("Sec-WebSocket-Protocol", "mqtt");
@@ -125,9 +127,9 @@ int main(int argc, char* argv[]) {
                 VLOG(0) << "     Reason: " << reason;
             });
 
-        wsMqttTlsIntegrator.getConfig().setDisabled();
-        wsMqttTlsIntegrator.getConfig().Remote::setPort(8088);
-        wsMqttTlsIntegrator.connect([](const TlsSocketAddress& socketAddress, const core::socket::State& state) -> void {
+        wsIntegrator.getConfig().setDisabled();
+        wsIntegrator.getConfig().Remote::setPort(8088);
+        wsIntegrator.connect([](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
             reportState("in-wsmqtts", socketAddress, state);
         });
     }
