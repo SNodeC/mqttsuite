@@ -14,9 +14,7 @@ find_package(snodec COMPONENTS mqtt)
 
 target_compile_options(
     nlohmann_json_schema_validator
-    PUBLIC -Wno-float-equal
-           -Wno-reserved-macro-identifier
-           -Wno-switch-enum
+    PUBLIC -Wno-float-equal -Wno-reserved-macro-identifier -Wno-switch-enum
            -Wno-weak-vtables
 )
 

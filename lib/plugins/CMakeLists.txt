@@ -17,12 +17,8 @@
 cmake_minimum_required(VERSION 3.18)
 
 add_compile_options(
-    -Wno-float-equal
-    -Wno-reserved-macro-identifier
-    -Wno-switch-enum
-    -Wno-weak-vtables
-    -Wno-covered-switch-default
-    -Wno-return-type-c-linkage
+    -Wno-float-equal -Wno-reserved-macro-identifier -Wno-switch-enum
+    -Wno-weak-vtables -Wno-covered-switch-default -Wno-return-type-c-linkage
 )
 
 add_subdirectory(double)
