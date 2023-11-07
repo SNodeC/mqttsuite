@@ -19,16 +19,39 @@
 #include "SocketContextFactory.h" // IWYU pragma: keep
 
 #include <core/SNodeC.h>
+#include <net/in/stream/legacy/SocketClient.h>
 #include <net/in/stream/tls/SocketClient.h>
+#include <net/un/stream/legacy/SocketClient.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <cstdlib>
 #include <log/Logger.h>
 #include <string>
+#include <type_traits>
 #include <utils/Config.h>
 
 #endif
+
+template <typename SocketAddressT, typename = std::enable_if_t<std::is_base_of_v<core::socket::SocketAddress, SocketAddressT>>>
+void reportState(const std::string& instanceName, const SocketAddressT& socketAddress, const core::socket::State& state) {
+    switch (state) {
+        case core::socket::State::OK:
+            VLOG(1) << instanceName << ": listening on '" << socketAddress.toString() << "': " << state.what();
+            break;
+        case core::socket::State::DISABLED:
+            VLOG(1) << instanceName << ": disabled";
+            break;
+        case core::socket::State::ERROR:
+            VLOG(1) << instanceName << ": " << socketAddress.toString() << ": error occurred";
+            VLOG(1) << "    " << state.what();
+            break;
+        case core::socket::State::FATAL:
+            VLOG(1) << instanceName << ": " << socketAddress.toString() << ": fatal error occurred";
+            VLOG(1) << "    " << state.what();
+            break;
+    }
+}
 
 int main(int argc, char* argv[]) {
     utils::Config::add_string_option("--mqtt-mapping-file", "MQTT mapping file (json format) for integration", "[path]");
@@ -39,28 +62,37 @@ int main(int argc, char* argv[]) {
     setenv("MQTT_SESSION_STORE", utils::Config::get_string_option_value("--mqtt-session-store").data(), 0);
 
     {
-        using InMqttTlsIntegrator = net::in::stream::tls::SocketClient<mqtt::mqttintegrator::SocketContextFactory>;
-        using SocketAddress = InMqttTlsIntegrator::SocketAddress;
+        using Integrator = net::in::stream::legacy::SocketClient<mqtt::mqttintegrator::SocketContextFactory>;
+        using SocketAddress = Integrator::SocketAddress;
 
-        InMqttTlsIntegrator inMqttTlsIntegrator("mqtttlsintegrator");
+        Integrator integrator("in-mqtt");
+        integrator.getConfig().Remote::setPort(1883);
+        integrator.connect([](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
+            reportState("in-mqtt", socketAddress, state);
+        });
+    }
 
-        inMqttTlsIntegrator.connect([](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
-            switch (state) {
-                case core::socket::State::OK:
-                    VLOG(1) << "mqtttlsintegrator: connected to '" << socketAddress.toString() << "': " << state.what();
-                    break;
-                case core::socket::State::DISABLED:
-                    VLOG(1) << "mqtttlsintegrator: disabled";
-                    break;
-                case core::socket::State::ERROR:
-                    VLOG(1) << "mqtttlsintegrator: " << socketAddress.toString() << ": non critical error occurred";
-                    VLOG(1) << "    " << state.what();
-                    break;
-                case core::socket::State::FATAL:
-                    VLOG(1) << "mqtttlsintegrator: " << socketAddress.toString() << ": critical error occurred";
-                    VLOG(1) << "    " << state.what();
-                    break;
-            }
+    {
+        using Integrator = net::in::stream::tls::SocketClient<mqtt::mqttintegrator::SocketContextFactory>;
+        using SocketAddress = Integrator::SocketAddress;
+
+        Integrator integrator("in-mqtts");
+        integrator.getConfig().setDisabled();
+        integrator.getConfig().Remote::setPort(8883);
+        integrator.connect([](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
+            reportState("in-mqtts", socketAddress, state);
+        });
+    }
+
+    {
+        using Integrator = net::un::stream::legacy::SocketClient<mqtt::mqttintegrator::SocketContextFactory>;
+        using SocketAddress = Integrator::SocketAddress;
+
+        Integrator integrator("un-mqtt");
+        integrator.getConfig().setDisabled();
+        integrator.getConfig().Remote::setSunPath("/tmp/mqttbroker");
+        integrator.connect([](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
+            reportState("un-mqtt", socketAddress, state);
         });
     }
 
