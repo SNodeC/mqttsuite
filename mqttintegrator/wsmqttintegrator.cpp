@@ -26,6 +26,7 @@
 
 #include <cstdlib>
 #include <log/Logger.h>
+#include <type_traits>
 #include <utils/Config.h>
 
 #endif
@@ -43,6 +44,26 @@
 #include <web/websocket/client/SocketContextUpgradeFactory.h>
 
 #endif
+
+template <typename SocketAddressT, typename = std::enable_if_t<std::is_base_of_v<core::socket::SocketAddress, SocketAddressT>>>
+void reportState(const std::string& instanceName, const SocketAddressT& socketAddress, const core::socket::State& state) {
+    switch (state) {
+        case core::socket::State::OK:
+            VLOG(1) << instanceName << ": listening on '" << socketAddress.toString() << "': " << state.what();
+            break;
+        case core::socket::State::DISABLED:
+            VLOG(1) << instanceName << ": disabled";
+            break;
+        case core::socket::State::ERROR:
+            VLOG(1) << instanceName << ": " << socketAddress.toString() << ": error occurred";
+            VLOG(1) << "    " << state.what();
+            break;
+        case core::socket::State::FATAL:
+            VLOG(1) << instanceName << ": " << socketAddress.toString() << ": fatal error occurred";
+            VLOG(1) << "    " << state.what();
+            break;
+    }
+}
 
 int main(int argc, char* argv[]) {
 #if defined(LINK_WEBSOCKET_STATIC) || defined(LINK_SUBPROTOCOL_STATIC)
@@ -65,7 +86,7 @@ int main(int argc, char* argv[]) {
         using LegacySocketAddress = WsMqttLegacyIntegrator::SocketAddress;
 
         WsMqttLegacyIntegrator wsMqttLegacyIntegrator(
-            "legacy",
+            "in-wsmqtt",
             [](web::http::client::Request& request) -> void {
                 request.set("Sec-WebSocket-Protocol", "mqtt");
 
@@ -80,30 +101,16 @@ int main(int argc, char* argv[]) {
                 VLOG(0) << "     Reason: " << reason;
             });
 
+        wsMqttLegacyIntegrator.getConfig().Remote::setPort(8080);
         wsMqttLegacyIntegrator.connect([](const LegacySocketAddress& socketAddress, const core::socket::State& state) -> void {
-            switch (state) {
-                case core::socket::State::OK:
-                    VLOG(1) << "legacy: connected to '" << socketAddress.toString() << "': " << state.what();
-                    break;
-                case core::socket::State::DISABLED:
-                    VLOG(1) << "legacy: disabled";
-                    break;
-                case core::socket::State::ERROR:
-                    VLOG(1) << "legacy: " << socketAddress.toString() << ": non critical error occurred";
-                    VLOG(1) << "    " << state.what();
-                    break;
-                case core::socket::State::FATAL:
-                    VLOG(1) << "legacy: " << socketAddress.toString() << ": critical error occurred";
-                    VLOG(1) << "    " << state.what();
-                    break;
-            }
+            reportState("in-wsmqtt", socketAddress, state);
         });
 
         using WsMqttTlsIntegrator = web::http::tls::in::Client<web::http::client::Request, web::http::client::Response>;
         using TlsSocketAddress = WsMqttLegacyIntegrator::SocketAddress;
 
         WsMqttTlsIntegrator wsMqttTlsIntegrator(
-            "tls",
+            "in-wsmqtts",
             [](web::http::client::Request& request) -> void {
                 request.set("Sec-WebSocket-Protocol", "mqtt");
 
@@ -118,23 +125,10 @@ int main(int argc, char* argv[]) {
                 VLOG(0) << "     Reason: " << reason;
             });
 
+        wsMqttTlsIntegrator.getConfig().setDisabled();
+        wsMqttTlsIntegrator.getConfig().Remote::setPort(8088);
         wsMqttTlsIntegrator.connect([](const TlsSocketAddress& socketAddress, const core::socket::State& state) -> void {
-            switch (state) {
-                case core::socket::State::OK:
-                    VLOG(1) << "tls: connecting to '" << socketAddress.toString() << "': " << state.what();
-                    break;
-                case core::socket::State::DISABLED:
-                    VLOG(1) << "tls: disabled";
-                    break;
-                case core::socket::State::ERROR:
-                    VLOG(1) << "tls: " << socketAddress.toString() << ": non critical error occurred";
-                    VLOG(1) << "    " << state.what();
-                    break;
-                case core::socket::State::FATAL:
-                    VLOG(1) << "tls: " << socketAddress.toString() << ": critical error occurred";
-                    VLOG(1) << "    " << state.what();
-                    break;
-            }
+            reportState("in-wsmqtts", socketAddress, state);
         });
     }
 
