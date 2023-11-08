@@ -1,234 +1,296 @@
 {
-  "type": "object",
-  "required": [ "mapping" ],
-  "properties": {
-    "discover_prefix": {
-      "type": "string",
-      "default": ""
+  "type":"object",
+  "required":[
+    "mapping"
+  ],
+  "properties":{
+    "discover_prefix":{
+      "type":"string",
+      "default":""
     },
-    "connection": {
-      "type": "object",
-      "properties": {
-        "keep_alive": {
-          "type": "integer",
-          "default": 60
+    "connection":{
+      "type":"object",
+      "properties":{
+        "keep_alive":{
+          "type":"integer",
+          "default":60
         },
-        "client_id": {
-          "type": "string",
-          "default": ""
+        "client_id":{
+          "type":"string",
+          "default":""
         },
-        "clean_session": {
-          "type": "boolean",
-          "default": false
+        "clean_session":{
+          "type":"boolean",
+          "default":false
         },
-        "will_topic": {
-          "type": "string",
-          "default": ""
+        "will_topic":{
+          "type":"string",
+          "default":""
         },
-        "will_message": {
-          "type": "string",
-          "default": ""
+        "will_message":{
+          "type":"string",
+          "default":""
         },
-        "will_qos": {
-          "type": "integer",
-          "default": 0,
-          "minimum": 0,
-          "maximum": 2
+        "will_qos":{
+          "type":"integer",
+          "default":0,
+          "minimum":0,
+          "maximum":2
         },
-        "will_retain": {
-          "type": "boolean",
-          "default": false
+        "will_retain":{
+          "type":"boolean",
+          "default":false
         },
-        "username": {
-          "type": "string",
-          "default": ""
+        "username":{
+          "type":"string",
+          "default":""
         },
-        "password": {
-          "type": "string",
-          "default": ""
+        "password":{
+          "type":"string",
+          "default":""
         }
       },
-      "default": {
-        "keep_alive": 60,
-        "client_id": "",
-        "clean_session": true,
-        "will_topic": "",
-        "will_message": "",
-        "will_qos": 0,
-        "will_retain": false,
-        "username": "",
-        "password": ""
+      "default":{
+        "keep_alive":60,
+        "client_id":"",
+        "clean_session":true,
+        "will_topic":"",
+        "will_message":"",
+        "will_qos":0,
+        "will_retain":false,
+        "username":"",
+        "password":""
       }
     },
-    "mapping": {
-      "$id": "https://www.vchrist.at/mqttmapper/schemas/mapping",
-      "type": "object",
-      "required": [ "topic_level" ],
-      "properties": {
-        "plugins" : {
-          "$id": "https://www.vchrist.at/mqttmapper/schemas/plugins",
-          "type": "array",
-          "items": {
-            "type": "string"
+    "mapping":{
+      "$id":"https://www.vchrist.at/mqttmapper/schemas/mapping",
+      "type":"object",
+      "required":[
+        "topic_level"
+      ],
+      "properties":{
+        "plugins":{
+          "$id":"https://www.vchrist.at/mqttmapper/schemas/plugins",
+          "type":"array",
+          "items":{
+            "type":"string"
           }
         },
-        "topic_level": {
-          "$id": "https://www.vchrist.at/mqttmapper/schemas/topic_level",
-          "oneOf": [{
-            "$ref": "#/$defs/topic_level"
-          }, {
-            "type": "array",
-            "items": {
-              "$ref": "#/$defs/topic_level"
+        "topic_level":{
+          "$id":"https://www.vchrist.at/mqttmapper/schemas/topic_level",
+          "oneOf":[
+            {
+              "$ref":"#/$defs/topic_level"
+            },
+            {
+              "type":"array",
+              "items":{
+                "$ref":"#/$defs/topic_level"
+              }
             }
-          }],
-          "$defs": {
-            "topic_level": {
-              "type": "object",
-              "required": [ "name" ],
-              "anyOf": [
-                { "required": [ "topic_level" ] },
-                { "required": [ "subscription" ] }
+          ],
+          "$defs":{
+            "topic_level":{
+              "type":"object",
+              "required":[
+                "name"
               ],
-              "properties": {
-                "name": {
-                  "type": "string"
+              "anyOf":[
+                {
+                  "required":[
+                    "topic_level"
+                  ]
                 },
-                "topic_level": {
-                    "$ref": "#"
+                {
+                  "required":[
+                    "subscription"
+                  ]
+                }
+              ],
+              "properties":{
+                "name":{
+                  "type":"string"
                 },
-                "subscription": {
-                  "properties": {
-                    "qos": {
-                      "type": "integer",
-                      "minimum": 0,
-                      "maximum": 2,
-                      "default": 0
+                "topic_level":{
+                  "$ref":"#"
+                },
+                "subscription":{
+                  "properties":{
+                    "qos":{
+                      "type":"integer",
+                      "minimum":0,
+                      "maximum":2,
+                      "default":0
                     },
-                    "type": {
-                      "type": "string",
-                      "default": ""
+                    "type":{
+                      "type":"string",
+                      "default":""
                     }
                   },
-                  "anyOf": [
-                    { "$ref": "#/$defs/mapping_static" },
-                    { "$ref": "#/$defs/mapping_value" },
-                    { "$ref": "#/$defs/mapping_json" }
+                  "anyOf":[
+                    {
+                      "$ref":"#/$defs/mapping_static"
+                    },
+                    {
+                      "$ref":"#/$defs/mapping_value"
+                    },
+                    {
+                      "$ref":"#/$defs/mapping_json"
+                    }
                   ]
                 }
               }
             },
-            "mapping_static": {
-              "type": "object",
-              "required": [ "static" ],
-              "properties": {
-                "static": {
-                  "oneOf": [{
-                    "$ref": "#/$defs/static_mapping"
-                  }, {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/$defs/static_mapping"
-                    }
-                  }]
-                }
-              }
-            },
-            "mapping_value": {
-              "type": "object",
-              "required": [ "value" ],
-              "properties": {
-                "value": {
-                  "oneOf": [{
-                    "$ref": "#/$defs/template_mapping"
-                  }, {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/$defs/template_mapping"
-                    }
-                  }]
-                }
-              }
-            },
-            "mapping_json": {
-              "type": "object",
-              "required": [ "json" ],
-              "properties": {
-                "json": {
-                  "oneOf": [{
-                    "$ref": "#/$defs/template_mapping"
-                  },{
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/$defs/template_mapping"
-                    }
-                  }]
-                }
-              }
-            },
-            "static_mapping": {
-              "type": "object",
-              "allOf": [{ "$ref": "#/$defs/mapping_commons" }],
-              "required": [ "message_mapping" ],
-              "properties": {
-                "message_mapping": {
-                  "oneOf": [{
-                    "$ref": "#/$defs/message_mapping"
-                  }, {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/$defs/message_mapping"
+            "mapping_static":{
+              "type":"object",
+              "required":[
+                "static"
+              ],
+              "properties":{
+                "static":{
+                  "oneOf":[
+                    {
+                      "$ref":"#/$defs/static_mapping"
                     },
-                   "minItems": 1
-                  }]
+                    {
+                      "type":"array",
+                      "items":{
+                        "$ref":"#/$defs/static_mapping"
+                      }
+                    }
+                  ]
                 }
               }
             },
-            "message_mapping": {
-              "type": "object",
-              "required": [ "message", "mapped_message" ],
-              "properties": {
-                "message": {
-                  "type": "string",
-                  "minLength": 1
-                },
-                "mapped_message": {
-                  "type": "string",
-                   "minLength": 1
+            "mapping_value":{
+              "type":"object",
+              "required":[
+                "value"
+              ],
+              "properties":{
+                "value":{
+                  "oneOf":[
+                    {
+                      "$ref":"#/$defs/template_mapping"
+                    },
+                    {
+                      "type":"array",
+                      "items":{
+                        "$ref":"#/$defs/template_mapping"
+                      }
+                    }
+                  ]
                 }
               }
             },
-            "template_mapping": {
-              "type": "object",
-              "allOf": [{ "$ref": "#/$defs/mapping_commons" }],
-              "required": [ "mapping_template" ],
-              "properties": {
-                "mapping_template": {
-                  "type": "string",
-                  "minLength": 1
-                },
-                "suppressions": {
-                  "type": "array",
-                  "items": { "type": "string" },
-                  "default": [ "" ]
+            "mapping_json":{
+              "type":"object",
+              "required":[
+                "json"
+              ],
+              "properties":{
+                "json":{
+                  "oneOf":[
+                    {
+                      "$ref":"#/$defs/template_mapping"
+                    },
+                    {
+                      "type":"array",
+                      "items":{
+                        "$ref":"#/$defs/template_mapping"
+                      }
+                    }
+                  ]
                 }
               }
             },
-            "mapping_commons": {
-              "type": "object",
-              "required": [ "mapped_topic" ],
-              "properties": {
-                "mapped_topic": {
-                  "type": "string",
-                  "minLength": 1
+            "static_mapping":{
+              "type":"object",
+              "allOf":[
+                {
+                  "$ref":"#/$defs/mapping_commons"
+                }
+              ],
+              "required":[
+                "message_mapping"
+              ],
+              "properties":{
+                "message_mapping":{
+                  "oneOf":[
+                    {
+                      "$ref":"#/$defs/message_mapping"
+                    },
+                    {
+                      "type":"array",
+                      "items":{
+                        "$ref":"#/$defs/message_mapping"
+                      },
+                      "minItems":1
+                    }
+                  ]
+                }
+              }
+            },
+            "message_mapping":{
+              "type":"object",
+              "required":[
+                "message",
+                "mapped_message"
+              ],
+              "properties":{
+                "message":{
+                  "type":"string",
+                  "minLength":1
                 },
-                "retain": {
-                  "type": "boolean"
+                "mapped_message":{
+                  "type":"string",
+                  "minLength":1
+                }
+              }
+            },
+            "template_mapping":{
+              "type":"object",
+              "allOf":[
+                {
+                  "$ref":"#/$defs/mapping_commons"
+                }
+              ],
+              "required":[
+                "mapping_template"
+              ],
+              "properties":{
+                "mapping_template":{
+                  "type":"string",
+                  "minLength":1
                 },
-                "qos": {
-                  "type": "integer",
-                  "minimum": 0,
-                  "maximum": 2
+                "suppressions":{
+                  "type":"array",
+                  "items":{
+                    "type":"string"
+                  },
+                  "default":[
+                    ""
+                  ]
+                }
+              }
+            },
+            "mapping_commons":{
+              "type":"object",
+              "required":[
+                "mapped_topic"
+              ],
+              "properties":{
+                "mapped_topic":{
+                  "type":"string",
+                  "minLength":1
+                },
+                "retain":{
+                  "type":"boolean"
+                },
+                "qos":{
+                  "type":"integer",
+                  "minimum":0,
+                  "maximum":2
                 }
               }
             }
