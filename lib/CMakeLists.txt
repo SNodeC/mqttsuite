@@ -56,7 +56,7 @@ add_library(
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 16.0)
         set_source_files_properties(
-            MqttMapper.cpp PROPERTIES COMPILE_FLAGS -Wno-unsafe-buffer-usage
+            MqttMapper.cpp PROPERTIES COMPILE_FLAGS -Wno-unsafe-buffer-usage -Wno-CopyConstructor -Wno-OeratorEq
         )
     endif()
 endif()

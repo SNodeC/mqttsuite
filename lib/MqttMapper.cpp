@@ -26,6 +26,37 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#ifdef __has_warning
+#if __has_warning("-Wc++98-compat-pedantic")
+#pragma GCC diagnostic ignored "-Wc++98-compat-pedantic"
+#endif
+#if __has_warning("-Wcovered-switch-default")
+#pragma GCC diagnostic ignored "-Wcovered-switch-default"
+#endif
+#if __has_warning("-Wexit-time-destructors")
+#pragma GCC diagnostic ignored "-Wexit-time-destructors"
+#endif
+#if __has_warning("-Wglobal-constructors")
+#pragma GCC diagnostic ignored "-Wglobal-constructors"
+#endif
+#if __has_warning("-Wreserved-macro-identifier")
+#pragma GCC diagnostic ignored "-Wreserved-macro-identifier"
+#endif
+#if __has_warning("-Wswitch-enum")
+#pragma GCC diagnostic ignored "-Wswitch-enum"
+#endif
+#if __has_warning("-Wweak-vtables")
+#pragma GCC diagnostic ignored "-Wweak-vtables"
+#endif
+#endif
+#endif
+#include "inja.hpp"
+#ifdef __GNUC_
+#pragma GCC diagnostic pop
+#endif
+
 #include <algorithm>
 #include <dlfcn.h>
 #include <initializer_list>
@@ -44,15 +75,19 @@ namespace mqtt::lib {
 
     MqttMapper::MqttMapper(const nlohmann::json& mappingJson)
         : mappingJson(mappingJson) {
+        injaEnvironment = new inja::Environment;
+
         if (mappingJson.contains("plugins")) {
             VLOG(1) << "Loading plugins ...";
 
             for (const nlohmann::json& pluginJson : mappingJson["plugins"]) {
                 std::string plugin = pluginJson;
 
-                void* handle = dlOpen(plugin, RTLD_LOCAL | RTLD_LAZY);
+                void* handle = core::DynamicLoader::dlOpen(plugin, RTLD_LOCAL | RTLD_LAZY);
 
                 if (handle != nullptr) {
+                    pluginHandles.push_back(handle);
+
                     VLOG(1) << "  Loading plugin: " << plugin << " ...";
 
                     std::vector<mqtt::lib::Function>* functions =
@@ -63,9 +98,9 @@ namespace mqtt::lib {
                             VLOG(1) << "    " << function.name;
 
                             if (function.numArgs >= 0) {
-                                injaEnvironment.add_callback(function.name, function.numArgs, function.function);
+                                injaEnvironment->add_callback(function.name, function.numArgs, function.function);
                             } else {
-                                injaEnvironment.add_callback(function.name, function.function);
+                                injaEnvironment->add_callback(function.name, function.function);
                             }
                         }
                         VLOG(0) << "  Registering inja 'none void callbacks done'";
@@ -81,9 +116,9 @@ namespace mqtt::lib {
                             VLOG(1) << "    " << voidFunction.name;
 
                             if (voidFunction.numArgs >= 0) {
-                                injaEnvironment.add_void_callback(voidFunction.name, voidFunction.numArgs, voidFunction.function);
+                                injaEnvironment->add_void_callback(voidFunction.name, voidFunction.numArgs, voidFunction.function);
                             } else {
-                                injaEnvironment.add_void_callback(voidFunction.name, voidFunction.function);
+                                injaEnvironment->add_void_callback(voidFunction.name, voidFunction.function);
                             }
                         }
                         VLOG(0) << "  Registering inja 'void callbacks' done";
@@ -102,6 +137,11 @@ namespace mqtt::lib {
     }
 
     MqttMapper::~MqttMapper() {
+        delete injaEnvironment;
+
+        for (void* pluginHandle : pluginHandles) {
+            core::DynamicLoader::dlClose(pluginHandle);
+        }
     }
 
     std::string MqttMapper::dump() {
@@ -229,7 +269,7 @@ namespace mqtt::lib {
 
         try {
             // Render topic
-            std::string renderedTopic = injaEnvironment.render(mappedTopic, json);
+            std::string renderedTopic = injaEnvironment->render(mappedTopic, json);
             json["mapped_topic"] = renderedTopic;
 
             VLOG(1) << "  Mapped topic template: " << mappedTopic;
@@ -237,7 +277,7 @@ namespace mqtt::lib {
 
             try {
                 // Render message
-                std::string renderedMessage = injaEnvironment.render(mappingTemplate, json);
+                std::string renderedMessage = injaEnvironment->render(mappingTemplate, json);
                 VLOG(1) << "  Mapped message template: " << mappingTemplate;
                 VLOG(1) << "    -> " << renderedMessage;
 

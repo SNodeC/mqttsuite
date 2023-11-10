@@ -28,7 +28,6 @@
 
 #include <map>
 #include <nlohmann/json.hpp>
-#include <stdexcept>
 #include <utils/Config.h>
 
 #endif

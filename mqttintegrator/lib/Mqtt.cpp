@@ -28,7 +28,6 @@
 #include <log/Logger.h>
 #include <map>
 #include <nlohmann/json.hpp>
-#include <stdexcept>
 #include <utils/system/signal.h>
 
 // IWYU pragma: no_include <nlohmann/detail/json_pointer.hpp>
