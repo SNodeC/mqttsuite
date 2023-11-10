@@ -1,7 +1,5 @@
 function(make_includable INPUT_FILE OUTPUT_FILE)
     file(READ ${INPUT_FILE} CONTENT)
-    set(BDELIM "(")
-    set(EDELIM ")")
     string(REGEX REPLACE "[ \t\r\n]" "" CONTENT "${CONTENT}")
     set(CONTENT "static std::string mappingJsonSchemaString = R\"(${CONTENT})\";\n")
     file(WRITE ${OUTPUT_FILE} "${CONTENT}")
