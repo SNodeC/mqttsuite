@@ -25,11 +25,15 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include <initializer_list>
 #include <log/Logger.h>
 #include <map>
 #include <nlohmann/json.hpp>
 #include <string>
 #include <type_traits>
+#include <vector>
+
+// IWYU pragma: no_include <nlohmann/json_fwd.hpp>
 
 #endif
 
@@ -37,7 +41,7 @@ template <typename SocketAddressT, typename = std::enable_if_t<std::is_base_of_v
 void reportState(const std::string& instanceName, const SocketAddressT& socketAddress, const core::socket::State& state) {
     switch (state) {
         case core::socket::State::OK:
-            VLOG(1) << instanceName << ": connecting to '" << socketAddress.toString() << "': " << state.what();
+            VLOG(1) << instanceName << ": connected to '" << socketAddress.toString() << "': " << state.what();
             break;
         case core::socket::State::DISABLED:
             VLOG(1) << instanceName << ": disabled";
