@@ -62,7 +62,7 @@ namespace mqtt::mqttintegrator::lib {
     void Mqtt::onConnected() {
         VLOG(1) << "MQTT: Initiating Session";
 
-        sendConnect(keepAlive, clientId, cleanSession, willTopic, willMessage, willQoS, willRetain, username, password);
+        sendConnect(keepAlive, clientId, cleanSession, willTopic, willMessage, willQoS, willRetain, username, password, true);
     }
 
     void Mqtt::onExit(int signum) {

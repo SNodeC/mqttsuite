@@ -51,7 +51,7 @@ namespace mqtt::mqttbroker::lib {
     }
 
     void Mqtt::publishMapping(const std::string& topic, const std::string& message, uint8_t qoS, bool retain) {
-        broker->publish(topic, message, qoS, retain);
+        broker->publish(clientId, topic, message, qoS, retain);
 
         publishMappings(iot::mqtt::packets::Publish(getPacketIdentifier(), topic, message, qoS, false, retain));
     }
