@@ -75,10 +75,10 @@ int main(int argc, char* argv[]) {
     )"));
 
     {
-        using Integrator = net::in::stream::legacy::SocketClient<mqtt::bridge::SocketContextFactory>;
-        using SocketAddress = Integrator::SocketAddress;
+        using Bridge = net::in::stream::legacy::SocketClient<mqtt::bridge::SocketContextFactory>;
+        using SocketAddress = Bridge::SocketAddress;
 
-        Integrator integrator("in-mqtt-1");
+        Bridge integrator("in-mqtt-1");
         integrator.getSocketContextFactory()->setBridge(bridge);
         integrator.connect([](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
             reportState("in-mqtt-1", socketAddress, state);
@@ -86,10 +86,10 @@ int main(int argc, char* argv[]) {
     }
 
     {
-        using Integrator = net::in::stream::legacy::SocketClient<mqtt::bridge::SocketContextFactory>;
-        using SocketAddress = Integrator::SocketAddress;
+        using Bridge = net::in::stream::legacy::SocketClient<mqtt::bridge::SocketContextFactory>;
+        using SocketAddress = Bridge::SocketAddress;
 
-        Integrator integrator("in-mqtt-2");
+        Bridge integrator("in-mqtt-2");
         integrator.getSocketContextFactory()->setBridge(bridge);
         integrator.connect([](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
             reportState("in-mqtt-2", socketAddress, state);
@@ -97,10 +97,10 @@ int main(int argc, char* argv[]) {
     }
 
     {
-        using Integrator = net::un::stream::legacy::SocketClient<mqtt::bridge::SocketContextFactory>;
-        using SocketAddress = Integrator::SocketAddress;
+        using Bridge = net::un::stream::legacy::SocketClient<mqtt::bridge::SocketContextFactory>;
+        using SocketAddress = Bridge::SocketAddress;
 
-        Integrator integrator("un-mqtt-1");
+        Bridge integrator("un-mqtt-1");
         integrator.getSocketContextFactory()->setBridge(bridge);
         integrator.getConfig().setDisabled();
         integrator.connect([](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
