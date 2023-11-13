@@ -50,7 +50,7 @@ namespace mqtt::bridge::lib {
         void addMqtt(iot::mqtt::Mqtt* mqtt);
         void removeMqtt(iot::mqtt::Mqtt* mqtt);
 
-        void publish(iot::mqtt::Mqtt* sendingMqtt, const iot::mqtt::packets::Publish& publish);
+        void publish(iot::mqtt::Mqtt* originMqtt, const iot::mqtt::packets::Publish& publish);
 
     private:
         nlohmann::json connectionJson;

@@ -1,97 +1,97 @@
 {
-  "discover_prefix":"iotempower",
-  "connection":{
-    "keep_alive":60,
-    "client_id":"MQTT-Integrator",
-    "clean_session":true,
-    "will_topic":"will/topic",
-    "will_message":"Last Will",
-    "will_qos":0,
-    "will_retain":false,
-    "username":"Username",
-    "password":"Password"
+  "discover_prefix": "iotempower",
+  "connection": {
+    "keep_alive": 60,
+    "client_id": "MQTT-Integrator",
+    "clean_session": true,
+    "will_topic": "will/topic",
+    "will_message": "Last Will",
+    "will_qos": 0,
+    "will_retain": false,
+    "username": "Username",
+    "password": "Password"
   },
-  "mapping":{
-    "plugins":[
+  "mapping": {
+    "plugins": [
       "libmqtt-mapping-plugin-double.so",
       "libmqtt-mapping-plugin-storage.so"
     ],
-    "topic_level":[
+    "topic_level": [
       {
-        "name":"test01",
-        "topic_level":[
+        "name": "test01",
+        "topic_level": [
           {
-            "name":"button1",
-            "subscription":{
-              "type":"binary_sensor",
-              "qos":2,
-              "static":[
+            "name": "button1",
+            "subscription": {
+              "type": "binary_sensor",
+              "qos": 2,
+              "static": [
                 {
-                  "mapped_topic":"mapping/value",
-                  "message_mapping":[
+                  "mapped_topic": "mapping/value",
+                  "message_mapping": [
                     {
-                      "message":"pressed",
-                      "mapped_message":"on"
+                      "message": "pressed",
+                      "mapped_message": "on"
                     },
                     {
-                      "message":"released",
-                      "mapped_message":"off"
+                      "message": "released",
+                      "mapped_message": "off"
                     }
                   ]
                 },
                 {
-                  "mapped_topic":"strip/strip1/rgb/set",
-                  "message_mapping":{
-                    "message":"pressed",
-                    "mapped_message":"front red"
+                  "mapped_topic": "strip/strip1/rgb/set",
+                  "message_mapping": {
+                    "message": "pressed",
+                    "mapped_message": "front red"
                   }
                 },
                 {
-                  "mapped_topic":"test02/strip1/rgb/set",
-                  "message_mapping":{
-                    "message":"pressed",
-                    "mapped_message":"front red"
+                  "mapped_topic": "test02/strip1/rgb/set",
+                  "message_mapping": {
+                    "message": "pressed",
+                    "mapped_message": "front red"
                   }
                 },
                 {
-                  "mapped_topic":"strip/strip1/brightness/set",
-                  "message_mapping":{
-                    "message":"released",
-                    "mapped_message":"0"
+                  "mapped_topic": "strip/strip1/brightness/set",
+                  "message_mapping": {
+                    "message": "released",
+                    "mapped_message": "0"
                   }
                 },
                 {
-                  "mapped_topic":"test02/strip1/brightness/set",
-                  "message_mapping":{
-                    "message":"released",
-                    "mapped_message":"0"
+                  "mapped_topic": "test02/strip1/brightness/set",
+                  "message_mapping": {
+                    "message": "released",
+                    "mapped_message": "0"
                   }
                 }
               ]
             }
           },
           {
-            "name":"rfid",
-            "topic_level":{
-              "name":"uid",
-              "subscription":{
-                "type":"rfid reader",
-                "value":[
+            "name": "rfid",
+            "topic_level": {
+              "name": "uid",
+              "subscription": {
+                "type": "rfid reader",
+                "value": [
                   {
-                    "mapped_topic":"test02/strip1/rgb/set",
-                    "mapping_template":"{% if message == \"739bb7a6\" %}front green{% endif %}"
+                    "mapped_topic": "test02/strip1/rgb/set",
+                    "mapping_template": "{% if message == \"739bb7a6\" %}front green{% endif %}"
                   },
                   {
-                    "mapped_topic":"strip/strip1/rgb/set",
-                    "mapping_template":"{% if message == \"739bb7a6\" %}front green{% endif %}"
+                    "mapped_topic": "strip/strip1/rgb/set",
+                    "mapping_template": "{% if message == \"739bb7a6\" %}front green{% endif %}"
                   },
                   {
-                    "mapped_topic":"strip/strip1/brightness/set",
-                    "mapping_template":"{% if message == \"none\" %}0{% endif %}"
+                    "mapped_topic": "strip/strip1/brightness/set",
+                    "mapping_template": "{% if message == \"none\" %}0{% endif %}"
                   },
                   {
-                    "mapped_topic":"test02/strip1/brightness/set",
-                    "mapping_template":"{% if message == \"none\" %}0{% endif %}"
+                    "mapped_topic": "test02/strip1/brightness/set",
+                    "mapping_template": "{% if message == \"none\" %}0{% endif %}"
                   }
                 ]
               }
@@ -100,116 +100,116 @@
         ]
       },
       {
-        "name":"mapping",
-        "topic_level":[
+        "name": "mapping",
+        "topic_level": [
           {
-            "name":"value",
-            "subscription":{
-              "value":{
-                "mapped_topic":"mapping/json",
-                "mapping_template":"{\"state\":\"{{message}}\"}",
-                "mapping_template_also_works":"{% if message == \"on\" %}{\"state\": \"on\"}{% else if message == \"off\" %}{\"state\": \"off\"}{% endif %}"
+            "name": "value",
+            "subscription": {
+              "value": {
+                "mapped_topic": "mapping/json",
+                "mapping_template": "{\"state\":\"{{message}}\"}",
+                "mapping_template_also_works": "{% if message == \"on\" %}{\"state\": \"on\"}{% else if message == \"off\" %}{\"state\": \"off\"}{% endif %}"
               }
             }
           },
           {
-            "name":"json",
-            "subscription":{
-              "qos":0,
-              "json":{
-                "mapped_topic":"test02/onboard/set",
-                "mapping_template":"{% if message.state == \"on\" %}on{% else if message.state == \"off\" %}off{% endif %}",
-                "retain":false
+            "name": "json",
+            "subscription": {
+              "qos": 0,
+              "json": {
+                "mapped_topic": "test02/onboard/set",
+                "mapping_template": "{% if message.state == \"on\" %}on{% else if message.state == \"off\" %}off{% endif %}",
+                "retain": false
               }
             }
           }
         ]
       },
       {
-        "name":"temperature",
-        "topic_level":[
+        "name": "temperature",
+        "topic_level": [
           {
-            "name":"celsius",
-            "topic_level":{
-              "name":"set",
-              "subscription":{
-                "qos":2,
-                "value":[
+            "name": "celsius",
+            "topic_level": {
+              "name": "set",
+              "subscription": {
+                "qos": 2,
+                "value": [
                   {
-                    "mapped_topic":"temperature/celsius",
-                    "mapping_template":"{{ round(float(message), 2) }}",
-                    "retain":true,
-                    "qos":2
+                    "mapped_topic": "temperature/celsius",
+                    "mapping_template": "{{ round(float(message), 2) }}",
+                    "retain": true,
+                    "qos": 2
                   },
                   {
-                    "mapped_topic":"temperature/kelvin",
-                    "mapping_template":"{{ round(float(message) + 273.15, 2) }}",
-                    "retain":true,
-                    "qos":1
+                    "mapped_topic": "temperature/kelvin",
+                    "mapping_template": "{{ round(float(message) + 273.15, 2) }}",
+                    "retain": true,
+                    "qos": 1
                   },
                   {
-                    "mapped_topic":"temperature/farenheit",
-                    "mapping_template":"{{ round(float(message) * 1.8 + 32, 2) }}",
-                    "retain":true,
-                    "qos":2
+                    "mapped_topic": "temperature/farenheit",
+                    "mapping_template": "{{ round(float(message) * 1.8 + 32, 2) }}",
+                    "retain": true,
+                    "qos": 2
                   }
                 ]
               }
             }
           },
           {
-            "name":"kelvin",
-            "topic_level":{
-              "name":"set",
-              "subscription":{
-                "qos":2,
-                "value":[
+            "name": "kelvin",
+            "topic_level": {
+              "name": "set",
+              "subscription": {
+                "qos": 2,
+                "value": [
                   {
-                    "mapped_topic":"temperature/celsius",
-                    "mapping_template":"{{ round(float(message) - 273.15, 2) }}",
-                    "retain":true,
-                    "qos":2
+                    "mapped_topic": "temperature/celsius",
+                    "mapping_template": "{{ round(float(message) - 273.15, 2) }}",
+                    "retain": true,
+                    "qos": 2
                   },
                   {
-                    "mapped_topic":"temperature/kelvin",
-                    "mapping_template":"{{ round(float(message), 2) }}",
-                    "retain":true,
-                    "qos":1
+                    "mapped_topic": "temperature/kelvin",
+                    "mapping_template": "{{ round(float(message), 2) }}",
+                    "retain": true,
+                    "qos": 1
                   },
                   {
-                    "mapped_topic":"temperature/farenheit",
-                    "mapping_template":"{{ round((float(message) - 273.15) * 1.8 + 32, 2) }}",
-                    "retain":true,
-                    "qos":2
+                    "mapped_topic": "temperature/farenheit",
+                    "mapping_template": "{{ round((float(message) - 273.15) * 1.8 + 32, 2) }}",
+                    "retain": true,
+                    "qos": 2
                   }
                 ]
               }
             }
           },
           {
-            "name":"farenheit",
-            "topic_level":{
-              "name":"set",
-              "subscription":{
-                "qos":2,
-                "value":[
+            "name": "farenheit",
+            "topic_level": {
+              "name": "set",
+              "subscription": {
+                "qos": 2,
+                "value": [
                   {
-                    "mapped_topic":"temperature/celsius",
-                    "mapping_template":"{{ round((float(message) - 32) / 1.8, 2) }}",
-                    "retain":true,
-                    "qos":2
+                    "mapped_topic": "temperature/celsius",
+                    "mapping_template": "{{ round((float(message) - 32) / 1.8, 2) }}",
+                    "retain": true,
+                    "qos": 2
                   },
                   {
-                    "mapped_topic":"temperature/kelvin",
-                    "mapping_template":"{{ round((float(message) - 32) / 1.8 + 273.15, 2) }}",
-                    "retain":true,
-                    "qos":1
+                    "mapped_topic": "temperature/kelvin",
+                    "mapping_template": "{{ round((float(message) - 32) / 1.8 + 273.15, 2) }}",
+                    "retain": true,
+                    "qos": 1
                   },
                   {
-                    "mapped_topic":"temperature/farenheit",
-                    "mapping_template":"{{ round(float(message), 2) }}",
-                    "retain":true,
-                    "qos":2
+                    "mapped_topic": "temperature/farenheit",
+                    "mapping_template": "{{ round(float(message), 2) }}",
+                    "retain": true,
+                    "qos": 2
                   }
                 ]
               }
@@ -218,12 +218,12 @@
         ]
       },
       {
-        "name":"double",
-        "subscription":{
-          "qos":2,
-          "value":{
-            "mapped_topic":"{{ topic + \"_result\" }}",
-            "mapping_template":"{{ double(float(message)) + recall_as_int(topic + \"currentValue\") }}{{ store(topic + \"currentValue\", message) }}"
+        "name": "double",
+        "subscription": {
+          "qos": 2,
+          "value": {
+            "mapped_topic": "{{ topic + \"_result\" }}",
+            "mapping_template": "{{ double(float(message)) + recall_as_int(topic + \"currentValue\") }}{{ store(topic + \"currentValue\", message) }}"
           }
         }
       }

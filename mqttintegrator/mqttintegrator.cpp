@@ -33,7 +33,7 @@
 
 #endif
 
-template <typename SocketAddressT, typename = std::enable_if_t<std::is_base_of_v<core::socket::SocketAddress, SocketAddressT>>>
+template <typename SocketAddressT>
 void reportState(const std::string& instanceName, const SocketAddressT& socketAddress, const core::socket::State& state) {
     switch (state) {
         case core::socket::State::OK:
@@ -53,6 +53,18 @@ void reportState(const std::string& instanceName, const SocketAddressT& socketAd
     }
 }
 
+template <template <typename> typename SocketClient, typename SocketContextFactory>
+void startClient(const std::string& name, const std::function<void(SocketClient<SocketContextFactory>&)> configurator) {
+    using Client = SocketClient<SocketContextFactory>;
+    using SocketAddress = Client::SocketAddress;
+
+    Client client(name);
+    configurator(client);
+    client.connect([&name](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
+        reportState(name, socketAddress, state);
+    });
+}
+
 int main(int argc, char* argv[]) {
     utils::Config::add_string_option("--mqtt-mapping-file", "MQTT mapping file (json format) for integration", "[path]");
     utils::Config::add_string_option("--mqtt-session-store", "Path to file for the persistent session store", "[path]", "");
@@ -61,40 +73,19 @@ int main(int argc, char* argv[]) {
 
     setenv("MQTT_SESSION_STORE", utils::Config::get_string_option_value("--mqtt-session-store").data(), 0);
 
-    {
-        using Integrator = net::in::stream::legacy::SocketClient<mqtt::mqttintegrator::SocketContextFactory>;
-        using SocketAddress = Integrator::SocketAddress;
-
-        Integrator integrator("in-mqtt");
+    startClient<net::in::stream::legacy::SocketClient, mqtt::mqttintegrator::SocketContextFactory>("in-mqtt", [](auto& integrator) -> void {
         integrator.getConfig().Remote::setPort(1883);
-        integrator.connect([](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
-            reportState("in-mqtt", socketAddress, state);
-        });
-    }
+    });
 
-    {
-        using Integrator = net::in::stream::tls::SocketClient<mqtt::mqttintegrator::SocketContextFactory>;
-        using SocketAddress = Integrator::SocketAddress;
-
-        Integrator integrator("in-mqtts");
+    startClient<net::in::stream::tls::SocketClient, mqtt::mqttintegrator::SocketContextFactory>("in-mqtts", [](auto& integrator) -> void {
         integrator.getConfig().setDisabled();
         integrator.getConfig().Remote::setPort(8883);
-        integrator.connect([](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
-            reportState("in-mqtts", socketAddress, state);
-        });
-    }
+    });
 
-    {
-        using Integrator = net::un::stream::legacy::SocketClient<mqtt::mqttintegrator::SocketContextFactory>;
-        using SocketAddress = Integrator::SocketAddress;
-
-        Integrator integrator("un-mqtt");
+    startClient<net::un::stream::legacy::SocketClient, mqtt::mqttintegrator::SocketContextFactory>("un-mqtt", [](auto& integrator) -> void {
         integrator.getConfig().setDisabled();
         integrator.getConfig().Remote::setSunPath("/tmp/mqttbroker");
-        integrator.connect([](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
-            reportState("un-mqtt", socketAddress, state);
-        });
-    }
+    });
 
     return core::SNodeC::start();
 }

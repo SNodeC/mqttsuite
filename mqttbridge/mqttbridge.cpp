@@ -37,7 +37,7 @@
 
 #endif
 
-template <typename SocketAddressT, typename = std::enable_if_t<std::is_base_of_v<core::socket::SocketAddress, SocketAddressT>>>
+template <typename SocketAddressT>
 void reportState(const std::string& instanceName, const SocketAddressT& socketAddress, const core::socket::State& state) {
     switch (state) {
         case core::socket::State::OK:
@@ -57,6 +57,29 @@ void reportState(const std::string& instanceName, const SocketAddressT& socketAd
     }
 }
 
+template <template <typename> typename SocketClient, typename SocketContextFactory>
+void startClient(const std::string& name, const std::function<void(SocketClient<SocketContextFactory>&)> configurator) {
+    using Client = SocketClient<SocketContextFactory>;
+    using SocketAddress = Client::SocketAddress;
+
+    Client client(name);
+    configurator(client);
+    client.connect([&name](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
+        reportState(name, socketAddress, state);
+    });
+}
+
+template <template <typename> typename SocketClient, typename SocketContextFactory>
+void startClient(const std::string& name) {
+    using Client = SocketClient<SocketContextFactory>;
+    using SocketAddress = Client::SocketAddress;
+
+    Client client(name);
+    client.connect([&name](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
+        reportState(name, socketAddress, state);
+    });
+}
+
 int main(int argc, char* argv[]) {
     core::SNodeC::init(argc, argv);
 
@@ -74,39 +97,68 @@ int main(int argc, char* argv[]) {
         }
     )"));
 
-    {
-        using Bridge = net::in::stream::legacy::SocketClient<mqtt::bridge::SocketContextFactory>;
-        using SocketAddress = Bridge::SocketAddress;
-
-        Bridge integrator("in-mqtt-1");
-        integrator.getSocketContextFactory()->setBridge(bridge);
-        integrator.connect([](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
-            reportState("in-mqtt-1", socketAddress, state);
-        });
+    for (int i = 1; i < 4; i++) {
+        startClient<net::in::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
+            "in-mqtt-" + std::to_string(i), [&bridge](auto& mqttBridge) -> void {
+                mqttBridge.getSocketContextFactory()->setBridge(bridge);
+            });
     }
-
-    {
-        using Bridge = net::in::stream::legacy::SocketClient<mqtt::bridge::SocketContextFactory>;
-        using SocketAddress = Bridge::SocketAddress;
-
-        Bridge integrator("in-mqtt-2");
-        integrator.getSocketContextFactory()->setBridge(bridge);
-        integrator.connect([](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
-            reportState("in-mqtt-2", socketAddress, state);
+    /*
+    startClient<net::in::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
+        "in-mqtt-1", [&bridge](auto& mqttBridge) -> void {
+            mqttBridge.getSocketContextFactory()->setBridge(bridge);
         });
-    }
 
-    {
-        using Bridge = net::un::stream::legacy::SocketClient<mqtt::bridge::SocketContextFactory>;
-        using SocketAddress = Bridge::SocketAddress;
-
-        Bridge integrator("un-mqtt-1");
-        integrator.getSocketContextFactory()->setBridge(bridge);
-        integrator.getConfig().setDisabled();
-        integrator.connect([](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
-            reportState("un-mqtt-1", socketAddress, state);
+    startClient<net::in::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
+        "in-mqtt-2", [&bridge](auto& mqttBridge) -> void {
+            mqttBridge.getSocketContextFactory()->setBridge(bridge);
         });
-    }
 
+    startClient<net::in::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
+        "in-mqtt-3", [&bridge](auto& mqttBridge) -> void {
+            mqttBridge.getSocketContextFactory()->setBridge(bridge);
+        });
+*/
+    startClient<net::un::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
+        "un-mqtt-1", [&bridge](auto& mqttBridge) -> void {
+            mqttBridge.getSocketContextFactory()->setBridge(bridge);
+            mqttBridge.getConfig().setDisabled();
+        });
+
+    /*
+        {
+            using Bridge = net::in::stream::legacy::SocketClient<mqtt::bridge::SocketContextFactory>;
+            using SocketAddress = Bridge::SocketAddress;
+
+            Bridge integrator("in-mqtt-1");
+            integrator.getSocketContextFactory()->setBridge(bridge);
+            integrator.connect([](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
+                reportState("in-mqtt-1", socketAddress, state);
+            });
+        }
+
+        {
+            using Bridge = net::in::stream::legacy::SocketClient<mqtt::bridge::SocketContextFactory>;
+            using SocketAddress = Bridge::SocketAddress;
+
+            Bridge integrator("in-mqtt-2");
+            integrator.getSocketContextFactory()->setBridge(bridge);
+            integrator.connect([](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
+                reportState("in-mqtt-2", socketAddress, state);
+            });
+        }
+
+        {
+            using Bridge = net::un::stream::legacy::SocketClient<mqtt::bridge::SocketContextFactory>;
+            using SocketAddress = Bridge::SocketAddress;
+
+            Bridge integrator("un-mqtt-1");
+            integrator.getSocketContextFactory()->setBridge(bridge);
+            integrator.getConfig().setDisabled();
+            integrator.connect([](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
+                reportState("un-mqtt-1", socketAddress, state);
+            });
+        }
+    */
     return core::SNodeC::start();
 }

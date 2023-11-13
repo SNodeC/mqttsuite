@@ -43,10 +43,10 @@ namespace mqtt::bridge::lib {
         mqttList.remove(mqtt);
     }
 
-    void Bridge::publish(iot::mqtt::Mqtt* sendingMqtt, const iot::mqtt::packets::Publish& publish) {
-        for (iot::mqtt::Mqtt* mqtt : mqttList) {
-            if (sendingMqtt != mqtt) {
-                mqtt->sendPublish(publish.getTopic(), publish.getMessage(), publish.getQoS(), publish.getRetain());
+    void Bridge::publish(iot::mqtt::Mqtt* originMqtt, const iot::mqtt::packets::Publish& publish) {
+        for (iot::mqtt::Mqtt* destinationMqtt : mqttList) {
+            if (originMqtt != destinationMqtt) { // Do not reflect message to origin broker
+                destinationMqtt->sendPublish(publish.getTopic(), publish.getMessage(), publish.getQoS(), publish.getRetain());
             }
         }
     }
