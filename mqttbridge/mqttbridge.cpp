@@ -120,7 +120,6 @@ int main(int argc, char* argv[]) {
                 VLOG(1) << "         Topic: " << topic;
             }
 
-            /*
             if (protocol == "in") {
                 if (encryption == "legacy") {
                     startClient<net::in::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
