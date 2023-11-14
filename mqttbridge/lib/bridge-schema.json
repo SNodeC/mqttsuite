@@ -112,11 +112,6 @@
           "$ref": "#/$defs/topics",
           "default": [ "#" ]
         }
-      },
-      "default": {
-        "protocol": "in",
-        "encryption": "legacy",
-        "topics": [ "#" ]
       }
     },
     "protocol": {
@@ -128,7 +123,9 @@
         "rc",
         "un"
       ],
-      "default": "in"
+      "default": [
+        "in"
+      ]
     },
     "encryption": {
       "type": "string",
@@ -136,14 +133,16 @@
         "legacy",
         "tls"
       ],
-      "default": "legacy"
+      "default": [
+        "legacy"
+      ]
     },
     "topics": {
       "type": "array",
       "itmes": {
         "type": "string"
       },
-      "default:": [
+      "default": [
         "#"
       ]
     }
