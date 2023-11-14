@@ -17,14 +17,14 @@
       "type": "object",
       "required": [
         "connection",
-        "broker"
+        "brokers"
       ],
       "properties": {
         "connection": {
           "$ref": "#/$defs/connection"
         },
-        "broker": {
-          "$ref": "#/$defs/broker"
+        "brokers": {
+          "$ref": "#/$defs/brokers"
         }
       }
     },
@@ -85,13 +85,13 @@
         "password": ""
       }
     },
-    "broker": {
+    "brokers": {
       "type": "array",
       "items": {
-        "$ref": "#/$defs/brokers"
+        "$ref": "#/$defs/broker"
       }
     },
-    "brokers": {
+    "broker": {
       "type": "object",
       "required": [
         "name"

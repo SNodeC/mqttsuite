@@ -12,7 +12,7 @@
         "username": "Username",
         "password": "Password"
       },
-      "broker": [
+      "brokers": [
         {
           "name": "in-mqtt-1",
           "protocol": "in",

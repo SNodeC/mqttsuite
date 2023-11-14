@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) {
 
         VLOG(1) << "Creating Bridge: " << bridgeJsonConfig["connection"]["client_id"];
 
-        for (const nlohmann::json& brokerJsonConfig : bridgeJsonConfig["broker"]) {
+        for (const nlohmann::json& brokerJsonConfig : bridgeJsonConfig["brokers"]) {
             const std::string name = brokerJsonConfig["name"];
             const std::string protocol = brokerJsonConfig["protocol"];
             const std::string encryption = brokerJsonConfig["encryption"];
