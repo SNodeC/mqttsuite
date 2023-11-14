@@ -76,7 +76,7 @@ void startClient(const std::string& name, const std::function<void(SocketClient<
 
     Client client(name);
     configurator(client);
-    client.connect([&name](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
+    client.connect([name](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
         reportState(name, socketAddress, state);
     });
 }
@@ -87,7 +87,7 @@ void startClient(const std::string& name) {
     using SocketAddress = typename Client::SocketAddress;
 
     Client client(name);
-    client.connect([&name](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
+    client.connect([name](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
         reportState(name, socketAddress, state);
     });
 }
