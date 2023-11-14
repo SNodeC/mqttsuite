@@ -43,7 +43,7 @@ namespace mqtt::bridge {
         void setBridge(mqtt::bridge::lib::Bridge& bridge);
 
     private:
-        mqtt::bridge::lib::Bridge* bridge;
+        mqtt::bridge::lib::Bridge* bridge = nullptr;
     };
 
 } // namespace mqtt::bridge
