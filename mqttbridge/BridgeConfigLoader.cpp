@@ -50,7 +50,7 @@ nlohmann::json BridgeConfigLoader::loadAndValidate(const std::string& fileName) 
             try {
                 bridgeConfigJsonFile >> bridgeConfigJson;
 
-                VLOG(0) << bridgeConfigJson.dump(4);
+                LOG(TRACE) << "Bridge config json:\n" << bridgeConfigJson.dump(4);
 
                 nlohmann::json_schema::json_validator validator; //(nullptr, nlohmann::json_schema::default_string_format_check);
 
@@ -61,14 +61,15 @@ nlohmann::json BridgeConfigLoader::loadAndValidate(const std::string& fileName) 
                     nlohmann::json defaultPatch = validator.validate(bridgeConfigJson); //, err);
 
                     if (!err) {
-                        try {
-                            VLOG(0) << "------------------------------";
-                            VLOG(0) << defaultPatch.dump(4);
-                            bridgeConfigJson = bridgeConfigJson.patch(defaultPatch);
-                        } catch (const std::exception& e) {
-                            LOG(ERROR) << e.what();
-                            LOG(ERROR) << "Patching JSON with default patch failed:\n" << defaultPatch.dump(4);
-                            bridgeConfigJson.clear();
+                        if (!defaultPatch.empty()) {
+                            try {
+                                LOG(TRACE) << "  Default patch:\n" << defaultPatch.dump(4);
+                                bridgeConfigJson = bridgeConfigJson.patch(defaultPatch);
+                            } catch (const std::exception& e) {
+                                LOG(ERROR) << "Patching JSON with default patch failed:\n" << defaultPatch.dump(4);
+                                LOG(ERROR) << e.what();
+                                bridgeConfigJson.clear();
+                            }
                         }
                     } else {
                         bridgeConfigJson.clear();

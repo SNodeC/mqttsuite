@@ -68,12 +68,14 @@ namespace mqtt::lib {
                             nlohmann::json defaultPatch = validator.validate(mapFileJsons[mapFilePath], err);
 
                             if (!err) {
-                                try {
-                                    mapFileJsons[mapFilePath] = mapFileJsons[mapFilePath].patch(defaultPatch);
-                                } catch (const std::exception& e) {
-                                    LOG(ERROR) << e.what();
-                                    LOG(ERROR) << "Patching JSON with default patch failed:\n" << defaultPatch.dump(4);
-                                    mapFileJsons[mapFilePath].clear();
+                                if (!defaultPatch.empty()) {
+                                    try {
+                                        mapFileJsons[mapFilePath] = mapFileJsons[mapFilePath].patch(defaultPatch);
+                                    } catch (const std::exception& e) {
+                                        LOG(ERROR) << e.what();
+                                        LOG(ERROR) << "Patching JSON with default patch failed:\n" << defaultPatch.dump(4);
+                                        mapFileJsons[mapFilePath].clear();
+                                    }
                                 }
                             } else {
                                 mapFileJsons[mapFilePath].clear();
