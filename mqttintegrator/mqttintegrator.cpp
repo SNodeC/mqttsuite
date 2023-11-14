@@ -28,7 +28,6 @@
 #include <cstdlib>
 #include <log/Logger.h>
 #include <string>
-#include <type_traits>
 #include <utils/Config.h>
 
 #endif
@@ -56,7 +55,7 @@ void reportState(const std::string& instanceName, const SocketAddressT& socketAd
 template <template <typename> typename SocketClient, typename SocketContextFactory>
 void startClient(const std::string& name, const std::function<void(SocketClient<SocketContextFactory>&)> configurator) {
     using Client = SocketClient<SocketContextFactory>;
-    using SocketAddress = Client::SocketAddress;
+    using SocketAddress = typename Client::SocketAddress;
 
     Client client(name);
     configurator(client);
