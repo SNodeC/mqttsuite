@@ -24,7 +24,7 @@ target_include_directories(
 target_link_libraries(
     mqttbridge
     PUBLIC snodec::net-in-stream-legacy snodec::net-un-stream-legacy snodec::mqtt
-           mqtt-bridge
+           mqtt-bridge nlohmann_json_schema_validator
 )
 
 install(TARGETS mqttbridge RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
