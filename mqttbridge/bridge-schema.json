@@ -1,0 +1,143 @@
+{
+  "$id": "https://www.vchrist.at/mqttbridge/schemas/bridges",
+  "type": "object",
+  "required": [
+    "bridges"
+  ],
+  "properties": {
+    "bridges": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/bridge"
+      }
+    }
+  },
+  "$defs": {
+    "bridge": {
+      "type": "object",
+      "required": [
+        "connection",
+        "broker"
+      ],
+      "properties": {
+        "connection": {
+          "$ref": "#/$defs/connection"
+        },
+        "broker": {
+          "$ref": "#/$defs/broker"
+        }
+      }
+    },
+    "connection": {
+      "type": "object",
+      "required:": [
+        "client_id"
+      ],
+      "properties": {
+        "client_id": {
+          "type": "string",
+          "default": ""
+        },
+        "keep_alive": {
+          "type": "integer",
+          "default": 60
+        },
+        "clean_session": {
+          "type": "boolean",
+          "default": false
+        },
+        "will_topic": {
+          "type": "string",
+          "default": ""
+        },
+        "will_message": {
+          "type": "string",
+          "default": ""
+        },
+        "will_qos": {
+          "type": "integer",
+          "default": 0,
+          "minimum": 0,
+          "maximum": 2
+        },
+        "will_retain": {
+          "type": "boolean",
+          "default": false
+        },
+        "username": {
+          "type": "string",
+          "default": ""
+        },
+        "password": {
+          "type": "string",
+          "default": ""
+        }
+      },
+      "default": {
+        "keep_alive": 60,
+        "client_id": "",
+        "clean_session": true,
+        "will_topic": "",
+        "will_message": "",
+        "will_qos": 0,
+        "will_retain": false,
+        "username": "",
+        "password": ""
+      }
+    },
+    "broker": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/brokers"
+      }
+    },
+    "brokers": {
+      "type": "object",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "protocol": {
+          "$ref": "#/$defs/protocol"
+        },
+        "encryption": {
+          "$ref": "#/$defs/encryption"
+        },
+        "topics": {
+          "$ref": "#/$defs/topics"
+        }
+      }
+    },
+    "protocol": {
+      "type": "string",
+      "enum": [
+        "in",
+        "in6",
+        "l2",
+        "rc",
+        "un"
+      ],
+      "default": "in"
+    },
+    "encryption": {
+      "type": "string",
+      "enum": [
+        "legacy",
+        "tls"
+      ],
+      "default": "legacy"
+    },
+    "topics": {
+      "type": "array",
+      "itmes": {
+        "type": "string"
+      },
+      "default:": [
+        "#"
+      ]
+    }
+  }
+}

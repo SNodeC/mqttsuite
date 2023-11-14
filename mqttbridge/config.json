@@ -1,126 +1,33 @@
 {
-    "bridges": [
-      {
-        "connection": {
-            "keep_alive": 60,
-            "client_id": "MQTT-Bridge",
-            "clean_session": true,
-            "will_topic": "will/topic",
-            "will_message": "Last Will",
-            "will_qos": 0,
-            "will_retain": false,
-            "username": "Username",
-            "password": "Password"
+  "bridges": [
+    {
+      "connection": {
+        "keep_alive": 60,
+        "client_id": "MQTT-Bridge",
+        "clean_session": true,
+        "will_topic": "will/topic",
+        "will_message": "Last Will",
+        "will_qos": 0,
+        "will_retain": false,
+        "username": "Username",
+        "password": "Password"
+      },
+      "broker": [
+        {
+          "name": "in-mqtt-1",
+          "protocol": "in",
+          "encryption": "legacy",
+          "topics": [
+            "#",
+            "hoho"
+          ]
         },
-        "broker": [
-          {
-            "name": "in-mqtt-1",
-            "protocol": "in",
-            "encryption": "legacy"
-          },
-          {
-            "name": "in6-mqtt-1",
-            "protocol": "in6",
-            "encryption": "tls"
-          }
-        ]
-      }
-    ]
-}
-
-{
-    "$id": "https://www.vchrist.at/mqttmapper/schemas/mapping",
-    "type": "object",
-    "required": [
-        "bridges"
-    ],
-    "properties": {
-        "bridges": {
-            "type": "array",
-            "items": {
-                "$ref": "#/$defs/bridge"
-            }
+        {
+          "name": "in6-mqtt-1",
+          "protocol": "in6",
+          "encryption": "tls"
         }
-    },
-    "$defs": {
-        "bridge": {
-            "type": "object",
-            "required": [
-                "connection",
-                "broker"
-            ],
-            "properties": {
-                "connection": {
-                    "$ref": "#/$defs/connection"
-                },
-                "broker": {
-                    "$ref": "#/$defs/broker"
-                }
-            }
-        },
-        "connection": {
-            "type": "object",
-            "properties": {
-                "keep_alive": {
-                    "type": "integer",
-                    "default": 60
-                },
-                "client_id": {
-                    "type": "string",
-                    "default": ""
-                },
-                "clean_session": {
-                    "type": "boolean",
-                    "default": false
-                },
-                "will_topic": {
-                    "type": "string",
-                    "default": ""
-                },
-                "will_message": {
-                    "type": "string",
-                    "default": ""
-                },
-                "will_qos": {
-                    "type": "integer",
-                    "default": 0,
-                    "minimum": 0,
-                    "maximum": 2
-                },
-                "will_retain": {
-                    "type": "boolean",
-                    "default": false
-                },
-                "username": {
-                    "type": "string",
-                    "default": ""
-                },
-                "password": {
-                    "type": "string",
-                    "default": ""
-                }
-            }
-        },
-        "broker": {
-            "type": "array",
-            "items": {
-                "$ref": "#/$defs/brokers"
-            }
-        },
-        "brokers": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string"
-                },
-                "protocol": {
-                    "type": "string"
-                },
-                "encryption": {
-                    "type": "string"
-                }
-            }
-        }
+      ]
     }
+  ]
 }
-
