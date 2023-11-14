@@ -16,12 +16,21 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "BridgeConfigLoader.h"
 #include "SocketContextFactory.h" // IWYU pragma: keep
 #include "mqttbridge/lib/Bridge.h"
 
 #include <core/SNodeC.h>
 #include <net/in/stream/legacy/SocketClient.h>
+#include <net/in/stream/tls/SocketClient.h>
+#include <net/in6/stream/legacy/SocketClient.h>
+#include <net/in6/stream/tls/SocketClient.h>
+#include <net/l2/stream/legacy/SocketClient.h>
+#include <net/l2/stream/tls/SocketClient.h>
+#include <net/rc/stream/legacy/SocketClient.h>
+#include <net/rc/stream/tls/SocketClient.h>
 #include <net/un/stream/legacy/SocketClient.h>
+#include <net/un/stream/tls/SocketClient.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
@@ -29,8 +38,11 @@
 #include <log/Logger.h>
 #include <map>
 #include <nlohmann/json.hpp>
+#include <set>
 #include <string>
 #include <type_traits>
+#include <utils/Config.h>
+#include <variant>
 #include <vector>
 
 // IWYU pragma: no_include <nlohmann/json_fwd.hpp>
@@ -60,7 +72,7 @@ void reportState(const std::string& instanceName, const SocketAddressT& socketAd
 template <template <typename> typename SocketClient, typename SocketContextFactory>
 void startClient(const std::string& name, const std::function<void(SocketClient<SocketContextFactory>&)> configurator) {
     using Client = SocketClient<SocketContextFactory>;
-    using SocketAddress = Client::SocketAddress;
+    using SocketAddress = typename Client::SocketAddress;
 
     Client client(name);
     configurator(client);
@@ -72,7 +84,7 @@ void startClient(const std::string& name, const std::function<void(SocketClient<
 template <template <typename> typename SocketClient, typename SocketContextFactory>
 void startClient(const std::string& name) {
     using Client = SocketClient<SocketContextFactory>;
-    using SocketAddress = Client::SocketAddress;
+    using SocketAddress = typename Client::SocketAddress;
 
     Client client(name);
     client.connect([&name](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
@@ -81,7 +93,98 @@ void startClient(const std::string& name) {
 }
 
 int main(int argc, char* argv[]) {
+    utils::Config::add_string_option("--bridge-config-file", "MQTT mapping file (json format) for integration", "[path]");
+
     core::SNodeC::init(argc, argv);
+
+    nlohmann::json bridgesJsonConfig = BridgeConfigLoader::loadAndValidate(utils::Config::get_string_option_value("--bridge-config-file"));
+
+    std::set<mqtt::bridge::lib::Bridge*> bridges;
+
+    for (const nlohmann::json& bridgeJsonConfig : bridgesJsonConfig["bridges"]) {
+        mqtt::bridge::lib::Bridge* bridge = new mqtt::bridge::lib::Bridge(bridgeJsonConfig["connection"]);
+        bridges.insert(bridge);
+
+        VLOG(1) << "Creating Bridge: " << bridgeJsonConfig["connection"]["client_id"];
+
+        for (const nlohmann::json& brokerJsonConfig : bridgeJsonConfig["broker"]) {
+            const std::string name = brokerJsonConfig["name"];
+            const std::string protocol = brokerJsonConfig["protocol"];
+            const std::string encryption = brokerJsonConfig["encryption"];
+            const std::vector<std::string> topics = brokerJsonConfig["topics"];
+
+            VLOG(1) << "Creating Instance: " << name;
+            VLOG(1) << "         Protocol: " << protocol;
+            VLOG(1) << "         Encryption: " << encryption;
+            for (const std::string& topic : topics) {
+                VLOG(1) << "         Topic: " << topic;
+            }
+
+            /*
+            if (protocol == "in") {
+                if (encryption == "legacy") {
+                    startClient<net::in::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
+                        name, [&bridge](auto& mqttBridge) -> void {
+                            mqttBridge.getSocketContextFactory()->setBridge(bridge);
+                        });
+                } else if (encryption == "tls") {
+                    startClient<net::in::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
+                        name, [&bridge](auto& mqttBridge) -> void {
+                            mqttBridge.getSocketContextFactory()->setBridge(bridge);
+                        });
+                }
+            } else if (protocol == "in6") {
+                if (encryption == "legacy") {
+                    startClient<net::in6::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
+                        name, [&bridge](auto& mqttBridge) -> void {
+                            mqttBridge.getSocketContextFactory()->setBridge(bridge);
+                        });
+                } else if (encryption == "tls") {
+                    startClient<net::in6::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
+                        name, [&bridge](auto& mqttBridge) -> void {
+                            mqttBridge.getSocketContextFactory()->setBridge(bridge);
+                        });
+                }
+            } else if (protocol == "l2") {
+                if (encryption == "legacy") {
+                    startClient<net::l2::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
+                        name, [&bridge](auto& mqttBridge) -> void {
+                            mqttBridge.getSocketContextFactory()->setBridge(bridge);
+                        });
+                } else if (encryption == "tls") {
+                    startClient<net::l2::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
+                        name, [&bridge](auto& mqttBridge) -> void {
+                            mqttBridge.getSocketContextFactory()->setBridge(bridge);
+                        });
+                }
+            } else if (protocol == "rc") {
+                if (encryption == "legacy") {
+                    startClient<net::rc::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
+                        name, [&bridge](auto& mqttBridge) -> void {
+                            mqttBridge.getSocketContextFactory()->setBridge(bridge);
+                        });
+                } else if (encryption == "tls") {
+                    startClient<net::rc::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
+                        name, [&bridge](auto& mqttBridge) -> void {
+                            mqttBridge.getSocketContextFactory()->setBridge(bridge);
+                        });
+                }
+            } else if (protocol == "un") {
+                if (encryption == "legacy") {
+                    startClient<net::un::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
+                        name, [&bridge](auto& mqttBridge) -> void {
+                            mqttBridge.getSocketContextFactory()->setBridge(bridge);
+                        });
+                } else if (encryption == "tls") {
+                    startClient<net::un::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
+                        name, [&bridge](auto& mqttBridge) -> void {
+                            mqttBridge.getSocketContextFactory()->setBridge(bridge);
+                        });
+                }
+            }
+            */
+        }
+    }
 
     mqtt::bridge::lib::Bridge bridge(nlohmann::json::parse(R"(
         {
@@ -100,7 +203,7 @@ int main(int argc, char* argv[]) {
     for (int i = 1; i < 4; i++) {
         startClient<net::in::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
             "in-mqtt-" + std::to_string(i), [&bridge](auto& mqttBridge) -> void {
-                mqttBridge.getSocketContextFactory()->setBridge(bridge);
+                mqttBridge.getSocketContextFactory()->setBridge(&bridge);
             });
     }
     /*
@@ -121,7 +224,7 @@ int main(int argc, char* argv[]) {
 */
     startClient<net::un::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
         "un-mqtt-1", [&bridge](auto& mqttBridge) -> void {
-            mqttBridge.getSocketContextFactory()->setBridge(bridge);
+            mqttBridge.getSocketContextFactory()->setBridge(&bridge);
             mqttBridge.getConfig().setDisabled();
         });
 

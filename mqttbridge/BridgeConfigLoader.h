@@ -16,36 +16,21 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef APPS_MQTTBROKER_MQTTBRIDGE_SOCKETCONTEXTFACTORY_H
-#define APPS_MQTTBROKER_MQTTBRIDGE_SOCKETCONTEXTFACTORY_H
-
-namespace mqtt::bridge::lib {
-    class Bridge;
-}
+#ifndef _BRIDGECONFIGLOADER_H
+#define _BRIDGECONFIGLOADER_H
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <core/socket/stream/SocketContext.h>
-#include <core/socket/stream/SocketContextFactory.h>
+#include <nlohmann/json_fwd.hpp>
+#include <string>
 
-#endif
+#endif // DOXYGEN_SHOULD_SKIP_THIS
 
-namespace core::socket::stream {
-    class SocketConnection;
-} // namespace core::socket::stream
+class BridgeConfigLoader {
+public:
+    BridgeConfigLoader() = delete;
 
-namespace mqtt::bridge {
+    static nlohmann::json loadAndValidate(const std::string& fileName);
+};
 
-    class SocketContextFactory : public core::socket::stream::SocketContextFactory {
-    public:
-        core::socket::stream::SocketContext* create(core::socket::stream::SocketConnection* socketConnection) final;
-
-        void setBridge(mqtt::bridge::lib::Bridge* bridge);
-
-    private:
-        mqtt::bridge::lib::Bridge* bridge = nullptr;
-    };
-
-} // namespace mqtt::bridge
-
-#endif // APPS_MQTTBROKER_MQTTBRIDGE_SOCKETCONTEXTFACTORY_H
+#endif // _BRIDGECONFIGLOADER_H

@@ -101,14 +101,22 @@
           "type": "string"
         },
         "protocol": {
-          "$ref": "#/$defs/protocol"
+          "$ref": "#/$defs/protocol",
+          "default": "in"
         },
         "encryption": {
-          "$ref": "#/$defs/encryption"
+          "$ref": "#/$defs/encryption",
+          "default": "legacy"
         },
         "topics": {
-          "$ref": "#/$defs/topics"
+          "$ref": "#/$defs/topics",
+          "default": [ "#" ]
         }
+      },
+      "default": {
+        "protocol": "in",
+        "encryption": "legacy",
+        "topics": [ "#" ]
       }
     },
     "protocol": {
