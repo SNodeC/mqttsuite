@@ -18,14 +18,20 @@
           "protocol": "in",
           "encryption": "legacy",
           "topics": [
-            "#",
-            "hoho"
+            "#"
           ]
         },
         {
-          "name": "in6-mqtt-1",
-          "protocol": "in6",
-          "encryption": "tls"
+          "name": "in-mqtt-2",
+          "protocol": "in",
+          "encryption": "legacy"
+        },
+        {
+          "name": "in-mqtt-3",
+          "protocol": "in"
+        },
+        {
+          "name": "in-mqtt-4"
         }
       ]
     }
