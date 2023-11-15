@@ -36,13 +36,6 @@
 
 static nlohmann::json bridgeJsonSchema = nlohmann::json::parse(bridgeJsonSchemaString);
 
-class custom_error_handler : public nlohmann::json_schema::basic_error_handler {
-    void error(const nlohmann::json::json_pointer& ptr, const nlohmann::json& instance, const std::string& message) override {
-        nlohmann::json_schema::basic_error_handler::error(ptr, instance, message);
-        LOG(ERROR) << ptr.to_string() << " - " << instance << "': " << message << "\n";
-    }
-};
-
 nlohmann::json BridgeConfigLoader::loadAndValidate(const std::string& fileName) {
     nlohmann::json bridgeConfigJson;
 
@@ -55,39 +48,37 @@ nlohmann::json BridgeConfigLoader::loadAndValidate(const std::string& fileName) 
             try {
                 bridgeConfigJsonFile >> bridgeConfigJson;
 
-                LOG(TRACE) << "Bridge config json:\n" << bridgeConfigJson.dump(4);
-
-                nlohmann::json_schema::json_validator validator; //(nullptr, nlohmann::json_schema::default_string_format_check);
+                nlohmann::json_schema::json_validator validator;
 
                 try {
                     validator.set_root_schema(bridgeJsonSchema);
 
-                    custom_error_handler err;
-                    nlohmann::json defaultPatch = validator.validate(bridgeConfigJson); //, err);
+                    try {
+                        nlohmann::json defaultPatch = validator.validate(bridgeConfigJson);
 
-                    if (!err) {
                         if (!defaultPatch.empty()) {
                             try {
                                 LOG(TRACE) << "  Default patch:\n" << defaultPatch.dump(4);
                                 bridgeConfigJson = bridgeConfigJson.patch(defaultPatch);
                             } catch (const std::exception& e) {
-                                LOG(ERROR) << "Patching JSON with default patch failed:\n" << defaultPatch.dump(4);
-                                LOG(ERROR) << e.what();
+                                LOG(ERROR) << "  Patching JSON with default patch failed:\n" << defaultPatch.dump(4);
+                                LOG(ERROR) << "    " << e.what();
                                 bridgeConfigJson.clear();
                             }
                         }
-                    } else {
+                    } catch (const std::exception& e) {
+                        LOG(ERROR) << "  Validating JSON failed:\n" << bridgeConfigJson.dump(4);
+                        LOG(ERROR) << "    " << e.what();
                         bridgeConfigJson.clear();
                     }
                 } catch (const std::exception& e) {
-                    LOG(ERROR) << e.what();
-                    LOG(ERROR) << "Setting root json mapping schema failed:\n" << bridgeJsonSchema.dump(4);
+                    LOG(ERROR) << "  Setting root json mapping schema failed:\n" << bridgeJsonSchema.dump(4);
+                    LOG(ERROR) << "    " << e.what();
                     bridgeConfigJson.clear();
                 }
-
                 bridgeConfigJsonFile.close();
             } catch (const std::exception& e) {
-                LOG(ERROR) << "JSON map file parsing failed: " << e.what() << " at " << bridgeConfigJsonFile.tellg();
+                LOG(ERROR) << "  JSON map file parsing failed:" << e.what() << " at " << bridgeConfigJsonFile.tellg();
                 bridgeConfigJson.clear();
             }
             bridgeConfigJsonFile.close();

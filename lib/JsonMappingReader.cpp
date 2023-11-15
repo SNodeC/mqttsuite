@@ -41,13 +41,6 @@ namespace mqtt::lib {
 
     std::map<std::string, nlohmann::json> JsonMappingReader::mapFileJsons;
 
-    class custom_error_handler : public nlohmann::json_schema::basic_error_handler {
-        void error(const nlohmann::json::json_pointer& ptr, const nlohmann::json& instance, const std::string& message) override {
-            nlohmann::json_schema::basic_error_handler::error(ptr, instance, message);
-            LOG(ERROR) << ptr.to_string() << " - " << instance << "': " << message << "\n";
-        }
-    };
-
     nlohmann::json& JsonMappingReader::readMappingFromFile(const std::string& mapFilePath) {
         if (!mapFileJsons.contains(mapFilePath)) {
             if (!mapFilePath.empty()) {
@@ -59,15 +52,14 @@ namespace mqtt::lib {
                     try {
                         mapFile >> mapFileJsons[mapFilePath];
 
-                        nlohmann::json_schema::json_validator validator(nullptr, nlohmann::json_schema::default_string_format_check);
+                        nlohmann::json_schema::json_validator validator;
 
                         try {
                             validator.set_root_schema(mappingJsonSchema);
 
-                            custom_error_handler err;
-                            nlohmann::json defaultPatch = validator.validate(mapFileJsons[mapFilePath], err);
+                            try {
+                                nlohmann::json defaultPatch = validator.validate(mapFileJsons[mapFilePath]);
 
-                            if (!err) {
                                 if (!defaultPatch.empty()) {
                                     try {
                                         mapFileJsons[mapFilePath] = mapFileJsons[mapFilePath].patch(defaultPatch);
@@ -77,7 +69,9 @@ namespace mqtt::lib {
                                         mapFileJsons[mapFilePath].clear();
                                     }
                                 }
-                            } else {
+                            } catch (const std::exception& e) {
+                                LOG(ERROR) << "  Validating JSON failed:\n" << mapFileJsons[mapFilePath].dump(4);
+                                LOG(ERROR) << "    " << e.what();
                                 mapFileJsons[mapFilePath].clear();
                             }
                         } catch (const std::exception& e) {
@@ -85,7 +79,6 @@ namespace mqtt::lib {
                             LOG(ERROR) << "Setting root json mapping schema failed:\n" << mappingJsonSchema.dump(4);
                             mapFileJsons[mapFilePath].clear();
                         }
-
                         mapFile.close();
                     } catch (const std::exception& e) {
                         LOG(ERROR) << "JSON map file parsing failed: " << e.what() << " at " << mapFile.tellg();
