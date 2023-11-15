@@ -139,21 +139,21 @@
     "topics": {
       "type": "array",
       "items": {
-        "$ref": "#/$defs/topic_filter"
+        "$ref": "#/$defs/topic"
       }
     },
-    "topic_filter": {
+    "topic": {
       "type": "object",
       "properties": {
         "topic": {
-            "type": "string",
-            "default": "#"
+          "type": "string",
+          "default": "#"
         },
         "qos": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 2,
-            "default": 0
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2,
+          "default": 0
         }
       }
     }
