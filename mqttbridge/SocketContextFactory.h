@@ -27,6 +27,7 @@ namespace mqtt::bridge::lib {
 
 #include <core/socket/stream/SocketContext.h>
 #include <core/socket/stream/SocketContextFactory.h>
+#include <nlohmann/json.hpp>
 
 #endif
 
@@ -40,10 +41,12 @@ namespace mqtt::bridge {
     public:
         core::socket::stream::SocketContext* create(core::socket::stream::SocketConnection* socketConnection) final;
 
-        void setBridge(mqtt::bridge::lib::Bridge* bridge);
+        SocketContextFactory& setBridge(mqtt::bridge::lib::Bridge* bridge);
+        SocketContextFactory& setTopics(const nlohmann::json& topicsJson);
 
     private:
         mqtt::bridge::lib::Bridge* bridge = nullptr;
+        nlohmann::json topicsJson;
     };
 
 } // namespace mqtt::bridge

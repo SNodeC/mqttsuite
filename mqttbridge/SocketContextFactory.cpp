@@ -35,9 +35,14 @@ namespace mqtt::bridge {
 
         return socketContext;
     }
-
-    void SocketContextFactory::setBridge(lib::Bridge* bridge) {
+    SocketContextFactory& SocketContextFactory::setBridge(lib::Bridge* bridge) {
         this->bridge = bridge;
+        return *this;
+    }
+
+    SocketContextFactory& SocketContextFactory::setTopics(const nlohmann::json& topicsJson) {
+        this->topicsJson = topicsJson;
+        return *this;
     }
 
 } // namespace mqtt::bridge
