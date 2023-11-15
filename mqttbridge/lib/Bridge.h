@@ -32,6 +32,8 @@ namespace iot::mqtt {
 #include <list>
 #include <nlohmann/json.hpp>
 
+// IWYU pragma: no_include <nlohmann/json_fwd.hpp>
+
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
 namespace mqtt::bridge::lib {

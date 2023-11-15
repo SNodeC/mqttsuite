@@ -32,6 +32,8 @@ namespace mqtt::bridge::lib {
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include <iot/mqtt/Topic.h>
+#include <list>
 #include <string>
 
 #endif
@@ -40,7 +42,7 @@ namespace mqtt::bridge::lib {
 
     class Mqtt : public iot::mqtt::client::Mqtt {
     public:
-        explicit Mqtt(mqtt::bridge::lib::Bridge* bridge);
+        explicit Mqtt(mqtt::bridge::lib::Bridge* bridge, const std::list<iot::mqtt::Topic>& topics);
 
     private:
         void onConnected() final;
@@ -51,6 +53,7 @@ namespace mqtt::bridge::lib {
         void onPublish(const iot::mqtt::packets::Publish& publish) final;
 
         mqtt::bridge::lib::Bridge* bridge;
+        std::list<iot::mqtt::Topic> topics;
 
         uint16_t keepAlive;
         bool cleanSession;

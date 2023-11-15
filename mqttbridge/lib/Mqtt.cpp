@@ -37,9 +37,10 @@
 
 namespace mqtt::bridge::lib {
 
-    Mqtt::Mqtt(mqtt::bridge::lib::Bridge* bridge)
+    Mqtt::Mqtt(mqtt::bridge::lib::Bridge* bridge, const std::list<iot::mqtt::Topic>& topics)
         : iot::mqtt::client::Mqtt(bridge->getConnectionJson()["client_id"])
         , bridge(bridge)
+        , topics(topics)
         , keepAlive(bridge->getConnectionJson()["keep_alive"])
         , cleanSession(bridge->getConnectionJson()["clean_session"])
         , willTopic(bridge->getConnectionJson()["will_topic"])
@@ -80,9 +81,8 @@ namespace mqtt::bridge::lib {
     void Mqtt::onConnack(const iot::mqtt::packets::Connack& connack) {
         if (connack.getReturnCode() == 0) {
             bridge->addMqtt(this);
-            std::list<iot::mqtt::Topic> topicList{{iot::mqtt::Topic("#", 2)}};
 
-            sendSubscribe(topicList);
+            sendSubscribe(topics);
         }
     }
 

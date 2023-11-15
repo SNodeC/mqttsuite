@@ -27,7 +27,8 @@ namespace mqtt::bridge::lib {
 
 #include <core/socket/stream/SocketContext.h>
 #include <core/socket/stream/SocketContextFactory.h>
-#include <nlohmann/json.hpp>
+#include <iot/mqtt/Topic.h>
+#include <list>
 
 #endif
 
@@ -42,11 +43,11 @@ namespace mqtt::bridge {
         core::socket::stream::SocketContext* create(core::socket::stream::SocketConnection* socketConnection) final;
 
         SocketContextFactory& setBridge(mqtt::bridge::lib::Bridge* bridge);
-        SocketContextFactory& setTopics(const nlohmann::json& topicsJson);
+        SocketContextFactory& setTopics(const std::list<iot::mqtt::Topic>& topics);
 
     private:
         mqtt::bridge::lib::Bridge* bridge = nullptr;
-        nlohmann::json topicsJson;
+        std::list<iot::mqtt::Topic> topics;
     };
 
 } // namespace mqtt::bridge

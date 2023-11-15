@@ -22,8 +22,13 @@
 
 #include "nlohmann/json-schema.hpp"
 
+#include <exception>
+#include <initializer_list>
+#include <istream>
 #include <log/Logger.h>
+#include <map>
 #include <nlohmann/json.hpp>
+#include <vector>
 
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
