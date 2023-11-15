@@ -30,7 +30,7 @@
     },
     "connection": {
       "type": "object",
-      "required:": [
+      "required": [
         "client_id"
       ],
       "properties": {
@@ -110,7 +110,12 @@
         },
         "topics": {
           "$ref": "#/$defs/topics",
-          "default": [ "#" ]
+          "default": [
+            {
+              "topic": "#",
+              "qos": 0
+            }
+          ]
         }
       }
     },
@@ -122,9 +127,6 @@
         "l2",
         "rc",
         "un"
-      ],
-      "default": [
-        "in"
       ]
     },
     "encryption": {
@@ -132,19 +134,28 @@
       "enum": [
         "legacy",
         "tls"
-      ],
-      "default": [
-        "legacy"
       ]
     },
     "topics": {
       "type": "array",
-      "itmes": {
-        "type": "string"
-      },
-      "default": [
-        "#"
-      ]
+      "items": {
+        "$ref": "#/$defs/topic_filter"
+      }
+    },
+    "topic_filter": {
+      "type": "object",
+      "properties": {
+        "topic": {
+            "type": "string",
+            "default": "#"
+        },
+        "qos": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2,
+            "default": 0
+        }
+      }
     }
   }
 }

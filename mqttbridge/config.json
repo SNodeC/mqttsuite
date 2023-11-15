@@ -18,7 +18,16 @@
           "protocol": "in",
           "encryption": "legacy",
           "topics": [
-            "#"
+            {
+              "topic": "#",
+              "qos": 2
+            },
+            {
+              "qos": 1
+            },
+            {
+              "topic": "###"
+            }
           ]
         },
         {
