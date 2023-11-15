@@ -92,6 +92,19 @@ void startClient(const std::string& name) {
     });
 }
 
+class BridgeStore : public std::set<mqtt::bridge::lib::Bridge*> {
+public:
+    ~BridgeStore() {
+        for (const mqtt::bridge::lib::Bridge* bridge : *this) {
+            delete bridge;
+        }
+    }
+
+    mqtt::bridge::lib::Bridge* newBridge(const nlohmann::json& connection) {
+        return *insert(new mqtt::bridge::lib::Bridge(connection)).first;
+    }
+};
+
 int main(int argc, char* argv[]) {
     utils::Config::add_string_option("--bridge-config-file", "MQTT mapping file (json format) for integration", "[path]");
 
@@ -99,11 +112,10 @@ int main(int argc, char* argv[]) {
 
     nlohmann::json bridgesJsonConfig = BridgeConfigLoader::loadAndValidate(utils::Config::get_string_option_value("--bridge-config-file"));
 
-    std::set<mqtt::bridge::lib::Bridge*> bridges;
+    BridgeStore bridgeStore;
 
     for (const nlohmann::json& bridgeJsonConfig : bridgesJsonConfig["bridges"]) {
-        mqtt::bridge::lib::Bridge* bridge = new mqtt::bridge::lib::Bridge(bridgeJsonConfig["connection"]);
-        bridges.insert(bridge);
+        mqtt::bridge::lib::Bridge* bridge = bridgeStore.newBridge(bridgeJsonConfig["connection"]);
 
         VLOG(1) << "Creating Bridge: " << bridgeJsonConfig["connection"]["client_id"];
 
@@ -184,11 +196,5 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    int ret = core::SNodeC::start();
-
-    for (mqtt::bridge::lib::Bridge* bridge : bridges) {
-        delete bridge;
-    }
-
-    return ret;
+    return core::SNodeC::start();
 }
