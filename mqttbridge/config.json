@@ -19,11 +19,11 @@
           "encryption": "legacy",
           "topics": [
             {
-              "topic": "topic1/subtopic1",
+              "topic": "topic/subtopic",
               "qos": 2
             },
             {
-              "topic": "topic2"
+              "topic": "topic1"
             }
           ]
         },

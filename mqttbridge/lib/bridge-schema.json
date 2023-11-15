@@ -72,24 +72,14 @@
           "type": "string",
           "default": ""
         }
-      },
-      "default": {
-        "keep_alive": 60,
-        "client_id": "",
-        "clean_session": true,
-        "will_topic": "",
-        "will_message": "",
-        "will_qos": 0,
-        "will_retain": false,
-        "username": "",
-        "password": ""
       }
     },
     "brokers": {
       "type": "array",
       "items": {
         "$ref": "#/$defs/broker"
-      }
+      },
+      "minItems": 2
     },
     "broker": {
       "type": "object",
