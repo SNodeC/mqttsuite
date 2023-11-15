@@ -19,21 +19,23 @@
           "encryption": "legacy",
           "topics": [
             {
-              "topic": "#",
+              "topic": "topic1/subtopic1",
               "qos": 2
             },
             {
-              "qos": 1
-            },
-            {
-              "topic": "###"
+              "topic": "topic2"
             }
           ]
         },
         {
           "name": "in-mqtt-2",
           "protocol": "in",
-          "encryption": "legacy"
+          "encryption": "legacy",
+          "topics": [
+            {
+              "qos": 1
+            }
+          ]
         },
         {
           "name": "in-mqtt-3",
