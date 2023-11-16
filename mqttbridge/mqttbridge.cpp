@@ -90,7 +90,7 @@ void startClient(const std::string& name) {
     });
 }
 
-class BridgeStore : public std::set<mqtt::bridge::lib::Bridge*> {
+class BridgeStore : private std::set<mqtt::bridge::lib::Bridge*> {
 public:
     ~BridgeStore() {
         for (const mqtt::bridge::lib::Bridge* bridge : *this) {
@@ -113,21 +113,22 @@ int main(int argc, char* argv[]) {
     BridgeStore bridgeStore;
 
     for (const nlohmann::json& bridgeJsonConfig : bridgesJsonConfig["bridges"]) {
-        [[maybe_unused]] mqtt::bridge::lib::Bridge* bridge = bridgeStore.newBridge(bridgeJsonConfig["connection"]);
-
         VLOG(1) << "Creating Bridge: " << bridgeJsonConfig["connection"]["client_id"];
 
+        mqtt::bridge::lib::Bridge* bridge = bridgeStore.newBridge(bridgeJsonConfig["connection"]);
+
         for (const nlohmann::json& brokerJsonConfig : bridgeJsonConfig["brokers"]) {
-            const std::string name = brokerJsonConfig["name"];
-            const std::string protocol = brokerJsonConfig["protocol"];
-            const std::string encryption = brokerJsonConfig["encryption"];
+            const std::string& name = brokerJsonConfig["name"];
+            const std::string& protocol = brokerJsonConfig["protocol"];
+            const std::string& encryption = brokerJsonConfig["encryption"];
             const nlohmann::json& topicsJson = brokerJsonConfig["topics"];
 
-            VLOG(1) << "Creating Instance: " << name;
+            VLOG(1) << "Creating bridge instance: " << name;
             VLOG(1) << "         Protocol: " << protocol;
             VLOG(1) << "         Encryption: " << encryption;
 
             std::list<iot::mqtt::Topic> topics;
+
             for (const nlohmann::json& topicJson : topicsJson) {
                 VLOG(1) << "         Topic: " << topicJson["topic"];
                 VLOG(1) << "         Qos: " << topicJson["qos"];
