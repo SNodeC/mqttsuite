@@ -40,7 +40,7 @@ namespace mqtt::bridge::lib {
 
     class Bridge {
     public:
-        Bridge(const nlohmann::json& connectionJson);
+        explicit Bridge(const nlohmann::json& connectionJson);
         Bridge(const Bridge&) = default;
 
         Bridge& operator=(const Bridge&) = default;
@@ -52,7 +52,7 @@ namespace mqtt::bridge::lib {
         void addMqtt(iot::mqtt::Mqtt* mqtt);
         void removeMqtt(iot::mqtt::Mqtt* mqtt);
 
-        void publish(iot::mqtt::Mqtt* originMqtt, const iot::mqtt::packets::Publish& publish);
+        void publish(const iot::mqtt::Mqtt* originMqtt, const iot::mqtt::packets::Publish& publish);
 
     private:
         nlohmann::json connectionJson;

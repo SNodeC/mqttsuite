@@ -79,7 +79,6 @@ namespace mqtt::lib {
                             LOG(ERROR) << "Setting root json mapping schema failed:\n" << mappingJsonSchema.dump(4);
                             mapFileJsons[mapFilePath].clear();
                         }
-                        mapFile.close();
                     } catch (const std::exception& e) {
                         LOG(ERROR) << "JSON map file parsing failed: " << e.what() << " at " << mapFile.tellg();
                         mapFileJsons[mapFilePath].clear();

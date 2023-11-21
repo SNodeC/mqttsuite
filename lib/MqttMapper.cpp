@@ -90,7 +90,7 @@ namespace mqtt::lib {
 
                     VLOG(1) << "  Loading plugin: " << plugin << " ...";
 
-                    std::vector<mqtt::lib::Function>* functions =
+                    const std::vector<mqtt::lib::Function>* functions =
                         static_cast<std::vector<mqtt::lib::Function>*>(dlsym(handle, "functions"));
                     if (functions != nullptr) {
                         VLOG(0) << "  Registering inja 'none void callbacks'";
