@@ -44,6 +44,8 @@ namespace mqtt::lib {
     class MqttMapper {
     public:
         MqttMapper(const nlohmann::json& mappingJson);
+        MqttMapper(const MqttMapper&) = delete;
+        MqttMapper& operator=(const MqttMapper&) = delete;
 
         virtual ~MqttMapper();
 
@@ -56,8 +58,10 @@ namespace mqtt::lib {
     private:
         virtual void publishMapping(const std::string& topic, const std::string& message, uint8_t qoS, bool retain) = 0;
 
-        static void extractSubscription(const nlohmann::json& json, const std::string& topic, std::list<iot::mqtt::Topic>& topicList);
-        static void extractSubscriptions(const nlohmann::json& json, const std::string& topic, std::list<iot::mqtt::Topic>& topicList);
+        static void
+        extractSubscription(const nlohmann::json& topicLevelJson, const std::string& topic, std::list<iot::mqtt::Topic>& topicList);
+        static void
+        extractSubscriptions(const nlohmann::json& mappingJson, const std::string& topic, std::list<iot::mqtt::Topic>& topicList);
 
         nlohmann::json findMatchingTopicLevel(const nlohmann::json& topicLevel, const std::string& topic);
 

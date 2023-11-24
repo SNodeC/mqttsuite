@@ -30,14 +30,14 @@
 namespace mqtt::lib {
 
     class JsonMappingReader {
-    private:
+    public:
         JsonMappingReader() = delete;
 
-    public:
         static nlohmann::json& readMappingFromFile(const std::string& mapFilePath);
 
     private:
         static nlohmann::json mappingJsonSchema;
+        static const std::string mappingJsonSchemaString;
 
         static std::map<std::string, nlohmann::json> mapFileJsons;
     };

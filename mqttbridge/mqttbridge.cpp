@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
                 VLOG(1) << "         Topic: " << topicJson["topic"];
                 VLOG(1) << "         Qos: " << topicJson["qos"];
 
-                topics.emplace_back(iot::mqtt::Topic(topicJson["topic"], topicJson["qos"]));
+                topics.emplace_back(topicJson["topic"], topicJson["qos"]);
             }
 
             if (protocol == "in") {

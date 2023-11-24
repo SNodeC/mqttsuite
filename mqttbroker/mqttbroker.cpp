@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
         using MqttBroker = net::in::stream::legacy::SocketServer<mqtt::mqttbroker::SharedSocketContextFactory>;
         using SocketAddress = MqttBroker::SocketAddress;
 
-        MqttBroker mqttBroker("in-mqtt");
+        const MqttBroker mqttBroker("in-mqtt");
         mqttBroker.listen(1883, [](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
             reportState("in-mqtt", socketAddress, state);
         });
@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
         using MqttBroker = net::in::stream::tls::SocketServer<mqtt::mqttbroker::SharedSocketContextFactory>;
         using SocketAddress = MqttBroker::SocketAddress;
 
-        MqttBroker mqttBroker("in-mqtts");
+        const MqttBroker mqttBroker("in-mqtts");
         mqttBroker.listen(8883, [](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
             reportState("in-mqtts", socketAddress, state);
         });
@@ -134,7 +134,7 @@ int main(int argc, char* argv[]) {
         using MqttBroker = net::un::stream::legacy::SocketServer<mqtt::mqttbroker::SharedSocketContextFactory>;
         using SocketAddress = MqttBroker::SocketAddress;
 
-        MqttBroker mqttBroker("un-mqtt");
+        const MqttBroker mqttBroker("un-mqtt");
         mqttBroker.listen("/tmp/" + utils::Config::getApplicationName(),
                           [](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
                               reportState("un-mqtt", socketAddress, state);
@@ -145,7 +145,7 @@ int main(int argc, char* argv[]) {
         using MqttBroker = express::legacy::in::WebApp;
         using SocketAddress = MqttBroker::SocketAddress;
 
-        MqttBroker mqttBroker("in-http", getRouter());
+        const MqttBroker mqttBroker("in-http", getRouter());
         mqttBroker.listen(8080, [](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
             reportState("in-http", socketAddress, state);
         });
@@ -155,7 +155,7 @@ int main(int argc, char* argv[]) {
         using MqttBroker = express::tls::in::WebApp;
         using SocketAddress = MqttBroker::SocketAddress;
 
-        MqttBroker mqttBroker("in-https", getRouter());
+        const MqttBroker mqttBroker("in-https", getRouter());
         mqttBroker.listen(8088, [](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
             reportState("in-https", socketAddress, state);
         });

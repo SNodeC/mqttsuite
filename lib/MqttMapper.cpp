@@ -81,7 +81,7 @@ namespace mqtt::lib {
             VLOG(1) << "Loading plugins ...";
 
             for (const nlohmann::json& pluginJson : mappingJson["plugins"]) {
-                std::string plugin = pluginJson;
+                const std::string plugin = pluginJson;
 
                 void* handle = core::DynamicLoader::dlOpen(plugin, RTLD_LOCAL | RTLD_LAZY);
 
@@ -90,7 +90,7 @@ namespace mqtt::lib {
 
                     VLOG(1) << "  Loading plugin: " << plugin << " ...";
 
-                    const std::vector<mqtt::lib::Function>* functions =
+                    const std::vector<mqtt::lib::Function>* functions = // cppcheck-suppress shadowVariable
                         static_cast<std::vector<mqtt::lib::Function>*>(dlsym(handle, "functions"));
                     if (functions != nullptr) {
                         VLOG(0) << "  Registering inja 'none void callbacks'";
@@ -108,7 +108,7 @@ namespace mqtt::lib {
                         VLOG(1) << "  No inja none 'void callbacks found' in plugin " << plugin;
                     }
 
-                    std::vector<mqtt::lib::VoidFunction>* voidFunctions =
+                    const std::vector<mqtt::lib::VoidFunction>* voidFunctions = // cppcheck-suppress shadowVariable
                         static_cast<std::vector<mqtt::lib::VoidFunction>*>(dlsym(handle, "voidFunctions"));
                     if (voidFunctions != nullptr) {
                         VLOG(0) << "  Registering inja 'void callbacks'";
@@ -206,18 +206,19 @@ namespace mqtt::lib {
         }
     }
 
-    void
-    MqttMapper::extractSubscription(const nlohmann::json& topicLevel, const std::string& topic, std::list<iot::mqtt::Topic>& topicList) {
-        std::string name = topicLevel["name"];
+    void MqttMapper::extractSubscription(const nlohmann::json& topicLevelJson,
+                                         const std::string& topic,
+                                         std::list<iot::mqtt::Topic>& topicList) {
+        const std::string name = topicLevelJson["name"];
 
-        if (topicLevel.contains("subscription")) {
-            uint8_t qoS = topicLevel["subscription"]["qos"];
+        if (topicLevelJson.contains("subscription")) {
+            const uint8_t qoS = topicLevelJson["subscription"]["qos"];
 
-            topicList.push_back(iot::mqtt::Topic(topic + ((topic.empty() || topic == "/") && !name.empty() ? "" : "/") + name, qoS));
+            topicList.emplace_back(topic + ((topic.empty() || topic == "/") && !name.empty() ? "" : "/") + name, qoS);
         }
 
-        if (topicLevel.contains("topic_level")) {
-            extractSubscriptions(topicLevel, topic + ((topic.empty() || topic == "/") && !name.empty() ? "" : "/") + name, topicList);
+        if (topicLevelJson.contains("topic_level")) {
+            extractSubscriptions(topicLevelJson, topic + ((topic.empty() || topic == "/") && !name.empty() ? "" : "/") + name, topicList);
         }
     }
 
@@ -238,8 +239,8 @@ namespace mqtt::lib {
         nlohmann::json foundTopicLevel;
 
         if (topicLevel.is_object()) {
-            std::string::size_type slashPosition = topic.find("/");
-            std::string topicLevelName = topic.substr(0, slashPosition);
+            const std::string::size_type slashPosition = topic.find('/');
+            const std::string topicLevelName = topic.substr(0, slashPosition);
 
             if (topicLevel["name"] == topicLevelName) {
                 if (slashPosition == std::string::npos) {
@@ -269,7 +270,7 @@ namespace mqtt::lib {
 
         try {
             // Render topic
-            std::string renderedTopic = injaEnvironment->render(mappedTopic, json);
+            const std::string renderedTopic = injaEnvironment->render(mappedTopic, json);
             json["mapped_topic"] = renderedTopic;
 
             VLOG(1) << "  Mapped topic template: " << mappedTopic;
@@ -277,16 +278,16 @@ namespace mqtt::lib {
 
             try {
                 // Render message
-                std::string renderedMessage = injaEnvironment->render(mappingTemplate, json);
+                const std::string renderedMessage = injaEnvironment->render(mappingTemplate, json);
                 VLOG(1) << "  Mapped message template: " << mappingTemplate;
                 VLOG(1) << "    -> " << renderedMessage;
 
                 const nlohmann::json& suppressions = templateMapping["suppressions"];
-                bool retain = templateMapping.value("retain", publish.getRetain());
+                const bool retain = templateMapping.value("retain", publish.getRetain());
 
                 if (std::find(suppressions.begin(), suppressions.end(), renderedMessage) == suppressions.end() ||
-                    (retain && renderedMessage == "")) {
-                    uint8_t qoS = templateMapping.value("qos", publish.getQoS());
+                    (retain && renderedMessage.empty())) {
+                    const uint8_t qoS = templateMapping.value("qos", publish.getQoS());
 
                     VLOG(1) << "  Send mapping:";
                     VLOG(1) << "    Topic: " << renderedTopic;
@@ -339,8 +340,8 @@ namespace mqtt::lib {
                                           const std::string& message,
                                           const iot::mqtt::packets::Publish& publish) {
         const std::string& mappedTopic = staticMapping["mapped_topic"];
-        bool retain = staticMapping.value("retain", publish.getRetain());
-        uint8_t qoS = staticMapping.value("qos", publish.getQoS());
+        const bool retain = staticMapping.value("retain", publish.getRetain());
+        const uint8_t qoS = staticMapping.value("qos", publish.getQoS());
 
         VLOG(1) << "  Mapped topic:";
         VLOG(1) << "    -> " << mappedTopic;

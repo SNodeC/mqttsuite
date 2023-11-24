@@ -34,7 +34,7 @@
 
 #include "lib/bridge-schema.json.h"
 
-static nlohmann::json bridgeJsonSchema = nlohmann::json::parse(bridgeJsonSchemaString);
+nlohmann::json BridgeConfigLoader::bridgeJsonSchema = nlohmann::json::parse(bridgeJsonSchemaString);
 
 nlohmann::json BridgeConfigLoader::loadAndValidate(const std::string& fileName) {
     nlohmann::json bridgeConfigJson;
@@ -54,7 +54,7 @@ nlohmann::json BridgeConfigLoader::loadAndValidate(const std::string& fileName) 
                     validator.set_root_schema(bridgeJsonSchema);
 
                     try {
-                        nlohmann::json defaultPatch = validator.validate(bridgeConfigJson);
+                        const nlohmann::json defaultPatch = validator.validate(bridgeConfigJson);
 
                         if (!defaultPatch.empty()) {
                             try {

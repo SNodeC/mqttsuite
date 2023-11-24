@@ -1,7 +1,7 @@
 function(make_includable INPUT_FILE OUTPUT_FILE VAR_NAME)
     file(READ ${INPUT_FILE} CONTENT)
     string(REGEX REPLACE "[ \t\r\n]" "" CONTENT "${CONTENT}")
-    set(CONTENT "static std::string ${VAR_NAME} = R\"(${CONTENT})\";\n")
+    set(CONTENT "const std::string BridgeConfigLoader::${VAR_NAME} = R\"(${CONTENT})\";\n")
     file(WRITE ${OUTPUT_FILE} "${CONTENT}")
 endfunction(make_includable)
 

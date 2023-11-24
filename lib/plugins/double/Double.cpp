@@ -32,7 +32,7 @@ namespace mqtt::lib::plugins::double_plugin {
 
     nlohmann::json myDouble(const inja::Arguments& args);
     nlohmann::json myDouble(const inja::Arguments& args) {
-        int number = args.at(0)->get<int>();
+        const int number = args.at(0)->get<int>();
         return 2 * number;
     }
 

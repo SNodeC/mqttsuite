@@ -34,11 +34,12 @@ namespace mqtt::lib::plugins::storage_plugin {
     public:
     private:
         Storage() = default;
+
+    public:
         Storage(const Storage&) = delete;
 
         Storage& operator=(const Storage&) = delete;
 
-    public:
         static Storage& instance();
 
         static void store(const inja::Arguments& args);

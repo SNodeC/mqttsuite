@@ -16,8 +16,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _BRIDGECONFIGLOADER_H
-#define _BRIDGECONFIGLOADER_H
+#ifndef BRIDGECONFIGLOADER_H
+#define BRIDGECONFIGLOADER_H
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
@@ -31,6 +31,10 @@ public:
     BridgeConfigLoader() = delete;
 
     static nlohmann::json loadAndValidate(const std::string& fileName);
+
+private:
+    static nlohmann::json bridgeJsonSchema;
+    static const std::string bridgeJsonSchemaString;
 };
 
-#endif // _BRIDGECONFIGLOADER_H
+#endif // BRIDGECONFIGLOADER_H

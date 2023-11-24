@@ -58,7 +58,7 @@ namespace mqtt::lib {
                             validator.set_root_schema(mappingJsonSchema);
 
                             try {
-                                nlohmann::json defaultPatch = validator.validate(mapFileJsons[mapFilePath]);
+                                const nlohmann::json defaultPatch = validator.validate(mapFileJsons[mapFilePath]);
 
                                 if (!defaultPatch.empty()) {
                                     try {
