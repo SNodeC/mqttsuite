@@ -26,10 +26,10 @@ namespace mqtt::bridge::lib {
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <map>
-#include <nlohmann/json.hpp> // IWYU pragma: keep
+#include <nlohmann/json_fwd.hpp> // IWYU pragma: keep
 #include <string>
 
-// IWYU pragma: no_include <nlohmann/json_fwd.hpp>
+// IWYU pragma: no_include <nlohmann/json.hpp>
 
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
@@ -51,10 +51,6 @@ namespace mqtt::bridge::lib {
         const std::map<std::string, nlohmann::json>& getBrokers();
 
     private:
-        //        static nlohmann::json bridgeJsonSchema;
-        //        static const std::string bridgeJsonSchemaString;
-        //        static nlohmann::json bridgeConfigJson;
-
         std::map<std::string, Bridge*> bridges;
         std::map<std::string, nlohmann::json> brokers;
     };

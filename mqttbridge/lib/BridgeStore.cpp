@@ -29,6 +29,7 @@
 #include <istream>
 #include <log/Logger.h>
 #include <map>
+#include <nlohmann/json.hpp>
 #include <set>
 #include <stdexcept>
 #include <vector>
@@ -58,71 +59,74 @@ namespace mqtt::bridge::lib {
     }
 
     bool BridgeStore::loadAndValidate(const std::string& fileName) {
-        bool success = false;
+        bool success = !bridges.empty();
 
 #include "bridge-schema.json.h"
 
-        const nlohmann::json bridgeJsonSchema = nlohmann::json::parse(bridgeJsonSchemaString);
-        nlohmann::json bridgeConfigJson;
+        if (!success) {
+            const nlohmann::json bridgeJsonSchema = nlohmann::json::parse(bridgeJsonSchemaString);
+            nlohmann::json bridgeConfigJson;
 
-        if (bridgeConfigJson.empty() && !fileName.empty()) {
-            std::ifstream bridgeConfigJsonFile(fileName);
+            if (bridgeConfigJson.empty() && !fileName.empty()) {
+                std::ifstream bridgeConfigJsonFile(fileName);
 
-            if (bridgeConfigJsonFile.is_open()) {
-                LOG(TRACE) << "BridgeJsonSchemaPath: " << fileName;
-
-                try {
-                    bridgeConfigJsonFile >> bridgeConfigJson;
+                if (bridgeConfigJsonFile.is_open()) {
+                    LOG(TRACE) << "BridgeJsonSchemaPath: " << fileName;
 
                     try {
-                        const nlohmann::json_schema::json_validator validator(bridgeJsonSchema);
+                        bridgeConfigJsonFile >> bridgeConfigJson;
 
                         try {
-                            const nlohmann::json defaultPatch = validator.validate(bridgeConfigJson);
+                            const nlohmann::json_schema::json_validator validator(bridgeJsonSchema);
 
-                            if (!defaultPatch.empty()) {
-                                try {
-                                    LOG(TRACE) << "  Default patch:\n" << defaultPatch.dump(4);
-                                    bridgeConfigJson = bridgeConfigJson.patch(defaultPatch);
+                            try {
+                                const nlohmann::json defaultPatch = validator.validate(bridgeConfigJson);
 
-                                    for (const nlohmann::json& bridgeJson : // NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks)
-                                         bridgeConfigJson["bridges"]) {
-                                        const nlohmann::json& connection = bridgeJson["connection"];
-                                        Bridge* bridge = new Bridge(connection);
+                                if (!defaultPatch.empty()) {
+                                    try {
+                                        LOG(TRACE) << "  Default patch:\n" << defaultPatch.dump(4);
+                                        bridgeConfigJson = bridgeConfigJson.patch(defaultPatch);
 
-                                        for (const nlohmann::json& brokerJson : bridgeJson["brokers"]) {
-                                            bridges[brokerJson["name"]] = bridge;
-                                            brokers[brokerJson["name"]] = brokerJson;
+                                        for (const nlohmann::json& bridgeJson : // NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks)
+                                             bridgeConfigJson["bridges"]) {
+                                            const nlohmann::json& connection = bridgeJson["connection"];
+                                            Bridge* bridge = new Bridge(connection);
+
+                                            for (const nlohmann::json& brokerJson : bridgeJson["brokers"]) {
+                                                bridges[brokerJson["name"]] = bridge;
+                                                brokers[brokerJson["name"]] = brokerJson;
+                                            }
                                         }
+                                        success = true;
+                                    } catch (const std::exception& e) {
+                                        LOG(ERROR) << "  Patching JSON with default patch failed:\n" << defaultPatch.dump(4);
+                                        LOG(ERROR) << "    " << e.what();
+                                        bridgeConfigJson.clear();
                                     }
-                                    success = true;
-                                } catch (const std::exception& e) {
-                                    LOG(ERROR) << "  Patching JSON with default patch failed:\n" << defaultPatch.dump(4);
-                                    LOG(ERROR) << "    " << e.what();
-                                    bridgeConfigJson.clear();
                                 }
+                            } catch (const std::exception& e) {
+                                LOG(ERROR) << "  Validating JSON failed:\n" << bridgeConfigJson.dump(4);
+                                LOG(ERROR) << "    " << e.what();
+                                bridgeConfigJson.clear();
                             }
                         } catch (const std::exception& e) {
-                            LOG(ERROR) << "  Validating JSON failed:\n" << bridgeConfigJson.dump(4);
+                            LOG(ERROR) << "  Setting root json mapping schema failed:\n" << bridgeJsonSchema.dump(4);
                             LOG(ERROR) << "    " << e.what();
                             bridgeConfigJson.clear();
                         }
+                        bridgeConfigJsonFile.close();
                     } catch (const std::exception& e) {
-                        LOG(ERROR) << "  Setting root json mapping schema failed:\n" << bridgeJsonSchema.dump(4);
-                        LOG(ERROR) << "    " << e.what();
+                        LOG(ERROR) << "  JSON map file parsing failed:" << e.what() << " at " << bridgeConfigJsonFile.tellg();
                         bridgeConfigJson.clear();
                     }
                     bridgeConfigJsonFile.close();
-                } catch (const std::exception& e) {
-                    LOG(ERROR) << "  JSON map file parsing failed:" << e.what() << " at " << bridgeConfigJsonFile.tellg();
-                    bridgeConfigJson.clear();
+                } else {
+                    LOG(TRACE) << "BridgeJsonConfig: " << fileName << " not found";
                 }
-                bridgeConfigJsonFile.close();
             } else {
-                LOG(TRACE) << "BridgeJsonConfig: " << fileName << " not found";
+                LOG(TRACE) << "MappingFilePath empty";
             }
-        } else {
-            LOG(TRACE) << "MappingFilePath empty";
+            LOG(TRACE) << "MappingFile already loaded and validated";
         }
 
         return success;
