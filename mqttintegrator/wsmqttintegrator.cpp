@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
             [](web::http::client::Request& request) -> void {
                 request.set("Sec-WebSocket-Protocol", "mqtt");
 
-                request.upgrade("/ws/", "websocket/13");
+                request.upgrade("/ws/", "websocket");
             },
             [](web::http::client::Request& request, web::http::client::Response& response) -> void {
                 response.upgrade(request);

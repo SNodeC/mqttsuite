@@ -24,7 +24,6 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <cstdlib>
 #include <log/Logger.h>
 #include <type_traits>
 #include <utils/Config.h>
@@ -74,12 +73,9 @@ int main(int argc, char* argv[]) {
     web::websocket::client::SubProtocolFactorySelector::link("mqtt", mqttClientSubProtocolFactory);
 #endif
 
-    utils::Config::add_string_option("--mqtt-mapping-file", "MQTT mapping file (json format) for integration", "[path]");
-    utils::Config::add_string_option("--mqtt-session-store", "Path to file for the persistent session store", "[path]", "");
+    utils::Config::add_string_option("--bridge-config", "MQTT mapping file (json format) for integration", "[path]");
 
     core::SNodeC::init(argc, argv);
-
-    setenv("MQTT_SESSION_STORE", utils::Config::get_string_option_value("--mqtt-session-store").data(), 0);
 
     {
         using WsIntegrator = web::http::legacy::in::Client<web::http::client::Request, web::http::client::Response>;
@@ -116,7 +112,7 @@ int main(int argc, char* argv[]) {
             [](web::http::client::Request& request) -> void {
                 request.set("Sec-WebSocket-Protocol", "mqtt");
 
-                request.upgrade("/ws/", "websocket/13");
+                request.upgrade("/ws/", "websocket");
             },
             [](web::http::client::Request& request, web::http::client::Response& response) -> void {
                 response.upgrade(request);

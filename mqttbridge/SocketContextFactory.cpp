@@ -18,7 +18,7 @@
 
 #include "SocketContextFactory.h"
 
-#include "mqttbridge/lib/Mqtt.h"
+#include "lib/Mqtt.h"
 
 #include <iot/mqtt/SocketContext.h>
 

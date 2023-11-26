@@ -17,8 +17,8 @@
  */
 
 #include "SocketContextFactory.h" // IWYU pragma: keep
+#include "lib/Bridge.h"
 #include "lib/BridgeStore.h"
-#include "mqttbridge/lib/Bridge.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
@@ -108,10 +108,10 @@ int main(int argc, char* argv[]) {
 
     core::SNodeC::init(argc, argv);
 
-    const bool loaded =
+    const bool success =
         mqtt::bridge::lib::BridgeStore::instance().loadAndValidate(utils::Config::get_string_option_value("--bridge-config"));
 
-    if (loaded) {
+    if (success) {
         for (const auto& [instanceName, brokerJsonConfig] : mqtt::bridge::lib::BridgeStore::instance().getBrokers()) {
             const std::string& name = brokerJsonConfig["name"];
             const std::string& protocol = brokerJsonConfig["protocol"];
@@ -194,7 +194,7 @@ int main(int argc, char* argv[]) {
                 }
             }
         }
-
-        return core::SNodeC::start();
     }
+
+    return core::SNodeC::start();
 }

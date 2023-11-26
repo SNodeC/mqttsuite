@@ -14,6 +14,8 @@ add_library(
                                  ${MQTTCLIENTSUBPROTOCOL_H}
 )
 
+target_include_directories(websocket-mqtt-client PUBLIC ${PROJECT_SOURCE_DIR})
+
 target_link_libraries(
     websocket-mqtt-client PUBLIC snodec::mqtt-client-websocket mqtt-integrator
                                  nlohmann_json::nlohmann_json
@@ -25,5 +27,5 @@ set_target_properties(
 )
 
 install(TARGETS websocket-mqtt-client
-        LIBRARY DESTINATION ${WEBSOCKET_SUBPROTOCOL_INSTALL_LIBDIR}
+        LIBRARY DESTINATION ${WEBSOCKET_SUBPROTOCOL_INSTALL_LIBDIR}/wsmqttintegrator/
 )

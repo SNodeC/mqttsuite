@@ -10,20 +10,22 @@ set(MQTTCLIENTSUBPROTOCOL_CPP SubProtocolFactory.cpp)
 set(MQTTCLIENTSUBPROTOCOL_H SubProtocolFactory.h)
 
 add_library(
-    websocket-mqtt-client SHARED ${MQTTCLIENTSUBPROTOCOL_CPP}
+    websocket-mqtt-bridge SHARED ${MQTTCLIENTSUBPROTOCOL_CPP}
                                  ${MQTTCLIENTSUBPROTOCOL_H}
 )
 
+target_include_directories(websocket-mqtt-bridge PUBLIC ${PROJECT_SOURCE_DIR})
+
 target_link_libraries(
-    websocket-mqtt-client PUBLIC snodec::mqtt-client-websocket mqtt-integrator
+    websocket-mqtt-bridge PUBLIC snodec::mqtt-client-websocket mqtt-bridge
                                  nlohmann_json::nlohmann_json
 )
 
 set_target_properties(
-    websocket-mqtt-client PROPERTIES OUTPUT_NAME "snodec-websocket-mqtt-client"
+    websocket-mqtt-bridge PROPERTIES OUTPUT_NAME "snodec-websocket-mqtt-client"
                                      SOVERSION "${SNODEC_SOVERSION}"
 )
 
-install(TARGETS websocket-mqtt-client
-        LIBRARY DESTINATION ${WEBSOCKET_SUBPROTOCOL_INSTALL_LIBDIR}
+install(TARGETS websocket-mqtt-bridge
+        LIBRARY DESTINATION ${WEBSOCKET_SUBPROTOCOL_INSTALL_LIBDIR}/wsmqttbridge/
 )

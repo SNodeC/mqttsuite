@@ -18,22 +18,34 @@
 
 #include "SubProtocolFactory.h"
 
-#include "core/socket/stream/SocketConnection.h"
-#include "lib/JsonMappingReader.h"
-#include "mqttintegrator/lib/Mqtt.h"
+#include "mqttbridge/lib/BridgeStore.h"
+#include "mqttbridge/lib/Mqtt.h"
+
+namespace mqtt::bridge::lib {
+    class Bridge;
+}
+
+#include <core/socket/stream/SocketConnection.h>
+#include <iot/mqtt/Topic.h>
+#include <web/websocket/SubProtocolContext.h>
 
 // IWYU pragma: no_include "iot/mqtt/client/SubProtocol.h"
 // IWYU pragma: no_include "web/websocket/SubProtocolFactory.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include <list>
+#include <log/Logger.h>
 #include <map>
+#include <nlohmann/detail/iterators/iter_impl.hpp>
 #include <nlohmann/json.hpp>
 #include <utils/Config.h>
 
+// IWYU pragma: no_include <nlohmann/json_fwd.hpp>
+
 #endif
 
-namespace mqtt::mqttintegrator::websocket {
+namespace mqtt::mqttbridge::websocket {
 
 #define NAME "mqtt"
 
@@ -42,23 +54,47 @@ namespace mqtt::mqttintegrator::websocket {
     }
 
     iot::mqtt::client::SubProtocol* SubProtocolFactory::create(web::websocket::SubProtocolContext* subProtocolContext) {
-        subProtocolContext->getSocketConnection()->getInstanceName();
-
         iot::mqtt::client::SubProtocol* subProtocol = nullptr;
 
-        nlohmann::json& mappingJson =
-            mqtt::lib::JsonMappingReader::readMappingFromFile(utils::Config::get_string_option_value("--mqtt-mapping-file"));
+        const std::string& instanceName = subProtocolContext->getSocketConnection()->getInstanceName();
 
-        if (mappingJson.contains("connection")) {
-            subProtocol = new iot::mqtt::client::SubProtocol(
-                subProtocolContext, getName(), new mqtt::mqttintegrator::lib::Mqtt(mappingJson["connection"], mappingJson["mapping"]));
+        nlohmann::json& brokerJsonConfig = mqtt::bridge::lib::BridgeStore::instance().getBrokerJsonConfig(instanceName);
+        if (!brokerJsonConfig.empty()) {
+            VLOG(1) << "  Creating bridge instance: " << instanceName;
+
+            VLOG(1) << "    Protocol: " << brokerJsonConfig["protocol"];
+            VLOG(1) << "    Encryption: " << brokerJsonConfig["encryption"];
+
+            mqtt::bridge::lib::Bridge* bridge = mqtt::bridge::lib::BridgeStore::instance().getBridge(instanceName);
+
+            std::list<iot::mqtt::Topic> topics;
+            for (const nlohmann::json& topicJson : brokerJsonConfig["topics"]) {
+                VLOG(1) << "    Topic: " << topicJson["topic"];
+                VLOG(1) << "    Qos: " << topicJson["qos"];
+
+                topics.emplace_back(topicJson["topic"], topicJson["qos"]);
+            }
+
+            if (bridge != nullptr && !topics.empty()) {
+                subProtocol =
+                    new iot::mqtt::client::SubProtocol(subProtocolContext, getName(), new mqtt::bridge::lib::Mqtt(bridge, topics));
+            }
         }
 
         return subProtocol;
     }
 
-} // namespace mqtt::mqttintegrator::websocket
+} // namespace mqtt::mqttbridge::websocket
 
-extern "C" mqtt::mqttintegrator::websocket::SubProtocolFactory* mqttClientSubProtocolFactory() {
-    return new mqtt::mqttintegrator::websocket::SubProtocolFactory();
+extern "C" mqtt::mqttbridge::websocket::SubProtocolFactory* mqttClientSubProtocolFactory() {
+    mqtt::mqttbridge::websocket::SubProtocolFactory* subProtocolFactory = nullptr;
+
+    const bool success =
+        mqtt::bridge::lib::BridgeStore::instance().loadAndValidate(utils::Config::get_string_option_value("--bridge-config"));
+
+    if (success) {
+        subProtocolFactory = new mqtt::mqttbridge::websocket::SubProtocolFactory();
+    }
+
+    return subProtocolFactory;
 }

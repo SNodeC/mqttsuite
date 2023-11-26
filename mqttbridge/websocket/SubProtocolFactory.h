@@ -30,7 +30,7 @@ namespace web::websocket {
 
 #endif
 
-namespace mqtt::mqttintegrator::websocket {
+namespace mqtt::mqttbridge::websocket {
 
     class SubProtocolFactory : public web::websocket::SubProtocolFactory<iot::mqtt::client::SubProtocol> {
     public:
@@ -40,8 +40,8 @@ namespace mqtt::mqttintegrator::websocket {
         iot::mqtt::client::SubProtocol* create(web::websocket::SubProtocolContext* subProtocolContext) override;
     };
 
-} // namespace mqtt::mqttintegrator::websocket
+} // namespace mqtt::mqttbridge::websocket
 
-extern "C" mqtt::mqttintegrator::websocket::SubProtocolFactory* mqttClientSubProtocolFactory();
+extern "C" mqtt::mqttbridge::websocket::SubProtocolFactory* mqttClientSubProtocolFactory();
 
 #endif // APPS_MQTTBROKER_MQTTINTEGRATOR_WEBSOCKET_SUBPROTOCOLFACTORY_H

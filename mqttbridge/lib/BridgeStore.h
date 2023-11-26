@@ -47,12 +47,13 @@ namespace mqtt::bridge::lib {
         bool loadAndValidate(const std::string& fileName);
 
         Bridge* getBridge(const std::string& instanceName);
+        nlohmann::json& getBrokerJsonConfig(const std::string& instanceName);
         const std::map<std::string, nlohmann::json>& getBrokers();
 
     private:
-        static nlohmann::json bridgeJsonSchema;
-        static const std::string bridgeJsonSchemaString;
-        static nlohmann::json bridgeConfigJson;
+        //        static nlohmann::json bridgeJsonSchema;
+        //        static const std::string bridgeJsonSchemaString;
+        //        static nlohmann::json bridgeConfigJson;
 
         std::map<std::string, Bridge*> bridges;
         std::map<std::string, nlohmann::json> brokers;

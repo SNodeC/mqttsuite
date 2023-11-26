@@ -37,12 +37,7 @@
 
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
-#include "bridge-schema.json.h"
-
 namespace mqtt::bridge::lib {
-
-    nlohmann::json BridgeStore::bridgeJsonSchema = nlohmann::json::parse(bridgeJsonSchemaString);
-    nlohmann::json BridgeStore::bridgeConfigJson;
 
     BridgeStore::~BridgeStore() {
         std::set<Bridge*> bridgeSet;
@@ -65,6 +60,11 @@ namespace mqtt::bridge::lib {
     bool BridgeStore::loadAndValidate(const std::string& fileName) {
         bool success = false;
 
+#include "bridge-schema.json.h"
+
+        const nlohmann::json bridgeJsonSchema = nlohmann::json::parse(bridgeJsonSchemaString);
+        nlohmann::json bridgeConfigJson;
+
         if (bridgeConfigJson.empty() && !fileName.empty()) {
             std::ifstream bridgeConfigJsonFile(fileName);
 
@@ -74,10 +74,8 @@ namespace mqtt::bridge::lib {
                 try {
                     bridgeConfigJsonFile >> bridgeConfigJson;
 
-                    nlohmann::json_schema::json_validator validator;
-
                     try {
-                        validator.set_root_schema(bridgeJsonSchema);
+                        const nlohmann::json_schema::json_validator validator(bridgeJsonSchema);
 
                         try {
                             const nlohmann::json defaultPatch = validator.validate(bridgeConfigJson);
@@ -134,7 +132,11 @@ namespace mqtt::bridge::lib {
         return bridges[instanceName];
     }
 
-    const std::map<std::string, nlohmann::json> &BridgeStore::getBrokers() {
+    nlohmann::json& BridgeStore::getBrokerJsonConfig(const std::string& instanceName) {
+        return brokers[instanceName];
+    }
+
+    const std::map<std::string, nlohmann::json>& BridgeStore::getBrokers() {
         return brokers;
     }
 
