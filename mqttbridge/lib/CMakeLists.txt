@@ -19,13 +19,13 @@ add_custom_command(
 )
 
 add_library(
-    mqtt-bridge SHARED Mqtt.cpp Mqtt.h Bridge.cpp Bridge.h bridge-schema.json.h
+    mqtt-bridge SHARED Mqtt.cpp Mqtt.h Bridge.cpp Bridge.h BridgeConfigLoader.cpp BridgeConfigLoader.h bridge-schema.json.h
 )
 
 target_include_directories(mqtt-bridge PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 target_link_libraries(
-    mqtt-bridge PUBLIC snodec::mqtt-client nlohmann_json::nlohmann_json
+    mqtt-bridge PUBLIC snodec::mqtt-client nlohmann_json_schema_validator
 )
 
 set_target_properties(mqtt-bridge PROPERTIES SOVERSION "${SNODEC_SOVERSION}")

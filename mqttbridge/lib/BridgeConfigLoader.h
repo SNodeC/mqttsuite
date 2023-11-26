@@ -26,15 +26,20 @@
 
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
-class BridgeConfigLoader {
-public:
-    BridgeConfigLoader() = delete;
+namespace mqtt::bridge::lib {
 
-    static nlohmann::json loadAndValidate(const std::string& fileName);
+    class BridgeConfigLoader {
+    public:
+        BridgeConfigLoader() = delete;
 
-private:
-    static nlohmann::json bridgeJsonSchema;
-    static const std::string bridgeJsonSchemaString;
-};
+        static nlohmann::json loadAndValidate(const std::string& fileName);
+
+    private:
+        static nlohmann::json bridgeJsonSchema;
+        static const std::string bridgeJsonSchemaString;
+        static nlohmann::json bridgeConfigJson;
+    };
+
+} // namespace mqtt::bridge::lib
 
 #endif // BRIDGECONFIGLOADER_H

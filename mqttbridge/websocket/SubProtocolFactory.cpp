@@ -18,6 +18,7 @@
 
 #include "SubProtocolFactory.h"
 
+#include "core/socket/stream/SocketConnection.h"
 #include "lib/JsonMappingReader.h"
 #include "mqttintegrator/lib/Mqtt.h"
 
@@ -41,6 +42,8 @@ namespace mqtt::mqttintegrator::websocket {
     }
 
     iot::mqtt::client::SubProtocol* SubProtocolFactory::create(web::websocket::SubProtocolContext* subProtocolContext) {
+        subProtocolContext->getSocketConnection()->getInstanceName();
+
         iot::mqtt::client::SubProtocol* subProtocol = nullptr;
 
         nlohmann::json& mappingJson =

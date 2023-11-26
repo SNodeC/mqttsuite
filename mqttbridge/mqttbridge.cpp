@@ -16,8 +16,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "BridgeConfigLoader.h"
 #include "SocketContextFactory.h" // IWYU pragma: keep
+#include "lib/BridgeConfigLoader.h"
 #include "mqttbridge/lib/Bridge.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -73,6 +73,9 @@ void startClient(const std::string& name, const std::function<void(SocketClient<
     using SocketAddress = typename Client::SocketAddress;
 
     Client client(name);
+    client.getConfig().setRetry();
+    client.getConfig().setRetryBase(1);
+    client.getConfig().setReconnect();
     configurator(client);
     client.connect([name](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
         reportState(name, socketAddress, state);
@@ -81,12 +84,7 @@ void startClient(const std::string& name, const std::function<void(SocketClient<
 
 template <template <typename> typename SocketClient, typename SocketContextFactory>
 void startClient(const std::string& name) {
-    using Client = SocketClient<SocketContextFactory>;
-    using SocketAddress = typename Client::SocketAddress;
-
-    Client client(name);
-    client.connect([name](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
-        reportState(name, socketAddress, state);
+    startClient<SocketClient, SocketContextFactory>(name, []([[maybe_unused]] SocketClient<SocketContextFactory>& client) -> void {
     });
 }
 
@@ -104,16 +102,18 @@ public:
 };
 
 int main(int argc, char* argv[]) {
-    utils::Config::add_string_option("--bridge-config-file", "MQTT mapping file (json format) for integration", "[path]");
+    utils::Config::add_string_option("--bridge-config", "MQTT mapping file (json format) for integration", "[path]");
 
     core::SNodeC::init(argc, argv);
 
-    nlohmann::json bridgesJsonConfig = BridgeConfigLoader::loadAndValidate(utils::Config::get_string_option_value("--bridge-config-file"));
+    nlohmann::json bridgesJsonConfig =
+        mqtt::bridge::lib::BridgeConfigLoader::loadAndValidate(utils::Config::get_string_option_value("--bridge-config"));
 
     BridgeStore bridgeStore;
 
     for (const nlohmann::json& bridgeJsonConfig : bridgesJsonConfig["bridges"]) {
-        VLOG(1) << "Creating Bridge: " << bridgeJsonConfig["connection"]["client_id"];
+        VLOG(1) << "Creating Bridge: " << bridgeJsonConfig["name"];
+        VLOG(1) << "  ClientId: " << bridgeJsonConfig["connection"]["client_id"];
 
         mqtt::bridge::lib::Bridge* bridge = bridgeStore.newBridge(bridgeJsonConfig["connection"]);
 
@@ -123,15 +123,15 @@ int main(int argc, char* argv[]) {
             const std::string& encryption = brokerJsonConfig["encryption"];
             const nlohmann::json& topicsJson = brokerJsonConfig["topics"];
 
-            VLOG(1) << "Creating bridge instance: " << name;
-            VLOG(1) << "         Protocol: " << protocol;
-            VLOG(1) << "         Encryption: " << encryption;
+            VLOG(1) << "  Creating bridge instance: " << name;
+            VLOG(1) << "    Protocol: " << protocol;
+            VLOG(1) << "    Encryption: " << encryption;
 
             std::list<iot::mqtt::Topic> topics;
 
             for (const nlohmann::json& topicJson : topicsJson) {
-                VLOG(1) << "         Topic: " << topicJson["topic"];
-                VLOG(1) << "         Qos: " << topicJson["qos"];
+                VLOG(1) << "    Topic: " << topicJson["topic"];
+                VLOG(1) << "    Qos: " << topicJson["qos"];
 
                 topics.emplace_back(topicJson["topic"], topicJson["qos"]);
             }

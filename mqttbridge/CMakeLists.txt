@@ -22,15 +22,15 @@ find_package(
                mqtt
 )
 
-set(MQTTBRIDGE_CPP mqttbridge.cpp BridgeConfigLoader.cpp
+set(MQTTBRIDGE_CPP mqttbridge.cpp
                    SocketContextFactory.cpp
 )
-set(MQTTBRIDGE_H BridgeConfigLoader.h SocketContextFactory.h)
+set(MQTTBRIDGE_H SocketContextFactory.h)
 
 add_executable(mqttbridge ${MQTTBRIDGE_CPP} ${MQTTBRIDGE_H})
 
 target_include_directories(
-    mqttbridge PUBLIC ${CMAKE_CURRENT_BINARY_DIR} ${PROJECT_SOURCE_DIR}
+    mqttbridge PUBLIC ${PROJECT_SOURCE_DIR}
 )
 
 target_link_libraries(
@@ -47,7 +47,6 @@ target_link_libraries(
            snodec::net-l2-stream-tls
            snodec::mqtt
            mqtt-bridge
-           nlohmann_json_schema_validator
 )
 
 install(TARGETS mqttbridge RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})

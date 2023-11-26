@@ -16,10 +16,14 @@
     "bridge": {
       "type": "object",
       "required": [
+        "name",
         "connection",
         "brokers"
       ],
       "properties": {
+        "name": {
+          "type": "string"
+        },
         "connection": {
           "$ref": "#/$defs/connection"
         },
