@@ -27,8 +27,11 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <log/Logger.h>
+#include <nlohmann/json.hpp>
 #include <type_traits>
 #include <utils/Config.h>
+
+// IWYU pragma: no_include <bits/utility.h>
 
 #endif
 
@@ -83,82 +86,75 @@ int main(int argc, char* argv[]) {
         mqtt::bridge::lib::BridgeStore::instance().loadAndValidate(utils::Config::get_string_option_value("--bridge-config"));
 
     if (success) {
-        using WsIntegrator = web::http::legacy::in::Client<web::http::client::Request, web::http::client::Response>;
-        using SocketAddress = WsIntegrator::SocketAddress;
+        for (const auto& [instanceName, brokerJsonConfig] : mqtt::bridge::lib::BridgeStore::instance().getBrokers()) {
+            const std::string& name = brokerJsonConfig["name"];
+            const std::string& protocol = brokerJsonConfig["protocol"];
+            const std::string& encryption = brokerJsonConfig["encryption"];
+            const std::string& transport = brokerJsonConfig["transport"];
 
-        WsIntegrator wsIntegrator(
-            "in-wsmqtt-1",
-            [](web::http::client::Request& request) -> void {
-                request.set("Sec-WebSocket-Protocol", "mqtt");
+            if (transport == "websocket") {
+                if (protocol == "in") {
+                    if (encryption == "legacy") {
+                        {
+                            using WsIntegrator = web::http::legacy::in::Client<web::http::client::Request, web::http::client::Response>;
+                            using SocketAddress = WsIntegrator::SocketAddress;
 
-                request.upgrade("/ws/", "websocket");
-            },
-            [](web::http::client::Request& request, web::http::client::Response& response) -> void {
-                response.upgrade(request);
-            },
-            [](int status, const std::string& reason) -> void {
-                VLOG(0) << "OnResponseError";
-                VLOG(0) << "     Status: " << status;
-                VLOG(0) << "     Reason: " << reason;
-            });
+                            WsIntegrator wsIntegrator(
+                                name,
+                                [](web::http::client::Request& request) -> void {
+                                    request.set("Sec-WebSocket-Protocol", "mqtt");
 
-        wsIntegrator.getConfig().Remote::setPort(8080);
-        wsIntegrator.connect([](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
-            reportState("in-wsmqtt", socketAddress, state);
-        });
-    }
+                                    request.upgrade("/ws/", "websocket");
+                                },
+                                [](web::http::client::Request& request, web::http::client::Response& response) -> void {
+                                    response.upgrade(request);
+                                },
+                                [](int status, const std::string& reason) -> void {
+                                    VLOG(0) << "OnResponseError";
+                                    VLOG(0) << "     Status: " << status;
+                                    VLOG(0) << "     Reason: " << reason;
+                                });
 
-    if (success) {
-        using WsIntegrator = web::http::legacy::in::Client<web::http::client::Request, web::http::client::Response>;
-        using SocketAddress = WsIntegrator::SocketAddress;
+                            wsIntegrator.getConfig().Remote::setPort(8080);
+                            wsIntegrator.connect([name](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
+                                reportState(name, socketAddress, state);
+                            });
+                        }
+                    } else if (encryption == "tls") {
+                        using WsIntegrator = web::http::tls::in::Client<web::http::client::Request, web::http::client::Response>;
+                        using SocketAddress = WsIntegrator::SocketAddress;
 
-        WsIntegrator wsIntegrator(
-            "in-wsmqtt-2",
-            [](web::http::client::Request& request) -> void {
-                request.set("Sec-WebSocket-Protocol", "mqtt");
+                        WsIntegrator wsIntegrator(
+                            name,
+                            [](web::http::client::Request& request) -> void {
+                                request.set("Sec-WebSocket-Protocol", "mqtt");
 
-                request.upgrade("/ws/", "websocket");
-            },
-            [](web::http::client::Request& request, web::http::client::Response& response) -> void {
-                response.upgrade(request);
-            },
-            [](int status, const std::string& reason) -> void {
-                VLOG(0) << "OnResponseError";
-                VLOG(0) << "     Status: " << status;
-                VLOG(0) << "     Reason: " << reason;
-            });
+                                request.upgrade("/ws/", "websocket");
+                            },
+                            [](web::http::client::Request& request, web::http::client::Response& response) -> void {
+                                response.upgrade(request);
+                            },
+                            [](int status, const std::string& reason) -> void {
+                                VLOG(0) << "OnResponseError";
+                                VLOG(0) << "     Status: " << status;
+                                VLOG(0) << "     Reason: " << reason;
+                            });
 
-        wsIntegrator.getConfig().Remote::setPort(8080);
-        wsIntegrator.connect([](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
-            reportState("in-wsmqtt", socketAddress, state);
-        });
-    }
-
-    if (success) {
-        using WsIntegrator = web::http::tls::in::Client<web::http::client::Request, web::http::client::Response>;
-        using SocketAddress = WsIntegrator::SocketAddress;
-
-        WsIntegrator wsIntegrator(
-            "in-wsmqtts",
-            [](web::http::client::Request& request) -> void {
-                request.set("Sec-WebSocket-Protocol", "mqtt");
-
-                request.upgrade("/ws/", "websocket");
-            },
-            [](web::http::client::Request& request, web::http::client::Response& response) -> void {
-                response.upgrade(request);
-            },
-            [](int status, const std::string& reason) -> void {
-                VLOG(0) << "OnResponseError";
-                VLOG(0) << "     Status: " << status;
-                VLOG(0) << "     Reason: " << reason;
-            });
-
-        wsIntegrator.getConfig().setDisabled();
-        wsIntegrator.getConfig().Remote::setPort(8088);
-        wsIntegrator.connect([](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
-            reportState("in-wsmqtts", socketAddress, state);
-        });
+                        wsIntegrator.getConfig().setDisabled();
+                        wsIntegrator.getConfig().Remote::setPort(8088);
+                        wsIntegrator.connect([name](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
+                            reportState(name, socketAddress, state);
+                        });
+                    } else {
+                        VLOG(0) << "Ignoring: " << transport << "::" << protocol << "::" << encryption;
+                    }
+                } else {
+                    VLOG(0) << "Ignoring: " << transport << "::" << protocol;
+                }
+            } else {
+                VLOG(0) << "Ignoring: " << transport;
+            }
+        }
     }
 
     return core::SNodeC::start();
