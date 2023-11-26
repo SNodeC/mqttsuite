@@ -16,6 +16,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "lib/BridgeStore.h"
+
 #include <core/SNodeC.h>
 #include <web/http/client/Request.h>
 #include <web/http/client/Response.h>
@@ -77,12 +79,15 @@ int main(int argc, char* argv[]) {
 
     core::SNodeC::init(argc, argv);
 
-    {
+    const bool success =
+        mqtt::bridge::lib::BridgeStore::instance().loadAndValidate(utils::Config::get_string_option_value("--bridge-config"));
+
+    if (success) {
         using WsIntegrator = web::http::legacy::in::Client<web::http::client::Request, web::http::client::Response>;
         using SocketAddress = WsIntegrator::SocketAddress;
 
         WsIntegrator wsIntegrator(
-            "in-wsmqtt",
+            "in-wsmqtt-1",
             [](web::http::client::Request& request) -> void {
                 request.set("Sec-WebSocket-Protocol", "mqtt");
 
@@ -103,7 +108,33 @@ int main(int argc, char* argv[]) {
         });
     }
 
-    {
+    if (success) {
+        using WsIntegrator = web::http::legacy::in::Client<web::http::client::Request, web::http::client::Response>;
+        using SocketAddress = WsIntegrator::SocketAddress;
+
+        WsIntegrator wsIntegrator(
+            "in-wsmqtt-2",
+            [](web::http::client::Request& request) -> void {
+                request.set("Sec-WebSocket-Protocol", "mqtt");
+
+                request.upgrade("/ws/", "websocket");
+            },
+            [](web::http::client::Request& request, web::http::client::Response& response) -> void {
+                response.upgrade(request);
+            },
+            [](int status, const std::string& reason) -> void {
+                VLOG(0) << "OnResponseError";
+                VLOG(0) << "     Status: " << status;
+                VLOG(0) << "     Reason: " << reason;
+            });
+
+        wsIntegrator.getConfig().Remote::setPort(8080);
+        wsIntegrator.connect([](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
+            reportState("in-wsmqtt", socketAddress, state);
+        });
+    }
+
+    if (success) {
         using WsIntegrator = web::http::tls::in::Client<web::http::client::Request, web::http::client::Response>;
         using SocketAddress = WsIntegrator::SocketAddress;
 

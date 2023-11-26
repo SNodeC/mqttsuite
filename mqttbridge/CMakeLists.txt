@@ -23,16 +23,12 @@ find_package(
                mqtt
 )
 
-set(MQTTBRIDGE_CPP mqttbridge.cpp
-                   SocketContextFactory.cpp
-)
+set(MQTTBRIDGE_CPP mqttbridge.cpp SocketContextFactory.cpp)
 set(MQTTBRIDGE_H SocketContextFactory.h)
 
 add_executable(mqttbridge ${MQTTBRIDGE_CPP} ${MQTTBRIDGE_H})
 
-#target_include_directories(
-#    mqttbridge PUBLIC ${PROJECT_SOURCE_DIR}
-#)
+# target_include_directories( mqttbridge PUBLIC ${PROJECT_SOURCE_DIR} )
 
 target_link_libraries(
     mqttbridge
@@ -58,8 +54,8 @@ set(WSMQTTBRIDGE_H)
 add_executable(wsmqttbridge ${WSMQTTBRIDGE_CPP} ${WSMQTTBRIDGE_H})
 
 target_link_libraries(
-    wsmqttbridge PUBLIC snodec::net-in-stream-legacy
-                        snodec::net-in-stream-tls snodec::http-client
+    wsmqttbridge PUBLIC snodec::net-in-stream-legacy snodec::net-in-stream-tls
+                        snodec::http-client mqtt-bridge
 )
 
 install(TARGETS wsmqttbridge RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
