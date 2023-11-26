@@ -17,8 +17,8 @@ add_library(
 target_include_directories(websocket-mqtt-bridge PUBLIC ${PROJECT_SOURCE_DIR})
 
 target_link_libraries(
-    websocket-mqtt-bridge PUBLIC snodec::mqtt-client-websocket mqtt-bridge
-                                 nlohmann_json::nlohmann_json
+    websocket-mqtt-bridge PUBLIC snodec::mqtt-client-websocket
+                                 nlohmann_json::nlohmann_json mqtt-bridge
 )
 
 set_target_properties(
@@ -26,6 +26,7 @@ set_target_properties(
                                      SOVERSION "${SNODEC_SOVERSION}"
 )
 
-install(TARGETS websocket-mqtt-bridge
-        LIBRARY DESTINATION ${WEBSOCKET_SUBPROTOCOL_INSTALL_LIBDIR}/wsmqttbridge/
+install(
+    TARGETS websocket-mqtt-bridge
+    LIBRARY DESTINATION ${WEBSOCKET_SUBPROTOCOL_INSTALL_LIBDIR}/wsmqttbridge/
 )
