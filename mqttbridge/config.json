@@ -46,14 +46,22 @@
           "name": "in-mqtt-4"
         },
         {
-          "name": "in-wsmqtt",
+          "name": "in-wsmqtt-1",
           "protocol": "in",
-          "encryption": "legacy"
+          "encryption": "legacy",
+          "transport": "websocket"
+        },
+        {
+          "name": "in-wsmqtt-2",
+          "protocol": "in",
+          "encryption": "legacy",
+          "transport": "websocket"
         },
         {
           "name": "in-wsmqtts",
           "protocol": "in",
-          "encryption": "tls"
+          "encryption": "tls",
+          "transport": "websocket"
         }
       ]
     }

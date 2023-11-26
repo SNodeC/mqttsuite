@@ -102,6 +102,10 @@
           "$ref": "#/$defs/encryption",
           "default": "legacy"
         },
+        "transport": {
+          "$ref": "#/$defs/transport",
+          "default": "stream"
+        },
         "topics": {
           "$ref": "#/$defs/topics",
           "default": [
@@ -128,6 +132,13 @@
       "enum": [
         "legacy",
         "tls"
+      ]
+    },
+    "transport": {
+      "type": "string",
+      "enum": [
+        "stream",
+        "websocket"
       ]
     },
     "topics": {
