@@ -35,14 +35,14 @@ namespace mqtt::bridge::lib {
 
 namespace mqtt::bridge::lib {
 
-    class BridgeConfigLoader {
+    class BridgeStore {
     private:
-        BridgeConfigLoader() = default;
+        BridgeStore() = default;
 
-        ~BridgeConfigLoader();
+        ~BridgeStore();
 
     public:
-        static BridgeConfigLoader& instance();
+        static BridgeStore& instance();
 
         bool loadAndValidate(const std::string& fileName);
 

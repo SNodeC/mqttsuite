@@ -19,7 +19,7 @@ add_custom_command(
 )
 
 add_library(
-    mqtt-bridge SHARED Mqtt.cpp Mqtt.h Bridge.cpp Bridge.h BridgeConfigLoader.cpp BridgeConfigLoader.h bridge-schema.json.h
+    mqtt-bridge SHARED Mqtt.cpp Mqtt.h Bridge.cpp Bridge.h BridgeStore.cpp BridgeStore.h bridge-schema.json.h
 )
 
 target_include_directories(mqtt-bridge PRIVATE ${CMAKE_CURRENT_BINARY_DIR})

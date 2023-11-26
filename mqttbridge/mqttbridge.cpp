@@ -17,7 +17,7 @@
  */
 
 #include "SocketContextFactory.h" // IWYU pragma: keep
-#include "lib/BridgeConfigLoader.h"
+#include "lib/BridgeStore.h"
 #include "mqttbridge/lib/Bridge.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -109,10 +109,10 @@ int main(int argc, char* argv[]) {
     core::SNodeC::init(argc, argv);
 
     const bool loaded =
-        mqtt::bridge::lib::BridgeConfigLoader::instance().loadAndValidate(utils::Config::get_string_option_value("--bridge-config"));
+        mqtt::bridge::lib::BridgeStore::instance().loadAndValidate(utils::Config::get_string_option_value("--bridge-config"));
 
     if (loaded) {
-        for (const auto& [instanceName, brokerJsonConfig] : mqtt::bridge::lib::BridgeConfigLoader::instance().getBrokers()) {
+        for (const auto& [instanceName, brokerJsonConfig] : mqtt::bridge::lib::BridgeStore::instance().getBrokers()) {
             const std::string& name = brokerJsonConfig["name"];
             const std::string& protocol = brokerJsonConfig["protocol"];
             const std::string& encryption = brokerJsonConfig["encryption"];
@@ -130,7 +130,7 @@ int main(int argc, char* argv[]) {
                 topics.emplace_back(topicJson["topic"], topicJson["qos"]);
             }
 
-            mqtt::bridge::lib::Bridge* bridge = mqtt::bridge::lib::BridgeConfigLoader::instance().getBridge(instanceName);
+            mqtt::bridge::lib::Bridge* bridge = mqtt::bridge::lib::BridgeStore::instance().getBridge(instanceName);
 
             if (protocol == "in") {
                 if (encryption == "legacy") {

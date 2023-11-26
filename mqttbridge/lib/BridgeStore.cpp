@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "BridgeConfigLoader.h"
+#include "BridgeStore.h"
 
 #include "Bridge.h"
 
@@ -41,10 +41,10 @@
 
 namespace mqtt::bridge::lib {
 
-    nlohmann::json BridgeConfigLoader::bridgeJsonSchema = nlohmann::json::parse(bridgeJsonSchemaString);
-    nlohmann::json BridgeConfigLoader::bridgeConfigJson;
+    nlohmann::json BridgeStore::bridgeJsonSchema = nlohmann::json::parse(bridgeJsonSchemaString);
+    nlohmann::json BridgeStore::bridgeConfigJson;
 
-    BridgeConfigLoader::~BridgeConfigLoader() {
+    BridgeStore::~BridgeStore() {
         std::set<Bridge*> bridgeSet;
 
         for (const auto& [instanceName, bridge] : bridges) {
@@ -56,13 +56,13 @@ namespace mqtt::bridge::lib {
         }
     }
 
-    BridgeConfigLoader& BridgeConfigLoader::instance() {
-        static BridgeConfigLoader bridgeConfigLoader;
+    BridgeStore& BridgeStore::instance() {
+        static BridgeStore bridgeConfigLoader;
 
         return bridgeConfigLoader;
     }
 
-    bool BridgeConfigLoader::loadAndValidate(const std::string& fileName) {
+    bool BridgeStore::loadAndValidate(const std::string& fileName) {
         bool success = false;
 
         if (bridgeConfigJson.empty() && !fileName.empty()) {
@@ -130,11 +130,11 @@ namespace mqtt::bridge::lib {
         return success;
     }
 
-    Bridge* BridgeConfigLoader::getBridge(const std::string& instanceName) {
+    Bridge* BridgeStore::getBridge(const std::string& instanceName) {
         return bridges[instanceName];
     }
 
-    const std::map<std::string, nlohmann::json> &BridgeConfigLoader::getBrokers() {
+    const std::map<std::string, nlohmann::json> &BridgeStore::getBrokers() {
         return brokers;
     }
 
