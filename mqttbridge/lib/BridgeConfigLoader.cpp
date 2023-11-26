@@ -18,6 +18,8 @@
 
 #include "BridgeConfigLoader.h"
 
+#include "Bridge.h"
+
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include "nlohmann/json-schema.hpp"
@@ -27,8 +29,11 @@
 #include <istream>
 #include <log/Logger.h>
 #include <map>
-#include <nlohmann/json.hpp>
+#include <set>
+#include <stdexcept>
 #include <vector>
+
+// IWYU pragma: no_include <nlohmann/detail/iterators/iter_impl.hpp>
 
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
@@ -39,7 +44,27 @@ namespace mqtt::bridge::lib {
     nlohmann::json BridgeConfigLoader::bridgeJsonSchema = nlohmann::json::parse(bridgeJsonSchemaString);
     nlohmann::json BridgeConfigLoader::bridgeConfigJson;
 
-    nlohmann::json BridgeConfigLoader::loadAndValidate(const std::string& fileName) {
+    BridgeConfigLoader::~BridgeConfigLoader() {
+        std::set<Bridge*> bridgeSet;
+
+        for (const auto& [instanceName, bridge] : bridges) {
+            bridgeSet.insert(bridge);
+        }
+
+        for (Bridge* bridge : bridgeSet) {
+            delete bridge;
+        }
+    }
+
+    BridgeConfigLoader& BridgeConfigLoader::instance() {
+        static BridgeConfigLoader bridgeConfigLoader;
+
+        return bridgeConfigLoader;
+    }
+
+    bool BridgeConfigLoader::loadAndValidate(const std::string& fileName) {
+        bool success = false;
+
         if (bridgeConfigJson.empty() && !fileName.empty()) {
             std::ifstream bridgeConfigJsonFile(fileName);
 
@@ -61,6 +86,18 @@ namespace mqtt::bridge::lib {
                                 try {
                                     LOG(TRACE) << "  Default patch:\n" << defaultPatch.dump(4);
                                     bridgeConfigJson = bridgeConfigJson.patch(defaultPatch);
+
+                                    for (const nlohmann::json& bridgeJson : // NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks)
+                                         bridgeConfigJson["bridges"]) {
+                                        const nlohmann::json& connection = bridgeJson["connection"];
+                                        Bridge* bridge = new Bridge(connection);
+
+                                        for (const nlohmann::json& brokerJson : bridgeJson["brokers"]) {
+                                            bridges[brokerJson["name"]] = bridge;
+                                            brokers[brokerJson["name"]] = brokerJson;
+                                        }
+                                    }
+                                    success = true;
                                 } catch (const std::exception& e) {
                                     LOG(ERROR) << "  Patching JSON with default patch failed:\n" << defaultPatch.dump(4);
                                     LOG(ERROR) << "    " << e.what();
@@ -90,7 +127,15 @@ namespace mqtt::bridge::lib {
             LOG(TRACE) << "MappingFilePath empty";
         }
 
-        return bridgeConfigJson;
+        return success;
+    }
+
+    Bridge* BridgeConfigLoader::getBridge(const std::string& instanceName) {
+        return bridges[instanceName];
+    }
+
+    const std::map<std::string, nlohmann::json> &BridgeConfigLoader::getBrokers() {
+        return brokers;
     }
 
 } // namespace mqtt::bridge::lib

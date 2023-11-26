@@ -19,25 +19,43 @@
 #ifndef BRIDGECONFIGLOADER_H
 #define BRIDGECONFIGLOADER_H
 
+namespace mqtt::bridge::lib {
+    class Bridge;
+} // namespace mqtt::bridge::lib
+
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <nlohmann/json_fwd.hpp>
+#include <map>
+#include <nlohmann/json.hpp> // IWYU pragma: keep
 #include <string>
+
+// IWYU pragma: no_include <nlohmann/json_fwd.hpp>
 
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
 namespace mqtt::bridge::lib {
 
     class BridgeConfigLoader {
-    public:
-        BridgeConfigLoader() = delete;
+    private:
+        BridgeConfigLoader() = default;
 
-        static nlohmann::json loadAndValidate(const std::string& fileName);
+        ~BridgeConfigLoader();
+
+    public:
+        static BridgeConfigLoader& instance();
+
+        bool loadAndValidate(const std::string& fileName);
+
+        Bridge* getBridge(const std::string& instanceName);
+        const std::map<std::string, nlohmann::json>& getBrokers();
 
     private:
         static nlohmann::json bridgeJsonSchema;
         static const std::string bridgeJsonSchemaString;
         static nlohmann::json bridgeConfigJson;
+
+        std::map<std::string, Bridge*> bridges;
+        std::map<std::string, nlohmann::json> brokers;
     };
 
 } // namespace mqtt::bridge::lib
