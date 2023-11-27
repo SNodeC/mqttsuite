@@ -18,8 +18,8 @@
 
 #include "SubProtocolFactory.h"
 
-#include "mqttbridge/lib/BridgeStore.h"
-#include "mqttbridge/lib/Mqtt.h"
+#include "lib/BridgeStore.h"
+#include "lib/Mqtt.h"
 
 namespace mqtt::bridge::lib {
     class Bridge;

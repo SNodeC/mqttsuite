@@ -14,8 +14,6 @@ add_library(
                                  ${MQTTSERVERSUBPROTOCOL_H}
 )
 
-target_include_directories(websocket-mqtt-server PUBLIC ${PROJECT_SOURCE_DIR})
-
 target_link_libraries(
     websocket-mqtt-server PUBLIC snodec::mqtt-server-websocket mqtt-broker
                                  nlohmann_json::nlohmann_json
@@ -27,5 +25,5 @@ set_target_properties(
 )
 
 install(TARGETS websocket-mqtt-server
-        LIBRARY DESTINATION ${WEBSOCKET_SUBPROTOCOL_INSTALL_LIBDIR}
+        LIBRARY DESTINATION ${WEBSOCKET_SUBPROTOCOL_INSTALL_LIBDIR}/mqttbroker/
 )

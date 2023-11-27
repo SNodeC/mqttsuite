@@ -19,7 +19,7 @@
 #include "SocketContextFactory.h"
 
 #include "lib/JsonMappingReader.h"
-#include "mqttintegrator/lib/Mqtt.h"
+#include "lib/Mqtt.h"
 
 #include <iot/mqtt/SocketContext.h>
 

@@ -14,8 +14,6 @@ add_library(
                                  ${MQTTCLIENTSUBPROTOCOL_H}
 )
 
-target_include_directories(websocket-mqtt-bridge PUBLIC ${PROJECT_SOURCE_DIR})
-
 target_link_libraries(
     websocket-mqtt-bridge PUBLIC snodec::mqtt-client-websocket
                                  nlohmann_json::nlohmann_json mqtt-bridge

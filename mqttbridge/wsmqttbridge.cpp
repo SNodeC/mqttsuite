@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
     web::websocket::client::SubProtocolFactorySelector::link("mqtt", mqttClientSubProtocolFactory);
 #endif
 
-    utils::Config::add_string_option("--bridge-config", "MQTT mapping file (json format) for integration", "[path]");
+    utils::Config::add_string_option("--bridge-config", "MQTT bridge configuration file (JSON format)", "[path]");
 
     core::SNodeC::init(argc, argv);
 

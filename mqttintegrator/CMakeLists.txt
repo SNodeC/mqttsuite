@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.5)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+
 add_subdirectory(lib)
 add_subdirectory(websocket)
 
@@ -18,15 +20,12 @@ set(MQTTINTEGRATOR_H SocketContextFactory.h)
 
 add_executable(mqttintegrator ${MQTTINTEGRATOR_CPP} ${MQTTINTEGRATOR_H})
 
-target_include_directories(
-    mqttintegrator PUBLIC ${CMAKE_CURRENT_BINARY_DIR} ${PROJECT_SOURCE_DIR}
-)
+target_include_directories(mqttintegrator PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 
 target_link_libraries(
     mqttintegrator
     PUBLIC snodec::net-in-stream-legacy snodec::net-in-stream-tls
-           snodec::net-un-stream-legacy mqtt-mapping snodec::mqtt
-           mqtt-integrator
+           snodec::net-un-stream-legacy mqtt-mapping mqtt-integrator
 )
 
 install(TARGETS mqttintegrator RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
@@ -41,6 +40,8 @@ target_link_libraries(
                             snodec::net-in-stream-tls snodec::http-client
 )
 
+target_include_directories(wsmqttintegrator PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+
 install(TARGETS wsmqttintegrator RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 add_executable(
@@ -53,8 +54,8 @@ target_compile_definitions(
 
 target_include_directories(
     wsmqttintegrator-dynamic PUBLIC ${CMAKE_CURRENT_BINARY_DIR}
-                                    ${PROJECT_SOURCE_DIR}
 )
+
 target_link_libraries(
     wsmqttintegrator-dynamic
     PUBLIC websocket-mqtt-client snodec::net-in-stream-legacy

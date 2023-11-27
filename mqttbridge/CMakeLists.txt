@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.5)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+
 add_subdirectory(lib)
 add_subdirectory(websocket)
 
@@ -27,8 +29,6 @@ set(MQTTBRIDGE_CPP mqttbridge.cpp SocketContextFactory.cpp)
 set(MQTTBRIDGE_H SocketContextFactory.h)
 
 add_executable(mqttbridge ${MQTTBRIDGE_CPP} ${MQTTBRIDGE_H})
-
-# target_include_directories( mqttbridge PUBLIC ${PROJECT_SOURCE_DIR} )
 
 target_link_libraries(
     mqttbridge

@@ -19,7 +19,7 @@
 #include "SubProtocolFactory.h"
 
 #include "lib/JsonMappingReader.h"
-#include "mqttintegrator/lib/Mqtt.h"
+#include "lib/Mqtt.h"
 
 // IWYU pragma: no_include "iot/mqtt/client/SubProtocol.h"
 // IWYU pragma: no_include "web/websocket/SubProtocolFactory.h"

@@ -19,7 +19,7 @@
 #include "SubProtocolFactory.h"
 
 #include "lib/JsonMappingReader.h"
-#include "mqttbroker/lib/Mqtt.h"
+#include "lib/Mqtt.h"
 
 #include <iot/mqtt/server/broker/Broker.h>
 
