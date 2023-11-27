@@ -34,6 +34,7 @@ namespace mqtt::bridge::lib {
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include <cstdlib>
 #include <list>
 #include <log/Logger.h>
 #include <map>
@@ -56,28 +57,34 @@ namespace mqtt::mqttbridge::websocket {
     iot::mqtt::client::SubProtocol* SubProtocolFactory::create(web::websocket::SubProtocolContext* subProtocolContext) {
         iot::mqtt::client::SubProtocol* subProtocol = nullptr;
 
-        const std::string& instanceName = subProtocolContext->getSocketConnection()->getInstanceName();
+        const char* bridgeConfigFileEnvPtr = std::getenv("BRIDGE_CONFIG");
+        const std::string& bridgeConfigFile = (bridgeConfigFileEnvPtr != nullptr) ? bridgeConfigFileEnvPtr : "";
 
-        nlohmann::json& brokerJsonConfig = mqtt::bridge::lib::BridgeStore::instance().getBrokerJsonConfig(instanceName);
-        if (!brokerJsonConfig.empty()) {
-            VLOG(1) << "  Creating bridge instance: " << instanceName;
+        const bool success = mqtt::bridge::lib::BridgeStore::instance().loadAndValidate(bridgeConfigFile);
+        if (success) {
+            const std::string& instanceName = subProtocolContext->getSocketConnection()->getInstanceName();
 
-            VLOG(1) << "    Protocol: " << brokerJsonConfig["protocol"];
-            VLOG(1) << "    Encryption: " << brokerJsonConfig["encryption"];
+            nlohmann::json& brokerJsonConfig = mqtt::bridge::lib::BridgeStore::instance().getBrokerJsonConfig(instanceName);
+            if (!brokerJsonConfig.empty()) {
+                VLOG(1) << "  Creating bridge instance: " << instanceName;
 
-            mqtt::bridge::lib::Bridge* bridge = mqtt::bridge::lib::BridgeStore::instance().getBridge(instanceName);
+                VLOG(1) << "    Protocol: " << brokerJsonConfig["protocol"];
+                VLOG(1) << "    Encryption: " << brokerJsonConfig["encryption"];
 
-            std::list<iot::mqtt::Topic> topics;
-            for (const nlohmann::json& topicJson : brokerJsonConfig["topics"]) {
-                VLOG(1) << "    Topic: " << topicJson["topic"];
-                VLOG(1) << "    Qos: " << topicJson["qos"];
+                mqtt::bridge::lib::Bridge* bridge = mqtt::bridge::lib::BridgeStore::instance().getBridge(instanceName);
 
-                topics.emplace_back(topicJson["topic"], topicJson["qos"]);
-            }
+                std::list<iot::mqtt::Topic> topics;
+                for (const nlohmann::json& topicJson : brokerJsonConfig["topics"]) {
+                    VLOG(1) << "    Topic: " << topicJson["topic"];
+                    VLOG(1) << "    Qos: " << topicJson["qos"];
 
-            if (bridge != nullptr && !topics.empty()) {
-                subProtocol =
-                    new iot::mqtt::client::SubProtocol(subProtocolContext, getName(), new mqtt::bridge::lib::Mqtt(bridge, topics));
+                    topics.emplace_back(topicJson["topic"], topicJson["qos"]);
+                }
+
+                if (bridge != nullptr && !topics.empty()) {
+                    subProtocol =
+                        new iot::mqtt::client::SubProtocol(subProtocolContext, getName(), new mqtt::bridge::lib::Mqtt(bridge, topics));
+                }
             }
         }
 

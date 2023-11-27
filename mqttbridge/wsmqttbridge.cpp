@@ -26,9 +26,12 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include <cstdlib>
+#include <iostream>
 #include <log/Logger.h>
 #include <nlohmann/json.hpp>
 #include <type_traits>
+#include <utils/CLI11.hpp>
 #include <utils/Config.h>
 
 // IWYU pragma: no_include <bits/utility.h>
@@ -108,9 +111,17 @@ int main(int argc, char* argv[]) {
     web::websocket::client::SubProtocolFactorySelector::link("mqtt", mqttClientSubProtocolFactory);
 #endif
 
-    utils::Config::add_string_option("--bridge-config", "MQTT bridge configuration file (JSON format)", "[path]");
+    utils::Config::add_string_option("--bridge-config", "MQTT bridge configuration file (JSON format)", "[path]")->envname("BRIDGE_CONFIG");
 
     core::SNodeC::init(argc, argv);
+
+    setenv("BRIDGE_CONFIG", utils::Config::get_string_option_value("--bridge-config").data(), 1);
+
+    if (std::getenv("BRIDGE_CONFIG") != nullptr) {
+        std::cout << "##########################: " << std::getenv("BRIDGE_CONFIG") << std::endl;
+    } else {
+        std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%: No environment var BRIDGE_CONFIG" << std::endl;
+    }
 
     const bool success =
         mqtt::bridge::lib::BridgeStore::instance().loadAndValidate(utils::Config::get_string_option_value("--bridge-config"));
