@@ -66,25 +66,28 @@ namespace mqtt::mqttbridge::websocket {
             if (success) {
                 const std::string& instanceName = subProtocolContext->getSocketConnection()->getInstanceName();
 
-                nlohmann::json& brokerJsonConfig = mqtt::bridge::lib::BridgeStore::instance().getBrokerJsonConfig(instanceName);
-                if (!brokerJsonConfig.empty()) {
-                    VLOG(1) << "  Creating bridge instance: " << instanceName;
-                    VLOG(1) << "    Protocol: " << brokerJsonConfig["protocol"];
-                    VLOG(1) << "    Encryption: " << brokerJsonConfig["encryption"];
+                mqtt::bridge::lib::Bridge* bridge = mqtt::bridge::lib::BridgeStore::instance().getBridge(instanceName);
 
-                    mqtt::bridge::lib::Bridge* bridge = mqtt::bridge::lib::BridgeStore::instance().getBridge(instanceName);
+                if (bridge != nullptr) {
+                    nlohmann::json& brokerJsonConfig = mqtt::bridge::lib::BridgeStore::instance().getBrokerJsonConfig(instanceName);
 
-                    std::list<iot::mqtt::Topic> topics;
-                    for (const nlohmann::json& topicJson : brokerJsonConfig["topics"]) {
-                        VLOG(1) << "    Topic: " << topicJson["topic"];
-                        VLOG(1) << "      Qos: " << topicJson["qos"];
+                    if (!brokerJsonConfig.empty()) {
+                        VLOG(1) << "  Creating bridge instance: " << instanceName;
+                        VLOG(1) << "    Protocol: " << brokerJsonConfig["protocol"];
+                        VLOG(1) << "    Encryption: " << brokerJsonConfig["encryption"];
 
-                        topics.emplace_back(topicJson["topic"], topicJson["qos"]);
-                    }
+                        std::list<iot::mqtt::Topic> topics;
+                        for (const nlohmann::json& topicJson : brokerJsonConfig["topics"]) {
+                            VLOG(1) << "    Topic: " << topicJson["topic"];
+                            VLOG(1) << "      Qos: " << topicJson["qos"];
 
-                    if (bridge != nullptr && !topics.empty()) {
-                        subProtocol =
-                            new iot::mqtt::client::SubProtocol(subProtocolContext, getName(), new mqtt::bridge::lib::Mqtt(bridge, topics));
+                            topics.emplace_back(topicJson["topic"], topicJson["qos"]);
+                        }
+
+                        if (!topics.empty()) {
+                            subProtocol = new iot::mqtt::client::SubProtocol(
+                                subProtocolContext, getName(), new mqtt::bridge::lib::Mqtt(bridge, topics));
+                        }
                     }
                 }
             }
