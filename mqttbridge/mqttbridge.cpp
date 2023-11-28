@@ -128,7 +128,7 @@ int main(int argc, char* argv[]) {
                 std::list<iot::mqtt::Topic> topics;
                 for (const nlohmann::json& topicJson : topicsJson) {
                     VLOG(1) << "    Topic: " << topicJson["topic"];
-                    VLOG(1) << "    Qos: " << topicJson["qos"];
+                    VLOG(1) << "      Qos: " << topicJson["qos"];
 
                     topics.emplace_back(topicJson["topic"], topicJson["qos"]);
                 }

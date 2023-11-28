@@ -27,7 +27,6 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <cstdlib>
-#include <iostream>
 #include <log/Logger.h>
 #include <nlohmann/json.hpp>
 #include <type_traits>
@@ -56,7 +55,7 @@ template <typename SocketAddressT, typename = std::enable_if_t<std::is_base_of_v
 void reportState(const std::string& instanceName, const SocketAddressT& socketAddress, const core::socket::State& state) {
     switch (state) {
         case core::socket::State::OK:
-            VLOG(1) << instanceName << ": listening on '" << socketAddress.toString() << "': " << state.what();
+            VLOG(1) << instanceName << ": connected to '" << socketAddress.toString() << "': " << state.what();
             break;
         case core::socket::State::DISABLED:
             VLOG(1) << instanceName << ": disabled";
@@ -117,40 +116,37 @@ int main(int argc, char* argv[]) {
 
     setenv("BRIDGE_CONFIG", utils::Config::get_string_option_value("--bridge-config").data(), 1);
 
-    if (std::getenv("BRIDGE_CONFIG") != nullptr) {
-        std::cout << "##########################: " << std::getenv("BRIDGE_CONFIG") << std::endl;
-    } else {
-        std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%: No environment var BRIDGE_CONFIG" << std::endl;
-    }
-
-    const bool success =
-        mqtt::bridge::lib::BridgeStore::instance().loadAndValidate(utils::Config::get_string_option_value("--bridge-config"));
+    bool success = mqtt::bridge::lib::BridgeStore::instance().loadAndValidate(utils::Config::get_string_option_value("--bridge-config"));
 
     if (success) {
-        for (const auto& [instanceName, brokerJsonConfig] : mqtt::bridge::lib::BridgeStore::instance().getBrokers()) {
-            const std::string& name = brokerJsonConfig["name"];
-            const std::string& protocol = brokerJsonConfig["protocol"];
-            const std::string& encryption = brokerJsonConfig["encryption"];
-            const std::string& transport = brokerJsonConfig["transport"];
+        success = setenv("BRIDGE_CONFIG", utils::Config::get_string_option_value("--bridge-config").data(), 1) == 0;
 
-            if (transport == "websocket") {
-                if (protocol == "in") {
-                    if (encryption == "legacy") {
-                        startClient<web::http::legacy::in::Client>(name, [](auto& mqttBridge) -> void {
-                            mqttBridge.getConfig().Remote::setPort(8080);
-                        });
-                    } else if (encryption == "tls") {
-                        startClient<web::http::tls::in::Client>(name, [](auto& mqttBridge) -> void {
-                            mqttBridge.getConfig().Remote::setPort(8088);
-                        });
+        if (success) {
+            for (const auto& [instanceName, brokerJsonConfig] : mqtt::bridge::lib::BridgeStore::instance().getBrokers()) {
+                const std::string& name = brokerJsonConfig["name"];
+                const std::string& protocol = brokerJsonConfig["protocol"];
+                const std::string& encryption = brokerJsonConfig["encryption"];
+                const std::string& transport = brokerJsonConfig["transport"];
+
+                if (transport == "websocket") {
+                    if (protocol == "in") {
+                        if (encryption == "legacy") {
+                            startClient<web::http::legacy::in::Client>(name, [](auto& mqttBridge) -> void {
+                                mqttBridge.getConfig().Remote::setPort(8080);
+                            });
+                        } else if (encryption == "tls") {
+                            startClient<web::http::tls::in::Client>(name, [](auto& mqttBridge) -> void {
+                                mqttBridge.getConfig().Remote::setPort(8088);
+                            });
+                        } else {
+                            VLOG(2) << "Ignoring: " << transport << "::" << protocol << "::" << encryption;
+                        }
                     } else {
-                        VLOG(0) << "Ignoring: " << transport << "::" << protocol << "::" << encryption;
+                        VLOG(2) << "Ignoring: " << transport << "::" << protocol;
                     }
                 } else {
-                    VLOG(0) << "Ignoring: " << transport << "::" << protocol;
+                    VLOG(2) << "Ignoring: " << transport;
                 }
-            } else {
-                VLOG(0) << "Ignoring: " << transport;
             }
         }
     }
