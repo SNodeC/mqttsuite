@@ -17,8 +17,11 @@
  */
 
 #include "SocketContextFactory.h" // IWYU pragma: keep
-#include "lib/Bridge.h"
 #include "lib/BridgeStore.h"
+
+namespace mqtt::bridge::lib {
+    class Bridge;
+}
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
@@ -38,9 +41,7 @@
 #include <net/un/stream/legacy/SocketClient.h>
 #include <net/un/stream/tls/SocketClient.h>
 #include <nlohmann/json.hpp>
-#include <set>
 #include <string>
-#include <utility>
 #include <utils/Config.h>
 
 // IWYU pragma: no_include <bits/utility.h>
