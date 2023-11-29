@@ -90,19 +90,6 @@ void startClient(const std::string& name) {
     });
 }
 
-class BridgeStore : private std::set<mqtt::bridge::lib::Bridge*> {
-public:
-    ~BridgeStore() {
-        for (const mqtt::bridge::lib::Bridge* bridge : *this) {
-            delete bridge;
-        }
-    }
-
-    mqtt::bridge::lib::Bridge* newBridge(const nlohmann::json& connection) {
-        return *insert(new mqtt::bridge::lib::Bridge(connection)).first;
-    }
-};
-
 int main(int argc, char* argv[]) {
     utils::Config::add_string_option("--bridge-config", "MQTT bridge configuration file (JSON format)", "[path]");
 
