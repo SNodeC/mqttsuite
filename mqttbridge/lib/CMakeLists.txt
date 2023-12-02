@@ -20,6 +20,8 @@ add_custom_command(
 
 add_library(
     mqtt-bridge SHARED
+    Broker.cpp
+    Broker.h
     Mqtt.cpp
     Mqtt.h
     Bridge.cpp

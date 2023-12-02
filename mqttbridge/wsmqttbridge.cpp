@@ -28,7 +28,6 @@
 
 #include <cstdlib>
 #include <log/Logger.h>
-#include <nlohmann/json.hpp>
 #include <type_traits>
 #include <utils/CLI11.hpp>
 #include <utils/Config.h>
@@ -122,30 +121,28 @@ int main(int argc, char* argv[]) {
         success = setenv("BRIDGE_CONFIG", utils::Config::get_string_option_value("--bridge-config").data(), 1) == 0;
 
         if (success) {
-            for (const auto& [instanceName, brokerJsonConfig] : mqtt::bridge::lib::BridgeStore::instance().getBrokers()) {
-                const std::string& name = brokerJsonConfig["name"];
-                const std::string& protocol = brokerJsonConfig["protocol"];
-                const std::string& encryption = brokerJsonConfig["encryption"];
-                const std::string& transport = brokerJsonConfig["transport"];
-
-                if (transport == "websocket") {
-                    if (protocol == "in") {
-                        if (encryption == "legacy") {
-                            startClient<web::http::legacy::in::Client>(name, [](auto& mqttBridge) -> void {
-                                mqttBridge.getConfig().Remote::setPort(8080);
-                            });
-                        } else if (encryption == "tls") {
-                            startClient<web::http::tls::in::Client>(name, [](auto& mqttBridge) -> void {
-                                mqttBridge.getConfig().Remote::setPort(8088);
-                            });
+            for (const auto& [instanceName, broker] : mqtt::bridge::lib::BridgeStore::instance().getBrokers()) {
+                if (!broker.getName().empty()) {
+                    if (broker.getTransport() == "websocket") {
+                        if (broker.getProtocol() == "in") {
+                            if (broker.getEncryption() == "legacy") {
+                                startClient<web::http::legacy::in::Client>(broker.getName(), [](auto& mqttBridge) -> void {
+                                    mqttBridge.getConfig().Remote::setPort(8080);
+                                });
+                            } else if (broker.getEncryption() == "tls") {
+                                startClient<web::http::tls::in::Client>(broker.getName(), [](auto& mqttBridge) -> void {
+                                    mqttBridge.getConfig().Remote::setPort(8088);
+                                });
+                            } else {
+                                VLOG(2) << "Ignoring: " << broker.getTransport() << "::" << broker.getProtocol()
+                                        << "::" << broker.getEncryption();
+                            }
                         } else {
-                            VLOG(2) << "Ignoring: " << transport << "::" << protocol << "::" << encryption;
+                            VLOG(2) << "Ignoring: " << broker.getTransport() << "::" << broker.getProtocol();
                         }
                     } else {
-                        VLOG(2) << "Ignoring: " << transport << "::" << protocol;
+                        VLOG(2) << "Ignoring: " << broker.getTransport();
                     }
-                } else {
-                    VLOG(2) << "Ignoring: " << transport;
                 }
             }
         }

@@ -92,10 +92,18 @@
       ],
       "properties": {
         "name": {
-          "type": "string"
+          "type": "string",
+          "minLenght": 1
         },
         "protocol": {
-          "$ref": "#/$defs/protocol",
+          "type": "string",
+          "enum": [
+            "in",
+            "in6",
+            "l2",
+            "rc",
+            "un"
+          ],
           "default": "in"
         },
         "encryption": {

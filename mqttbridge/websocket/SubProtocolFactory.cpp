@@ -19,6 +19,7 @@
 #include "SubProtocolFactory.h"
 
 #include "lib/BridgeStore.h"
+#include "lib/Broker.h"
 #include "lib/Mqtt.h"
 
 namespace mqtt::bridge::lib {
@@ -37,12 +38,6 @@ namespace mqtt::bridge::lib {
 #include <cstdlib>
 #include <list>
 #include <log/Logger.h>
-#include <map>
-#include <nlohmann/json.hpp>
-#include <utils/Config.h>
-
-// IWYU pragma: no_include <nlohmann/json_fwd.hpp>
-// IWYU pragma: no_include <nlohmann/detail/iterators/iter_impl.hpp>
 
 #endif
 
@@ -57,38 +52,26 @@ namespace mqtt::mqttbridge::websocket {
     iot::mqtt::client::SubProtocol* SubProtocolFactory::create(web::websocket::SubProtocolContext* subProtocolContext) {
         iot::mqtt::client::SubProtocol* subProtocol = nullptr;
 
-        const char* bridgeConfigFileEnvPtr = std::getenv("BRIDGE_CONFIG");
-        const std::string& bridgeConfigFile = (bridgeConfigFileEnvPtr != nullptr) ? bridgeConfigFileEnvPtr : "";
+        const std::string& instanceName = subProtocolContext->getSocketConnection()->getInstanceName();
+        mqtt::bridge::lib::Bridge* bridge = mqtt::bridge::lib::BridgeStore::instance().getBridge(instanceName);
 
-        if (!bridgeConfigFile.empty()) {
-            const bool success = mqtt::bridge::lib::BridgeStore::instance().loadAndValidate(bridgeConfigFile);
+        if (bridge != nullptr) {
+            const mqtt::bridge::lib::Broker& broker = mqtt::bridge::lib::BridgeStore::instance().getBroker(instanceName);
 
-            if (success) {
-                const std::string& instanceName = subProtocolContext->getSocketConnection()->getInstanceName();
+            if (!broker.getName().empty()) {
+                VLOG(1) << "  Creating bridge instance: " << instanceName;
+                VLOG(1) << "    Protocol: " << broker.getProtocol();
+                VLOG(1) << "    Encryption: " << broker.getEncryption();
 
-                mqtt::bridge::lib::Bridge* bridge = mqtt::bridge::lib::BridgeStore::instance().getBridge(instanceName);
+                const std::list<iot::mqtt::Topic> topics = broker.getTopics();
+                for (const iot::mqtt::Topic& topic : topics) {
+                    VLOG(1) << "    Topic: " << topic.getName();
+                    VLOG(1) << "      Qos: " << topic.getQoS();
+                }
 
-                if (bridge != nullptr) {
-                    nlohmann::json& brokerJsonConfig = mqtt::bridge::lib::BridgeStore::instance().getBrokerJsonConfig(instanceName);
-
-                    if (!brokerJsonConfig.empty()) {
-                        VLOG(1) << "  Creating bridge instance: " << instanceName;
-                        VLOG(1) << "    Protocol: " << brokerJsonConfig["protocol"];
-                        VLOG(1) << "    Encryption: " << brokerJsonConfig["encryption"];
-
-                        std::list<iot::mqtt::Topic> topics;
-                        for (const nlohmann::json& topicJson : brokerJsonConfig["topics"]) {
-                            VLOG(1) << "    Topic: " << topicJson["topic"];
-                            VLOG(1) << "      Qos: " << topicJson["qos"];
-
-                            topics.emplace_back(topicJson["topic"], topicJson["qos"]);
-                        }
-
-                        if (!topics.empty()) {
-                            subProtocol = new iot::mqtt::client::SubProtocol(
-                                subProtocolContext, getName(), new mqtt::bridge::lib::Mqtt(bridge, topics));
-                        }
-                    }
+                if (!topics.empty()) {
+                    subProtocol =
+                        new iot::mqtt::client::SubProtocol(subProtocolContext, getName(), new mqtt::bridge::lib::Mqtt(bridge, topics));
                 }
             }
         }
@@ -101,8 +84,10 @@ namespace mqtt::mqttbridge::websocket {
 extern "C" mqtt::mqttbridge::websocket::SubProtocolFactory* mqttClientSubProtocolFactory() {
     mqtt::mqttbridge::websocket::SubProtocolFactory* subProtocolFactory = nullptr;
 
-    const bool success =
-        mqtt::bridge::lib::BridgeStore::instance().loadAndValidate(utils::Config::get_string_option_value("--bridge-config"));
+    const char* bridgeConfigFileEnvPtr = std::getenv("BRIDGE_CONFIG");
+    const std::string& bridgeConfigFile = (bridgeConfigFileEnvPtr != nullptr) ? bridgeConfigFileEnvPtr : "";
+
+    const bool success = mqtt::bridge::lib::BridgeStore::instance().loadAndValidate(bridgeConfigFile);
 
     if (success) {
         subProtocolFactory = new mqtt::mqttbridge::websocket::SubProtocolFactory();

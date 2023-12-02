@@ -19,6 +19,7 @@
 #include "BridgeStore.h"
 
 #include "Bridge.h"
+#include "Broker.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
@@ -34,7 +35,9 @@
 #include <stdexcept>
 #include <vector>
 
+// IWYU pragma: no_include <nlohmann/json_fwd.hpp>
 // IWYU pragma: no_include <nlohmann/detail/iterators/iter_impl.hpp>
+// IWYU pragma: no_include <nlohmann/detail/json_pointer.hpp>
 
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
@@ -95,7 +98,7 @@ namespace mqtt::bridge::lib {
 
                                                 for (const nlohmann::json& brokerJson : bridgeJson["brokers"]) {
                                                     bridges[brokerJson["name"]] = bridge;
-                                                    brokers[brokerJson["name"]] = brokerJson;
+                                                    brokers.emplace(brokerJson["name"], brokerJson);
                                                 }
                                             }
 
@@ -142,11 +145,11 @@ namespace mqtt::bridge::lib {
         return bridges[instanceName];
     }
 
-    nlohmann::json& BridgeStore::getBrokerJsonConfig(const std::string& instanceName) {
+    const Broker& BridgeStore::getBroker(const std::string& instanceName) {
         return brokers[instanceName];
     }
 
-    const std::map<std::string, nlohmann::json>& BridgeStore::getBrokers() {
+    const std::map<std::string, Broker>& BridgeStore::getBrokers() {
         return brokers;
     }
 
