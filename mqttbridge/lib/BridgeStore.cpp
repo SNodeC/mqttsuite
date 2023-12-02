@@ -98,6 +98,7 @@ namespace mqtt::bridge::lib {
                                                     brokers[brokerJson["name"]] = brokerJson;
                                                 }
                                             }
+
                                             success = true;
                                         } catch (const std::exception& e) {
                                             LOG(ERROR) << "  Patching JSON with default patch failed:\n" << defaultPatch.dump(4);
@@ -124,7 +125,7 @@ namespace mqtt::bridge::lib {
                         LOG(ERROR) << "BridgeJsonConfig: " << fileName << " not found";
                     }
                 } else {
-                    LOG(ERROR) << "BridgeFilePath empty";
+                    // Do not log missing path. In regular use this missing option is captured by the command line interface
                 }
             } catch (const std::exception& e) {
                 LOG(ERROR) << "Parsing schema failed: " << e.what();
