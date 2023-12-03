@@ -15,7 +15,7 @@
       },
       "brokers": [
         {
-          "name": "in-mqtt-1",
+          "instance_name": "in-mqtt-1",
           "protocol": "in",
           "encryption": "legacy",
           "topics": [
@@ -29,7 +29,7 @@
           ]
         },
         {
-          "name": "in-mqtt-2",
+          "instance_name": "in-mqtt-2",
           "protocol": "in",
           "encryption": "legacy",
           "topics": [
@@ -39,26 +39,26 @@
           ]
         },
         {
-          "name": "in-mqtt-3",
+          "instance_name": "in-mqtt-3",
           "protocol": "in"
         },
         {
-          "name": "in-mqtt-4"
+          "instance_name": "in-mqtt-4"
         },
         {
-          "name": "in-wsmqtt-1",
+          "instance_name": "in-wsmqtt-1",
           "protocol": "in",
           "encryption": "legacy",
           "transport": "websocket"
         },
         {
-          "name": "in-wsmqtt-2",
+          "instance_name": "in-wsmqtt-2",
           "protocol": "in",
           "encryption": "legacy",
           "transport": "websocket"
         },
         {
-          "name": "in-wsmqtts",
+          "instance_name": "in-wsmqtts",
           "protocol": "in",
           "encryption": "tls",
           "transport": "websocket"

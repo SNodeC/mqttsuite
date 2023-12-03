@@ -40,14 +40,14 @@ namespace mqtt::bridge::lib {
 
         ~Broker();
 
-        const std::string& getName() const;
+        const std::string& getInstanceName() const;
         const std::string& getProtocol() const;
         const std::string& getEncryption() const;
         const std::string& getTransport() const;
         const std::list<iot::mqtt::Topic>& getTopics() const;
 
     private:
-        std::string name;
+        std::string instanceName;
         std::string protocol;
         std::string encryption;
         std::string transport;

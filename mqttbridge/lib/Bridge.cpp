@@ -27,12 +27,17 @@
 
 namespace mqtt::bridge::lib {
 
-    Bridge::Bridge(const nlohmann::json& connectionJson)
-        : connectionJson(connectionJson) {
+    Bridge::Bridge(const std::string& name, const nlohmann::json& connectionJson)
+        : name(name)
+        , connectionJson(connectionJson) {
     }
 
     nlohmann::json& Bridge::getConnectionJson() {
         return connectionJson;
+    }
+
+    const std::string& Bridge::getName() {
+        return name;
     }
 
     void Bridge::addMqtt(iot::mqtt::Mqtt* mqtt) {

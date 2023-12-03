@@ -75,7 +75,7 @@ namespace mqtt::bridge::lib {
                     std::ifstream bridgeConfigJsonFile(fileName);
 
                     if (bridgeConfigJsonFile.is_open()) {
-                        LOG(TRACE) << "BridgeJsonSchemaPath: " << fileName;
+                        LOG(TRACE) << "Bridge config JSON: " << fileName;
 
                         try {
                             bridgeConfigJsonFile >> bridgeConfigJson;
@@ -93,12 +93,11 @@ namespace mqtt::bridge::lib {
 
                                             for (const nlohmann::json& bridgeJson : // NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks)
                                                  bridgeConfigJson["bridges"]) {
-                                                const nlohmann::json& connection = bridgeJson["connection"];
-                                                Bridge* bridge = new Bridge(connection);
+                                                Bridge* bridge = new Bridge(bridgeJson["name"], bridgeJson["connection"]);
 
                                                 for (const nlohmann::json& brokerJson : bridgeJson["brokers"]) {
-                                                    bridges[brokerJson["name"]] = bridge;
-                                                    brokers.emplace(brokerJson["name"], brokerJson);
+                                                    bridges[brokerJson["instance_name"]] = bridge;
+                                                    brokers.emplace(brokerJson["instance_name"], brokerJson);
                                                 }
                                             }
 

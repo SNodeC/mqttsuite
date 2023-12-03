@@ -18,13 +18,10 @@
 
 #include "SubProtocolFactory.h"
 
+#include "lib/Bridge.h"
 #include "lib/BridgeStore.h"
 #include "lib/Broker.h"
 #include "lib/Mqtt.h"
-
-namespace mqtt::bridge::lib {
-    class Bridge;
-}
 
 #include <core/socket/stream/SocketConnection.h>
 #include <iot/mqtt/Topic.h>
@@ -58,8 +55,9 @@ namespace mqtt::mqttbridge::websocket {
         if (bridge != nullptr) {
             const mqtt::bridge::lib::Broker& broker = mqtt::bridge::lib::BridgeStore::instance().getBroker(instanceName);
 
-            if (!broker.getName().empty()) {
-                VLOG(1) << "  Creating bridge instance: " << instanceName;
+            if (!broker.getInstanceName().empty()) {
+                VLOG(1) << "  Creating Broker instance: " << instanceName;
+                VLOG(1) << "    Bridge name: " << bridge->getName();
                 VLOG(1) << "    Protocol: " << broker.getProtocol();
                 VLOG(1) << "    Encryption: " << broker.getEncryption();
 

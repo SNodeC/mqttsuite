@@ -88,10 +88,10 @@
     "broker": {
       "type": "object",
       "required": [
-        "name"
+        "instance_name"
       ],
       "properties": {
-        "name": {
+        "instance_name": {
           "type": "string",
           "minLenght": 1
         },

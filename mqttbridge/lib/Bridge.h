@@ -31,6 +31,7 @@ namespace iot::mqtt {
 
 #include <list>
 #include <nlohmann/json.hpp>
+#include <string>
 
 // IWYU pragma: no_include <nlohmann/json_fwd.hpp>
 
@@ -40,7 +41,7 @@ namespace mqtt::bridge::lib {
 
     class Bridge {
     public:
-        explicit Bridge(const nlohmann::json& connectionJson);
+        explicit Bridge(const std::string& name, const nlohmann::json& connectionJson);
         Bridge(const Bridge&) = default;
 
         Bridge& operator=(const Bridge&) = default;
@@ -49,12 +50,15 @@ namespace mqtt::bridge::lib {
 
         nlohmann::json& getConnectionJson();
 
+        const std::string& getName();
+
         void addMqtt(iot::mqtt::Mqtt* mqtt);
         void removeMqtt(iot::mqtt::Mqtt* mqtt);
 
         void publish(const iot::mqtt::Mqtt* originMqtt, const iot::mqtt::packets::Publish& publish);
 
     private:
+        std::string name;
         nlohmann::json connectionJson;
         std::list<iot::mqtt::Mqtt*> mqttList;
     };

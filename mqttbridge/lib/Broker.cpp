@@ -30,7 +30,7 @@
 namespace mqtt::bridge::lib {
 
     Broker::Broker(const nlohmann::json& brokerJsonConfig)
-        : name(brokerJsonConfig["name"])
+        : instanceName(brokerJsonConfig["instance_name"])
         , protocol(brokerJsonConfig["protocol"])
         , encryption(brokerJsonConfig["encryption"])
         , transport(brokerJsonConfig["transport"]) {
@@ -42,8 +42,8 @@ namespace mqtt::bridge::lib {
     Broker::~Broker() {
     }
 
-    const std::string& Broker::getName() const {
-        return name;
+    const std::string& Broker::getInstanceName() const {
+        return instanceName;
     }
 
     const std::string& Broker::getProtocol() const {

@@ -122,15 +122,15 @@ int main(int argc, char* argv[]) {
 
         if (success) {
             for (const auto& [instanceName, broker] : mqtt::bridge::lib::BridgeStore::instance().getBrokers()) {
-                if (!broker.getName().empty()) {
+                if (!broker.getInstanceName().empty()) {
                     if (broker.getTransport() == "websocket") {
                         if (broker.getProtocol() == "in") {
                             if (broker.getEncryption() == "legacy") {
-                                startClient<web::http::legacy::in::Client>(broker.getName(), [](auto& mqttBridge) -> void {
+                                startClient<web::http::legacy::in::Client>(broker.getInstanceName(), [](auto& mqttBridge) -> void {
                                     mqttBridge.getConfig().Remote::setPort(8080);
                                 });
                             } else if (broker.getEncryption() == "tls") {
-                                startClient<web::http::tls::in::Client>(broker.getName(), [](auto& mqttBridge) -> void {
+                                startClient<web::http::tls::in::Client>(broker.getInstanceName(), [](auto& mqttBridge) -> void {
                                     mqttBridge.getConfig().Remote::setPort(8088);
                                 });
                             } else {
