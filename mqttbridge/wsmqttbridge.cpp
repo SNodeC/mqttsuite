@@ -146,7 +146,7 @@ int main(int argc, char* argv[]) {
                 }
             }
         }
-    }
 
-    return core::SNodeC::start();
+        return core::SNodeC::start();
+    }
 }

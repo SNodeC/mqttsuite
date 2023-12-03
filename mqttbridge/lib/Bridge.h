@@ -29,11 +29,9 @@ namespace iot::mqtt {
     }
 } // namespace iot::mqtt
 
+#include <cstdint>
 #include <list>
-#include <nlohmann/json.hpp>
 #include <string>
-
-// IWYU pragma: no_include <nlohmann/json_fwd.hpp>
 
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
@@ -41,25 +39,48 @@ namespace mqtt::bridge::lib {
 
     class Bridge {
     public:
-        explicit Bridge(const std::string& name, const nlohmann::json& connectionJson);
+        Bridge(const std::string& clientId,
+               uint16_t keepAlive,
+               bool cleanSession,
+               const std::string& willTopic,
+               const std::string& willMessage,
+               uint8_t willQoS,
+               bool willRetain,
+               const std::string& userName,
+               const std::string& passWord);
         Bridge(const Bridge&) = default;
 
         Bridge& operator=(const Bridge&) = default;
 
         ~Bridge() = default;
 
-        nlohmann::json& getConnectionJson();
-
-        const std::string& getName();
-
         void addMqtt(iot::mqtt::Mqtt* mqtt);
         void removeMqtt(iot::mqtt::Mqtt* mqtt);
 
         void publish(const iot::mqtt::Mqtt* originMqtt, const iot::mqtt::packets::Publish& publish);
 
+        const std::string& getClientId();
+        uint16_t getKeepAlive() const;
+        bool getCleanSession() const;
+        const std::string& getWillTopic() const;
+        const std::string& getWillMessage() const;
+        uint8_t getWillQoS() const;
+        bool getWillRetain() const;
+        const std::string& getUsername() const;
+        const std::string& getPassword() const;
+        const std::list<iot::mqtt::Mqtt*>& getMqttList() const;
+
     private:
-        std::string name;
-        nlohmann::json connectionJson;
+        std::string clientId;
+        uint16_t keepAlive;
+        bool cleanSession;
+        std::string willTopic;
+        std::string willMessage;
+        uint8_t willQoS;
+        bool willRetain;
+        std::string username;
+        std::string password;
+
         std::list<iot::mqtt::Mqtt*> mqttList;
     };
 

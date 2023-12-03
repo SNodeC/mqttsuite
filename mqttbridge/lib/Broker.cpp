@@ -20,23 +20,20 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <iot/mqtt/Topic.h>
-#include <map>
-#include <nlohmann/json.hpp>
-// IWYU pragma: no_include <nlohmann/detail/iterators/iter_impl.hpp>
-
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
 namespace mqtt::bridge::lib {
 
-    Broker::Broker(const nlohmann::json& brokerJsonConfig)
-        : instanceName(brokerJsonConfig["instance_name"])
-        , protocol(brokerJsonConfig["protocol"])
-        , encryption(brokerJsonConfig["encryption"])
-        , transport(brokerJsonConfig["transport"]) {
-        for (const nlohmann::json& topicJson : brokerJsonConfig["topics"]) {
-            topics.emplace_back(topicJson["topic"], topicJson["qos"]);
-        }
+    Broker::Broker(const std::string& instanceName,
+                   const std::string& protocol,
+                   const std::string& encryption,
+                   const std::string& transport,
+                   std::list<iot::mqtt::Topic>& topics)
+        : instanceName(instanceName)
+        , protocol(protocol)
+        , encryption(encryption)
+        , transport(transport)
+        , topics(topics) {
     }
 
     Broker::~Broker() {

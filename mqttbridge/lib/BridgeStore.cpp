@@ -27,7 +27,9 @@
 
 #include <exception>
 #include <initializer_list>
+#include <iot/mqtt/Topic.h>
 #include <istream>
+#include <list>
 #include <log/Logger.h>
 #include <map>
 #include <nlohmann/json.hpp>
@@ -91,13 +93,31 @@ namespace mqtt::bridge::lib {
                                             LOG(TRACE) << "  Default patch:\n" << defaultPatch.dump(4);
                                             bridgeConfigJson = bridgeConfigJson.patch(defaultPatch);
 
-                                            for (const nlohmann::json& bridgeJson : // NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks)
+                                            for (const nlohmann::json& bridgeConfigJson : // NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks)
                                                  bridgeConfigJson["bridges"]) {
-                                                Bridge* bridge = new Bridge(bridgeJson["name"], bridgeJson["connection"]);
+                                                Bridge* bridge = new Bridge(bridgeConfigJson["connection"]["client_id"],
+                                                                            bridgeConfigJson["connection"]["keep_alive"],
+                                                                            bridgeConfigJson["connection"]["clean_session"],
+                                                                            bridgeConfigJson["connection"]["will_topic"],
+                                                                            bridgeConfigJson["connection"]["will_message"],
+                                                                            bridgeConfigJson["connection"]["will_qos"],
+                                                                            bridgeConfigJson["connection"]["will_retain"],
+                                                                            bridgeConfigJson["connection"]["username"],
+                                                                            bridgeConfigJson["connection"]["password"]);
 
-                                                for (const nlohmann::json& brokerJson : bridgeJson["brokers"]) {
-                                                    bridges[brokerJson["instance_name"]] = bridge;
-                                                    brokers.emplace(brokerJson["instance_name"], brokerJson);
+                                                for (const nlohmann::json& brokerConfigJson : bridgeConfigJson["brokers"]) {
+                                                    bridges[brokerConfigJson["instance_name"]] = bridge;
+
+                                                    std::list<iot::mqtt::Topic> topics;
+                                                    for (const nlohmann::json& topicJson : brokerConfigJson["topics"]) {
+                                                        topics.emplace_back(topicJson["topic"], topicJson["qos"]);
+                                                    }
+
+                                                    brokers[brokerConfigJson["instance_name"]] = Broker(brokerConfigJson["instance_name"],
+                                                                                                        brokerConfigJson["protocol"],
+                                                                                                        brokerConfigJson["encryption"],
+                                                                                                        brokerConfigJson["transport"],
+                                                                                                        topics);
                                                 }
                                             }
 

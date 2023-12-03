@@ -28,27 +28,24 @@
 #include <cstring>
 #include <list>
 #include <log/Logger.h>
-#include <nlohmann/json.hpp>
 #include <utils/system/signal.h>
-
-// IWYU pragma: no_include <nlohmann/json_fwd.hpp>
 
 #endif
 
 namespace mqtt::bridge::lib {
 
     Mqtt::Mqtt(mqtt::bridge::lib::Bridge* bridge, const std::list<iot::mqtt::Topic>& topics)
-        : iot::mqtt::client::Mqtt(bridge->getConnectionJson()["client_id"])
+        : iot::mqtt::client::Mqtt(bridge->getClientId())
         , bridge(bridge)
         , topics(topics)
-        , keepAlive(bridge->getConnectionJson()["keep_alive"])
-        , cleanSession(bridge->getConnectionJson()["clean_session"])
-        , willTopic(bridge->getConnectionJson()["will_topic"])
-        , willMessage(bridge->getConnectionJson()["will_message"])
-        , willQoS(bridge->getConnectionJson()["will_qos"])
-        , willRetain(bridge->getConnectionJson()["will_retain"])
-        , username(bridge->getConnectionJson()["username"])
-        , password(bridge->getConnectionJson()["password"]) {
+        , keepAlive(bridge->getKeepAlive())
+        , cleanSession(bridge->getCleanSession())
+        , willTopic(bridge->getWillTopic())
+        , willMessage(bridge->getWillMessage())
+        , willQoS(bridge->getWillQoS())
+        , willRetain(bridge->getWillRetain())
+        , username(bridge->getUsername())
+        , password(bridge->getPassword()) {
         LOG(TRACE) << "Keep Alive: " << keepAlive;
         LOG(TRACE) << "Client Id: " << clientId;
         LOG(TRACE) << "Clean Session: " << cleanSession;

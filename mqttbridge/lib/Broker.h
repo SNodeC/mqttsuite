@@ -23,7 +23,6 @@
 
 #include <iot/mqtt/Topic.h>
 #include <list>
-#include <nlohmann/json_fwd.hpp>
 #include <string>
 
 #endif // DOXYGEN_SHOULD_SKIP_THIS
@@ -33,10 +32,14 @@ namespace mqtt::bridge::lib {
     class Broker {
     public:
         Broker() = default;
-        explicit Broker(const nlohmann::json& brokerJsonConfig);
-        Broker(const Broker&) = delete;
 
-        Broker& operator=(const Broker&) = delete;
+        Broker(const std::string& instanceName,
+               const std::string& protocol,
+               const std::string& encryption,
+               const std::string& transport,
+               std::list<iot::mqtt::Topic>& topics);
+
+        Broker(const Broker&) = delete;
 
         ~Broker();
 

@@ -27,17 +27,24 @@
 
 namespace mqtt::bridge::lib {
 
-    Bridge::Bridge(const std::string& name, const nlohmann::json& connectionJson)
-        : name(name)
-        , connectionJson(connectionJson) {
-    }
-
-    nlohmann::json& Bridge::getConnectionJson() {
-        return connectionJson;
-    }
-
-    const std::string& Bridge::getName() {
-        return name;
+    Bridge::Bridge(const std::string& clientId,
+                   uint16_t keepAlive,
+                   bool cleanSession,
+                   const std::string& willTopic,
+                   const std::string& willMessage,
+                   uint8_t willQoS,
+                   bool willRetain,
+                   const std::string& userName,
+                   const std::string& passWord)
+        : clientId(clientId)
+        , keepAlive(keepAlive)
+        , cleanSession(cleanSession)
+        , willTopic(willTopic)
+        , willMessage(willMessage)
+        , willQoS(willQoS)
+        , willRetain(willRetain)
+        , username(userName)
+        , password(passWord) {
     }
 
     void Bridge::addMqtt(iot::mqtt::Mqtt* mqtt) {
@@ -54,6 +61,46 @@ namespace mqtt::bridge::lib {
                 destinationMqtt->sendPublish(publish.getTopic(), publish.getMessage(), publish.getQoS(), publish.getRetain());
             }
         }
+    }
+
+    const std::string& Bridge::getClientId() {
+        return clientId;
+    }
+
+    uint16_t Bridge::getKeepAlive() const {
+        return keepAlive;
+    }
+
+    bool Bridge::getCleanSession() const {
+        return cleanSession;
+    }
+
+    const std::string& Bridge::getWillTopic() const {
+        return willTopic;
+    }
+
+    const std::string& Bridge::getWillMessage() const {
+        return willMessage;
+    }
+
+    uint8_t Bridge::getWillQoS() const {
+        return willQoS;
+    }
+
+    bool Bridge::getWillRetain() const {
+        return willRetain;
+    }
+
+    const std::string& Bridge::getUsername() const {
+        return username;
+    }
+
+    const std::string& Bridge::getPassword() const {
+        return password;
+    }
+
+    const std::list<iot::mqtt::Mqtt*>& Bridge::getMqttList() const {
+        return mqttList;
     }
 
 } // namespace mqtt::bridge::lib

@@ -23,6 +23,7 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <core/SNodeC.h>
+#include <cstdint>
 #include <iot/mqtt/Topic.h>
 #include <list>
 #include <log/Logger.h>
@@ -38,14 +39,15 @@
 #include <net/un/stream/legacy/SocketClient.h>
 #include <net/un/stream/tls/SocketClient.h>
 #include <string>
+#include <type_traits>
 #include <utils/Config.h>
 
 // IWYU pragma: no_include <bits/utility.h>
 
 #endif
 
-template <typename SocketAddressT>
-void reportState(const std::string& instanceName, const SocketAddressT& socketAddress, const core::socket::State& state) {
+template <typename SocketAddress, typename = std::enable_if_t<std::is_base_of_v<core::socket::SocketAddress, SocketAddress>>>
+void reportState(const std::string& instanceName, const SocketAddress& socketAddress, const core::socket::State& state) {
     switch (state) {
         case core::socket::State::OK:
             VLOG(1) << instanceName << ": connected to '" << socketAddress.toString() << "': " << state.what();
@@ -64,7 +66,9 @@ void reportState(const std::string& instanceName, const SocketAddressT& socketAd
     }
 }
 
-template <template <typename> typename SocketClient, typename SocketContextFactory>
+template <template <typename> typename SocketClient,
+          typename SocketContextFactory,
+          typename = std::enable_if_t<std::is_base_of_v<core::socket::stream::SocketContextFactory, SocketContextFactory>>>
 void startClient(const std::string& name, const std::function<void(SocketClient<SocketContextFactory>&)> configurator) {
     using Client = SocketClient<SocketContextFactory>;
     using SocketAddress = typename Client::SocketAddress;
@@ -104,11 +108,15 @@ int main(int argc, char* argv[]) {
 
                 if (transport == "stream") {
                     VLOG(1) << "  Creating Broker instance: " << instanceName;
-                    VLOG(1) << "    Bridge name : " << bridge->getName();
+                    VLOG(1) << "    Bridge client id : " << bridge->getClientId();
                     VLOG(1) << "    Protocol: " << protocol;
                     VLOG(1) << "    Encryption: " << encryption;
 
                     std::list<iot::mqtt::Topic> topics = broker.getTopics();
+                    for (const iot::mqtt::Topic& topic : topics) {
+                        VLOG(1) << "    Topic: " << topic.getName();
+                        VLOG(1) << "      QoS: " << static_cast<uint16_t>(topic.getQoS());
+                    }
 
                     if (protocol == "in") {
                         if (encryption == "legacy") {
@@ -174,7 +182,7 @@ int main(int argc, char* argv[]) {
                 }
             }
         }
-    }
 
-    return core::SNodeC::start();
+        return core::SNodeC::start();
+    }
 }
