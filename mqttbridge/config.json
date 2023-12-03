@@ -1,7 +1,6 @@
 {
   "bridges": [
     {
-      "name": "bridge-1",
       "connection": {
         "keep_alive": 60,
         "client_id": "MQTT-Bridge",
