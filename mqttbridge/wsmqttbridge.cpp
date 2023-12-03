@@ -74,7 +74,7 @@ template <template <typename, typename> typename HttpClient>
 void startClient(const std::string& name,
                  const std::function<void(HttpClient<web::http::client::Request, web::http::client::Response>&)>& configurator) {
     using WsIntegrator = HttpClient<web::http::client::Request, web::http::client::Response>;
-    using SocketAddress = typename WsIntegrator::SocketAddress;
+    using SocketAddress = WsIntegrator::SocketAddress;
 
     WsIntegrator wsIntegrator(
         name,
@@ -91,9 +91,6 @@ void startClient(const std::string& name,
             VLOG(0) << "     Status: " << status;
             VLOG(0) << "     Reason: " << reason;
         });
-    wsIntegrator.getConfig().setRetry();
-    wsIntegrator.getConfig().setRetryBase(1);
-    wsIntegrator.getConfig().setReconnect();
     configurator(wsIntegrator);
     wsIntegrator.connect([name](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
         reportState(name, socketAddress, state);
@@ -126,12 +123,18 @@ int main(int argc, char* argv[]) {
                     if (broker.getTransport() == "websocket") {
                         if (broker.getProtocol() == "in") {
                             if (broker.getEncryption() == "legacy") {
-                                startClient<web::http::legacy::in::Client>(broker.getInstanceName(), [](auto& mqttBridge) -> void {
-                                    mqttBridge.getConfig().Remote::setPort(8080);
+                                startClient<web::http::legacy::in::Client>(broker.getInstanceName(), [](auto& wsIntegrator) -> void {
+                                    wsIntegrator.getConfig().Remote::setPort(8080);
+                                    wsIntegrator.getConfig().setRetry();
+                                    wsIntegrator.getConfig().setRetryBase(1);
+                                    wsIntegrator.getConfig().setReconnect();
                                 });
                             } else if (broker.getEncryption() == "tls") {
-                                startClient<web::http::tls::in::Client>(broker.getInstanceName(), [](auto& mqttBridge) -> void {
-                                    mqttBridge.getConfig().Remote::setPort(8088);
+                                startClient<web::http::tls::in::Client>(broker.getInstanceName(), [](auto& wsIntegrator) -> void {
+                                    wsIntegrator.getConfig().Remote::setPort(8088);
+                                    wsIntegrator.getConfig().setRetry();
+                                    wsIntegrator.getConfig().setRetryBase(1);
+                                    wsIntegrator.getConfig().setReconnect();
                                 });
                             } else {
                                 VLOG(2) << "Ignoring: " << broker.getTransport() << "::" << broker.getProtocol()
@@ -145,8 +148,8 @@ int main(int argc, char* argv[]) {
                     }
                 }
             }
-        }
 
-        return core::SNodeC::start();
+            return core::SNodeC::start();
+        }
     }
 }

@@ -65,6 +65,36 @@ void reportState(const std::string& instanceName, const SocketAddressT& socketAd
     }
 }
 
+template <template <typename, typename> typename HttpClient>
+void startClient(const std::string& name,
+                 const std::function<void(HttpClient<web::http::client::Request, web::http::client::Response>&)>& configurator) {
+    using WsIntegrator = HttpClient<web::http::client::Request, web::http::client::Response>;
+    using SocketAddress = WsIntegrator::SocketAddress;
+
+    WsIntegrator wsIntegrator(
+        name,
+        [](web::http::client::Request& request) -> void {
+            request.set("Sec-WebSocket-Protocol", "mqtt");
+
+            request.upgrade("/ws/", "websocket");
+        },
+        [](web::http::client::Request& request, web::http::client::Response& response) -> void {
+            response.upgrade(request);
+        },
+        [](int status, const std::string& reason) -> void {
+            VLOG(0) << "OnResponseError";
+            VLOG(0) << "     Status: " << status;
+            VLOG(0) << "     Reason: " << reason;
+        });
+    wsIntegrator.getConfig().setRetry();
+    wsIntegrator.getConfig().setRetryBase(1);
+    wsIntegrator.getConfig().setReconnect();
+    configurator(wsIntegrator);
+    wsIntegrator.connect([name](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
+        reportState(name, socketAddress, state);
+    });
+}
+
 int main(int argc, char* argv[]) {
 #if defined(LINK_WEBSOCKET_STATIC) || defined(LINK_SUBPROTOCOL_STATIC)
     web::websocket::client::SocketContextUpgradeFactory::link();
@@ -81,58 +111,13 @@ int main(int argc, char* argv[]) {
 
     setenv("MQTT_SESSION_STORE", utils::Config::get_string_option_value("--mqtt-session-store").data(), 0);
 
-    {
-        using WsIntegrator = web::http::legacy::in::Client<web::http::client::Request, web::http::client::Response>;
-        using SocketAddress = WsIntegrator::SocketAddress;
-
-        WsIntegrator wsIntegrator(
-            "in-wsmqtt",
-            [](web::http::client::Request& request) -> void {
-                request.set("Sec-WebSocket-Protocol", "mqtt");
-
-                request.upgrade("/ws/", "websocket");
-            },
-            [](web::http::client::Request& request, web::http::client::Response& response) -> void {
-                response.upgrade(request);
-            },
-            [](int status, const std::string& reason) -> void {
-                VLOG(0) << "OnResponseError";
-                VLOG(0) << "     Status: " << status;
-                VLOG(0) << "     Reason: " << reason;
-            });
-
+    startClient<web::http::legacy::in::Client>("in-wsmqtt", [](auto& wsIntegrator) -> void {
         wsIntegrator.getConfig().Remote::setPort(8080);
-        wsIntegrator.connect([](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
-            reportState("in-wsmqtt", socketAddress, state);
-        });
-    }
+    });
 
-    {
-        using WsIntegrator = web::http::tls::in::Client<web::http::client::Request, web::http::client::Response>;
-        using SocketAddress = WsIntegrator::SocketAddress;
-
-        WsIntegrator wsIntegrator(
-            "in-wsmqtts",
-            [](web::http::client::Request& request) -> void {
-                request.set("Sec-WebSocket-Protocol", "mqtt");
-
-                request.upgrade("/ws/", "websocket");
-            },
-            [](web::http::client::Request& request, web::http::client::Response& response) -> void {
-                response.upgrade(request);
-            },
-            [](int status, const std::string& reason) -> void {
-                VLOG(0) << "OnResponseError";
-                VLOG(0) << "     Status: " << status;
-                VLOG(0) << "     Reason: " << reason;
-            });
-
-        wsIntegrator.getConfig().setDisabled();
+    startClient<web::http::tls::in::Client>("in-wsmqtts", [](auto& wsIntegrator) -> void {
         wsIntegrator.getConfig().Remote::setPort(8088);
-        wsIntegrator.connect([](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
-            reportState("in-wsmqtts", socketAddress, state);
-        });
-    }
+    });
 
     return core::SNodeC::start();
 }
