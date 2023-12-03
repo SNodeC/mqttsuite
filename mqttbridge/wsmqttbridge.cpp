@@ -50,8 +50,8 @@
 
 #endif
 
-template <typename SocketAddressT, typename = std::enable_if_t<std::is_base_of_v<core::socket::SocketAddress, SocketAddressT>>>
-void reportState(const std::string& instanceName, const SocketAddressT& socketAddress, const core::socket::State& state) {
+template <typename SocketAddress, typename = std::enable_if_t<std::is_base_of_v<core::socket::SocketAddress, SocketAddress>>>
+void reportState(const std::string& instanceName, const SocketAddress& socketAddress, const core::socket::State& state) {
     switch (state) {
         case core::socket::State::OK:
             VLOG(1) << instanceName << ": connected to '" << socketAddress.toString() << "': " << state.what();
