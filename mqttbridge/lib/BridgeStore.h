@@ -19,14 +19,12 @@
 #ifndef BRIDGECONFIGLOADER_H
 #define BRIDGECONFIGLOADER_H
 
-#include "Broker.h"
-
-namespace mqtt::bridge::lib {
-    class Bridge;
-} // namespace mqtt::bridge::lib
+#include "lib/Bridge.h" // IWYU pragma: export
+#include "lib/Broker.h" // IWYU pragma: export
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include <list>
 #include <map>
 #include <string>
 
@@ -38,19 +36,18 @@ namespace mqtt::bridge::lib {
     private:
         BridgeStore() = default;
 
-        ~BridgeStore();
+        ~BridgeStore() = default;
 
     public:
         static BridgeStore& instance();
 
         bool loadAndValidate(const std::string& fileName);
 
-        Bridge* getBridge(const std::string& instanceName);
         const Broker& getBroker(const std::string& instanceName);
         const std::map<std::string, Broker>& getBrokers();
 
     private:
-        std::map<std::string, Bridge*> bridges;
+        std::list<Bridge> bridgeList;
         std::map<std::string, Broker> brokers;
     };
 

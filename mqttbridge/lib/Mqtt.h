@@ -42,7 +42,7 @@ namespace mqtt::bridge::lib {
 
     class Mqtt : public iot::mqtt::client::Mqtt {
     public:
-        explicit Mqtt(mqtt::bridge::lib::Bridge* bridge, const std::list<iot::mqtt::Topic>& topics);
+        explicit Mqtt(Bridge* bridge, const std::list<iot::mqtt::Topic>& topics);
 
     private:
         void onConnected() final;

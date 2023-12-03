@@ -18,9 +18,6 @@
 
 #include "BridgeStore.h"
 
-#include "Bridge.h"
-#include "Broker.h"
-
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include "nlohmann/json-schema.hpp"
@@ -33,8 +30,8 @@
 #include <log/Logger.h>
 #include <map>
 #include <nlohmann/json.hpp>
-#include <set>
 #include <stdexcept>
+#include <utility>
 #include <vector>
 
 // IWYU pragma: no_include <nlohmann/json_fwd.hpp>
@@ -45,18 +42,6 @@
 
 namespace mqtt::bridge::lib {
 
-    BridgeStore::~BridgeStore() {
-        std::set<Bridge*> bridgeSet;
-
-        for (const auto& [instanceName, bridge] : bridges) {
-            bridgeSet.insert(bridge);
-        }
-
-        for (Bridge* bridge : bridgeSet) {
-            delete bridge;
-        }
-    }
-
     BridgeStore& BridgeStore::instance() {
         static BridgeStore bridgeConfigLoader;
 
@@ -64,7 +49,7 @@ namespace mqtt::bridge::lib {
     }
 
     bool BridgeStore::loadAndValidate(const std::string& fileName) {
-        bool success = !bridges.empty();
+        bool success = !brokers.empty();
 
 #include "bridge-schema.json.h"
 
@@ -95,29 +80,29 @@ namespace mqtt::bridge::lib {
 
                                             for (const nlohmann::json& bridgeConfigJson : // NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks)
                                                  bridgeConfigJson["bridges"]) {
-                                                Bridge* bridge = new Bridge(bridgeConfigJson["connection"]["client_id"],
-                                                                            bridgeConfigJson["connection"]["keep_alive"],
-                                                                            bridgeConfigJson["connection"]["clean_session"],
-                                                                            bridgeConfigJson["connection"]["will_topic"],
-                                                                            bridgeConfigJson["connection"]["will_message"],
-                                                                            bridgeConfigJson["connection"]["will_qos"],
-                                                                            bridgeConfigJson["connection"]["will_retain"],
-                                                                            bridgeConfigJson["connection"]["username"],
-                                                                            bridgeConfigJson["connection"]["password"]);
+                                                Bridge& bridge = bridgeList.emplace_back(bridgeConfigJson["connection"]["client_id"],
+                                                                                         bridgeConfigJson["connection"]["keep_alive"],
+                                                                                         bridgeConfigJson["connection"]["clean_session"],
+                                                                                         bridgeConfigJson["connection"]["will_topic"],
+                                                                                         bridgeConfigJson["connection"]["will_message"],
+                                                                                         bridgeConfigJson["connection"]["will_qos"],
+                                                                                         bridgeConfigJson["connection"]["will_retain"],
+                                                                                         bridgeConfigJson["connection"]["username"],
+                                                                                         bridgeConfigJson["connection"]["password"]);
 
                                                 for (const nlohmann::json& brokerConfigJson : bridgeConfigJson["brokers"]) {
-                                                    bridges[brokerConfigJson["instance_name"]] = bridge;
-
                                                     std::list<iot::mqtt::Topic> topics;
                                                     for (const nlohmann::json& topicJson : brokerConfigJson["topics"]) {
                                                         topics.emplace_back(topicJson["topic"], topicJson["qos"]);
                                                     }
 
-                                                    brokers[brokerConfigJson["instance_name"]] = Broker(brokerConfigJson["instance_name"],
-                                                                                                        brokerConfigJson["protocol"],
-                                                                                                        brokerConfigJson["encryption"],
-                                                                                                        brokerConfigJson["transport"],
-                                                                                                        topics);
+                                                    brokers.emplace(brokerConfigJson["instance_name"],
+                                                                    Broker(&bridge,
+                                                                           brokerConfigJson["instance_name"],
+                                                                           brokerConfigJson["protocol"],
+                                                                           brokerConfigJson["encryption"],
+                                                                           brokerConfigJson["transport"],
+                                                                           std::move(topics)));
                                                 }
                                             }
 
@@ -160,12 +145,8 @@ namespace mqtt::bridge::lib {
         return success;
     }
 
-    Bridge* BridgeStore::getBridge(const std::string& instanceName) {
-        return bridges[instanceName];
-    }
-
     const Broker& BridgeStore::getBroker(const std::string& instanceName) {
-        return brokers[instanceName];
+        return brokers.find(instanceName)->second;
     }
 
     const std::map<std::string, Broker>& BridgeStore::getBrokers() {

@@ -20,23 +20,31 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include <utility>
+
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
 namespace mqtt::bridge::lib {
 
-    Broker::Broker(const std::string& instanceName,
-                   const std::string& protocol,
-                   const std::string& encryption,
-                   const std::string& transport,
-                   std::list<iot::mqtt::Topic>& topics)
-        : instanceName(instanceName)
-        , protocol(protocol)
-        , encryption(encryption)
-        , transport(transport)
-        , topics(topics) {
+    Broker::Broker(Bridge* bridge,
+                   std::string&& instanceName,
+                   std::string&& protocol,
+                   std::string&& encryption,
+                   std::string&& transport,
+                   std::list<iot::mqtt::Topic>&& topics)
+        : bridge(bridge)
+        , instanceName(std::move(instanceName))
+        , protocol(std::move(protocol))
+        , encryption(std::move(encryption))
+        , transport(std::move(transport))
+        , topics(std::move(topics)) {
     }
 
     Broker::~Broker() {
+    }
+
+    Bridge* Broker::getBridge() const {
+        return bridge;
     }
 
     const std::string& Broker::getInstanceName() const {

@@ -48,9 +48,6 @@ namespace mqtt::bridge::lib {
                bool willRetain,
                const std::string& userName,
                const std::string& passWord);
-        Bridge(const Bridge&) = default;
-
-        Bridge& operator=(const Bridge&) = default;
 
         ~Bridge() = default;
 

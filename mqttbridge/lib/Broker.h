@@ -19,6 +19,10 @@
 #ifndef MQTT_BRIDGE_LIB_BROKER_H
 #define MQTT_BRIDGE_LIB_BROKER_H
 
+namespace mqtt::bridge::lib {
+    class Bridge;
+}
+
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <iot/mqtt/Topic.h>
@@ -31,17 +35,20 @@ namespace mqtt::bridge::lib {
 
     class Broker {
     public:
-        Broker() = default;
-
-        Broker(const std::string& instanceName,
-               const std::string& protocol,
-               const std::string& encryption,
-               const std::string& transport,
-               std::list<iot::mqtt::Topic>& topics);
+        Broker(Bridge* bridge,
+               std::string&& instanceName,
+               std::string&& protocol,
+               std::string&& encryption,
+               std::string&& transport,
+               std::list<iot::mqtt::Topic>&& topics);
 
         Broker(const Broker&) = delete;
 
+        Broker(Broker&&) = default;
+
         ~Broker();
+
+        Bridge* getBridge() const;
 
         const std::string& getInstanceName() const;
         const std::string& getProtocol() const;
@@ -50,6 +57,7 @@ namespace mqtt::bridge::lib {
         const std::list<iot::mqtt::Topic>& getTopics() const;
 
     private:
+        Bridge* bridge;
         std::string instanceName;
         std::string protocol;
         std::string encryption;
@@ -60,16 +68,3 @@ namespace mqtt::bridge::lib {
 } // namespace mqtt::bridge::lib
 
 #endif // MQTT_BRIDGE_LIB_BROKER_H
-
-/*
-             const std::string& name = brokerJsonConfig["name"];
-             const std::string& protocol = brokerJsonConfig["protocol"];
-             const std::string& encryption = brokerJsonConfig["encryption"];
-             const std::string& transport = brokerJsonConfig["transport"];
-
-             std::list<iot::mqtt::Topic> topics;
-             topics.emplace_back(topicJson["topic"], topicJson["qos"]);
-
-                 VLOG(1) << "    Topic: " << topicJson["topic"];
-                 VLOG(1) << "      Qos: " << topicJson["qos"];
- */

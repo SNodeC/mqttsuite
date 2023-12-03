@@ -34,7 +34,7 @@
 
 namespace mqtt::bridge::lib {
 
-    Mqtt::Mqtt(mqtt::bridge::lib::Bridge* bridge, const std::list<iot::mqtt::Topic>& topics)
+    Mqtt::Mqtt(Bridge* bridge, const std::list<iot::mqtt::Topic>& topics)
         : iot::mqtt::client::Mqtt(bridge->getClientId())
         , bridge(bridge)
         , topics(topics)
