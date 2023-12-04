@@ -46,8 +46,6 @@ namespace mqtt::bridge::lib {
 
         Broker(Broker&&) = default;
 
-        ~Broker();
-
         Bridge& getBridge() const;
 
         const std::string& getInstanceName() const;

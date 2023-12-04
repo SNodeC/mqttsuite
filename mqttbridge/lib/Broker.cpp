@@ -40,9 +40,6 @@ namespace mqtt::bridge::lib {
         , topics(std::move(topics)) {
     }
 
-    Broker::~Broker() {
-    }
-
     Bridge& Broker::getBridge() const {
         return bridge;
     }

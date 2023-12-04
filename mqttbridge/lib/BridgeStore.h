@@ -36,8 +36,6 @@ namespace mqtt::bridge::lib {
     private:
         BridgeStore() = default;
 
-        ~BridgeStore() = default;
-
     public:
         static BridgeStore& instance();
 

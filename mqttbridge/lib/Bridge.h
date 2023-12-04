@@ -49,8 +49,6 @@ namespace mqtt::bridge::lib {
                const std::string& userName,
                const std::string& passWord);
 
-        ~Bridge() = default;
-
         void addMqtt(iot::mqtt::Mqtt* mqtt);
         void removeMqtt(iot::mqtt::Mqtt* mqtt);
 
