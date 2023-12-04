@@ -66,21 +66,44 @@ void reportState(const std::string& instanceName, const SocketAddress& socketAdd
     }
 }
 
-template <template <typename, typename...> typename SocketClient,
-          typename SocketContextFactory,
+template <template <typename, typename... Args> typename SocketClient,
+          typename SocketContextFactoryT,
           typename... Args,
-          typename = std::enable_if_t<std::is_base_of_v<core::socket::stream::SocketContextFactory, SocketContextFactory>>>
-void startClient(const std::string& name, Args&&... args) {
-    using Client = SocketClient<SocketContextFactory, Args&&...>;
+          typename = std::enable_if_t<std::is_base_of_v<core::socket::stream::SocketContextFactory, SocketContextFactoryT>>>
+void startClientCB(const std::string& instanceName,
+                   const std::function<void(typename SocketClient<SocketContextFactoryT>::Config&)>& configurator,
+                   Args&&... args) {
+    using Client = SocketClient<SocketContextFactoryT, Args&&...>;
     using SocketAddress = typename Client::SocketAddress;
 
-    Client client(name, std::forward<Args>(args)...);
+    Client client(instanceName, std::forward<Args>(args)...);
+
+    configurator(client.getConfig());
+
     client.getConfig().setRetry();
     client.getConfig().setRetryBase(1);
     client.getConfig().setReconnect();
 
-    client.connect([name](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
-        reportState(name, socketAddress, state);
+    client.connect([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
+        reportState(instanceName, socketAddress, state);
+    });
+}
+
+template <template <typename, typename...> typename SocketClient,
+          typename SocketContextFactory,
+          typename... Args,
+          typename = std::enable_if_t<std::is_base_of_v<core::socket::stream::SocketContextFactory, SocketContextFactory>>>
+void startClient(const std::string& instanceName, Args&&... args) {
+    using Client = SocketClient<SocketContextFactory, Args&&...>;
+    using SocketAddress = typename Client::SocketAddress;
+
+    Client client(instanceName, std::forward<Args>(args)...);
+    client.getConfig().setRetry();
+    client.getConfig().setRetryBase(1);
+    client.getConfig().setReconnect();
+
+    client.connect([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
+        reportState(instanceName, socketAddress, state);
     });
 }
 
@@ -113,8 +136,16 @@ int main(int argc, char* argv[]) {
 
                     if (protocol == "in") {
                         if (encryption == "legacy") {
-                            startClient<net::in::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
-                                instanceName, broker.getBridge(), topics);
+                            startClientCB<net::in::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
+                                instanceName,
+                                [](auto& config) -> void {
+                                    config.setDisabled();
+                                },
+                                broker.getBridge(),
+                                topics);
+                            //                            startClient<net::in::stream::legacy::SocketClient,
+                            //                            mqtt::bridge::SocketContextFactory>(
+                            //                                instanceName, broker.getBridge(), topics);
                         } else if (encryption == "tls") {
                             startClient<net::in::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
                                 instanceName, broker.getBridge(), topics);
