@@ -34,18 +34,18 @@
 
 namespace mqtt::bridge::lib {
 
-    Mqtt::Mqtt(Bridge* bridge, const std::list<iot::mqtt::Topic>& topics)
-        : iot::mqtt::client::Mqtt(bridge->getClientId())
+    Mqtt::Mqtt(Bridge& bridge, const std::list<iot::mqtt::Topic>& topics)
+        : iot::mqtt::client::Mqtt(bridge.getClientId())
         , bridge(bridge)
         , topics(topics)
-        , keepAlive(bridge->getKeepAlive())
-        , cleanSession(bridge->getCleanSession())
-        , willTopic(bridge->getWillTopic())
-        , willMessage(bridge->getWillMessage())
-        , willQoS(bridge->getWillQoS())
-        , willRetain(bridge->getWillRetain())
-        , username(bridge->getUsername())
-        , password(bridge->getPassword()) {
+        , keepAlive(bridge.getKeepAlive())
+        , cleanSession(bridge.getCleanSession())
+        , willTopic(bridge.getWillTopic())
+        , willMessage(bridge.getWillMessage())
+        , willQoS(bridge.getWillQoS())
+        , willRetain(bridge.getWillRetain())
+        , username(bridge.getUsername())
+        , password(bridge.getPassword()) {
         LOG(TRACE) << "Keep Alive: " << keepAlive;
         LOG(TRACE) << "Client Id: " << clientId;
         LOG(TRACE) << "Clean Session: " << cleanSession;
@@ -64,7 +64,7 @@ namespace mqtt::bridge::lib {
     }
 
     void Mqtt::onDisconnected() {
-        bridge->removeMqtt(this);
+        bridge.removeMqtt(this);
         VLOG(1) << "MQTT: Disconnected";
     }
 
@@ -77,14 +77,14 @@ namespace mqtt::bridge::lib {
 
     void Mqtt::onConnack(const iot::mqtt::packets::Connack& connack) {
         if (connack.getReturnCode() == 0) {
-            bridge->addMqtt(this);
+            bridge.addMqtt(this);
 
             sendSubscribe(topics);
         }
     }
 
     void Mqtt::onPublish(const iot::mqtt::packets::Publish& publish) {
-        bridge->publish(this, publish);
+        bridge.publish(this, publish);
     }
 
 } // namespace mqtt::bridge::lib

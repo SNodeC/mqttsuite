@@ -35,7 +35,7 @@ namespace mqtt::bridge::lib {
 
     class Broker {
     public:
-        Broker(Bridge* bridge,
+        Broker(Bridge& bridge,
                std::string&& instanceName,
                std::string&& protocol,
                std::string&& encryption,
@@ -48,7 +48,7 @@ namespace mqtt::bridge::lib {
 
         ~Broker();
 
-        Bridge* getBridge() const;
+        Bridge& getBridge() const;
 
         const std::string& getInstanceName() const;
         const std::string& getProtocol() const;
@@ -57,7 +57,7 @@ namespace mqtt::bridge::lib {
         const std::list<iot::mqtt::Topic>& getTopics() const;
 
     private:
-        Bridge* bridge;
+        Bridge& bridge;
         std::string instanceName;
         std::string protocol;
         std::string encryption;

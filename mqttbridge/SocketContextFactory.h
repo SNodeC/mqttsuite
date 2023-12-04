@@ -40,13 +40,12 @@ namespace mqtt::bridge {
 
     class SocketContextFactory : public core::socket::stream::SocketContextFactory {
     public:
+        SocketContextFactory(mqtt::bridge::lib::Bridge& bridge, const std::list<iot::mqtt::Topic>& topics);
+
         core::socket::stream::SocketContext* create(core::socket::stream::SocketConnection* socketConnection) final;
 
-        SocketContextFactory& setBridge(mqtt::bridge::lib::Bridge* bridge);
-        SocketContextFactory& setTopics(const std::list<iot::mqtt::Topic>& topics);
-
     private:
-        mqtt::bridge::lib::Bridge* bridge = nullptr;
+        mqtt::bridge::lib::Bridge& bridge;
         std::list<iot::mqtt::Topic> topics;
     };
 

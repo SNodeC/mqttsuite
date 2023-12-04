@@ -80,15 +80,17 @@ namespace mqtt::bridge::lib {
 
                                             for (const nlohmann::json& bridgeConfigJson : // NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks)
                                                  bridgeConfigJson["bridges"]) {
-                                                Bridge& bridge = bridgeList.emplace_back(bridgeConfigJson["connection"]["client_id"],
-                                                                                         bridgeConfigJson["connection"]["keep_alive"],
-                                                                                         bridgeConfigJson["connection"]["clean_session"],
-                                                                                         bridgeConfigJson["connection"]["will_topic"],
-                                                                                         bridgeConfigJson["connection"]["will_message"],
-                                                                                         bridgeConfigJson["connection"]["will_qos"],
-                                                                                         bridgeConfigJson["connection"]["will_retain"],
-                                                                                         bridgeConfigJson["connection"]["username"],
-                                                                                         bridgeConfigJson["connection"]["password"]);
+                                                const nlohmann::json& connection = bridgeConfigJson["connection"];
+
+                                                Bridge& bridge = bridgeList.emplace_back(connection["client_id"],
+                                                                                         connection["keep_alive"],
+                                                                                         connection["clean_session"],
+                                                                                         connection["will_topic"],
+                                                                                         connection["will_message"],
+                                                                                         connection["will_qos"],
+                                                                                         connection["will_retain"],
+                                                                                         connection["username"],
+                                                                                         connection["password"]);
 
                                                 for (const nlohmann::json& brokerConfigJson : bridgeConfigJson["brokers"]) {
                                                     std::list<iot::mqtt::Topic> topics;
@@ -97,7 +99,7 @@ namespace mqtt::bridge::lib {
                                                     }
 
                                                     brokers.emplace(brokerConfigJson["instance_name"],
-                                                                    Broker(&bridge,
+                                                                    Broker(bridge,
                                                                            brokerConfigJson["instance_name"],
                                                                            brokerConfigJson["protocol"],
                                                                            brokerConfigJson["encryption"],

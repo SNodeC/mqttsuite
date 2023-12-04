@@ -39,6 +39,7 @@
 #include <net/un/stream/tls/SocketClient.h>
 #include <string>
 #include <type_traits>
+#include <utility>
 #include <utils/Config.h>
 
 // IWYU pragma: no_include <bits/utility.h>
@@ -65,26 +66,21 @@ void reportState(const std::string& instanceName, const SocketAddress& socketAdd
     }
 }
 
-template <template <typename> typename SocketClient,
+template <template <typename, typename...> typename SocketClient,
           typename SocketContextFactory,
+          typename... Args,
           typename = std::enable_if_t<std::is_base_of_v<core::socket::stream::SocketContextFactory, SocketContextFactory>>>
-void startClient(const std::string& name, const std::function<void(SocketClient<SocketContextFactory>&)> configurator) {
-    using Client = SocketClient<SocketContextFactory>;
+void startClient(const std::string& name, Args&&... args) {
+    using Client = SocketClient<SocketContextFactory, Args&&...>;
     using SocketAddress = typename Client::SocketAddress;
 
-    Client client(name);
+    Client client(name, std::forward<Args>(args)...);
     client.getConfig().setRetry();
     client.getConfig().setRetryBase(1);
     client.getConfig().setReconnect();
-    configurator(client);
+
     client.connect([name](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
         reportState(name, socketAddress, state);
-    });
-}
-
-template <template <typename> typename SocketClient, typename SocketContextFactory>
-void startClient(const std::string& name) {
-    startClient<SocketClient, SocketContextFactory>(name, []([[maybe_unused]] SocketClient<SocketContextFactory>& client) -> void {
     });
 }
 
@@ -105,7 +101,7 @@ int main(int argc, char* argv[]) {
 
                 if (transport == "stream") {
                     VLOG(1) << "  Creating Broker instance: " << instanceName;
-                    VLOG(1) << "    Bridge client id : " << broker.getBridge()->getClientId();
+                    VLOG(1) << "    Bridge client id : " << broker.getBridge().getClientId();
                     VLOG(1) << "    Protocol: " << protocol;
                     VLOG(1) << "    Encryption: " << encryption;
 
@@ -118,62 +114,42 @@ int main(int argc, char* argv[]) {
                     if (protocol == "in") {
                         if (encryption == "legacy") {
                             startClient<net::in::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
-                                instanceName, [&broker, &topics](auto& mqttBroker) -> void {
-                                    mqttBroker.getSocketContextFactory()->setBridge(broker.getBridge()).setTopics(topics);
-                                });
+                                instanceName, broker.getBridge(), topics);
                         } else if (encryption == "tls") {
                             startClient<net::in::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
-                                instanceName, [&broker, &topics](auto& mqttBroker) -> void {
-                                    mqttBroker.getSocketContextFactory()->setBridge(broker.getBridge()).setTopics(topics); // NOLINT
-                                });
+                                instanceName, broker.getBridge(), topics);
                         }
                     } else if (protocol == "in6") {
                         if (encryption == "legacy") {
                             startClient<net::in6::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
-                                instanceName, [&broker, &topics](auto& mqttBroker) -> void {
-                                    mqttBroker.getSocketContextFactory()->setBridge(broker.getBridge()).setTopics(topics); // NOLINT
-                                });
+                                instanceName, broker.getBridge(), topics);
                         } else if (encryption == "tls") {
                             startClient<net::in6::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
-                                instanceName, [&broker, &topics](auto& mqttBroker) -> void {
-                                    mqttBroker.getSocketContextFactory()->setBridge(broker.getBridge()).setTopics(topics); // NOLINT
-                                });
+                                instanceName, broker.getBridge(), topics);
                         }
                     } else if (protocol == "l2") {
                         if (encryption == "legacy") {
                             startClient<net::l2::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
-                                instanceName, [&broker, &topics](auto& mqttBroker) -> void {
-                                    mqttBroker.getSocketContextFactory()->setBridge(broker.getBridge()).setTopics(topics); // NOLINT
-                                });
+                                instanceName, broker.getBridge(), topics);
                         } else if (encryption == "tls") {
                             startClient<net::l2::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
-                                instanceName, [&broker, &topics](auto& mqttBroker) -> void {
-                                    mqttBroker.getSocketContextFactory()->setBridge(broker.getBridge()).setTopics(topics); // NOLINT
-                                });
+                                instanceName, broker.getBridge(), topics);
                         }
                     } else if (protocol == "rc") {
                         if (encryption == "legacy") {
                             startClient<net::rc::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
-                                instanceName, [&broker, &topics](auto& mqttBroker) -> void {
-                                    mqttBroker.getSocketContextFactory()->setBridge(broker.getBridge()).setTopics(topics); // NOLINT
-                                });
+                                instanceName, broker.getBridge(), topics);
                         } else if (encryption == "tls") {
                             startClient<net::rc::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
-                                instanceName, [&broker, &topics](auto& mqttBroker) -> void {
-                                    mqttBroker.getSocketContextFactory()->setBridge(broker.getBridge()).setTopics(topics); // NOLINT
-                                });
+                                instanceName, broker.getBridge(), topics);
                         }
                     } else if (protocol == "un") {
                         if (encryption == "legacy") {
                             startClient<net::un::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
-                                instanceName, [&broker, &topics](auto& mqttBroker) -> void {
-                                    mqttBroker.getSocketContextFactory()->setBridge(broker.getBridge()).setTopics(topics); // NOLINT
-                                });
+                                instanceName, broker.getBridge(), topics);
                         } else if (encryption == "tls") {
                             startClient<net::un::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
-                                instanceName, [&broker, &topics](auto& mqttBroker) -> void {
-                                    mqttBroker.getSocketContextFactory()->setBridge(broker.getBridge()).setTopics(topics); // NOLINT
-                                });
+                                instanceName, broker.getBridge(), topics);
                         }
                     }
                 }

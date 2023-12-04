@@ -52,7 +52,7 @@ void reportState(const std::string& instanceName, const SocketAddress& socketAdd
     }
 }
 
-template <template <typename> typename SocketClient, typename SocketContextFactory>
+template <template <typename, typename...> typename SocketClient, typename SocketContextFactory>
 void startClient(const std::string& name, const std::function<void(SocketClient<SocketContextFactory>&)> configurator) {
     using Client = SocketClient<SocketContextFactory>;
     using SocketAddress = typename Client::SocketAddress;

@@ -26,7 +26,7 @@
 
 namespace mqtt::bridge::lib {
 
-    Broker::Broker(Bridge* bridge,
+    Broker::Broker(Bridge& bridge,
                    std::string&& instanceName,
                    std::string&& protocol,
                    std::string&& encryption,
@@ -43,7 +43,7 @@ namespace mqtt::bridge::lib {
     Broker::~Broker() {
     }
 
-    Bridge* Broker::getBridge() const {
+    Bridge& Broker::getBridge() const {
         return bridge;
     }
 

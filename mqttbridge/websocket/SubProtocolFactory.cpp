@@ -53,7 +53,7 @@ namespace mqtt::mqttbridge::websocket {
 
         if (!broker.getInstanceName().empty()) {
             VLOG(1) << "  Creating Broker instance: " << instanceName;
-            VLOG(1) << "    Bridge client id: " << broker.getBridge()->getClientId();
+            VLOG(1) << "    Bridge client id: " << broker.getBridge().getClientId();
             VLOG(1) << "    Protocol: " << broker.getProtocol();
             VLOG(1) << "    Encryption: " << broker.getEncryption();
 
