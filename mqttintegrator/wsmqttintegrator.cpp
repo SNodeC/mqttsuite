@@ -69,7 +69,7 @@ template <template <typename, typename> typename HttpClient>
 void startClient(const std::string& name,
                  const std::function<void(HttpClient<web::http::client::Request, web::http::client::Response>&)>& configurator) {
     using WsIntegrator = HttpClient<web::http::client::Request, web::http::client::Response>;
-    using SocketAddress = WsIntegrator::SocketAddress;
+    using SocketAddress = typename WsIntegrator::SocketAddress;
 
     WsIntegrator wsIntegrator(
         name,
