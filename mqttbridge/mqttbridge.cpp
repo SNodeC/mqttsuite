@@ -22,6 +22,7 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <core/SNodeC.h>
+#include <core/socket/stream/SocketContextFactory.h> // IWYU pragma: keep
 #include <cstdint>
 #include <iot/mqtt/Topic.h>
 #include <list>
@@ -41,6 +42,7 @@
 #include <type_traits>
 #include <utility>
 #include <utils/Config.h>
+#include <variant>
 
 // IWYU pragma: no_include <bits/utility.h>
 
@@ -66,17 +68,17 @@ void reportState(const std::string& instanceName, const SocketAddress& socketAdd
     }
 }
 
-template <template <typename, typename... Args> typename SocketClient,
+template <template <typename, typename...> typename SocketClient,
           typename SocketContextFactory,
-          typename... Args,
+          typename... SocketContextFactoryArgs,
           typename = std::enable_if_t<std::is_base_of_v<core::socket::stream::SocketContextFactory, SocketContextFactory>>>
 void startClient(const std::string& instanceName,
                  const std::function<void(typename SocketClient<SocketContextFactory>::Config&)>& configurator,
-                 Args&&... args) {
-    using Client = SocketClient<SocketContextFactory, Args&&...>;
+                 SocketContextFactoryArgs&&... socketContextFactoryArgs) {
+    using Client = SocketClient<SocketContextFactory, SocketContextFactoryArgs&&...>;
     using SocketAddress = typename Client::SocketAddress;
 
-    Client client(instanceName, std::forward<Args>(args)...);
+    Client client(instanceName, std::forward<SocketContextFactoryArgs>(socketContextFactoryArgs)...);
 
     configurator(client.getConfig());
 
@@ -87,15 +89,16 @@ void startClient(const std::string& instanceName,
 
 template <template <typename, typename...> typename SocketClient,
           typename SocketContextFactory,
-          typename... Args,
+          typename... SocketContextFactoryArgs,
           typename = std::enable_if_t<std::is_base_of_v<core::socket::stream::SocketContextFactory, SocketContextFactory>>,
-          typename = std::enable_if_t<
-              not std::is_invocable_v<std::tuple_element_t<0, std::tuple<Args...>>, typename SocketClient<SocketContextFactory>::Config&>>>
-typename SocketClient<SocketContextFactory>::Config& startClient(const std::string& instanceName, Args&&... args) {
-    using Client = SocketClient<SocketContextFactory, Args&&...>;
+          typename = std::enable_if_t<not std::is_invocable_v<std::tuple_element_t<0, std::tuple<SocketContextFactoryArgs...>>,
+                                                              typename SocketClient<SocketContextFactory>::Config&>>>
+typename SocketClient<SocketContextFactory>::Config& startClient(const std::string& instanceName,
+                                                                 SocketContextFactoryArgs&&... socketContextFactoryArgs) {
+    using Client = SocketClient<SocketContextFactory, SocketContextFactoryArgs&&...>;
     using SocketAddress = typename Client::SocketAddress;
 
-    Client client(instanceName, std::forward<Args>(args)...);
+    Client client(instanceName, std::forward<SocketContextFactoryArgs>(socketContextFactoryArgs)...);
 
     client.connect([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
         reportState(instanceName, socketAddress, state);

@@ -19,6 +19,7 @@
 #include "SocketContextFactory.h" // IWYU pragma: keep
 
 #include <core/SNodeC.h>
+#include <core/socket/stream/SocketContextFactory.h> // IWYU pragma: keep
 #include <net/in/stream/legacy/SocketClient.h>
 #include <net/in/stream/tls/SocketClient.h>
 #include <net/un/stream/legacy/SocketClient.h>
@@ -28,7 +29,12 @@
 #include <cstdlib>
 #include <log/Logger.h>
 #include <string>
+#include <type_traits>
+#include <utility>
 #include <utils/Config.h>
+#include <variant>
+
+// IWYU pragma: no_include <bits/utility.h>
 
 #endif
 
@@ -52,16 +58,43 @@ void reportState(const std::string& instanceName, const SocketAddress& socketAdd
     }
 }
 
-template <template <typename, typename...> typename SocketClient, typename SocketContextFactory>
-void startClient(const std::string& name, const std::function<void(SocketClient<SocketContextFactory>&)> configurator) {
-    using Client = SocketClient<SocketContextFactory>;
+template <template <typename, typename...> typename SocketClient,
+          typename SocketContextFactory,
+          typename... SocketContextFactoryArgs,
+          typename = std::enable_if_t<std::is_base_of_v<core::socket::stream::SocketContextFactory, SocketContextFactory>>>
+void startClient(const std::string& instanceName,
+                 const std::function<void(typename SocketClient<SocketContextFactory>::Config&)>& configurator,
+                 SocketContextFactoryArgs&&... socketContextFactoryArgs) {
+    using Client = SocketClient<SocketContextFactory, SocketContextFactoryArgs&&...>;
     using SocketAddress = typename Client::SocketAddress;
 
-    Client client(name);
-    configurator(client);
-    client.connect([name](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
-        reportState(name, socketAddress, state);
+    Client client(instanceName, std::forward<SocketContextFactoryArgs>(socketContextFactoryArgs)...);
+
+    configurator(client.getConfig());
+
+    client.connect([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
+        reportState(instanceName, socketAddress, state);
     });
+}
+
+template <template <typename, typename...> typename SocketClient,
+          typename SocketContextFactory,
+          typename... SocketContextFactoryArgs,
+          typename = std::enable_if_t<std::is_base_of_v<core::socket::stream::SocketContextFactory, SocketContextFactory>>,
+          typename = std::enable_if_t<not std::is_invocable_v<std::tuple_element_t<0, std::tuple<SocketContextFactoryArgs...>>,
+                                                              typename SocketClient<SocketContextFactory>::Config&>>>
+typename SocketClient<SocketContextFactory>::Config& startClient(const std::string& instanceName,
+                                                                 SocketContextFactoryArgs&&... socketContextFactoryArgs) {
+    using Client = SocketClient<SocketContextFactory, SocketContextFactoryArgs&&...>;
+    using SocketAddress = typename Client::SocketAddress;
+
+    Client client(instanceName, std::forward<SocketContextFactoryArgs>(socketContextFactoryArgs)...);
+
+    client.connect([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
+        reportState(instanceName, socketAddress, state);
+    });
+
+    return client.getConfig();
 }
 
 int main(int argc, char* argv[]) {
@@ -72,18 +105,18 @@ int main(int argc, char* argv[]) {
 
     setenv("MQTT_SESSION_STORE", utils::Config::get_string_option_value("--mqtt-session-store").data(), 0);
 
-    startClient<net::in::stream::legacy::SocketClient, mqtt::mqttintegrator::SocketContextFactory>("in-mqtt", [](auto& integrator) -> void {
-        integrator.getConfig().Remote::setPort(1883);
+    startClient<net::in::stream::legacy::SocketClient, mqtt::mqttintegrator::SocketContextFactory>("in-mqtt", [](auto& config) -> void {
+        config.Remote::setPort(1883);
     });
 
-    startClient<net::in::stream::tls::SocketClient, mqtt::mqttintegrator::SocketContextFactory>("in-mqtts", [](auto& integrator) -> void {
-        integrator.getConfig().setDisabled();
-        integrator.getConfig().Remote::setPort(8883);
+    startClient<net::in::stream::tls::SocketClient, mqtt::mqttintegrator::SocketContextFactory>("in-mqtts", [](auto& config) -> void {
+        config.setDisabled();
+        config.Remote::setPort(8883);
     });
 
-    startClient<net::un::stream::legacy::SocketClient, mqtt::mqttintegrator::SocketContextFactory>("un-mqtt", [](auto& integrator) -> void {
-        integrator.getConfig().setDisabled();
-        integrator.getConfig().Remote::setSunPath("/tmp/mqttbroker");
+    startClient<net::un::stream::legacy::SocketClient, mqtt::mqttintegrator::SocketContextFactory>("un-mqtt", [](auto& config) -> void {
+        config.setDisabled();
+        config.Remote::setSunPath("/tmp/mqttbroker");
     });
 
     return core::SNodeC::start();
