@@ -67,13 +67,13 @@ void reportState(const std::string& instanceName, const SocketAddress& socketAdd
 }
 
 template <template <typename, typename... Args> typename SocketClient,
-          typename SocketContextFactoryT,
+          typename SocketContextFactory,
           typename... Args,
-          typename = std::enable_if_t<std::is_base_of_v<core::socket::stream::SocketContextFactory, SocketContextFactoryT>>>
-void startClientCB(const std::string& instanceName,
-                   const std::function<void(typename SocketClient<SocketContextFactoryT>::Config&)>& configurator,
-                   Args&&... args) {
-    using Client = SocketClient<SocketContextFactoryT, Args&&...>;
+          typename = std::enable_if_t<std::is_base_of_v<core::socket::stream::SocketContextFactory, SocketContextFactory>>>
+void startClient(const std::string& instanceName,
+                 const std::function<void(typename SocketClient<SocketContextFactory>::Config&)>& configurator,
+                 Args&&... args) {
+    using Client = SocketClient<SocketContextFactory, Args&&...>;
     using SocketAddress = typename Client::SocketAddress;
 
     Client client(instanceName, std::forward<Args>(args)...);
@@ -88,19 +88,20 @@ void startClientCB(const std::string& instanceName,
 template <template <typename, typename...> typename SocketClient,
           typename SocketContextFactory,
           typename... Args,
-          typename = std::enable_if_t<std::is_base_of_v<core::socket::stream::SocketContextFactory, SocketContextFactory>>>
-void startClient(const std::string& instanceName, Args&&... args) {
+          typename = std::enable_if_t<std::is_base_of_v<core::socket::stream::SocketContextFactory, SocketContextFactory>>,
+          typename = std::enable_if_t<
+              not std::is_invocable_v<std::tuple_element_t<0, std::tuple<Args...>>, typename SocketClient<SocketContextFactory>::Config&>>>
+typename SocketClient<SocketContextFactory>::Config& startClient(const std::string& instanceName, Args&&... args) {
     using Client = SocketClient<SocketContextFactory, Args&&...>;
     using SocketAddress = typename Client::SocketAddress;
 
     Client client(instanceName, std::forward<Args>(args)...);
-    client.getConfig().setRetry();
-    client.getConfig().setRetryBase(1);
-    client.getConfig().setReconnect();
 
     client.connect([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
         reportState(instanceName, socketAddress, state);
     });
+
+    return client.getConfig();
 }
 
 int main(int argc, char* argv[]) {
@@ -132,7 +133,7 @@ int main(int argc, char* argv[]) {
 
                     if (protocol == "in") {
                         if (encryption == "legacy") {
-                            startClientCB<net::in::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
+                            startClient<net::in::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
                                 instanceName,
                                 [](auto& config) -> void {
                                     config.setRetry();
@@ -142,7 +143,7 @@ int main(int argc, char* argv[]) {
                                 broker.getBridge(),
                                 topics);
                         } else if (encryption == "tls") {
-                            startClientCB<net::in::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
+                            startClient<net::in::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
                                 instanceName,
                                 [](auto& config) -> void {
                                     config.setRetry();
@@ -154,7 +155,7 @@ int main(int argc, char* argv[]) {
                         }
                     } else if (protocol == "in6") {
                         if (encryption == "legacy") {
-                            startClientCB<net::in6::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
+                            startClient<net::in6::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
                                 instanceName,
                                 [](auto& config) -> void {
                                     config.setRetry();
@@ -164,7 +165,7 @@ int main(int argc, char* argv[]) {
                                 broker.getBridge(),
                                 topics);
                         } else if (encryption == "tls") {
-                            startClientCB<net::in6::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
+                            startClient<net::in6::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
                                 instanceName,
                                 [](auto& config) -> void {
                                     config.setRetry();
@@ -176,7 +177,7 @@ int main(int argc, char* argv[]) {
                         }
                     } else if (protocol == "l2") {
                         if (encryption == "legacy") {
-                            startClientCB<net::l2::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
+                            startClient<net::l2::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
                                 instanceName,
                                 [](auto& config) -> void {
                                     config.setRetry();
@@ -186,7 +187,7 @@ int main(int argc, char* argv[]) {
                                 broker.getBridge(),
                                 topics);
                         } else if (encryption == "tls") {
-                            startClientCB<net::l2::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
+                            startClient<net::l2::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
                                 instanceName,
                                 [](auto& config) -> void {
                                     config.setRetry();
@@ -198,7 +199,7 @@ int main(int argc, char* argv[]) {
                         }
                     } else if (protocol == "rc") {
                         if (encryption == "legacy") {
-                            startClientCB<net::rc::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
+                            startClient<net::rc::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
                                 instanceName,
                                 [](auto& config) -> void {
                                     config.setRetry();
@@ -208,7 +209,7 @@ int main(int argc, char* argv[]) {
                                 broker.getBridge(),
                                 topics);
                         } else if (encryption == "tls") {
-                            startClientCB<net::rc::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
+                            startClient<net::rc::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
                                 instanceName,
                                 [](auto& config) -> void {
                                     config.setRetry();
@@ -220,7 +221,7 @@ int main(int argc, char* argv[]) {
                         }
                     } else if (protocol == "un") {
                         if (encryption == "legacy") {
-                            startClientCB<net::un::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
+                            startClient<net::un::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
                                 instanceName,
                                 [](auto& config) -> void {
                                     config.setRetry();
@@ -230,7 +231,7 @@ int main(int argc, char* argv[]) {
                                 broker.getBridge(),
                                 topics);
                         } else if (encryption == "tls") {
-                            startClientCB<net::un::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
+                            startClient<net::un::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
                                 instanceName,
                                 [](auto& config) -> void {
                                     config.setRetry();
