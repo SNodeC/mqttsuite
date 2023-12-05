@@ -80,10 +80,6 @@ void startClientCB(const std::string& instanceName,
 
     configurator(client.getConfig());
 
-    client.getConfig().setRetry();
-    client.getConfig().setRetryBase(1);
-    client.getConfig().setReconnect();
-
     client.connect([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
         reportState(instanceName, socketAddress, state);
     });
@@ -139,48 +135,110 @@ int main(int argc, char* argv[]) {
                             startClientCB<net::in::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
                                 instanceName,
                                 [](auto& config) -> void {
-                                    config.setDisabled();
+                                    config.setRetry();
+                                    config.setRetryBase(1);
+                                    config.setReconnect();
                                 },
                                 broker.getBridge(),
                                 topics);
-                            //                            startClient<net::in::stream::legacy::SocketClient,
-                            //                            mqtt::bridge::SocketContextFactory>(
-                            //                                instanceName, broker.getBridge(), topics);
                         } else if (encryption == "tls") {
-                            startClient<net::in::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
-                                instanceName, broker.getBridge(), topics);
+                            startClientCB<net::in::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
+                                instanceName,
+                                [](auto& config) -> void {
+                                    config.setRetry();
+                                    config.setRetryBase(1);
+                                    config.setReconnect();
+                                },
+                                broker.getBridge(),
+                                topics);
                         }
                     } else if (protocol == "in6") {
                         if (encryption == "legacy") {
-                            startClient<net::in6::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
-                                instanceName, broker.getBridge(), topics);
+                            startClientCB<net::in6::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
+                                instanceName,
+                                [](auto& config) -> void {
+                                    config.setRetry();
+                                    config.setRetryBase(1);
+                                    config.setReconnect();
+                                },
+                                broker.getBridge(),
+                                topics);
                         } else if (encryption == "tls") {
-                            startClient<net::in6::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
-                                instanceName, broker.getBridge(), topics);
+                            startClientCB<net::in6::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
+                                instanceName,
+                                [](auto& config) -> void {
+                                    config.setRetry();
+                                    config.setRetryBase(1);
+                                    config.setReconnect();
+                                },
+                                broker.getBridge(),
+                                topics);
                         }
                     } else if (protocol == "l2") {
                         if (encryption == "legacy") {
-                            startClient<net::l2::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
-                                instanceName, broker.getBridge(), topics);
+                            startClientCB<net::l2::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
+                                instanceName,
+                                [](auto& config) -> void {
+                                    config.setRetry();
+                                    config.setRetryBase(1);
+                                    config.setReconnect();
+                                },
+                                broker.getBridge(),
+                                topics);
                         } else if (encryption == "tls") {
-                            startClient<net::l2::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
-                                instanceName, broker.getBridge(), topics);
+                            startClientCB<net::l2::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
+                                instanceName,
+                                [](auto& config) -> void {
+                                    config.setRetry();
+                                    config.setRetryBase(1);
+                                    config.setReconnect();
+                                },
+                                broker.getBridge(),
+                                topics);
                         }
                     } else if (protocol == "rc") {
                         if (encryption == "legacy") {
-                            startClient<net::rc::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
-                                instanceName, broker.getBridge(), topics);
+                            startClientCB<net::rc::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
+                                instanceName,
+                                [](auto& config) -> void {
+                                    config.setRetry();
+                                    config.setRetryBase(1);
+                                    config.setReconnect();
+                                },
+                                broker.getBridge(),
+                                topics);
                         } else if (encryption == "tls") {
-                            startClient<net::rc::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
-                                instanceName, broker.getBridge(), topics);
+                            startClientCB<net::rc::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
+                                instanceName,
+                                [](auto& config) -> void {
+                                    config.setRetry();
+                                    config.setRetryBase(1);
+                                    config.setReconnect();
+                                },
+                                broker.getBridge(),
+                                topics);
                         }
                     } else if (protocol == "un") {
                         if (encryption == "legacy") {
-                            startClient<net::un::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
-                                instanceName, broker.getBridge(), topics);
+                            startClientCB<net::un::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
+                                instanceName,
+                                [](auto& config) -> void {
+                                    config.setRetry();
+                                    config.setRetryBase(1);
+                                    config.setReconnect();
+                                },
+                                broker.getBridge(),
+                                topics);
                         } else if (encryption == "tls") {
-                            startClient<net::un::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
-                                instanceName, broker.getBridge(), topics);
+                            startClientCB<net::un::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
+                                instanceName,
+                                [](auto& config) -> void {
+                                    config.setRetry();
+                                    config.setRetryBase(1);
+                                    config.setReconnect();
+                                },
+                                broker.getBridge(),
+                                topics);
                         }
                     }
                 }
