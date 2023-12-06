@@ -46,7 +46,7 @@ namespace mqtt::bridge {
 
     private:
         mqtt::bridge::lib::Bridge& bridge;
-        std::list<iot::mqtt::Topic> topics;
+        const std::list<iot::mqtt::Topic> topics;
     };
 
 } // namespace mqtt::bridge
