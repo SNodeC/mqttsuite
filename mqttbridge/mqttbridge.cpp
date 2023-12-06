@@ -93,8 +93,7 @@ template <template <typename, typename...> typename SocketClient,
           typename = std::enable_if_t<std::is_base_of_v<core::socket::stream::SocketContextFactory, SocketContextFactory>>,
           typename = std::enable_if_t<not std::is_invocable_v<std::tuple_element_t<0, std::tuple<SocketContextFactoryArgs...>>,
                                                               typename SocketClient<SocketContextFactory>::Config&>>>
-typename SocketClient<SocketContextFactory>::Config& startClient(const std::string& instanceName,
-                                                                 SocketContextFactoryArgs&&... socketContextFactoryArgs) {
+void startClient(const std::string& instanceName, SocketContextFactoryArgs&&... socketContextFactoryArgs) {
     using Client = SocketClient<SocketContextFactory, SocketContextFactoryArgs&&...>;
     using SocketAddress = typename Client::SocketAddress;
 
@@ -103,8 +102,6 @@ typename SocketClient<SocketContextFactory>::Config& startClient(const std::stri
     client.connect([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
         reportState(instanceName, socketAddress, state);
     });
-
-    return client.getConfig();
 }
 
 int main(int argc, char* argv[]) {

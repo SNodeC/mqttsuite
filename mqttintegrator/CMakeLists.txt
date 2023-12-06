@@ -65,8 +65,9 @@ target_link_libraries(
 
 set_target_properties(
     wsmqttintegrator-dynamic
-    PROPERTIES INSTALL_RPATH
-               "${CMAKE_INSTALL_PREFIX}/${WEBSOCKET_SUBPROTOCOL_INSTALL_LIBDIR}/wsmqttintegrator"
+    PROPERTIES
+        INSTALL_RPATH
+        "${CMAKE_INSTALL_PREFIX}/${WEBSOCKET_SUBPROTOCOL_INSTALL_LIBDIR}/wsmqttintegrator"
 )
 
 install(TARGETS wsmqttintegrator-dynamic
