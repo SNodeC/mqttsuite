@@ -115,6 +115,7 @@ int main(int argc, char* argv[]) {
         using SocketAddress = MqttBroker::SocketAddress;
 
         const MqttBroker mqttBroker("in-mqtt");
+        mqttBroker.getConfig().setRetry();
         mqttBroker.listen(1883, [](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
             reportState("in-mqtt", socketAddress, state);
         });
@@ -125,6 +126,7 @@ int main(int argc, char* argv[]) {
         using SocketAddress = MqttBroker::SocketAddress;
 
         const MqttBroker mqttBroker("in-mqtts");
+        mqttBroker.getConfig().setRetry();
         mqttBroker.listen(8883, [](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
             reportState("in-mqtts", socketAddress, state);
         });
@@ -135,6 +137,7 @@ int main(int argc, char* argv[]) {
         using SocketAddress = MqttBroker::SocketAddress;
 
         const MqttBroker mqttBroker("un-mqtt");
+        mqttBroker.getConfig().setRetry();
         mqttBroker.listen("/tmp/" + utils::Config::getApplicationName(),
                           [](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
                               reportState("un-mqtt", socketAddress, state);
@@ -146,6 +149,7 @@ int main(int argc, char* argv[]) {
         using SocketAddress = MqttBroker::SocketAddress;
 
         const MqttBroker mqttBroker("in-http", getRouter());
+        mqttBroker.getConfig().setRetry();
         mqttBroker.listen(8080, [](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
             reportState("in-http", socketAddress, state);
         });
@@ -156,6 +160,7 @@ int main(int argc, char* argv[]) {
         using SocketAddress = MqttBroker::SocketAddress;
 
         const MqttBroker mqttBroker("in-https", getRouter());
+        mqttBroker.getConfig().setRetry();
         mqttBroker.listen(8088, [](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
             reportState("in-https", socketAddress, state);
         });
