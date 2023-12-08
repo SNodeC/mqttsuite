@@ -16,17 +16,18 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define SNODEC_IN_STREAM_LEGACY
-#define SNODEC_IN6_STREAM_LEGACY
-#define SNODEC_L2_STREAM_LEGACY
-#define SNODEC_RC_STREAM_LEGACY
-#define SNODEC_UN_STREAM_LEGACY
-
-#define SNODEC_IN_STREAM_TLS
-#define SNODEC_IN6_STREAM_TLS
-#define SNODEC_L2_STREAM_TLS
-#define SNODEC_RC_STREAM_TLS
-#define SNODEC_UN_STREAM_TLS
+// This is done in CMakeLists.txt
+// ==============================
+// #define MQTTBRIDGE_IN_STREAM_LEGACY
+// #define MQTTBRIDGE_IN6_STREAM_LEGACY
+// #define MQTTBRIDGE_L2_STREAM_LEGACY
+// #define MQTTBRIDGE_RC_STREAM_LEGACY
+// #define MQTTBRIDGE_UN_STREAM_LEGACY
+// #define MQTTBRIDGE_IN_STREAM_TLS
+// #define MQTTBRIDGE_IN6_STREAM_TLS
+// #define MQTTBRIDGE_L2_STREAM_TLS
+// #define MQTTBRIDGE_RC_STREAM_TLS
+// #define MQTTBRIDGE_UN_STREAM_TLS
 
 #include "SocketContextFactory.h" // IWYU pragma: keep
 #include "lib/BridgeStore.h"
@@ -34,53 +35,59 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <core/SNodeC.h>
+#include <core/socket/State.h>                       // IWYU pragma: keep
 #include <core/socket/stream/SocketContextFactory.h> // IWYU pragma: keep
 #include <iot/mqtt/Topic.h>
 #include <log/Logger.h>
 #include <utils/Config.h>
 
-#if defined(SNODEC_IN_STREAM_LEGACY) || defined(SNODEC_IN_STREAM_TLS)
-#if defined(SNODEC_IN_STREAM_LEGACY)
+namespace core::socket {
+    class SocketAddress; // IWYU pragma: keep
+}
+
+#if defined(MQTTBRIDGE_IN_STREAM_LEGACY) || defined(MQTTBRIDGE_IN_STREAM_TLS)
+#if defined(MQTTBRIDGE_IN_STREAM_LEGACY)
 #include <net/in/stream/legacy/SocketClient.h>
 #endif
-#if defined(SNODEC_IN_STREAM_TLS)
+#if defined(MQTTBRIDGE_IN_STREAM_TLS)
 #include <net/in/stream/tls/SocketClient.h>
 #endif
 #endif
-#if defined(SNODEC_IN6_STREAM_LEGACY) || defined(SNODEC_IN6_STREAM_TLS)
-#if defined(SNODEC_IN6_STREAM_LEGACY)
+#if defined(MQTTBRIDGE_IN6_STREAM_LEGACY) || defined(MQTTBRIDGE_IN6_STREAM_TLS)
+#if defined(MQTTBRIDGE_IN6_STREAM_LEGACY)
 #include <net/in6/stream/legacy/SocketClient.h>
 #endif
-#if defined(SNODEC_IN6_STREAM_TLS)
+#if defined(MQTTBRIDGE_IN6_STREAM_TLS)
 #include <net/in6/stream/tls/SocketClient.h>
 #endif
 #endif
-#if defined(SNODEC_L2_STREAM_LEGACY) || defined(SNODEC_L2_STREAM_TLS)
-#if defined(SNODEC_L2_STREAM_LEGACY)
+#if defined(MQTTBRIDGE_L2_STREAM_LEGACY) || defined(MQTTBRIDGE_L2_STREAM_TLS)
+#if defined(MQTTBRIDGE_L2_STREAM_LEGACY)
 #include <net/l2/stream/legacy/SocketClient.h>
 #endif
-#if defined(SNODEC_L2_STREAM_TLS)
+#if defined(MQTTBRIDGE_L2_STREAM_TLS)
 #include <net/l2/stream/tls/SocketClient.h>
 #endif
 #endif
-#if defined(SNODEC_RC_STREAM_LEGACY) || defined(SNODEC_RC_STREAM_TLS)
-#if defined(SNODEC_RC_STREAM_LEGACY)
+#if defined(MQTTBRIDGE_RC_STREAM_LEGACY) || defined(MQTTBRIDGE_RC_STREAM_TLS)
+#if defined(MQTTBRIDGE_RC_STREAM_LEGACY)
 #include <net/rc/stream/legacy/SocketClient.h>
 #endif
-#if defined(SNODEC_RC_STREAM_TLS)
+#if defined(MQTTBRIDGE_RC_STREAM_TLS)
 #include <net/rc/stream/tls/SocketClient.h>
 #endif
 #endif
-#if defined(SNODEC_UN_STREAM_LEGACY) || defined(SNODEC_UN_STREAM_TLS)
-#if defined(SNODEC_UN_STREAM_LEGACY)
+#if defined(MQTTBRIDGE_UN_STREAM_LEGACY) || defined(MQTTBRIDGE_UN_STREAM_TLS)
+#if defined(MQTTBRIDGE_UN_STREAM_LEGACY)
 #include <net/un/stream/legacy/SocketClient.h>
 #endif
-#if defined(SNODEC_UN_STREAM_TLS)
+#if defined(MQTTBRIDGE_UN_STREAM_TLS)
 #include <net/un/stream/tls/SocketClient.h>
 #endif
 #endif
 
 #include <cstdint>
+#include <functional> // IWYU pragma: keep
 #include <list>
 #include <map>
 #include <string>
@@ -176,9 +183,9 @@ int main(int argc, char* argv[]) {
                     }
 
 // clang-format off
-#if defined(SNODEC_IN_STREAM_LEGACY) || defined(SNODEC_IN_STREAM_TLS)
+#if defined(MQTTBRIDGE_IN_STREAM_LEGACY) || defined(MQTTBRIDGE_IN_STREAM_TLS)
                     if (protocol == "in") {
-#ifdef SNODEC_IN_STREAM_LEGACY
+#ifdef MQTTBRIDGE_IN_STREAM_LEGACY
                         if (encryption == "legacy") {
                             startClient<net::in::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
                                 instanceName,
@@ -190,11 +197,11 @@ int main(int argc, char* argv[]) {
                                 broker.getBridge(),
                                 topics);
                         }
-#ifdef SNODEC_IN_STREAM_TLS
+#ifdef MQTTBRIDGE_IN_STREAM_TLS
                         else
 #endif
 #endif
-#ifdef SNODEC_IN_STREAM_TLS
+#ifdef MQTTBRIDGE_IN_STREAM_TLS
                         if (encryption == "tls") {
                             startClient<net::in::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
                                 instanceName,
@@ -208,13 +215,13 @@ int main(int argc, char* argv[]) {
                         }
 #endif
                     }
-#if defined(SNODEC_IN6_STREAM_LEGACY) || defined(SNODEC_IN6_STREAM_TLS)
+#if defined(MQTTBRIDGE_IN6_STREAM_LEGACY) || defined(MQTTBRIDGE_IN6_STREAM_TLS)
                     else
 #endif
 #endif
-#if defined(SNODEC_IN6_STREAM_LEGACY) || defined(SNODEC_IN6_STREAM_TLS)
+#if defined(MQTTBRIDGE_IN6_STREAM_LEGACY) || defined(MQTTBRIDGE_IN6_STREAM_TLS)
                     if (protocol == "in6") {
-#ifdef SNODEC_IN6_STREAM_LEGACY
+#ifdef MQTTBRIDGE_IN6_STREAM_LEGACY
                         if (encryption == "legacy") {
                             startClient<net::in6::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
                                 instanceName,
@@ -226,11 +233,11 @@ int main(int argc, char* argv[]) {
                                 broker.getBridge(),
                                 topics);
                         }
-#ifdef SNODEC_IN6_STREAM_TLS
+#ifdef MQTTBRIDGE_IN6_STREAM_TLS
                         else
 #endif
 #endif
-#ifdef SNODEC_IN6_STREAM_TLS
+#ifdef MQTTBRIDGE_IN6_STREAM_TLS
                         if (encryption == "tls") {
                             startClient<net::in6::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
                                 instanceName,
@@ -244,13 +251,13 @@ int main(int argc, char* argv[]) {
                         }
 #endif
                     }
-#if defined(SNODEC_L2_STREAM_LEGACY) || defined(SNODEC_L2_STREAM_TLS)
+#if defined(MQTTBRIDGE_L2_STREAM_LEGACY) || defined(MQTTBRIDGE_L2_STREAM_TLS)
                     else
 #endif
 #endif
-#if defined(SNODEC_L2_STREAM_LEGACY) || defined(SNODEC_L2_STREAM_TLS)
+#if defined(MQTTBRIDGE_L2_STREAM_LEGACY) || defined(MQTTBRIDGE_L2_STREAM_TLS)
                     if (protocol == "l2") {
-#ifdef SNODEC_L2_STREAM_LEGACY
+#ifdef MQTTBRIDGE_L2_STREAM_LEGACY
                         if (encryption == "legacy") {
                             startClient<net::l2::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
                                 instanceName,
@@ -262,11 +269,11 @@ int main(int argc, char* argv[]) {
                                 broker.getBridge(),
                                 topics);
                         }
-#ifdef SNODEC_L2_STREAM_TLS
+#ifdef MQTTBRIDGE_L2_STREAM_TLS
                         else
 #endif
 #endif
-#ifdef SNODEC_L2_STREAM_TLS
+#ifdef MQTTBRIDGE_L2_STREAM_TLS
                         if (encryption == "tls") {
                             startClient<net::l2::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
                                 instanceName,
@@ -280,14 +287,14 @@ int main(int argc, char* argv[]) {
                         }
 #endif
                     }
-#if defined(SNODEC_RC_STREAM_LEGACY) || defined(SNODEC_RC_STREAM_TLS)
+#if defined(MQTTBRIDGE_RC_STREAM_LEGACY) || defined(MQTTBRIDGE_RC_STREAM_TLS)
                     else
 #endif
 #endif
-#if defined(SNODEC_RC_STREAM_LEGACY) || defined(SNODEC_RC_STREAM_TLS)
+#if defined(MQTTBRIDGE_RC_STREAM_LEGACY) || defined(MQTTBRIDGE_RC_STREAM_TLS)
                     if (protocol == "rc") {
 
-#ifdef SNODEC_RC_STREAM_LEGACY
+#ifdef MQTTBRIDGE_RC_STREAM_LEGACY
                         if (encryption == "legacy") {
                             startClient<net::rc::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
                                 instanceName,
@@ -299,11 +306,11 @@ int main(int argc, char* argv[]) {
                                 broker.getBridge(),
                                 topics);
                         }
-#ifdef SNODEC_RC_STREAM_TLS
+#ifdef MQTTBRIDGE_RC_STREAM_TLS
                         else
 #endif
 #endif
-#ifdef SNODEC_RC_STREAM_TLS
+#ifdef MQTTBRIDGE_RC_STREAM_TLS
                         if (encryption == "tls") {
                             startClient<net::rc::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
                                 instanceName,
@@ -317,13 +324,13 @@ int main(int argc, char* argv[]) {
                         }
 #endif
                     }
-#if defined(SNODEC_UN_STREAM_LEGACY) || defined(SNODEC_UN_STREAM_TLS)
+#if defined(MQTTBRIDGE_UN_STREAM_LEGACY) || defined(MQTTBRIDGE_UN_STREAM_TLS)
                     else
 #endif
 #endif
-#if defined(SNODEC_UN_STREAM_LEGACY) || defined(SNODEC_UN_STREAM_TLS)
+#if defined(MQTTBRIDGE_UN_STREAM_LEGACY) || defined(MQTTBRIDGE_UN_STREAM_TLS)
                     if (protocol == "un") {
-#ifdef SNODEC_UN_STREAM_LEGACY
+#ifdef MQTTBRIDGE_UN_STREAM_LEGACY
                         if (encryption == "legacy") {
                             startClient<net::un::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
                                 instanceName,
@@ -335,11 +342,11 @@ int main(int argc, char* argv[]) {
                                 broker.getBridge(),
                                 topics);
                         }
-#ifdef SNODEC_UN_STREAM_TLS
+#ifdef MQTTBRIDGE_UN_STREAM_TLS
                         else
 #endif
 #endif
-#ifdef SNODEC_UN_STREAM_TLS
+#ifdef MQTTBRIDGE_UN_STREAM_TLS
                         if (encryption == "tls") {
                             startClient<net::un::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
                                 instanceName,
