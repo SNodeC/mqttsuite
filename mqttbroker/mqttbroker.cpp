@@ -146,6 +146,19 @@ void startServer(const std::string& instanceName, SocketContextFactoryArgs&&... 
     });
 }
 
+template <typename HttpServer>
+void startServer(const std::string& instanceName, const std::function<void(typename HttpServer::Config&)>& configurator) {
+    using SocketAddress = HttpServer::SocketAddress;
+
+    const HttpServer httpServer(instanceName, getRouter());
+
+    configurator(httpServer.getConfig());
+
+    httpServer.listen([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
+        reportState(instanceName, socketAddress, state);
+    });
+}
+
 int main(int argc, char* argv[]) {
     utils::Config::add_string_option("--mqtt-mapping-file", "MQTT mapping file (json format) for integration", "[path]", "");
     utils::Config::add_string_option("--mqtt-session-store", "Path to file for the persistent session store", "[path]", "");
@@ -169,27 +182,13 @@ int main(int argc, char* argv[]) {
         config.setRetry();
     });
 
-    {
-        using MqttBroker = express::legacy::in::WebApp;
-        using SocketAddress = MqttBroker::SocketAddress;
+    startServer<express::legacy::in::WebApp>("in-http", [](auto& config) -> void {
+        config.setPort(8080);
+    });
 
-        const MqttBroker mqttBroker("in-http", getRouter());
-        mqttBroker.getConfig().setRetry();
-        mqttBroker.listen(8080, [](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
-            reportState("in-http", socketAddress, state);
-        });
-    }
-
-    {
-        using MqttBroker = express::tls::in::WebApp;
-        using SocketAddress = MqttBroker::SocketAddress;
-
-        const MqttBroker mqttBroker("in-https", getRouter());
-        mqttBroker.getConfig().setRetry();
-        mqttBroker.listen(8088, [](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
-            reportState("in-https", socketAddress, state);
-        });
-    }
+    startServer<express::tls::in::WebApp>("in-https", [](auto& config) -> void {
+        config.setPort(8088);
+    });
 
     return core::SNodeC::start();
 }

@@ -66,12 +66,13 @@ void reportState(const std::string& instanceName, const SocketAddress& socketAdd
 }
 
 template <template <typename, typename> typename HttpClient>
-void startClient(const std::string& name,
-                 const std::function<void(HttpClient<web::http::client::Request, web::http::client::Response>&)>& configurator) {
-    using WsIntegrator = HttpClient<web::http::client::Request, web::http::client::Response>;
-    using SocketAddress = typename WsIntegrator::SocketAddress;
+void startClient(
+    const std::string& name,
+    const std::function<void(typename HttpClient<web::http::client::Request, web::http::client::Response>::Config&)>& configurator) {
+    using Client = HttpClient<web::http::client::Request, web::http::client::Response>;
+    using SocketAddress = typename Client::SocketAddress;
 
-    WsIntegrator wsIntegrator(
+    Client client(
         name,
         [](web::http::client::Request& request) -> void {
             request.set("Sec-WebSocket-Protocol", "mqtt");
@@ -86,11 +87,10 @@ void startClient(const std::string& name,
             VLOG(0) << "     Status: " << status;
             VLOG(0) << "     Reason: " << reason;
         });
-    wsIntegrator.getConfig().setRetry();
-    wsIntegrator.getConfig().setRetryBase(1);
-    wsIntegrator.getConfig().setReconnect();
-    configurator(wsIntegrator);
-    wsIntegrator.connect([name](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
+
+    configurator(client.getConfig());
+
+    client.connect([name](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
         reportState(name, socketAddress, state);
     });
 }
@@ -111,12 +111,20 @@ int main(int argc, char* argv[]) {
 
     setenv("MQTT_SESSION_STORE", utils::Config::get_string_option_value("--mqtt-session-store").data(), 0);
 
-    startClient<web::http::legacy::in::Client>("in-wsmqtt", [](auto& wsIntegrator) -> void {
-        wsIntegrator.getConfig().Remote::setPort(8080);
+    startClient<web::http::legacy::in::Client>("in-wsmqtt", [](auto& config) -> void {
+        config.Remote::setPort(8080);
+
+        config.setRetry();
+        config.setRetryBase(1);
+        config.setReconnect();
     });
 
-    startClient<web::http::tls::in::Client>("in-wsmqtts", [](auto& wsIntegrator) -> void {
-        wsIntegrator.getConfig().Remote::setPort(8088);
+    startClient<web::http::tls::in::Client>("in-wsmqtts", [](auto& config) -> void {
+        config.Remote::setPort(8088);
+
+        config.setRetry();
+        config.setRetryBase(1);
+        config.setReconnect();
     });
 
     return core::SNodeC::start();

@@ -71,16 +71,16 @@ void reportState(const std::string& instanceName, const SocketAddress& socketAdd
 }
 
 template <template <typename, typename> typename HttpClient>
-void startClient(const std::string& name,
-                 const std::function<void(HttpClient<web::http::client::Request, web::http::client::Response>&)>& configurator) {
-    using WsIntegrator = HttpClient<web::http::client::Request, web::http::client::Response>;
-    using SocketAddress = typename WsIntegrator::SocketAddress;
+void startClient(
+    const std::string& name,
+    const std::function<void(typename HttpClient<web::http::client::Request, web::http::client::Response>::Config&)>& configurator) {
+    using Client = HttpClient<web::http::client::Request, web::http::client::Response>;
+    using SocketAddress = typename Client::SocketAddress;
 
-    WsIntegrator wsIntegrator(
+    Client client(
         name,
         [](web::http::client::Request& request) -> void {
             request.set("Sec-WebSocket-Protocol", "mqtt");
-
             request.upgrade("/ws/", "websocket");
         },
         [](web::http::client::Request& request, web::http::client::Response& response) -> void {
@@ -91,8 +91,10 @@ void startClient(const std::string& name,
             VLOG(0) << "     Status: " << status;
             VLOG(0) << "     Reason: " << reason;
         });
-    configurator(wsIntegrator);
-    wsIntegrator.connect([name](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
+
+    configurator(client.getConfig());
+
+    client.connect([name](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
         reportState(name, socketAddress, state);
     });
 }
@@ -123,18 +125,20 @@ int main(int argc, char* argv[]) {
                     if (broker.getTransport() == "websocket") {
                         if (broker.getProtocol() == "in") {
                             if (broker.getEncryption() == "legacy") {
-                                startClient<web::http::legacy::in::Client>(broker.getInstanceName(), [](auto& wsIntegrator) -> void {
-                                    wsIntegrator.getConfig().Remote::setPort(8080);
-                                    wsIntegrator.getConfig().setRetry();
-                                    wsIntegrator.getConfig().setRetryBase(1);
-                                    wsIntegrator.getConfig().setReconnect();
+                                startClient<web::http::legacy::in::Client>(broker.getInstanceName(), [](auto& config) -> void {
+                                    config.Remote::setPort(8080);
+
+                                    config.setRetry();
+                                    config.setRetryBase(1);
+                                    config.setReconnect();
                                 });
                             } else if (broker.getEncryption() == "tls") {
-                                startClient<web::http::tls::in::Client>(broker.getInstanceName(), [](auto& wsIntegrator) -> void {
-                                    wsIntegrator.getConfig().Remote::setPort(8088);
-                                    wsIntegrator.getConfig().setRetry();
-                                    wsIntegrator.getConfig().setRetryBase(1);
-                                    wsIntegrator.getConfig().setReconnect();
+                                startClient<web::http::tls::in::Client>(broker.getInstanceName(), [](auto& config) -> void {
+                                    config.Remote::setPort(8088);
+
+                                    config.setRetry();
+                                    config.setRetryBase(1);
+                                    config.setReconnect();
                                 });
                             } else {
                                 VLOG(2) << "Ignoring: " << broker.getTransport() << "::" << broker.getProtocol()
