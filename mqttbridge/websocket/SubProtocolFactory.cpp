@@ -53,19 +53,20 @@ namespace mqtt::mqttbridge::websocket {
 
         if (!broker.getInstanceName().empty()) {
             VLOG(1) << "  Creating Broker instance: " << instanceName;
-            VLOG(1) << "    Bridge client id: " << broker.getBridge().getClientId();
+            VLOG(1) << "    Bridge client id : " << broker.getBridge().getClientId();
+            VLOG(1) << "    Transport: " << broker.getTransport();
             VLOG(1) << "    Protocol: " << broker.getProtocol();
             VLOG(1) << "    Encryption: " << broker.getEncryption();
 
-            const std::list<iot::mqtt::Topic> topics = broker.getTopics();
+            VLOG(1) << "    Topics:";
+            const std::list<iot::mqtt::Topic>& topics = broker.getTopics();
             for (const iot::mqtt::Topic& topic : topics) {
-                VLOG(1) << "    Topic: " << topic.getName();
-                VLOG(1) << "      QoS: " << static_cast<uint16_t>(topic.getQoS());
+                VLOG(1) << "      " << static_cast<uint16_t>(topic.getQoS()) << ":" << topic.getName();
             }
 
             if (!topics.empty()) {
                 subProtocol = new iot::mqtt::client::SubProtocol(
-                    subProtocolContext, getName(), new mqtt::bridge::lib::Mqtt(broker.getBridge(), topics));
+                    subProtocolContext, getName(), new mqtt::bridge::lib::Mqtt(broker.getBridge(), broker.getTopics()));
             }
         }
 
