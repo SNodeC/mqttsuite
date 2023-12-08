@@ -148,7 +148,7 @@ void startServer(const std::string& instanceName, SocketContextFactoryArgs&&... 
 
 template <typename HttpServer>
 void startServer(const std::string& instanceName, const std::function<void(typename HttpServer::Config&)>& configurator) {
-    using SocketAddress = HttpServer::SocketAddress;
+    using SocketAddress = typename HttpServer::SocketAddress;
 
     const HttpServer httpServer(instanceName, getRouter());
 
