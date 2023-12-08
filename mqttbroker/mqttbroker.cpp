@@ -114,9 +114,7 @@ template <template <typename, typename...> typename SocketServer,
           typename SocketContextFactory,
           typename... SocketContextFactoryArgs,
           typename = std::enable_if_t<std::is_base_of_v<core::socket::stream::SocketContextFactory, SocketContextFactory>>>
-void startServer(const std::string& instanceName,
-                 const std::function<void(typename SocketServer<SocketContextFactory>::Config&)>& configurator,
-                 SocketContextFactoryArgs&&... socketContextFactoryArgs) {
+void startServer(const std::string& instanceName, const auto& configurator, SocketContextFactoryArgs&&... socketContextFactoryArgs) {
     using Server = SocketServer<SocketContextFactory, SocketContextFactoryArgs&&...>;
     using SocketAddress = typename Server::SocketAddress;
 

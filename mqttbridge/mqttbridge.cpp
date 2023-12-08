@@ -16,19 +16,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-// This is done in CMakeLists.txt
-// ==============================
-// #define MQTTBRIDGE_IN_STREAM_LEGACY
-// #define MQTTBRIDGE_IN6_STREAM_LEGACY
-// #define MQTTBRIDGE_L2_STREAM_LEGACY
-// #define MQTTBRIDGE_RC_STREAM_LEGACY
-// #define MQTTBRIDGE_UN_STREAM_LEGACY
-// #define MQTTBRIDGE_IN_STREAM_TLS
-// #define MQTTBRIDGE_IN6_STREAM_TLS
-// #define MQTTBRIDGE_L2_STREAM_TLS
-// #define MQTTBRIDGE_RC_STREAM_TLS
-// #define MQTTBRIDGE_UN_STREAM_TLS
-
 #include "SocketContextFactory.h" // IWYU pragma: keep
 #include "lib/BridgeStore.h"
 
@@ -45,45 +32,70 @@ namespace core::socket {
     class SocketAddress; // IWYU pragma: keep
 }
 
-#if defined(MQTTBRIDGE_IN_STREAM_LEGACY) || defined(MQTTBRIDGE_IN_STREAM_TLS)
+// This can be and is done in CMakeLists.txt
+// =========================================
+#if !defined(MQTTBRIDGE_IN_STREAM_LEGACY)
+#define MQTTBRIDGE_IN_STREAM_LEGACY
+#endif
+#if !defined(MQTTBRIDGE_IN6_STREAM_LEGACY)
+#define MQTTBRIDGE_IN6_STREAM_LEGACY
+#endif
+#if !defined(MQTTBRIDGE_L2_STREAM_LEGACY)
+#define MQTTBRIDGE_L2_STREAM_LEGACY
+#endif
+#if !defined(MQTTBRIDGE_RC_STREAM_LEGACY)
+#define MQTTBRIDGE_RC_STREAM_LEGACY
+#endif
+#if !defined(MQTTBRIDGE_UN_STREAM_LEGACY)
+#define MQTTBRIDGE_UN_STREAM_LEGACY
+#endif
+#if !defined(MQTTBRIDGE_IN_STREAM_TLS)
+#define MQTTBRIDGE_IN_STREAM_TLS
+#endif
+#if !defined(MQTTBRIDGE_IN6_STREAM_TLS)
+#define MQTTBRIDGE_IN6_STREAM_TLS
+#endif
+#if !defined(MQTTBRIDGE_L2_STREAM_TLS)
+#define MQTTBRIDGE_L2_STREAM_TLS
+#endif
+#if !defined(MQTTBRIDGE_RC_STREAM_TLS)
+#define MQTTBRIDGE_RC_STREAM_TLS
+#endif
+#if !defined(MQTTBRIDGE_UN_STREAM_TLS)
+#define MQTTBRIDGE_UN_STREAM_TLS
+#endif
+
+// Select necessary include files
+// ==============================
 #if defined(MQTTBRIDGE_IN_STREAM_LEGACY)
 #include <net/in/stream/legacy/SocketClient.h>
 #endif
 #if defined(MQTTBRIDGE_IN_STREAM_TLS)
 #include <net/in/stream/tls/SocketClient.h>
 #endif
-#endif
-#if defined(MQTTBRIDGE_IN6_STREAM_LEGACY) || defined(MQTTBRIDGE_IN6_STREAM_TLS)
 #if defined(MQTTBRIDGE_IN6_STREAM_LEGACY)
 #include <net/in6/stream/legacy/SocketClient.h>
 #endif
 #if defined(MQTTBRIDGE_IN6_STREAM_TLS)
 #include <net/in6/stream/tls/SocketClient.h>
 #endif
-#endif
-#if defined(MQTTBRIDGE_L2_STREAM_LEGACY) || defined(MQTTBRIDGE_L2_STREAM_TLS)
 #if defined(MQTTBRIDGE_L2_STREAM_LEGACY)
 #include <net/l2/stream/legacy/SocketClient.h>
 #endif
 #if defined(MQTTBRIDGE_L2_STREAM_TLS)
 #include <net/l2/stream/tls/SocketClient.h>
 #endif
-#endif
-#if defined(MQTTBRIDGE_RC_STREAM_LEGACY) || defined(MQTTBRIDGE_RC_STREAM_TLS)
 #if defined(MQTTBRIDGE_RC_STREAM_LEGACY)
 #include <net/rc/stream/legacy/SocketClient.h>
 #endif
 #if defined(MQTTBRIDGE_RC_STREAM_TLS)
 #include <net/rc/stream/tls/SocketClient.h>
 #endif
-#endif
-#if defined(MQTTBRIDGE_UN_STREAM_LEGACY) || defined(MQTTBRIDGE_UN_STREAM_TLS)
 #if defined(MQTTBRIDGE_UN_STREAM_LEGACY)
 #include <net/un/stream/legacy/SocketClient.h>
 #endif
 #if defined(MQTTBRIDGE_UN_STREAM_TLS)
 #include <net/un/stream/tls/SocketClient.h>
-#endif
 #endif
 
 #include <cstdint>
@@ -123,9 +135,7 @@ template <template <typename, typename...> typename SocketClient,
           typename SocketContextFactory,
           typename... SocketContextFactoryArgs,
           typename = std::enable_if_t<std::is_base_of_v<core::socket::stream::SocketContextFactory, SocketContextFactory>>>
-void startClient(const std::string& instanceName,
-                 const std::function<void(typename SocketClient<SocketContextFactory>::Config&)>& configurator,
-                 SocketContextFactoryArgs&&... socketContextFactoryArgs) {
+void startClient(const std::string& instanceName, const auto& configurator, SocketContextFactoryArgs&&... socketContextFactoryArgs) {
     using Client = SocketClient<SocketContextFactory, SocketContextFactoryArgs&&...>;
     using SocketAddress = typename Client::SocketAddress;
 

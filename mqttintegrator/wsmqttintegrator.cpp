@@ -66,9 +66,7 @@ void reportState(const std::string& instanceName, const SocketAddress& socketAdd
 }
 
 template <template <typename, typename> typename HttpClient>
-void startClient(
-    const std::string& name,
-    const std::function<void(typename HttpClient<web::http::client::Request, web::http::client::Response>::Config&)>& configurator) {
+void startClient(const std::string& name, const auto& configurator) {
     using Client = HttpClient<web::http::client::Request, web::http::client::Response>;
     using SocketAddress = typename Client::SocketAddress;
 
