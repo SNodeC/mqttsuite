@@ -17,6 +17,7 @@
           "instance_name": "in-mqtt-1",
           "protocol": "in",
           "encryption": "legacy",
+          "transport": "stream",
           "topics": [
             {
               "topic": "topic/subtopic",
