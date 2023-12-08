@@ -16,6 +16,18 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#define SNODEC_IN_STREAM_LEGACY
+#define SNODEC_IN6_STREAM_LEGACY
+#define SNODEC_L2_STREAM_LEGACY
+#define SNODEC_RC_STREAM_LEGACY
+#define SNODEC_UN_STREAM_LEGACY
+
+#define SNODEC_IN_STREAM_TLS
+#define SNODEC_IN6_STREAM_TLS
+#define SNODEC_L2_STREAM_TLS
+#define SNODEC_RC_STREAM_TLS
+#define SNODEC_UN_STREAM_TLS
+
 #include "SocketContextFactory.h" // IWYU pragma: keep
 #include "lib/BridgeStore.h"
 
@@ -23,25 +35,57 @@
 
 #include <core/SNodeC.h>
 #include <core/socket/stream/SocketContextFactory.h> // IWYU pragma: keep
-#include <cstdint>
 #include <iot/mqtt/Topic.h>
-#include <list>
 #include <log/Logger.h>
-#include <map>
+#include <utils/Config.h>
+
+#if defined(SNODEC_IN_STREAM_LEGACY) || defined(SNODEC_IN_STREAM_TLS)
+#if defined(SNODEC_IN_STREAM_LEGACY)
 #include <net/in/stream/legacy/SocketClient.h>
+#endif
+#if defined(SNODEC_IN_STREAM_TLS)
 #include <net/in/stream/tls/SocketClient.h>
+#endif
+#endif
+#if defined(SNODEC_IN6_STREAM_LEGACY) || defined(SNODEC_IN6_STREAM_TLS)
+#if defined(SNODEC_IN6_STREAM_LEGACY)
 #include <net/in6/stream/legacy/SocketClient.h>
+#endif
+#if defined(SNODEC_IN6_STREAM_TLS)
 #include <net/in6/stream/tls/SocketClient.h>
+#endif
+#endif
+#if defined(SNODEC_L2_STREAM_LEGACY) || defined(SNODEC_L2_STREAM_TLS)
+#if defined(SNODEC_L2_STREAM_LEGACY)
 #include <net/l2/stream/legacy/SocketClient.h>
+#endif
+#if defined(SNODEC_L2_STREAM_TLS)
 #include <net/l2/stream/tls/SocketClient.h>
+#endif
+#endif
+#if defined(SNODEC_RC_STREAM_LEGACY) || defined(SNODEC_RC_STREAM_TLS)
+#if defined(SNODEC_RC_STREAM_LEGACY)
 #include <net/rc/stream/legacy/SocketClient.h>
+#endif
+#if defined(SNODEC_RC_STREAM_TLS)
 #include <net/rc/stream/tls/SocketClient.h>
+#endif
+#endif
+#if defined(SNODEC_UN_STREAM_LEGACY) || defined(SNODEC_UN_STREAM_TLS)
+#if defined(SNODEC_UN_STREAM_LEGACY)
 #include <net/un/stream/legacy/SocketClient.h>
+#endif
+#if defined(SNODEC_UN_STREAM_TLS)
 #include <net/un/stream/tls/SocketClient.h>
+#endif
+#endif
+
+#include <cstdint>
+#include <list>
+#include <map>
 #include <string>
 #include <type_traits>
 #include <utility>
-#include <utils/Config.h>
 #include <variant>
 
 // IWYU pragma: no_include <bits/utility.h>
@@ -125,13 +169,16 @@ int main(int argc, char* argv[]) {
                     VLOG(1) << "    Protocol: " << protocol;
                     VLOG(1) << "    Encryption: " << encryption;
 
-                    std::list<iot::mqtt::Topic> topics = broker.getTopics();
+                    const std::list<iot::mqtt::Topic> topics = broker.getTopics();
                     for (const iot::mqtt::Topic& topic : topics) {
                         VLOG(1) << "    Topic: " << topic.getName();
                         VLOG(1) << "      QoS: " << static_cast<uint16_t>(topic.getQoS());
                     }
 
+// clang-format off
+#if defined(SNODEC_IN_STREAM_LEGACY) || defined(SNODEC_IN_STREAM_TLS)
                     if (protocol == "in") {
+#ifdef SNODEC_IN_STREAM_LEGACY
                         if (encryption == "legacy") {
                             startClient<net::in::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
                                 instanceName,
@@ -142,7 +189,13 @@ int main(int argc, char* argv[]) {
                                 },
                                 broker.getBridge(),
                                 topics);
-                        } else if (encryption == "tls") {
+                        }
+#ifdef SNODEC_IN_STREAM_TLS
+                        else
+#endif
+#endif
+#ifdef SNODEC_IN_STREAM_TLS
+                        if (encryption == "tls") {
                             startClient<net::in::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
                                 instanceName,
                                 [](auto& config) -> void {
@@ -153,7 +206,15 @@ int main(int argc, char* argv[]) {
                                 broker.getBridge(),
                                 topics);
                         }
-                    } else if (protocol == "in6") {
+#endif
+                    }
+#if defined(SNODEC_IN6_STREAM_LEGACY) || defined(SNODEC_IN6_STREAM_TLS)
+                    else
+#endif
+#endif
+#if defined(SNODEC_IN6_STREAM_LEGACY) || defined(SNODEC_IN6_STREAM_TLS)
+                    if (protocol == "in6") {
+#ifdef SNODEC_IN6_STREAM_LEGACY
                         if (encryption == "legacy") {
                             startClient<net::in6::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
                                 instanceName,
@@ -164,7 +225,13 @@ int main(int argc, char* argv[]) {
                                 },
                                 broker.getBridge(),
                                 topics);
-                        } else if (encryption == "tls") {
+                        }
+#ifdef SNODEC_IN6_STREAM_TLS
+                        else
+#endif
+#endif
+#ifdef SNODEC_IN6_STREAM_TLS
+                        if (encryption == "tls") {
                             startClient<net::in6::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
                                 instanceName,
                                 [](auto& config) -> void {
@@ -175,7 +242,15 @@ int main(int argc, char* argv[]) {
                                 broker.getBridge(),
                                 topics);
                         }
-                    } else if (protocol == "l2") {
+#endif
+                    }
+#if defined(SNODEC_L2_STREAM_LEGACY) || defined(SNODEC_L2_STREAM_TLS)
+                    else
+#endif
+#endif
+#if defined(SNODEC_L2_STREAM_LEGACY) || defined(SNODEC_L2_STREAM_TLS)
+                    if (protocol == "l2") {
+#ifdef SNODEC_L2_STREAM_LEGACY
                         if (encryption == "legacy") {
                             startClient<net::l2::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
                                 instanceName,
@@ -186,7 +261,13 @@ int main(int argc, char* argv[]) {
                                 },
                                 broker.getBridge(),
                                 topics);
-                        } else if (encryption == "tls") {
+                        }
+#ifdef SNODEC_L2_STREAM_TLS
+                        else
+#endif
+#endif
+#ifdef SNODEC_L2_STREAM_TLS
+                        if (encryption == "tls") {
                             startClient<net::l2::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
                                 instanceName,
                                 [](auto& config) -> void {
@@ -197,7 +278,16 @@ int main(int argc, char* argv[]) {
                                 broker.getBridge(),
                                 topics);
                         }
-                    } else if (protocol == "rc") {
+#endif
+                    }
+#if defined(SNODEC_RC_STREAM_LEGACY) || defined(SNODEC_RC_STREAM_TLS)
+                    else
+#endif
+#endif
+#if defined(SNODEC_RC_STREAM_LEGACY) || defined(SNODEC_RC_STREAM_TLS)
+                    if (protocol == "rc") {
+
+#ifdef SNODEC_RC_STREAM_LEGACY
                         if (encryption == "legacy") {
                             startClient<net::rc::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
                                 instanceName,
@@ -208,7 +298,13 @@ int main(int argc, char* argv[]) {
                                 },
                                 broker.getBridge(),
                                 topics);
-                        } else if (encryption == "tls") {
+                        }
+#ifdef SNODEC_RC_STREAM_TLS
+                        else
+#endif
+#endif
+#ifdef SNODEC_RC_STREAM_TLS
+                        if (encryption == "tls") {
                             startClient<net::rc::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
                                 instanceName,
                                 [](auto& config) -> void {
@@ -219,7 +315,15 @@ int main(int argc, char* argv[]) {
                                 broker.getBridge(),
                                 topics);
                         }
-                    } else if (protocol == "un") {
+#endif
+                    }
+#if defined(SNODEC_UN_STREAM_LEGACY) || defined(SNODEC_UN_STREAM_TLS)
+                    else
+#endif
+#endif
+#if defined(SNODEC_UN_STREAM_LEGACY) || defined(SNODEC_UN_STREAM_TLS)
+                    if (protocol == "un") {
+#ifdef SNODEC_UN_STREAM_LEGACY
                         if (encryption == "legacy") {
                             startClient<net::un::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
                                 instanceName,
@@ -230,7 +334,13 @@ int main(int argc, char* argv[]) {
                                 },
                                 broker.getBridge(),
                                 topics);
-                        } else if (encryption == "tls") {
+                        }
+#ifdef SNODEC_UN_STREAM_TLS
+                        else
+#endif
+#endif
+#ifdef SNODEC_UN_STREAM_TLS
+                        if (encryption == "tls") {
                             startClient<net::un::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
                                 instanceName,
                                 [](auto& config) -> void {
@@ -241,11 +351,14 @@ int main(int argc, char* argv[]) {
                                 broker.getBridge(),
                                 topics);
                         }
+#endif
                     }
+#endif
                 }
             }
         }
     }
+    // clang-format on
 
     return core::SNodeC::start();
 }
