@@ -31,16 +31,24 @@ set(MQTTBRIDGE_H SocketContextFactory.h)
 add_executable(mqttbridge ${MQTTBRIDGE_CPP} ${MQTTBRIDGE_H})
 
 macro(add_instance INSTANCE SOURCE)
-    set(${INSTANCE} "ON" CACHE BOOL "${INSTANCE}")
+    set(${INSTANCE}
+        "ON"
+        CACHE BOOL "${INSTANCE}"
+    )
 
     string(TOUPPER ${${INSTANCE}} ${INSTANCE}_UPPER)
-    if (${${INSTANCE}_UPPER} STREQUAL "ON" OR ${${INSTANCE}_UPPER} STREQUAL "TRUE")
+    if(${${INSTANCE}_UPPER} STREQUAL "ON" OR ${${INSTANCE}_UPPER} STREQUAL
+                                             "TRUE"
+    )
         message("Append ${INSTANCE} to ${SOURCE}")
         set_property(
             SOURCE ${SOURCE}
-            APPEND PROPERTY COMPILE_DEFINITIONS ${INSTANCE}
+            APPEND
+            PROPERTY COMPILE_DEFINITIONS ${INSTANCE}
         )
-    endif(${${INSTANCE}_UPPER} STREQUAL "ON" OR ${${INSTANCE}_UPPER} STREQUAL "TRUE")
+    endif(${${INSTANCE}_UPPER} STREQUAL "ON" OR ${${INSTANCE}_UPPER} STREQUAL
+                                                "TRUE"
+    )
 endmacro(add_instance INSTANCE)
 
 add_instance(MQTTBRIDGE_IN_STREAM_LEGACY mqttbridge.cpp)

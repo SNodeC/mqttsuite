@@ -173,6 +173,7 @@ int main(int argc, char* argv[]) {
                 if (transport == "stream") {
                     VLOG(1) << "  Creating Broker instance: " << instanceName;
                     VLOG(1) << "    Bridge client id : " << broker.getBridge().getClientId();
+                    VLOG(1) << "    Transport: " << transport;
                     VLOG(1) << "    Protocol: " << protocol;
                     VLOG(1) << "    Encryption: " << encryption;
 
