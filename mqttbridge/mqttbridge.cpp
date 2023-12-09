@@ -194,7 +194,6 @@ int main(int argc, char* argv[]) {
 
                 if (transport == "stream") {
                     if (protocol == "in") {
-#if defined(MQTTBRIDGE_IN_STREAM_LEGACY) || defined(MQTTBRIDGE_IN_STREAM_TLS)
                         if (encryption == "legacy") {
 #if defined(MQTTBRIDGE_IN_STREAM_LEGACY)
                             startClient<net::in::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
@@ -222,14 +221,12 @@ int main(int argc, char* argv[]) {
                                 broker.getBridge(),
                                 broker.getTopics());
 #else  // MQTTBRIDGE_IN_STREAM_TLS
-                            VLOG(1) << "Protocol '" << protocol << "', encryption '" << encryption << "' not supported.";
+                            VLOG(1)
+                            "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                                              << "' not supported.";
 #endif // MQTTBRIDGE_IN_STREAM_TLS
                         }
-#else  // MQTTBRIDGE_IN_STREAM_LEGACY
-                        VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "' not supported.";
-#endif // MQTTBRIDGE_IN_STREAM_LEGACY
                     } else if (protocol == "in6") {
-#if defined(MQTTBRIDGE_IN6_STREAM_LEGACY) || defined(MQTTBRIDGE_IN6_STREAM_TLS)
                         if (encryption == "legacy") {
 #if defined(MQTTBRIDGE_IN6_STREAM_LEGACY)
                             startClient<net::in6::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
@@ -257,14 +254,11 @@ int main(int argc, char* argv[]) {
                                 broker.getBridge(),
                                 broker.getTopics());
 #else  // MQTTBRIDGE_IN6_STREAM_TLS
-                            VLOG(1) << "Protocol '" << protocol << "', encryption '" << encryption << "' not supported.";
+                            VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                                    << "' not supported.";
 #endif // MQTTBRIDGE_IN6_STREAM_TLS
                         }
-#else  // MQTTBRIDGE_IN6_STREAM_LEGACY
-                        VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "' not supported.";
-#endif // MQTTBRIDGE_IN6_STREAM_LEGACY
                     } else if (protocol == "l2") {
-#if defined(MQTTBRIDGE_L2_STREAM_LEGACY) || defined(MQTTBRIDGE_L2_STREAM_TLS)
                         if (encryption == "legacy") {
 #if defined(MQTTBRIDGE_L2_STREAM_LEGACY)
                             startClient<net::l2::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
@@ -296,11 +290,7 @@ int main(int argc, char* argv[]) {
                                     << "' not supported.";
 #endif // MQTTBRIDGE_L2_STREAM_TLS
                         }
-#else  // MQTTBRIDGE_L2_STREAM_LEGACY
-                        VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "' not supported.";
-#endif // MQTTBRIDGE_L2_STREAM_LEGACY
                     } else if (protocol == "rc") {
-#if defined(MQTTBRIDGE_RC_STREAM_LEGACY) || defined(MQTTBRIDGE_RC_STREAM_TLS)
                         if (encryption == "legacy") {
 #if defined(MQTTBRIDGE_RC_STREAM_LEGACY)
                             startClient<net::rc::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
@@ -332,11 +322,7 @@ int main(int argc, char* argv[]) {
                                     << "' not supported.";
 #endif // MQTTBRIDGE_RC_STREAM_TLS
                         }
-#else  // MQTTBRIDGE_RC_STREAM_LEGACY
-                        VLOG(1) << "Protocol '" << protocol << "' not supported.";
-#endif // MQTTBRIDGE_RC_STREAM_LEGACY
                     } else if (protocol == "un") {
-#if defined(MQTTBRIDGE_UN_STREAM_LEGACY) || defined(MQTTBRIDGE_UN_STREAM_TLS)
                         if (encryption == "legacy") {
 #if defined(MQTTBRIDGE_UN_STREAM_LEGACY)
                             startClient<net::un::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
@@ -368,9 +354,6 @@ int main(int argc, char* argv[]) {
                                     << "' not supported.";
 #endif // MQTTBRIDGE_UN_STREAM_TLS
                         }
-#else  // MQTTBRIDGE_UN_STREAM_LEGACY
-                        VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "' not supported.";
-#endif // MQTTBRIDGE_UN_STREAM_LEGACY
                     }
                 } else {
                     VLOG(1) << "    Transport '" << transport << "' not supported.";
