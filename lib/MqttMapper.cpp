@@ -168,6 +168,8 @@ namespace mqtt::lib {
                     VLOG(1) << "  Type: static";
                     VLOG(1) << "  Topic: " << publish.getTopic();
                     VLOG(1) << "  Message: " << publish.getMessage();
+                    VLOG(1) << "  QoS: " << publish.getQoS();
+                    VLOG(1) << "  Retain: " << publish.getRetain();
 
                     publishMappedMessages(subscription["static"], publish);
                 }
@@ -177,6 +179,8 @@ namespace mqtt::lib {
                     VLOG(1) << "  Type: value";
                     VLOG(1) << "  Topic: " << publish.getTopic();
                     VLOG(1) << "  Message: " << publish.getMessage();
+                    VLOG(1) << "  QoS: " << publish.getQoS();
+                    VLOG(1) << "  Retain: " << publish.getRetain();
 
                     nlohmann::json json;
                     json["message"] = publish.getMessage();
@@ -189,6 +193,8 @@ namespace mqtt::lib {
                     VLOG(1) << "  Type: json";
                     VLOG(1) << "  Topic: " << publish.getTopic();
                     VLOG(1) << "  Message: " << publish.getMessage();
+                    VLOG(1) << "  QoS: " << publish.getQoS();
+                    VLOG(1) << "  Retain: " << publish.getRetain();
 
                     try {
                         nlohmann::json json;
@@ -283,16 +289,17 @@ namespace mqtt::lib {
                 VLOG(1) << "    -> " << renderedMessage;
 
                 const nlohmann::json& suppressions = templateMapping["suppressions"];
-                const bool retain = templateMapping.value("retain", publish.getRetain());
+                const bool retain = templateMapping.value("retain", false);
 
                 if (std::find(suppressions.begin(), suppressions.end(), renderedMessage) == suppressions.end() ||
                     (retain && renderedMessage.empty())) {
                     const uint8_t qoS = templateMapping.value("qos", publish.getQoS());
 
                     VLOG(1) << "  Send mapping:";
+                    VLOG(1) << "    Type: static";
                     VLOG(1) << "    Topic: " << renderedTopic;
                     VLOG(1) << "    Message: " << renderedMessage << "";
-                    VLOG(1) << "    qos: " << static_cast<int>(qoS);
+                    VLOG(1) << "    QoS: " << static_cast<int>(qoS);
                     VLOG(1) << "    retain: " << retain;
 
                     publishMapping(renderedTopic, renderedMessage, qoS, retain);
@@ -340,7 +347,7 @@ namespace mqtt::lib {
                                           const std::string& message,
                                           const iot::mqtt::packets::Publish& publish) {
         const std::string& mappedTopic = staticMapping["mapped_topic"];
-        const bool retain = staticMapping.value("retain", publish.getRetain());
+        const bool retain = staticMapping.value("retain", false);
         const uint8_t qoS = staticMapping.value("qos", publish.getQoS());
 
         VLOG(1) << "  Mapped topic:";
@@ -350,7 +357,7 @@ namespace mqtt::lib {
         VLOG(1) << "  Send mapping:";
         VLOG(1) << "    Topic: " << mappedTopic;
         VLOG(1) << "    Message: " << message;
-        VLOG(1) << "    qos: " << static_cast<int>(qoS);
+        VLOG(1) << "    QoS: " << static_cast<int>(qoS);
         VLOG(1) << "    retain: " << retain;
 
         publishMapping(mappedTopic, message, qoS, retain);
