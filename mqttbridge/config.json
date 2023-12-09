@@ -20,11 +20,7 @@
           "transport": "stream",
           "topics": [
             {
-              "topic": "topic/subtopic",
-              "qos": 2
-            },
-            {
-              "topic": "topic1"
+              "qos": 0
             }
           ]
         },
@@ -34,13 +30,22 @@
           "encryption": "legacy",
           "topics": [
             {
-              "qos": 1
+              "qos": 0
             }
           ]
         },
         {
           "instance_name": "in-mqtt-3",
-          "protocol": "in"
+          "protocol": "in",
+          "topics": [
+            {
+              "topic": "topic/subtopic",
+              "qos": 2
+            },
+            {
+              "topic": "topic1"
+            }
+          ]
         },
         {
           "instance_name": "in-mqtt-4"
