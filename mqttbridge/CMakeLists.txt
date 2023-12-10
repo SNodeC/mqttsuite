@@ -63,6 +63,12 @@ add_instance(MQTTBRIDGE_L2_STREAM_TLS mqttbridge.cpp)
 add_instance(MQTTBRIDGE_RC_STREAM_TLS mqttbridge.cpp)
 add_instance(MQTTBRIDGE_UN_STREAM_TLS mqttbridge.cpp)
 
+
+add_instance(MQTTBRIDGE_IN_WEBSOCKET_LEGACY mqttbridge.cpp)
+add_instance(MQTTBRIDGE_IN6_WEBSOCKET_LEGACY mqttbridge.cpp)
+add_instance(MQTTBRIDGE_IN_WEBSOCKET_TLS mqttbridge.cpp)
+add_instance(MQTTBRIDGE_IN6_WEBSOCKET_TLS mqttbridge.cpp)
+
 target_link_libraries(
     mqttbridge
     PUBLIC snodec::net-in-stream-legacy
@@ -75,6 +81,7 @@ target_link_libraries(
            snodec::net-in6-stream-tls
            snodec::net-rc-stream-tls
            snodec::net-l2-stream-tls
+           snodec::http-client
            snodec::mqtt
            mqtt-bridge
 )

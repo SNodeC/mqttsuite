@@ -32,6 +32,7 @@ namespace mqtt::bridge::lib {
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include <cstdint>
 #include <iot/mqtt/Topic.h>
 #include <list>
 #include <string>

@@ -18,14 +18,14 @@
 
 #include "SocketContextFactory.h" // IWYU pragma: keep
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
 #include <core/SNodeC.h>
 #include <core/socket/stream/SocketContextFactory.h> // IWYU pragma: keep
 #include <net/in/stream/legacy/SocketClient.h>
 #include <net/in/stream/tls/SocketClient.h>
 #include <net/un/stream/legacy/SocketClient.h>
-
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
-
+//
 #include <cstdlib>
 #include <log/Logger.h>
 #include <string>

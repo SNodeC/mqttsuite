@@ -26,6 +26,7 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <nlohmann/json.hpp>
+#include <string>
 #include <utils/Config.h>
 
 #endif

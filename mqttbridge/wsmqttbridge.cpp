@@ -18,16 +18,18 @@
 
 #include "lib/BridgeStore.h"
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
 #include <core/SNodeC.h>
 #include <web/http/client/Request.h>
 #include <web/http/client/Response.h>
 #include <web/http/legacy/in/Client.h>
 #include <web/http/tls/in/Client.h>
-
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
-
+//
 #include <cstdlib>
 #include <log/Logger.h>
+#include <map>
+#include <string>
 #include <type_traits>
 #include <utils/CLI11.hpp>
 #include <utils/Config.h>

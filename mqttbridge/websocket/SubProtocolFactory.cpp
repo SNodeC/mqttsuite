@@ -30,9 +30,11 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include <cstdint>
 #include <cstdlib>
 #include <list>
 #include <log/Logger.h>
+#include <string>
 
 #endif
 

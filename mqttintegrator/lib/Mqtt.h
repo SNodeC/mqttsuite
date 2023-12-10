@@ -30,6 +30,7 @@ namespace iot::mqtt::packets {
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include <cstdint>
 #include <string>
 
 #endif
