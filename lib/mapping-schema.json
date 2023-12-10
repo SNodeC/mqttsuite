@@ -285,12 +285,14 @@
                   "minLength": 1
                 },
                 "retain": {
-                  "type": "boolean"
+                  "type": "boolean",
+                  "default": false
                 },
                 "qos": {
                   "type": "integer",
                   "minimum": 0,
-                  "maximum": 2
+                  "maximum": 2,
+                  "default": 0
                 }
               }
             }
