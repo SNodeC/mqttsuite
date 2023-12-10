@@ -28,8 +28,6 @@ find_package(
 set(MQTTBRIDGE_CPP mqttbridge.cpp SocketContextFactory.cpp)
 set(MQTTBRIDGE_H SocketContextFactory.h)
 
-add_executable(mqttbridge ${MQTTBRIDGE_CPP} ${MQTTBRIDGE_H})
-
 macro(add_instance INSTANCE SOURCE)
     set(${INSTANCE}
         "ON"
@@ -52,22 +50,27 @@ macro(add_instance INSTANCE SOURCE)
 endmacro(add_instance INSTANCE)
 
 add_instance(MQTTBRIDGE_IN_STREAM_LEGACY mqttbridge.cpp)
-add_instance(MQTTBRIDGE_IN6_STREAM_LEGACY mqttbridge.cpp)
-add_instance(MQTTBRIDGE_L2_STREAM_LEGACY mqttbridge.cpp)
-add_instance(MQTTBRIDGE_RC_STREAM_LEGACY mqttbridge.cpp)
-add_instance(MQTTBRIDGE_UN_STREAM_LEGACY mqttbridge.cpp)
-
 add_instance(MQTTBRIDGE_IN_STREAM_TLS mqttbridge.cpp)
-add_instance(MQTTBRIDGE_IN6_STREAM_TLS mqttbridge.cpp)
-add_instance(MQTTBRIDGE_L2_STREAM_TLS mqttbridge.cpp)
-add_instance(MQTTBRIDGE_RC_STREAM_TLS mqttbridge.cpp)
-add_instance(MQTTBRIDGE_UN_STREAM_TLS mqttbridge.cpp)
 
+add_instance(MQTTBRIDGE_IN6_STREAM_LEGACY mqttbridge.cpp)
+add_instance(MQTTBRIDGE_IN6_STREAM_TLS mqttbridge.cpp)
+
+add_instance(MQTTBRIDGE_L2_STREAM_LEGACY mqttbridge.cpp)
+add_instance(MQTTBRIDGE_L2_STREAM_TLS mqttbridge.cpp)
+
+add_instance(MQTTBRIDGE_RC_STREAM_LEGACY mqttbridge.cpp)
+add_instance(MQTTBRIDGE_RC_STREAM_TLS mqttbridge.cpp)
+
+add_instance(MQTTBRIDGE_UN_STREAM_LEGACY mqttbridge.cpp)
+add_instance(MQTTBRIDGE_UN_STREAM_TLS mqttbridge.cpp)
 
 add_instance(MQTTBRIDGE_IN_WEBSOCKET_LEGACY mqttbridge.cpp)
 add_instance(MQTTBRIDGE_IN6_WEBSOCKET_LEGACY mqttbridge.cpp)
+
 add_instance(MQTTBRIDGE_IN_WEBSOCKET_TLS mqttbridge.cpp)
 add_instance(MQTTBRIDGE_IN6_WEBSOCKET_TLS mqttbridge.cpp)
+
+add_executable(mqttbridge ${MQTTBRIDGE_CPP} ${MQTTBRIDGE_H})
 
 target_link_libraries(
     mqttbridge
@@ -87,15 +90,3 @@ target_link_libraries(
 )
 
 install(TARGETS mqttbridge RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-
-set(WSMQTTBRIDGE_CPP wsmqttbridge.cpp)
-set(WSMQTTBRIDGE_H)
-
-add_executable(wsmqttbridge ${WSMQTTBRIDGE_CPP} ${WSMQTTBRIDGE_H})
-
-target_link_libraries(
-    wsmqttbridge PUBLIC snodec::net-in-stream-legacy snodec::net-in-stream-tls
-                        snodec::http-client mqtt-bridge
-)
-
-install(TARGETS wsmqttbridge RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})

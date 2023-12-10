@@ -24,7 +24,6 @@ set_target_properties(
                                      SOVERSION "${SNODEC_SOVERSION}"
 )
 
-install(
-    TARGETS websocket-mqtt-bridge
-    LIBRARY DESTINATION ${WEBSOCKET_SUBPROTOCOL_INSTALL_LIBDIR}/wsmqttbridge/
+install(TARGETS websocket-mqtt-bridge
+        LIBRARY DESTINATION ${WEBSOCKET_SUBPROTOCOL_INSTALL_LIBDIR}/mqttbridge/
 )
