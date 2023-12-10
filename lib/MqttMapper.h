@@ -65,12 +65,11 @@ namespace mqtt::lib {
 
         nlohmann::json findMatchingTopicLevel(const nlohmann::json& topicLevel, const std::string& topic);
 
-        void publishMappedTemplate(const nlohmann::json& templateMapping, nlohmann::json& json, const iot::mqtt::packets::Publish& publish);
+        void publishMappedTemplate(const nlohmann::json& templateMapping, nlohmann::json& json);
         void
         publishMappedTemplates(const nlohmann::json& templateMapping, nlohmann::json& json, const iot::mqtt::packets::Publish& publish);
 
-        void
-        publishMappedMessage(const nlohmann::json& staticMapping, const std::string& message, const iot::mqtt::packets::Publish& publish);
+        void publishMappedMessage(const std::string& topic, const std::string& message, uint8_t qoS, bool retain);
         void publishMappedMessage(const nlohmann::json& staticMapping, const iot::mqtt::packets::Publish& publish);
         void publishMappedMessages(const nlohmann::json& staticMapping, const iot::mqtt::packets::Publish& publish);
 
