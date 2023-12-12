@@ -78,7 +78,8 @@ namespace mqtt::bridge::lib {
                                             LOG(TRACE) << "  Default patch:\n" << defaultPatch.dump(4);
                                             bridgeConfigJson = bridgeConfigJson.patch(defaultPatch);
 
-                                            for (const nlohmann::json& bridgeConfigJson : // NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks)
+                                            for (const nlohmann::json& bridgeConfigJson : // cppcheck-suppress shadowVariable
+
                                                  bridgeConfigJson["bridges"]) {
                                                 const nlohmann::json& connection = bridgeConfigJson["connection"];
 
@@ -95,7 +96,8 @@ namespace mqtt::bridge::lib {
                                                 for (const nlohmann::json& brokerConfigJson : bridgeConfigJson["brokers"]) {
                                                     std::list<iot::mqtt::Topic> topics;
                                                     for (const nlohmann::json& topicJson : brokerConfigJson["topics"]) {
-                                                        topics.emplace_back(topicJson["topic"], topicJson["qos"]);
+                                                        topics.emplace_back(topicJson["topic"], // cppcheck-suppress useStlAlgorithm
+                                                                            topicJson["qos"]);
                                                     }
 
                                                     brokers.emplace(brokerConfigJson["instance_name"],
