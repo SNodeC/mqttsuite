@@ -185,10 +185,12 @@ int main(int argc, char* argv[]) {
 
     startServer<express::legacy::in::WebApp>("in-http", [](auto& config) -> void {
         config.setPort(8080);
+        config.setRetry();
     });
 
     startServer<express::tls::in::WebApp>("in-https", [](auto& config) -> void {
         config.setPort(8088);
+        config.setRetry();
     });
 
     return core::SNodeC::start();
