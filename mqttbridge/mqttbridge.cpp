@@ -32,6 +32,7 @@ namespace core::socket {
     class SocketAddress; // IWYU pragma: keep
 }
 
+#include <utils/CLI11.hpp>
 #include <web/http/client/Request.h>
 #include <web/http/client/Response.h>
 
@@ -132,6 +133,7 @@ namespace core::socket {
 #include <cstdint>
 #include <list>
 #include <map>
+#include <memory>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -231,258 +233,269 @@ int main(int argc, char* argv[]) {
     web::websocket::client::SubProtocolFactorySelector::link("mqtt", mqttClientSubProtocolFactory);
 #endif
 
-    utils::Config::add_string_option("--bridge-config", "MQTT bridge configuration file (JSON format)", "[path]");
+    CLI::App* bridgeApp = utils::Config::add_instance("bridge", "Configuration for Application mqttbridge", "MQTT-Bridge")
+                              ->allow_config_extras()
+                              ->allow_extras();
+    utils::Config::required(bridgeApp);
+    utils::Config::add_standard_flags(bridgeApp);
+    utils::Config::add_help_flag(bridgeApp);
+
+    std::string bridgeDefinitionFile = "<REQUIRED>";
+    bridgeApp->needs(bridgeApp->add_option("--definition", bridgeDefinitionFile, "MQTT bridge definition file (JSON format)")
+                         ->capture_default_str()
+                         ->group(bridgeApp->get_formatter()->get_label("Persistent Options"))
+                         ->type_name("[path]")
+                         ->configurable()
+                         ->required());
 
     core::SNodeC::init(argc, argv);
 
-    const bool success =
-        mqtt::bridge::lib::BridgeStore::instance().loadAndValidate(utils::Config::get_string_option_value("--bridge-config"));
+    if (bridgeDefinitionFile != "<REQUIRED>") {
+        if (mqtt::bridge::lib::BridgeStore::instance().loadAndValidate(bridgeDefinitionFile)) {
+            for (const auto& [instanceName, broker] : mqtt::bridge::lib::BridgeStore::instance().getBrokers()) {
+                if (!broker.getInstanceName().empty()) {
+                    VLOG(1) << "  Creating Broker instance: " << instanceName;
+                    VLOG(1) << "    Bridge client id : " << broker.getBridge().getClientId();
+                    VLOG(1) << "    Transport: " << broker.getTransport();
+                    VLOG(1) << "    Protocol: " << broker.getProtocol();
+                    VLOG(1) << "    Encryption: " << broker.getEncryption();
 
-    if (success) {
-        for (const auto& [instanceName, broker] : mqtt::bridge::lib::BridgeStore::instance().getBrokers()) {
-            if (!broker.getInstanceName().empty()) {
-                VLOG(1) << "  Creating Broker instance: " << instanceName;
-                VLOG(1) << "    Bridge client id : " << broker.getBridge().getClientId();
-                VLOG(1) << "    Transport: " << broker.getTransport();
-                VLOG(1) << "    Protocol: " << broker.getProtocol();
-                VLOG(1) << "    Encryption: " << broker.getEncryption();
-
-                VLOG(1) << "    Topics:";
-                const std::list<iot::mqtt::Topic>& topics = broker.getTopics();
-                for (const iot::mqtt::Topic& topic : topics) {
-                    VLOG(1) << "      " << static_cast<uint16_t>(topic.getQoS()) << ":" << topic.getName();
-                }
-
-                const std::string& transport = broker.getTransport();
-                const std::string& protocol = broker.getProtocol();
-                const std::string& encryption = broker.getEncryption();
-
-                if (transport == "stream") {
-                    if (protocol == "in") {
-                        if (encryption == "legacy") {
-#if defined(MQTTBRIDGE_IN_STREAM_LEGACY)
-                            startClient<net::in::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
-                                instanceName,
-                                [](auto& config) -> void {
-                                    config.setRetry();
-                                    config.setRetryBase(1);
-                                    config.setReconnect();
-                                },
-                                broker.getBridge(),
-                                broker.getTopics());
-#else  // MQTTBRIDGE_IN_STREAM_LEGACY
-                            VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
-                                    << "' not supported.";
-#endif // MQTTBRIDGE_IN_STREAM_LEGACY
-                        } else if (encryption == "tls") {
-#if defined(MQTTBRIDGE_IN_STREAM_TLS)
-                            startClient<net::in::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
-                                instanceName,
-                                [](auto& config) -> void {
-                                    config.setRetry();
-                                    config.setRetryBase(1);
-                                    config.setReconnect();
-                                },
-                                broker.getBridge(),
-                                broker.getTopics());
-#else  // MQTTBRIDGE_IN_STREAM_TLS
-                            VLOG(1)
-                            "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
-                                              << "' not supported.";
-#endif // MQTTBRIDGE_IN_STREAM_TLS
-                        }
-                    } else if (protocol == "in6") {
-                        if (encryption == "legacy") {
-#if defined(MQTTBRIDGE_IN6_STREAM_LEGACY)
-                            startClient<net::in6::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
-                                instanceName,
-                                [](auto& config) -> void {
-                                    config.setRetry();
-                                    config.setRetryBase(1);
-                                    config.setReconnect();
-                                },
-                                broker.getBridge(),
-                                broker.getTopics());
-#else  // MQTTBRIDGE_IN6_STREAM_LEGACY
-                            VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
-                                    << "' not supported.";
-#endif // MQTTBRIDGE_IN6_STREAM_LEGACY
-                        } else if (encryption == "tls") {
-#if defined(MQTTBRIDGE_IN6_STREAM_TLS)
-                            startClient<net::in6::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
-                                instanceName,
-                                [](auto& config) -> void {
-                                    config.setRetry();
-                                    config.setRetryBase(1);
-                                    config.setReconnect();
-                                },
-                                broker.getBridge(),
-                                broker.getTopics());
-#else  // MQTTBRIDGE_IN6_STREAM_TLS
-                            VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
-                                    << "' not supported.";
-#endif // MQTTBRIDGE_IN6_STREAM_TLS
-                        }
-                    } else if (protocol == "l2") {
-                        if (encryption == "legacy") {
-#if defined(MQTTBRIDGE_L2_STREAM_LEGACY)
-                            startClient<net::l2::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
-                                instanceName,
-                                [](auto& config) -> void {
-                                    config.setRetry();
-                                    config.setRetryBase(1);
-                                    config.setReconnect();
-                                },
-                                broker.getBridge(),
-                                broker.getTopics());
-#else  // MQTTBRIDGE_L2_STREAM_LEGACY
-                            VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
-                                    << "' not supported.";
-#endif // MQTTBRIDGE_L2_STREAM_LEGACY
-                        } else if (encryption == "tls") {
-#if defined(MQTTBRIDGE_L2_STREAM_TLS)
-                            startClient<net::l2::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
-                                instanceName,
-                                [](auto& config) -> void {
-                                    config.setRetry();
-                                    config.setRetryBase(1);
-                                    config.setReconnect();
-                                },
-                                broker.getBridge(),
-                                broker.getTopics());
-#else  // MQTTBRIDGE_L2_STREAM_TLS
-                            VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
-                                    << "' not supported.";
-#endif // MQTTBRIDGE_L2_STREAM_TLS
-                        }
-                    } else if (protocol == "rc") {
-                        if (encryption == "legacy") {
-#if defined(MQTTBRIDGE_RC_STREAM_LEGACY)
-                            startClient<net::rc::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
-                                instanceName,
-                                [](auto& config) -> void {
-                                    config.setRetry();
-                                    config.setRetryBase(1);
-                                    config.setReconnect();
-                                },
-                                broker.getBridge(),
-                                broker.getTopics());
-#else  // MQTTBRIDGE_RC_STREAM_LEGACY
-                            VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
-                                    << "' not supported.";
-#endif // MQTTBRIDGE_RC_STREAM_LEGACY
-                        } else if (encryption == "tls") {
-#if defined(MQTTBRIDGE_RC_STREAM_TLS)
-                            startClient<net::rc::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
-                                instanceName,
-                                [](auto& config) -> void {
-                                    config.setRetry();
-                                    config.setRetryBase(1);
-                                    config.setReconnect();
-                                },
-                                broker.getBridge(),
-                                broker.getTopics());
-#else  // MQTTBRIDGE_RC_STREAM_TLS
-                            VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
-                                    << "' not supported.";
-#endif // MQTTBRIDGE_RC_STREAM_TLS
-                        }
-                    } else if (protocol == "un") {
-                        if (encryption == "legacy") {
-#if defined(MQTTBRIDGE_UN_STREAM_LEGACY)
-                            startClient<net::un::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
-                                instanceName,
-                                [](auto& config) -> void {
-                                    config.setRetry();
-                                    config.setRetryBase(1);
-                                    config.setReconnect();
-                                },
-                                broker.getBridge(),
-                                broker.getTopics());
-#else  // MQTTBRIDGE_UN_STREAM_LEGACY
-                            VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
-                                    << "' not supported.";
-#endif // MQTTBRIDGE_UN_STREAM_LEGACY
-                        } else if (encryption == "tls") {
-#if defined(MQTTBRIDGE_UN_STREAM_TLS)
-                            startClient<net::un::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
-                                instanceName,
-                                [](auto& config) -> void {
-                                    config.setRetry();
-                                    config.setRetryBase(1);
-                                    config.setReconnect();
-                                },
-                                broker.getBridge(),
-                                broker.getTopics());
-#else  // MQTTBRIDGE_UN_STREAM_TLS
-                            VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
-                                    << "' not supported.";
-#endif // MQTTBRIDGE_UN_STREAM_TLS
-                        }
+                    VLOG(1) << "    Topics:";
+                    const std::list<iot::mqtt::Topic>& topics = broker.getTopics();
+                    for (const iot::mqtt::Topic& topic : topics) {
+                        VLOG(1) << "      " << static_cast<uint16_t>(topic.getQoS()) << ":" << topic.getName();
                     }
-                } else if (transport == "websocket") {
-                    if (protocol == "in") {
-                        if (encryption == "legacy") {
+
+                    const std::string& transport = broker.getTransport();
+                    const std::string& protocol = broker.getProtocol();
+                    const std::string& encryption = broker.getEncryption();
+
+                    if (transport == "stream") {
+                        if (protocol == "in") {
+                            if (encryption == "legacy") {
+#if defined(MQTTBRIDGE_IN_STREAM_LEGACY)
+                                startClient<net::in::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
+                                    instanceName,
+                                    [](auto& config) -> void {
+                                        config.setRetry();
+                                        config.setRetryBase(1);
+                                        config.setReconnect();
+                                    },
+                                    broker.getBridge(),
+                                    broker.getTopics());
+#else  // MQTTBRIDGE_IN_STREAM_LEGACY
+                                VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                                        << "' not supported.";
+#endif // MQTTBRIDGE_IN_STREAM_LEGACY
+                            } else if (encryption == "tls") {
+#if defined(MQTTBRIDGE_IN_STREAM_TLS)
+                                startClient<net::in::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
+                                    instanceName,
+                                    [](auto& config) -> void {
+                                        config.setRetry();
+                                        config.setRetryBase(1);
+                                        config.setReconnect();
+                                    },
+                                    broker.getBridge(),
+                                    broker.getTopics());
+#else  // MQTTBRIDGE_IN_STREAM_TLS
+                                VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                                        << "' not supported.";
+#endif // MQTTBRIDGE_IN_STREAM_TLS
+                            }
+                        } else if (protocol == "in6") {
+                            if (encryption == "legacy") {
+#if defined(MQTTBRIDGE_IN6_STREAM_LEGACY)
+                                startClient<net::in6::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
+                                    instanceName,
+                                    [](auto& config) -> void {
+                                        config.setRetry();
+                                        config.setRetryBase(1);
+                                        config.setReconnect();
+                                    },
+                                    broker.getBridge(),
+                                    broker.getTopics());
+#else  // MQTTBRIDGE_IN6_STREAM_LEGACY
+                                VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                                        << "' not supported.";
+#endif // MQTTBRIDGE_IN6_STREAM_LEGACY
+                            } else if (encryption == "tls") {
+#if defined(MQTTBRIDGE_IN6_STREAM_TLS)
+                                startClient<net::in6::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
+                                    instanceName,
+                                    [](auto& config) -> void {
+                                        config.setRetry();
+                                        config.setRetryBase(1);
+                                        config.setReconnect();
+                                    },
+                                    broker.getBridge(),
+                                    broker.getTopics());
+#else  // MQTTBRIDGE_IN6_STREAM_TLS
+                                VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                                        << "' not supported.";
+#endif // MQTTBRIDGE_IN6_STREAM_TLS
+                            }
+                        } else if (protocol == "l2") {
+                            if (encryption == "legacy") {
+#if defined(MQTTBRIDGE_L2_STREAM_LEGACY)
+                                startClient<net::l2::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
+                                    instanceName,
+                                    [](auto& config) -> void {
+                                        config.setRetry();
+                                        config.setRetryBase(1);
+                                        config.setReconnect();
+                                    },
+                                    broker.getBridge(),
+                                    broker.getTopics());
+#else  // MQTTBRIDGE_L2_STREAM_LEGACY
+                                VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                                        << "' not supported.";
+#endif // MQTTBRIDGE_L2_STREAM_LEGACY
+                            } else if (encryption == "tls") {
+#if defined(MQTTBRIDGE_L2_STREAM_TLS)
+                                startClient<net::l2::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
+                                    instanceName,
+                                    [](auto& config) -> void {
+                                        config.setRetry();
+                                        config.setRetryBase(1);
+                                        config.setReconnect();
+                                    },
+                                    broker.getBridge(),
+                                    broker.getTopics());
+#else  // MQTTBRIDGE_L2_STREAM_TLS
+                                VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                                        << "' not supported.";
+#endif // MQTTBRIDGE_L2_STREAM_TLS
+                            }
+                        } else if (protocol == "rc") {
+                            if (encryption == "legacy") {
+#if defined(MQTTBRIDGE_RC_STREAM_LEGACY)
+                                startClient<net::rc::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
+                                    instanceName,
+                                    [](auto& config) -> void {
+                                        config.setRetry();
+                                        config.setRetryBase(1);
+                                        config.setReconnect();
+                                    },
+                                    broker.getBridge(),
+                                    broker.getTopics());
+#else  // MQTTBRIDGE_RC_STREAM_LEGACY
+                                VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                                        << "' not supported.";
+#endif // MQTTBRIDGE_RC_STREAM_LEGACY
+                            } else if (encryption == "tls") {
+#if defined(MQTTBRIDGE_RC_STREAM_TLS)
+                                startClient<net::rc::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
+                                    instanceName,
+                                    [](auto& config) -> void {
+                                        config.setRetry();
+                                        config.setRetryBase(1);
+                                        config.setReconnect();
+                                    },
+                                    broker.getBridge(),
+                                    broker.getTopics());
+#else  // MQTTBRIDGE_RC_STREAM_TLS
+                                VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                                        << "' not supported.";
+#endif // MQTTBRIDGE_RC_STREAM_TLS
+                            }
+                        } else if (protocol == "un") {
+                            if (encryption == "legacy") {
+#if defined(MQTTBRIDGE_UN_STREAM_LEGACY)
+                                startClient<net::un::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
+                                    instanceName,
+                                    [](auto& config) -> void {
+                                        config.setRetry();
+                                        config.setRetryBase(1);
+                                        config.setReconnect();
+                                    },
+                                    broker.getBridge(),
+                                    broker.getTopics());
+#else  // MQTTBRIDGE_UN_STREAM_LEGACY
+                                VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                                        << "' not supported.";
+#endif // MQTTBRIDGE_UN_STREAM_LEGACY
+                            } else if (encryption == "tls") {
+#if defined(MQTTBRIDGE_UN_STREAM_TLS)
+                                startClient<net::un::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
+                                    instanceName,
+                                    [](auto& config) -> void {
+                                        config.setRetry();
+                                        config.setRetryBase(1);
+                                        config.setReconnect();
+                                    },
+                                    broker.getBridge(),
+                                    broker.getTopics());
+#else  // MQTTBRIDGE_UN_STREAM_TLS
+                                VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                                        << "' not supported.";
+#endif // MQTTBRIDGE_UN_STREAM_TLS
+                            }
+                        }
+                    } else if (transport == "websocket") {
+                        if (protocol == "in") {
+                            if (encryption == "legacy") {
 #if defined(MQTTBRIDGE_IN_WEBSOCKET_LEGACY)
-                            startClient<web::http::legacy::in::Client>(broker.getInstanceName(), [](auto& config) -> void {
-                                config.Remote::setPort(8080);
+                                startClient<web::http::legacy::in::Client>(broker.getInstanceName(), [](auto& config) -> void {
+                                    config.Remote::setPort(8080);
 
-                                config.setRetry();
-                                config.setRetryBase(1);
-                                config.setReconnect();
-                            });
+                                    config.setRetry();
+                                    config.setRetryBase(1);
+                                    config.setReconnect();
+                                });
 #else  // MQTTBRIDGE_IN_WEBSOCKET_LEGACY
-                            VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
-                                    << "' not supported.";
+                                VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                                        << "' not supported.";
 #endif // MQTTBRIDGE_IN_WEBSOCKET_LEGACY
-                        } else if (encryption == "tls") {
+                            } else if (encryption == "tls") {
 #if defined(MQTTBRIDGE_IN_WEBSOCKET_TLS)
-                            startClient<web::http::tls::in::Client>(broker.getInstanceName(), [](auto& config) -> void {
-                                config.Remote::setPort(8088);
+                                startClient<web::http::tls::in::Client>(broker.getInstanceName(), [](auto& config) -> void {
+                                    config.Remote::setPort(8088);
 
-                                config.setRetry();
-                                config.setRetryBase(1);
-                                config.setReconnect();
-                            });
+                                    config.setRetry();
+                                    config.setRetryBase(1);
+                                    config.setReconnect();
+                                });
 #else  // MQTTBRIDGE_IN_WEBSOCKET_TLS
-                            VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
-                                    << "' not supported.";
+                                VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                                        << "' not supported.";
 #endif // MQTTBRIDGE_IN_WEBSOCKET_TLS
-                        }
-                    } else if (protocol == "in6") {
-                        if (encryption == "legacy") {
+                            }
+                        } else if (protocol == "in6") {
+                            if (encryption == "legacy") {
 #if defined(MQTTBRIDGE_IN6_WEBSOCKET_LEGACY)
-                            startClient<web::http::legacy::in6::Client>(broker.getInstanceName(), [](auto& config) -> void {
-                                config.Remote::setPort(8080);
+                                startClient<web::http::legacy::in6::Client>(broker.getInstanceName(), [](auto& config) -> void {
+                                    config.Remote::setPort(8080);
 
-                                config.setRetry();
-                                config.setRetryBase(1);
-                                config.setReconnect();
-                            });
+                                    config.setRetry();
+                                    config.setRetryBase(1);
+                                    config.setReconnect();
+                                });
 #else  // MQTTBRIDGE_IN6_WEBSOCKET_LEGACY
-                            VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
-                                    << "' not supported.";
+                                VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                                        << "' not supported.";
 #endif // MQTTBRIDGE_IN6_WEBSOCKET_LEGACY
-                        } else if (encryption == "tls") {
+                            } else if (encryption == "tls") {
 #if defined(MQTTBRIDGE_IN6_WEBSOCKET_TLS)
-                            startClient<web::http::tls::in6::Client>(broker.getInstanceName(), [](auto& config) -> void {
-                                config.Remote::setPort(8088);
+                                startClient<web::http::tls::in6::Client>(broker.getInstanceName(), [](auto& config) -> void {
+                                    config.Remote::setPort(8088);
 
-                                config.setRetry();
-                                config.setRetryBase(1);
-                                config.setReconnect();
-                            });
+                                    config.setRetry();
+                                    config.setRetryBase(1);
+                                    config.setReconnect();
+                                });
 #else  // MQTTBRIDGE_IN6_WEBSOCKET_TLS
-                            VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
-                                    << "' not supported.";
+                                VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                                        << "' not supported.";
 #endif // MQTTBRIDGE_IN6_WEBSOCKET_TLS
+                            }
                         }
+                    } else {
+                        VLOG(1) << "    Transport '" << transport << "' not supported.";
                     }
                 } else {
-                    VLOG(1) << "    Transport '" << transport << "' not supported.";
+                    VLOG(1) << "Instance not created: Instance name empty.";
                 }
-            } else {
-                VLOG(1) << "Instance not created: Instance name empty.";
             }
         }
     }
