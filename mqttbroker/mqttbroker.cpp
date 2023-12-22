@@ -97,18 +97,16 @@ template <typename SocketAddress, typename = std::enable_if_t<std::is_base_of_v<
 void reportState(const std::string& instanceName, const SocketAddress& socketAddress, const core::socket::State& state) {
     switch (state) {
         case core::socket::State::OK:
-            VLOG(1) << instanceName << ": listening on '" << socketAddress.toString() << "': " << state.what();
+            VLOG(1) << instanceName << ": listening on '" << socketAddress.toString() << "'";
             break;
         case core::socket::State::DISABLED:
             VLOG(1) << instanceName << ": disabled";
             break;
         case core::socket::State::ERROR:
-            VLOG(1) << instanceName << ": " << socketAddress.toString() << ": error occurred";
-            VLOG(1) << "    " << state.what();
+            LOG(ERROR) << instanceName << ": " << socketAddress.toString() << ": " << state.what();
             break;
         case core::socket::State::FATAL:
-            VLOG(1) << instanceName << ": " << socketAddress.toString() << ": fatal error occurred";
-            VLOG(1) << "    " << state.what();
+            LOG(FATAL) << instanceName << ": " << socketAddress.toString() << ": " << state.what();
             break;
     }
 }
