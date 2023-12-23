@@ -231,9 +231,7 @@ int main(int argc, char* argv[]) {
     web::websocket::client::SubProtocolFactorySelector::link("mqtt", mqttClientSubProtocolFactory);
 #endif
 
-    CLI::App* bridgeApp = utils::Config::add_instance("bridge", "Configuration for Application mqttbridge", "MQTT-Bridge")
-                              ->allow_config_extras()
-                              ->allow_extras();
+    CLI::App* bridgeApp = utils::Config::add_instance("bridge", "Configuration for Application mqttbridge", "MQTT-Bridge");
     utils::Config::required(bridgeApp);
     utils::Config::add_standard_flags(bridgeApp);
     utils::Config::add_help_flag(bridgeApp);
