@@ -69,7 +69,7 @@ void startClient(const std::string& name, const auto& configurator) {
     using Client = HttpClient<web::http::client::Request, web::http::client::Response>;
     using SocketAddress = typename Client::SocketAddress;
 
-    Client client(
+    const Client client(
         name,
         [](web::http::client::Request& request) -> void {
             request.set("Sec-WebSocket-Protocol", "mqtt");

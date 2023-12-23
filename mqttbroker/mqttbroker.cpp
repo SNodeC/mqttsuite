@@ -50,8 +50,7 @@ namespace iot::mqtt::packets {
     class Connect;
 }
 
-express::Router getRouter();
-express::Router getRouter() {
+static express::Router getRouter() {
     express::Router router;
     router.get("/clients", [] APPLICATION(req, res) {
         const std::map<mqtt::mqttbroker::lib::Mqtt*, iot::mqtt::packets::Connect>& connectionList =
@@ -138,7 +137,7 @@ void startServer(const std::string& instanceName, SocketContextFactoryArgs&&... 
     using Server = SocketServer<SocketContextFactory, SocketContextFactoryArgs&&...>;
     using SocketAddress = typename Server::SocketAddress;
 
-    Server server(instanceName, std::forward<SocketContextFactoryArgs>(socketContextFactoryArgs)...);
+    const Server server(instanceName, std::forward<SocketContextFactoryArgs>(socketContextFactoryArgs)...);
 
     server.instance([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
         reportState(instanceName, socketAddress, state);
