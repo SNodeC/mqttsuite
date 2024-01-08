@@ -139,8 +139,6 @@ namespace core::socket {
 #include <utility>
 #include <variant>
 
-// IWYU pragma: no_include <bits/utility.h>
-
 #endif
 
 template <typename SocketAddress, typename = std::enable_if_t<std::is_base_of_v<core::socket::SocketAddress, SocketAddress>>>

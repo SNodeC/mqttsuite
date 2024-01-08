@@ -34,7 +34,7 @@ namespace mqtt::mqttbroker::lib {
         connectedClients.erase(mqtt);
     }
 
-    const std::map<mqtt::mqttbroker::lib::Mqtt*, iot::mqtt::packets::Connect>& MqttModel::getConnectedClinets() const {
+    const std::map<mqtt::mqttbroker::lib::Mqtt*, iot::mqtt::packets::Connect>& MqttModel::getConnectedClients() const {
         return connectedClients;
     }
 

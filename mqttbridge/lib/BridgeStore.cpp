@@ -23,20 +23,16 @@
 #include "nlohmann/json-schema.hpp"
 
 #include <exception>
-#include <initializer_list>
+#include <fstream>
 #include <iot/mqtt/Topic.h>
-#include <istream>
 #include <list>
 #include <log/Logger.h>
 #include <map>
 #include <nlohmann/json.hpp>
-#include <stdexcept>
 #include <utility>
-#include <vector>
 
 // IWYU pragma: no_include <nlohmann/json_fwd.hpp>
 // IWYU pragma: no_include <nlohmann/detail/iterators/iter_impl.hpp>
-// IWYU pragma: no_include <nlohmann/detail/json_pointer.hpp>
 
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
@@ -51,7 +47,7 @@ namespace mqtt::bridge::lib {
     bool BridgeStore::loadAndValidate(const std::string& fileName) {
         bool success = !brokers.empty();
 
-#include "bridge-schema.json.h"
+#include "bridge-schema.json.h" // IWYU pragma: keep
 
         if (!success) {
             try {

@@ -42,19 +42,13 @@ namespace core::socket::stream {
 #include <utility>
 #include <variant>
 
-// IWYU pragma: no_include <bits/utility.h>
-
 #endif
-
-namespace iot::mqtt::packets {
-    class Connect;
-}
 
 static express::Router getRouter() {
     express::Router router;
     router.get("/clients", [] APPLICATION(req, res) {
         const std::map<mqtt::mqttbroker::lib::Mqtt*, iot::mqtt::packets::Connect>& connectionList =
-            mqtt::mqttbroker::lib::MqttModel::instance().getConnectedClinets();
+            mqtt::mqttbroker::lib::MqttModel::instance().getConnectedClients();
 
         std::string responseString = "<html>"
                                      "  <head>"

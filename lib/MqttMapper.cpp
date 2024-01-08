@@ -59,17 +59,13 @@
 
 #include <algorithm>
 #include <dlfcn.h>
-#include <initializer_list>
 #include <log/Logger.h>
 #include <map>
 #include <nlohmann/json.hpp>
-#include <stdexcept>
 #include <vector>
 
 #endif
 
-// IWYU pragma: no_include <nlohmann/detail/iterators/iteration_proxy.hpp>
-// IWYU pragma: no_include <nlohmann/detail/json_pointer.hpp>
 // IWYU pragma: no_include <nlohmann/detail/iterators/iter_impl.hpp>
 
 namespace mqtt::lib {

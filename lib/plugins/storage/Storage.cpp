@@ -26,8 +26,6 @@
 #include <stdexcept>
 #include <vector>
 
-// IWYU pragma: no_include <nlohmann/detail/json_pointer.hpp>
-
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
 namespace mqtt::lib::plugins::storage_plugin {

@@ -23,7 +23,7 @@ namespace mqtt::mqttbroker::lib {
     class Mqtt;
 }
 
-#include <iot/mqtt/packets/Connect.h>
+#include <iot/mqtt/packets/Connect.h> // IWYU pragma: export
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
@@ -43,7 +43,7 @@ namespace mqtt::mqttbroker::lib {
         void addConnectedClient(mqtt::mqttbroker::lib::Mqtt* mqtt, const iot::mqtt::packets::Connect& connect);
         void delDisconnectedClient(mqtt::mqttbroker::lib::Mqtt* mqtt);
 
-        const std::map<mqtt::mqttbroker::lib::Mqtt*, iot::mqtt::packets::Connect>& getConnectedClinets() const;
+        const std::map<mqtt::mqttbroker::lib::Mqtt*, iot::mqtt::packets::Connect>& getConnectedClients() const;
 
     protected:
         std::map<mqtt::mqttbroker::lib::Mqtt*, iot::mqtt::packets::Connect> connectedClients;

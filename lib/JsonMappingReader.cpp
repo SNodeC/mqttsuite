@@ -24,14 +24,10 @@
 
 #include <exception>
 #include <fstream>
-#include <initializer_list>
 #include <log/Logger.h>
-#include <vector>
+#include <nlohmann/json.hpp>
 
 #endif
-
-// IWYU pragma: no_include <nlohmann/json.hpp>
-// IWYU pragma: no_include <nlohmann/detail/json_pointer.hpp>
 
 namespace mqtt::lib {
 

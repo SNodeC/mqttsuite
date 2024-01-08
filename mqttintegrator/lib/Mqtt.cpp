@@ -30,8 +30,6 @@
 #include <nlohmann/json.hpp>
 #include <utils/system/signal.h>
 
-// IWYU pragma: no_include <nlohmann/detail/json_pointer.hpp>
-
 #endif
 
 namespace mqtt::mqttintegrator::lib {

@@ -34,8 +34,6 @@
 #include <utils/Config.h>
 #include <variant>
 
-// IWYU pragma: no_include <bits/utility.h>
-
 #endif
 
 template <typename SocketAddress>
