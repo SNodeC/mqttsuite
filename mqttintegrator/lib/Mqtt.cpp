@@ -63,7 +63,7 @@ namespace mqtt::mqttintegrator::lib {
         sendConnect(keepAlive, clientId, cleanSession, willTopic, willMessage, willQoS, willRetain, username, password, true);
     }
 
-    void Mqtt::onExit(int signum) {
+    void Mqtt::onSignal(int signum) {
         VLOG(1) << "MQTT: On Exit due to '" << strsignal(signum) << "' (SIG" << utils::system::sigabbrev_np(signum) << " = " << signum
                 << ")";
 

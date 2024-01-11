@@ -48,7 +48,7 @@ namespace mqtt::bridge::lib {
     private:
         void onConnected() final;
         void onDisconnected() final;
-        void onExit(int signum) final;
+        void onSignal(int signum) final;
 
         void onConnack(const iot::mqtt::packets::Connack& connack) final;
         void onPublish(const iot::mqtt::packets::Publish& publish) final;
