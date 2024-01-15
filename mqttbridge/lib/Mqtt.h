@@ -46,9 +46,11 @@ namespace mqtt::bridge::lib {
         explicit Mqtt(Bridge& bridge, const std::list<iot::mqtt::Topic>& topics);
 
     private:
+        using Super = iot::mqtt::client::Mqtt;
+
         void onConnected() final;
         void onDisconnected() final;
-        void onSignal(int signum) final;
+        [[nodiscard]] bool onSignal(int signum) final;
 
         void onConnack(const iot::mqtt::packets::Connack& connack) final;
         void onPublish(const iot::mqtt::packets::Publish& publish) final;

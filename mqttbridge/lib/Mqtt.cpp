@@ -68,11 +68,13 @@ namespace mqtt::bridge::lib {
         VLOG(1) << "MQTT: Disconnected";
     }
 
-    void Mqtt::onSignal(int signum) {
+    bool Mqtt::onSignal(int signum) {
         VLOG(1) << "MQTT: On Exit due to '" << strsignal(signum) << "' (SIG" << utils::system::sigabbrev_np(signum) << " = " << signum
                 << ")";
 
         sendDisconnect();
+
+        return Super::onSignal(signum);
     }
 
     void Mqtt::onConnack(const iot::mqtt::packets::Connack& connack) {
