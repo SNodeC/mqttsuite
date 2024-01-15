@@ -72,13 +72,21 @@ static express::Router getRouter() {
     });
 
     router.get("/ws/", [] APPLICATION(req, res) -> void {
-        if (!res.upgrade(req)) {
+        if (res.upgrade(req)) {
+            VLOG(1) << "Successful not upgrade to '" << req.get("upgrade") << "'";
+            res.end();
+        } else {
+            VLOG(1) << "Can upgrade to '" << req.get("upgrade") << "'";
             res.end();
         }
     });
 
     router.get("/", [] APPLICATION(req, res) -> void {
-        if (!res.upgrade(req)) {
+        if (res.upgrade(req)) {
+            VLOG(1) << "Successful not upgrade to '" << req.get("upgrade") << "'";
+            res.end();
+        } else {
+            VLOG(1) << "Can upgrade to '" << req.get("upgrade") << "'";
             res.end();
         }
     });
