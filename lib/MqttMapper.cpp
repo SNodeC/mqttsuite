@@ -286,8 +286,7 @@ namespace mqtt::lib {
                 const nlohmann::json& suppressions = templateMapping["suppressions"];
                 const bool retain = templateMapping["retain"];
 
-                if (std::find(suppressions.begin(), suppressions.end(), renderedMessage) == suppressions.end() ||
-                    (retain && renderedMessage.empty())) {
+                if (suppressions.empty() || std::find(suppressions.begin(), suppressions.end(), renderedMessage) == suppressions.end()) {
                     const uint8_t qoS = templateMapping["qos"];
 
                     VLOG(1) << "  Send mapping:";
