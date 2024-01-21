@@ -25,9 +25,6 @@
 #include <iot/mqtt/Topic.h>
 #include <web/websocket/SubProtocolContext.h>
 
-// IWYU pragma: no_include "iot/mqtt/client/SubProtocol.h"
-// IWYU pragma: no_include "web/websocket/SubProtocolFactory.h"
-
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <cstdint>

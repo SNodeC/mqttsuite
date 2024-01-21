@@ -16,23 +16,16 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "SocketContextFactory.h" // IWYU pragma: keep
+#include "SocketContextFactory.h"
 #include "lib/BridgeStore.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <core/SNodeC.h>
-#include <core/socket/State.h>                       // IWYU pragma: keep
-#include <core/socket/stream/SocketContextFactory.h> // IWYU pragma: keep
 #include <iot/mqtt/Topic.h>
 #include <log/Logger.h>
-#include <utils/Config.h>
-
-namespace core::socket {
-    class SocketAddress; // IWYU pragma: keep
-}
-
 #include <utils/CLI11.hpp>
+#include <utils/Config.h>
 #include <web/http/client/Request.h>
 #include <web/http/client/Response.h>
 

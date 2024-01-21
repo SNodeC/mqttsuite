@@ -20,7 +20,7 @@
 #define APPS_MQTTBROKER_BROKER_SOCKETCONTEXTFACTORY_H
 
 #include <core/socket/stream/SocketContext.h>
-#include <iot/mqtt/server/SharedSocketContextFactory.h>
+#include <iot/mqtt/server/SharedSocketContextFactory.h> // IWYU pragma: export
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 

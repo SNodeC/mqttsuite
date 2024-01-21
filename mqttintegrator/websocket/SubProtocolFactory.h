@@ -19,12 +19,12 @@
 #ifndef APPS_MQTTBROKER_MQTTINTEGRATOR_WEBSOCKET_SUBPROTOCOLFACTORY_H
 #define APPS_MQTTBROKER_MQTTINTEGRATOR_WEBSOCKET_SUBPROTOCOLFACTORY_H
 
+#include <iot/mqtt/client/SubProtocol.h>
+#include <web/websocket/SubProtocolFactory.h>
+
 namespace web::websocket {
     class SubProtocolContext;
 }
-
-#include <iot/mqtt/client/SubProtocol.h>
-#include <web/websocket/SubProtocolFactory.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 

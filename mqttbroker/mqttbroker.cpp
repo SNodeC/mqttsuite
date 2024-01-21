@@ -16,13 +16,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "SharedSocketContextFactory.h" // IWYU pragma: keep
+#include "SharedSocketContextFactory.h"
 #include "lib/Mqtt.h"
 #include "lib/MqttModel.h"
-
-namespace core::socket::stream {
-    class SocketContextFactory;
-}
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
