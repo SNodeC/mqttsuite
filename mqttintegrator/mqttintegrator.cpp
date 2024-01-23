@@ -21,16 +21,18 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <core/SNodeC.h>
+//
 #include <net/in/stream/legacy/SocketClient.h>
 #include <net/in/stream/tls/SocketClient.h>
 #include <net/un/stream/legacy/SocketClient.h>
 //
-#include <cstdlib>
 #include <log/Logger.h>
+#include <utils/Config.h>
+//
+#include <cstdlib>
 #include <string>
 #include <type_traits>
 #include <utility>
-#include <utils/Config.h>
 #include <variant>
 
 #endif

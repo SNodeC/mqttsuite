@@ -22,12 +22,13 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <core/SNodeC.h>
+//
 #include <iot/mqtt/Topic.h>
 #include <log/Logger.h>
-#include <utils/CLI11.hpp>
 #include <utils/Config.h>
-#include <web/http/client/Request.h>
-#include <web/http/client/Response.h>
+//
+#include <utils/CLI11.hpp>
+//
 
 /*
 // This can be and is done in CMakeLists.txt
@@ -80,47 +81,47 @@
 // Select necessary include files
 // ==============================
 #if defined(MQTTBRIDGE_IN_STREAM_LEGACY)
-#include <net/in/stream/legacy/SocketClient.h> // IWYU pragma: keep
+#include <net/in/stream/legacy/SocketClient.h>
 #endif
 #if defined(MQTTBRIDGE_IN_STREAM_TLS)
-#include <net/in/stream/tls/SocketClient.h> // IWYU pragma: keep
+#include <net/in/stream/tls/SocketClient.h>
 #endif
 #if defined(MQTTBRIDGE_IN6_STREAM_LEGACY)
-#include <net/in6/stream/legacy/SocketClient.h> // IWYU pragma: keep
+#include <net/in6/stream/legacy/SocketClient.h>
 #endif
 #if defined(MQTTBRIDGE_IN6_STREAM_TLS)
-#include <net/in6/stream/tls/SocketClient.h> // IWYU pragma: keep
+#include <net/in6/stream/tls/SocketClient.h>
 #endif
 #if defined(MQTTBRIDGE_L2_STREAM_LEGACY)
-#include <net/l2/stream/legacy/SocketClient.h> // IWYU pragma: keep
+#include <net/l2/stream/legacy/SocketClient.h>
 #endif
 #if defined(MQTTBRIDGE_L2_STREAM_TLS)
-#include <net/l2/stream/tls/SocketClient.h> // IWYU pragma: keep
+#include <net/l2/stream/tls/SocketClient.h>
 #endif
 #if defined(MQTTBRIDGE_RC_STREAM_LEGACY)
-#include <net/rc/stream/legacy/SocketClient.h> // IWYU pragma: keep
+#include <net/rc/stream/legacy/SocketClient.h>
 #endif
 #if defined(MQTTBRIDGE_RC_STREAM_TLS)
-#include <net/rc/stream/tls/SocketClient.h> // IWYU pragma: keep
+#include <net/rc/stream/tls/SocketClient.h>
 #endif
 #if defined(MQTTBRIDGE_UN_STREAM_LEGACY)
-#include <net/un/stream/legacy/SocketClient.h> // IWYU pragma: keep
+#include <net/un/stream/legacy/SocketClient.h>
 #endif
 #if defined(MQTTBRIDGE_UN_STREAM_TLS)
-#include <net/un/stream/tls/SocketClient.h> // IWYU pragma: keep
+#include <net/un/stream/tls/SocketClient.h>
 #endif
 
 #if defined(MQTTBRIDGE_IN_WEBSOCKET_LEGACY)
-#include <web/http/legacy/in/Client.h> // IWYU pragma: keep
+#include <web/http/legacy/in/Client.h>
 #endif
 #if defined(MQTTBRIDGE_IN_WEBSOCKET_TLS)
-#include <web/http/tls/in/Client.h> // IWYU pragma: keep
+#include <web/http/tls/in/Client.h>
 #endif
 #if defined(MQTTBRIDGE_IN6_WEBSOCKET_LEGACY)
-#include <web/http/legacy/in6/Client.h> // IWYU pragma: keep
+#include <web/http/legacy/in6/Client.h>
 #endif
 #if defined(MQTTBRIDGE_IN6_WEBSOCKET_TLS)
-#include <web/http/tls/in6/Client.h> // IWYU pragma: keep
+#include <web/http/tls/in6/Client.h>
 #endif
 
 #include <cstdint>

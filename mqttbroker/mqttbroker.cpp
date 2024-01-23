@@ -23,12 +23,14 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <core/SNodeC.h>
+//
 #include <express/legacy/in/WebApp.h>
 #include <express/tls/in/WebApp.h>
+#include <net/in/stream/legacy/SocketServer.h>
+#include <net/in/stream/tls/SocketServer.h>
+#include <net/un/stream/legacy/SocketServer.h>
+//
 #include <log/Logger.h>
-#include <net/in/stream/legacy/SocketServer.h> // IWYU pragma: keep
-#include <net/in/stream/tls/SocketServer.h>    // IWYU pragma: keep
-#include <net/un/stream/legacy/SocketServer.h> // IWYU pragma: keep
 #include <utils/Config.h>
 //
 #include <cstdlib>

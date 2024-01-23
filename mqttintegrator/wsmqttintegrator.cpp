@@ -19,16 +19,16 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <core/SNodeC.h>
-#include <web/http/client/Request.h>
-#include <web/http/client/Response.h>
+//
 #include <web/http/legacy/in/Client.h>
 #include <web/http/tls/in/Client.h>
 //
-#include <cstdlib>
 #include <log/Logger.h>
+#include <utils/Config.h>
+//
+#include <cstdlib>
 #include <string>
 #include <type_traits>
-#include <utils/Config.h>
 
 #endif
 
