@@ -64,9 +64,9 @@ void reportState(const std::string& instanceName, const SocketAddress& socketAdd
     }
 }
 
-template <template <typename, typename> typename HttpClient>
+template <typename HttpClient>
 void startClient(const std::string& name, const auto& configurator) {
-    using Client = HttpClient<web::http::client::Request, web::http::client::Response>;
+    using Client = HttpClient;
     using SocketAddress = typename Client::SocketAddress;
 
     const Client client(
