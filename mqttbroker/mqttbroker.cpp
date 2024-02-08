@@ -66,26 +66,26 @@ static express::Router getRouter() {
                           "  </body>"
                           "</html>";
 
-        res.send(responseString);
+        res->send(responseString);
     });
 
     router.get("/ws/", [] APPLICATION(req, res) -> void {
-        if (res.upgrade(req)) {
-            VLOG(1) << "Successful not upgrade to '" << req.get("upgrade") << "'";
-            res.end();
+        if (res->upgrade(req)) {
+            VLOG(1) << "Successful not upgrade to '" << req->get("upgrade") << "'";
+            res->end();
         } else {
-            VLOG(1) << "Can upgrade to '" << req.get("upgrade") << "'";
-            res.end();
+            VLOG(1) << "Can upgrade to '" << req->get("upgrade") << "'";
+            res->end();
         }
     });
 
     router.get("/", [] APPLICATION(req, res) -> void {
-        if (res.upgrade(req)) {
-            VLOG(1) << "Successful not upgrade to '" << req.get("upgrade") << "'";
-            res.end();
+        if (res->upgrade(req)) {
+            VLOG(1) << "Successful not upgrade to '" << req->get("upgrade") << "'";
+            res->end();
         } else {
-            VLOG(1) << "Can upgrade to '" << req.get("upgrade") << "'";
-            res.end();
+            VLOG(1) << "Can upgrade to '" << req->get("upgrade") << "'";
+            res->end();
         }
     });
 
