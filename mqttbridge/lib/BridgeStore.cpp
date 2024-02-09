@@ -71,7 +71,6 @@ namespace mqtt::bridge::lib {
 
                                     if (!defaultPatch.empty()) {
                                         try {
-                                            LOG(TRACE) << "  Default patch:\n" << defaultPatch.dump(4);
                                             bridgeConfigJson = bridgeConfigJson.patch(defaultPatch);
 
                                             for (const nlohmann::json& bridgeConfigJson : // cppcheck-suppress shadowVariable
