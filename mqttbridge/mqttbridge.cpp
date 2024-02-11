@@ -194,12 +194,12 @@ void startClient(const std::string& name, const auto& configurator) {
 
     const Client client(
         name,
-        [](web::http::client::Request& request) -> void {
-            request.set("Sec-WebSocket-Protocol", "mqtt");
-            request.upgrade("/ws/", "websocket");
+        [](std::shared_ptr<web::http::client::Request>& request) -> void {
+            request->set("Sec-WebSocket-Protocol", "mqtt");
+            request->upgrade("/ws/", "websocket");
         },
-        [](web::http::client::Request& request, web::http::client::Response& response) -> void {
-            response.upgrade(request);
+        [](std::shared_ptr<web::http::client::Request>& request, std::shared_ptr<web::http::client::Response>& response) -> void {
+            request->upgrade(response);
         },
         [](int status, const std::string& reason) -> void {
             VLOG(0) << "OnResponseError";
