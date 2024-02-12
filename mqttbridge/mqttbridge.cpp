@@ -124,10 +124,7 @@
 #include <web/http/tls/in6/Client.h>
 #endif
 
-#include <cstdint>
 #include <list>
-#include <map>
-#include <memory>
 #include <string>
 #include <type_traits>
 #include <utility>

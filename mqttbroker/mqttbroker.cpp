@@ -34,7 +34,6 @@
 #include <utils/Config.h>
 //
 #include <cstdlib>
-#include <map>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -43,7 +42,7 @@
 #endif
 
 static express::Router getRouter() {
-    express::Router router;
+    const express::Router router;
     router.get("/clients", [] APPLICATION(req, res) {
         const std::map<mqtt::mqttbroker::lib::Mqtt*, iot::mqtt::packets::Connect>& connectionList =
             mqtt::mqttbroker::lib::MqttModel::instance().getConnectedClients();

@@ -27,7 +27,6 @@
 #include <utils/Config.h>
 //
 #include <cstdlib>
-#include <memory>
 #include <string>
 #include <type_traits>
 
