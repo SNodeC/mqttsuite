@@ -89,6 +89,9 @@ void startClient(const std::string& name, const auto& configurator) {
             VLOG(0) << "OnResponseError";
             VLOG(0) << "     Status: " << status;
             VLOG(0) << "     Reason: " << reason;
+        },
+        []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req) -> void {
+            VLOG(0) << "Session ended";
         });
 
     configurator(client.getConfig());
