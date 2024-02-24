@@ -193,18 +193,21 @@ void startClient(const std::string& name, const auto& configurator) {
         name,
         [](const std::shared_ptr<web::http::client::Request>& req) -> void {
             req->set("Sec-WebSocket-Protocol", "mqtt");
-            req->upgrade("/ws/",
-                         "websocket",
-                         [](const std::shared_ptr<web::http::client::Request>& req,
-                            const std::shared_ptr<web::http::client::Response>& res) -> void {
-                             req->upgrade(res, [&subProtocol = res->headers["upgrade"]](bool success) -> void {
-                                 if (success) {
-                                     VLOG(1) << "Successful upgrade to '" << subProtocol << "'";
-                                 } else {
-                                     VLOG(1) << "Can not upgrade to '" << subProtocol << "'";
-                                 }
-                             });
-                         });
+            req->upgrade(
+                "/ws/",
+                "websocket",
+                [](const std::shared_ptr<web::http::client::Request>& req,
+                   const std::shared_ptr<web::http::client::Response>& res) -> void {
+                    req->upgrade(
+                        res,
+                        [&subProtocolsRequested = req->headers["Upgrade"], &subProtocol = res->headers["upgrade"]](bool success) -> void {
+                            if (success) {
+                                VLOG(1) << "Successful upgrade to '" << subProtocol << "' requested: " << subProtocolsRequested;
+                            } else {
+                                VLOG(1) << "Can not upgrade to '" << subProtocol << "' requested: " << subProtocolsRequested;
+                            }
+                        });
+                });
         },
         [](int status, const std::string& reason) -> void {
             VLOG(0) << "OnResponseError";
