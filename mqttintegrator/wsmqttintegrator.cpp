@@ -81,7 +81,7 @@ void startClient(const std::string& name, const auto& configurator) {
                    const std::shared_ptr<web::http::client::Response>& res) -> void {
                     req->upgrade(
                         res,
-                        [&subProtocolsRequested = req->headers["Upgrade"], &subProtocol = res->headers["Upgrade"]](bool success) -> void {
+                        [&subProtocolsRequested = req->header("Upgrade"), &subProtocol = res->headers["Upgrade"]](bool success) -> void {
                             if (success) {
                                 VLOG(1) << "Successful upgrade to '" << subProtocol << "' requested: " << subProtocolsRequested;
                             } else {
