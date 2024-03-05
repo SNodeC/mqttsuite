@@ -201,17 +201,16 @@ void startClient(const std::string& name, const auto& configurator) {
                     req->upgrade(
                         res, [subProtocolsRequested = req->header("Upgrade"), subProtocol = res->headers["upgrade"]](bool success) -> void {
                             if (success) {
-                                VLOG(1) << "Successful upgrade to '" << subProtocol << "' requested: " << subProtocolsRequested;
+                                VLOG(1) << "Upgrade to subprotocol '" << subProtocol
+                                        << "' successful: Requested: " << subProtocolsRequested;
                             } else {
-                                VLOG(1) << "Can not upgrade to '" << subProtocol << "' requested: " << subProtocolsRequested;
+                                VLOG(1) << "Upgrade to subprotocol '" << subProtocol << "' failed: requested: " << subProtocolsRequested;
                             }
                         });
+                },
+                [](const std::shared_ptr<web::http::client::Request>& req, const std::string& reason) -> void {
+                    VLOG(1) << "Upgrade to subprotocols '" << req->header("Upgrade") << "' failed with response parse error: " << reason;
                 });
-        },
-        [](int status, const std::string& reason) -> void {
-            VLOG(0) << "OnResponseError";
-            VLOG(0) << "     Status: " << status;
-            VLOG(0) << "     Reason: " << reason;
         },
         []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req) -> void {
             VLOG(0) << "Session ended";
