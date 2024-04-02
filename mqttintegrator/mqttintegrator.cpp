@@ -18,6 +18,20 @@
 
 #include "SocketContextFactory.h"
 
+#ifdef LINK_SUBPROTOCOL_STATIC
+
+#include "websocket/SubProtocolFactory.h"
+
+#include <web/websocket/client/SubProtocolFactorySelector.h>
+
+#endif
+
+#if defined(LINK_WEBSOCKET_STATIC) || defined(LINK_SUBPROTOCOL_STATIC)
+
+#include <web/websocket/client/SocketContextUpgradeFactory.h>
+
+#endif
+
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <core/SNodeC.h>
@@ -25,6 +39,8 @@
 #include <net/in/stream/legacy/SocketClient.h>
 #include <net/in/stream/tls/SocketClient.h>
 #include <net/un/stream/legacy/SocketClient.h>
+#include <web/http/legacy/in/Client.h>
+#include <web/http/tls/in/Client.h>
 //
 #include <log/Logger.h>
 #include <utils/Config.h>
@@ -89,7 +105,55 @@ void startClient(const std::string& instanceName, SocketContextFactoryArgs&&... 
     });
 }
 
+template <typename HttpClient>
+void startClient(const std::string& name, const auto& configurator) {
+    using Client = HttpClient;
+    using SocketAddress = typename Client::SocketAddress;
+
+    const Client client(
+        name,
+        [](const std::shared_ptr<web::http::client::Request>& req) -> void {
+            req->set("Sec-WebSocket-Protocol", "mqtt");
+
+            req->upgrade(
+                "/ws/",
+                "websocket",
+                [](const std::shared_ptr<web::http::client::Request>& req,
+                   const std::shared_ptr<web::http::client::Response>& res) -> void {
+                    req->upgrade(
+                        res, [subProtocolsRequested = req->header("Upgrade"), subProtocol = res->headers["Upgrade"]](bool success) -> void {
+                            if (success) {
+                                VLOG(1) << "Upgrade to subprotocol '" << subProtocol
+                                        << "' successful: Requested: " << subProtocolsRequested;
+                            } else {
+                                VLOG(1) << "Upgrade to subprotocol '" << subProtocol << "' failed: requested: " << subProtocolsRequested;
+                            }
+                        });
+                },
+                [](const std::shared_ptr<web::http::client::Request>& req, const std::string& reason) -> void {
+                    VLOG(1) << "Upgrade to subprotocols '" << req->header("Upgrade") << "' failed with response parse error: " << reason;
+                });
+        },
+        []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req) -> void {
+            VLOG(0) << "Session ended";
+        });
+
+    configurator(client.getConfig());
+
+    client.connect([name](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
+        reportState(name, socketAddress, state);
+    });
+}
+
 int main(int argc, char* argv[]) {
+#if defined(LINK_WEBSOCKET_STATIC) || defined(LINK_SUBPROTOCOL_STATIC)
+    web::websocket::client::SocketContextUpgradeFactory::link();
+#endif
+
+#ifdef LINK_SUBPROTOCOL_STATIC
+    web::websocket::client::SubProtocolFactorySelector::link("mqtt", mqttClientSubProtocolFactory);
+#endif
+
     utils::Config::add_string_option("--mqtt-mapping-file", "MQTT mapping file (json format) for integration", "[path]");
     utils::Config::add_string_option("--mqtt-session-store", "Path to file for the persistent session store", "[path]", "");
 
@@ -106,7 +170,6 @@ int main(int argc, char* argv[]) {
     });
 
     startClient<net::in::stream::tls::SocketClient, mqtt::mqttintegrator::SocketContextFactory>("in-mqtts", [](auto& config) -> void {
-        config.setDisabled();
         config.Remote::setPort(8883);
 
         config.setRetry();
@@ -115,8 +178,21 @@ int main(int argc, char* argv[]) {
     });
 
     startClient<net::un::stream::legacy::SocketClient, mqtt::mqttintegrator::SocketContextFactory>("un-mqtt", [](auto& config) -> void {
-        config.setDisabled();
-        config.Remote::setSunPath("/tmp/mqttbroker");
+        config.setRetry();
+        config.setRetryBase(1);
+        config.setReconnect();
+    });
+
+    startClient<web::http::legacy::in::Client>("in-wsmqtt", [](auto& config) -> void {
+        config.Remote::setPort(8080);
+
+        config.setRetry();
+        config.setRetryBase(1);
+        config.setReconnect();
+    });
+
+    startClient<web::http::tls::in::Client>("in-wsmqtts", [](auto& config) -> void {
+        config.Remote::setPort(8088);
 
         config.setRetry();
         config.setRetryBase(1);
