@@ -146,7 +146,7 @@ void startServer(const std::string& instanceName, SocketContextFactoryArgs&&... 
 
     const Server server(instanceName, std::forward<SocketContextFactoryArgs>(socketContextFactoryArgs)...);
 
-    server.instance([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
+    server.listen([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
         reportState(instanceName, socketAddress, state);
     });
 }
