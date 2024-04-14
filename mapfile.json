@@ -18,6 +18,39 @@
     ],
     "topic_level": [
       {
+        "name": "ich",
+        "topic_level": [
+          {
+            "name": "du",
+            "topic_level": [
+              {
+                "name": "#",
+                "topic_level": [
+                  {
+                    "name": "ihr",
+                    "subscription": {
+                      "type": "binary_sensor",
+                      "qos": 0,
+                      "static": [
+                        {
+                          "mapped_topic": "back",
+                          "message_mapping": [
+                            {
+                              "message": "hallo",
+                              "mapped_message": "du"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
         "name": "test01",
         "topic_level": [
           {
