@@ -1,9 +1,9 @@
 /*
-  ___        _          Version 3.3
+  ___        _          Version 3.4.0
  |_ _|_ __  (_) __ _    https://github.com/pantor/inja
   | || '_ \ | |/ _` |   Licensed under the MIT License <http://opensource.org/licenses/MIT>.
   | || | | || | (_| |
- |___|_| |_|/ |\__,_|   Copyright (c) 2018-2022 Lars Berscheid
+ |___|_| |_|/ |\__,_|   Copyright (c) 2018-2023 Lars Berscheid
           |__/
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -895,10 +895,10 @@ namespace inja {
         }
 
         /// Return number of variables (total number, not distinct ones) in the template
-        int count_variables() {
+        unsigned int count_variables() {
             auto statistic_visitor = StatisticsVisitor();
             root.accept(statistic_visitor);
-            return static_cast<int>(statistic_visitor.variable_counter);
+            return statistic_visitor.variable_counter;
         }
     };
 
@@ -1558,7 +1558,7 @@ namespace inja {
         std::stack<ForStatementNode*> for_statement_stack;
         std::stack<BlockStatementNode*> block_statement_stack;
 
-        inline void throw_parser_error [[noreturn]] (const std::string& message) const {
+        [[noreturn]] inline void throw_parser_error(const std::string& message) const {
             INJA_THROW(ParserError(message, lexer.current_position()));
         }
 
@@ -1580,7 +1580,7 @@ namespace inja {
 
         inline void add_literal(Arguments& arguments, const char* content_ptr) {
             std::string_view data_text(literal_start.data(),
-                                       static_cast<unsigned long>(tok.text.data() - literal_start.data()) + tok.text.size());
+                                       static_cast<std::string_view::size_type>(tok.text.data() - literal_start.data()) + tok.text.size());
             arguments.emplace_back(std::make_shared<LiteralNode>(data_text, data_text.data() - content_ptr));
         }
 
@@ -2240,6 +2240,8 @@ namespace inja {
         void print_data(const std::shared_ptr<json> value) {
             if (value->is_string()) {
                 *output_stream << value->get_ref<const json::string_t&>();
+            } else if (value->is_number_unsigned()) {
+                *output_stream << value->get<const json::number_unsigned_t>();
             } else if (value->is_number_integer()) {
                 *output_stream << value->get<const json::number_integer_t>();
             } else if (value->is_null()) {
@@ -2277,7 +2279,7 @@ namespace inja {
             return std::make_shared<json>(*result);
         }
 
-        void throw_renderer_error [[noreturn]] (const std::string& message, const AstNode& node) {
+        [[noreturn]] void throw_renderer_error(const std::string& message, const AstNode& node) {
             SourceLocation loc = get_source_location(current_template->content, node.pos);
             INJA_THROW(RenderError(message, loc));
         }
@@ -2499,7 +2501,7 @@ namespace inja {
                     if (args[0]->is_object()) {
                         data_eval_stack.push(&args[0]->at(args[1]->get<std::string>()));
                     } else {
-                        data_eval_stack.push(&args[0]->at(static_cast<nlohmann::json::size_type>(args[1]->get<int>())));
+                        data_eval_stack.push(&args[0]->at(args[1]->get<std::stack<const json*>::size_type>()));
                     }
                 } break;
                 case Op::Default: {
@@ -2566,14 +2568,13 @@ namespace inja {
                     make_result(get_arguments<1>(node)[0]->get<const json::number_integer_t>() % 2 != 0);
                 } break;
                 case Op::Range: {
-                    std::vector<int> result(
-                        static_cast<std::vector<int>::size_type>(get_arguments<1>(node)[0]->get<const json::number_integer_t>()));
+                    std::vector<int> result(get_arguments<1>(node)[0]->get<std::vector<int>::size_type>());
                     std::iota(result.begin(), result.end(), 0);
                     make_result(std::move(result));
                 } break;
                 case Op::Round: {
                     const auto args = get_arguments<2>(node);
-                    const int precision = static_cast<int>(args[1]->get<const json::number_integer_t>());
+                    const int precision = args[1]->get<int>();
                     const double result =
                         std::round(args[0]->get<const json::number_float_t>() * std::pow(10.0, precision)) / std::pow(10.0, precision);
                     if (precision == 0) {
@@ -2623,7 +2624,7 @@ namespace inja {
                 case Op::Super: {
                     const auto args = get_argument_vector(node);
                     const size_t old_level = current_level;
-                    const size_t level_diff = (args.size() == 1) ? static_cast<size_t>(args[0]->get<int>()) : 1;
+                    const size_t level_diff = (args.size() == 1) ? args[0]->get<size_t>() : 1;
                     const size_t level = current_level + level_diff;
 
                     if (block_statement_stack.empty()) {
