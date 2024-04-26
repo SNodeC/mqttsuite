@@ -19,13 +19,16 @@
 #ifndef APPS_MQTTBROKER_MQTTBRIDGE_SOCKETCONTEXTFACTORY_H
 #define APPS_MQTTBROKER_MQTTBRIDGE_SOCKETCONTEXTFACTORY_H
 
+namespace core::socket::stream {
+    class SocketContext;
+}
+
 namespace mqtt::bridge::lib {
     class Bridge;
 }
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <core/socket/stream/SocketContext.h>
 #include <core/socket/stream/SocketContextFactory.h> // IWYU pragma: export
 #include <iot/mqtt/Topic.h>
 #include <list>

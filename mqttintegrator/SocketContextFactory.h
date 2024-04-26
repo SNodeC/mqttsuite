@@ -19,7 +19,10 @@
 #ifndef APPS_MQTTBROKER_MQTTINTEGRATOR_SOCKETCONTEXTFACTORY_H
 #define APPS_MQTTBROKER_MQTTINTEGRATOR_SOCKETCONTEXTFACTORY_H
 
-#include <core/socket/stream/SocketContext.h>
+namespace core::socket::stream {
+    class SocketContext;
+}
+
 #include <core/socket/stream/SocketContextFactory.h> // IWYU pragma: export
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS

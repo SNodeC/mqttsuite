@@ -22,6 +22,7 @@
 
 #include "lib/inja.hpp"
 
+#include <functional>
 #include <map>
 #include <nlohmann/json.hpp>
 #include <vector>
