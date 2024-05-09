@@ -326,14 +326,18 @@ namespace mqtt::lib {
         json["retain"] = publish.getRetain();
         json["package_identifier"] = publish.getPacketIdentifier();
 
-        VLOG(0) << "  Render data: " << json.dump();
+        try {
+            VLOG(0) << "  Render data: " << json.dump();
 
-        if (templateMapping.is_object()) {
-            publishMappedTemplate(templateMapping, json);
-        } else {
-            for (const nlohmann::json& concreteTemplateMapping : templateMapping) {
-                publishMappedTemplate(concreteTemplateMapping, json);
+            if (templateMapping.is_object()) {
+                publishMappedTemplate(templateMapping, json);
+            } else {
+                for (const nlohmann::json& concreteTemplateMapping : templateMapping) {
+                    publishMappedTemplate(concreteTemplateMapping, json);
+                }
             }
+        } catch (const nlohmann::json::exception& e) {
+            LOG(ERROR) << "JSON Exception during Render data:\n" << e.what();
         }
     }
 
