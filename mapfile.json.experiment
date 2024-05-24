@@ -18,6 +18,39 @@
     ],
     "topic_level": [
       {
+        "name": "ich",
+        "topic_level": [
+          {
+            "name": "du",
+            "topic_level": [
+              {
+                "name": "#",
+                "topic_level": [
+                  {
+                    "name": "ihr",
+                    "subscription": {
+                      "type": "binary_sensor",
+                      "qos": 0,
+                      "static": [
+                        {
+                          "mapped_topic": "back",
+                          "message_mapping": [
+                            {
+                              "message": "hallo",
+                              "mapped_message": "du"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
         "name": "test01",
         "topic_level": [
           {
@@ -73,16 +106,16 @@
           {
             "name": "rfid",
             "subscription": {
-              "type": "new rfid reader",
+              "type": "rfid reader",
               "value": {
                 "mapped_topic": "test02/strip1/rgb/set",
-                "mapping_template": "front {{ message }}" 
+                "mapping_template": "front {{ message }}"
               }
             },
             "topic_level": {
               "name": "uid",
               "subscription": {
-                "type": "rfid reader",
+                "type": "rfid reader uid",
                 "value": [
                   {
                     "mapped_topic": "strip/strip1/rgb/set",
