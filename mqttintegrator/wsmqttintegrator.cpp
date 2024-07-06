@@ -28,7 +28,6 @@
 //
 #include <cstdlib>
 #include <string>
-#include <type_traits>
 
 #endif
 
@@ -46,8 +45,8 @@
 
 #endif
 
-template <typename SocketAddress, typename = std::enable_if_t<std::is_base_of_v<core::socket::SocketAddress, SocketAddress>>>
-void reportState(const std::string& instanceName, const SocketAddress& socketAddress, const core::socket::State& state) {
+static void
+reportState(const std::string& instanceName, const core::socket::SocketAddress& socketAddress, const core::socket::State& state) {
     switch (state) {
         case core::socket::State::OK:
             VLOG(1) << instanceName << ": connected to '" << socketAddress.toString() << "'";
