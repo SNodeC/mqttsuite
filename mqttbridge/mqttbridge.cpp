@@ -236,7 +236,7 @@ int main(int argc, char* argv[]) {
     CLI::App* bridgeApp = utils::Config::add_instance("bridge", "Configuration for Application mqttbridge", "MQTT-Bridge");
     utils::Config::required(bridgeApp);
     utils::Config::add_standard_flags(bridgeApp);
-    utils::Config::add_help_flag(bridgeApp);
+    utils::Config::add_help(bridgeApp);
 
     std::string bridgeDefinitionFile = "<REQUIRED>";
     bridgeApp->needs(bridgeApp->add_option("--definition", bridgeDefinitionFile, "MQTT bridge definition file (JSON format)")
