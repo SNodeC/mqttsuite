@@ -71,12 +71,13 @@ static express::Router getRouter() {
 
     router.get("/ws/", [] APPLICATION(req, res) -> void {
         if (req->get("sec-websocket-protocol").find("mqtt") != std::string::npos) {
-            res->upgrade(req, [req](bool success) -> void {
+            res->upgrade(req, [req, res](bool success) -> void {
                 if (success) {
                     VLOG(1) << "Successful upgrade to '" << req->get("upgrade") << "'";
                 } else {
                     VLOG(1) << "Can not upgrade to '" << req->get("upgrade") << "'";
                 }
+                res->end();
             });
         } else {
             res->sendStatus(404);
@@ -85,12 +86,13 @@ static express::Router getRouter() {
 
     router.get("/", [] APPLICATION(req, res) -> void {
         if (req->get("sec-websocket-protocol").find("mqtt") != std::string::npos) {
-            res->upgrade(req, [req](bool success) -> void {
+            res->upgrade(req, [req, res](bool success) -> void {
                 if (success) {
                     VLOG(1) << "Successful upgrade to '" << req->get("upgrade") << "'";
                 } else {
                     VLOG(1) << "Can not upgrade to '" << req->get("upgrade") << "'";
                 }
+                res->end();
             });
         } else {
             res->sendStatus(404);
