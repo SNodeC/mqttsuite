@@ -80,7 +80,7 @@ void startClient(const std::string& instanceName, const auto& configurator, Sock
     using Client = SocketClient<SocketContextFactory, SocketContextFactoryArgs&&...>;
     using SocketAddress = typename Client::SocketAddress;
 
-    const Client client(instanceName, std::forward<SocketContextFactoryArgs>(socketContextFactoryArgs)...);
+    const Client client(instanceName, socketContextFactoryArgs...);
 
     configurator(client.getConfig());
 
@@ -99,7 +99,7 @@ void startClient(const std::string& instanceName, SocketContextFactoryArgs&&... 
     using Client = SocketClient<SocketContextFactory, SocketContextFactoryArgs&&...>;
     using SocketAddress = typename Client::SocketAddress;
 
-    const Client client(instanceName, std::forward<SocketContextFactoryArgs>(socketContextFactoryArgs)...);
+    const Client client(instanceName, socketContextFactoryArgs...);
 
     client.connect([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
         reportState(instanceName, socketAddress, state);
