@@ -128,7 +128,7 @@ void startServer(const std::string& instanceName, const auto& configurator, Sock
     using Server = SocketServer<SocketContextFactory, SocketContextFactoryArgs&&...>;
     using SocketAddress = typename Server::SocketAddress;
 
-    const Server server(instanceName, socketContextFactoryArgs...);
+    const Server server(instanceName, std::forward<SocketContextFactoryArgs>(socketContextFactoryArgs)...);
 
     configurator(server.getConfig());
 
@@ -147,7 +147,7 @@ void startServer(const std::string& instanceName, SocketContextFactoryArgs&&... 
     using Server = SocketServer<SocketContextFactory, SocketContextFactoryArgs&&...>;
     using SocketAddress = typename Server::SocketAddress;
 
-    const Server server(instanceName, socketContextFactoryArgs...);
+    const Server server(instanceName, std::forward<SocketContextFactoryArgs>(socketContextFactoryArgs)...);
 
     server.listen([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
         reportState(instanceName, socketAddress, state);
