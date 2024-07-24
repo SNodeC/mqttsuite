@@ -32,6 +32,5 @@ install(
 
 install(
     TARGETS websocket-mqtt-client
-    LIBRARY
-        DESTINATION ${WEBSOCKET_SUBPROTOCOL_INSTALL_LIBDIR}/mqttintegrator/
+    LIBRARY DESTINATION ${WEBSOCKET_SUBPROTOCOL_INSTALL_LIBDIR}/mqttintegrator/
 )

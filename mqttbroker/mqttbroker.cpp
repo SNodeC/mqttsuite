@@ -25,7 +25,9 @@
 #include <core/SNodeC.h>
 //
 #include <express/legacy/in/WebApp.h>
+#include <express/legacy/in6/WebApp.h>
 #include <express/tls/in/WebApp.h>
+#include <express/tls/in6/WebApp.h>
 #include <net/in/stream/legacy/SocketServer.h>
 #include <net/in/stream/tls/SocketServer.h>
 #include <net/un/stream/legacy/SocketServer.h>
@@ -123,11 +125,12 @@ reportState(const std::string& instanceName, const core::socket::SocketAddress& 
 template <template <typename, typename...> typename SocketServer,
           typename SocketContextFactory,
           typename... SocketContextFactoryArgs,
+          typename Server = SocketServer<SocketContextFactory, SocketContextFactoryArgs&&...>, // cppcheck-suppress syntaxError
+          typename SocketAddress = typename Server::SocketAddress,
           typename = std::enable_if_t<std::is_base_of_v<core::socket::stream::SocketContextFactory, SocketContextFactory>>>
-void startServer(const std::string& instanceName, const auto& configurator, SocketContextFactoryArgs&&... socketContextFactoryArgs) {
-    using Server = SocketServer<SocketContextFactory, SocketContextFactoryArgs&&...>;
-    using SocketAddress = typename Server::SocketAddress;
-
+void startServer(const std::string& instanceName,
+                 const std::function<void(typename Server::Config&)>& configurator,
+                 SocketContextFactoryArgs&&... socketContextFactoryArgs) {
     const Server server(instanceName, std::forward<SocketContextFactoryArgs>(socketContextFactoryArgs)...);
 
     configurator(server.getConfig());
@@ -140,18 +143,20 @@ void startServer(const std::string& instanceName, const auto& configurator, Sock
 template <template <typename, typename...> typename SocketServer,
           typename SocketContextFactory,
           typename... SocketContextFactoryArgs,
+          typename Server = SocketServer<SocketContextFactory, SocketContextFactoryArgs&&...>, // cppcheck-suppress syntaxError
+          typename SocketAddress = typename Server::SocketAddress,
           typename = std::enable_if_t<std::is_base_of_v<core::socket::stream::SocketContextFactory, SocketContextFactory>>,
+          typename = std::enable_if_t<
+              std::is_invocable_v<std::tuple_element_t<0, std::tuple<SocketContextFactoryArgs...>>, typename Server::Config&>>,
           typename = std::enable_if_t<not std::is_invocable_v<std::tuple_element_t<0, std::tuple<SocketContextFactoryArgs...>>,
-                                                              typename SocketServer<SocketContextFactory>::Config&>>>
+                                                              typename SocketServer<SocketContextFactory>::Config&>>
+
+          >
 void startServer(const std::string& instanceName, SocketContextFactoryArgs&&... socketContextFactoryArgs) {
-    using Server = SocketServer<SocketContextFactory, SocketContextFactoryArgs&&...>;
-    using SocketAddress = typename Server::SocketAddress;
-
-    const Server server(instanceName, std::forward<SocketContextFactoryArgs>(socketContextFactoryArgs)...);
-
-    server.listen([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
-        reportState(instanceName, socketAddress, state);
-    });
+    Server(instanceName, std::forward<SocketContextFactoryArgs>(socketContextFactoryArgs)...)
+        .listen([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
+            reportState(instanceName, socketAddress, state);
+        });
 }
 
 template <typename HttpServer>
@@ -185,6 +190,20 @@ int main(int argc, char* argv[]) {
         config.setRetry();
     });
 
+    startServer<net::in6::stream::legacy::SocketServer, mqtt::mqttbroker::SharedSocketContextFactory>("in6-mqtt", [](auto& config) -> void {
+        config.setPort(1883);
+        config.setRetry();
+
+        config.setIPv6Only();
+    });
+
+    startServer<net::in6::stream::tls::SocketServer, mqtt::mqttbroker::SharedSocketContextFactory>("in6-mqtts", [](auto& config) -> void {
+        config.setPort(8883);
+        config.setRetry();
+
+        config.setIPv6Only();
+    });
+
     startServer<net::un::stream::legacy::SocketServer, mqtt::mqttbroker::SharedSocketContextFactory>("un-mqtt", [](auto& config) -> void {
         config.setSunPath("/tmp/" + utils::Config::getApplicationName());
         config.setRetry();
@@ -198,6 +217,20 @@ int main(int argc, char* argv[]) {
     startServer<express::tls::in::WebApp>("in-https", [](auto& config) -> void {
         config.setPort(8088);
         config.setRetry();
+    });
+
+    startServer<express::legacy::in6::WebApp>("in6-http", [](auto& config) -> void {
+        config.setPort(8080);
+        config.setRetry();
+
+        config.setIPv6Only();
+    });
+
+    startServer<express::tls::in6::WebApp>("in6-https", [](auto& config) -> void {
+        config.setPort(8088);
+        config.setRetry();
+
+        config.setIPv6Only();
     });
 
     return core::SNodeC::start();
