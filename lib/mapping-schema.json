@@ -109,7 +109,9 @@
               ],
               "properties": {
                 "name": {
-                  "type": "string"
+                  "type": "string",
+                  "pattern": "^[^#+]+$",
+                  "minLength": 1
                 },
                 "topic_level": {
                   "$ref": "#"
@@ -281,6 +283,7 @@
               "properties": {
                 "mapped_topic": {
                   "type": "string",
+                  "pattern": "(\\{\\{\\s*[^\\{\\}]+?\\s*\\}\\}|\\{\\{\\s*#\\s*[^\\{\\}]+?\\s*\\}\\}|\\{\\{\\s*/\\s*[^\\{\\}]+?\\s*\\}\\})|^[^#+]*$",
                   "minLength": 1
                 },
                 "retain": {
