@@ -38,9 +38,13 @@
 //
 #include <net/in/stream/legacy/SocketClient.h>
 #include <net/in/stream/tls/SocketClient.h>
+#include <net/in6/stream/legacy/SocketClient.h>
+#include <net/in6/stream/tls/SocketClient.h>
 #include <net/un/stream/legacy/SocketClient.h>
 #include <web/http/legacy/in/Client.h>
+#include <web/http/legacy/in6/Client.h>
 #include <web/http/tls/in/Client.h>
+#include <web/http/tls/in6/Client.h>
 //
 #include <log/Logger.h>
 #include <utils/Config.h>
@@ -178,6 +182,22 @@ int main(int argc, char* argv[]) {
         config.setReconnect();
     });
 
+    startClient<net::in6::stream::legacy::SocketClient, mqtt::mqttintegrator::SocketContextFactory>("in6-mqtt", [](auto& config) -> void {
+        config.Remote::setPort(1883);
+
+        config.setRetry();
+        config.setRetryBase(1);
+        config.setReconnect();
+    });
+
+    startClient<net::in6::stream::tls::SocketClient, mqtt::mqttintegrator::SocketContextFactory>("in6-mqtts", [](auto& config) -> void {
+        config.Remote::setPort(8883);
+
+        config.setRetry();
+        config.setRetryBase(1);
+        config.setReconnect();
+    });
+
     startClient<net::un::stream::legacy::SocketClient, mqtt::mqttintegrator::SocketContextFactory>("un-mqtt", [](auto& config) -> void {
         config.setRetry();
         config.setRetryBase(1);
@@ -193,6 +213,22 @@ int main(int argc, char* argv[]) {
     });
 
     startClient<web::http::tls::in::Client>("in-wsmqtts", [](auto& config) -> void {
+        config.Remote::setPort(8088);
+
+        config.setRetry();
+        config.setRetryBase(1);
+        config.setReconnect();
+    });
+
+    startClient<web::http::legacy::in6::Client>("in6-wsmqtt", [](auto& config) -> void {
+        config.Remote::setPort(8080);
+
+        config.setRetry();
+        config.setRetryBase(1);
+        config.setReconnect();
+    });
+
+    startClient<web::http::tls::in6::Client>("in6-wsmqtts", [](auto& config) -> void {
         config.Remote::setPort(8088);
 
         config.setRetry();

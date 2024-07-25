@@ -11,8 +11,14 @@ add_subdirectory(websocket)
 find_package(nlohmann_json 3.7.0)
 find_package(
     snodec 0.90.0
-    COMPONENTS net-in-stream-legacy net-in-stream-tls net-un-stream-legacy
-               http-client websocket-client mqtt-client
+    COMPONENTS net-in-stream-legacy
+               net-in-stream-tls
+               net-in6-stream-legacy
+               net-in6-stream-tls
+               net-un-stream-legacy
+               http-client
+               websocket-client
+               mqtt-client
 )
 
 set(MQTTINTEGRATOR_CPP mqttintegrator.cpp SocketContextFactory.cpp)
@@ -26,6 +32,8 @@ target_link_libraries(
     mqttintegrator
     PUBLIC snodec::net-in-stream-legacy
            snodec::net-in-stream-tls
+           snodec::net-in6-stream-legacy
+           snodec::net-in6-stream-tls
            snodec::net-un-stream-legacy
            snodec::http-client
            snodec::websocket-client
