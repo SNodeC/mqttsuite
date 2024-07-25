@@ -44,7 +44,7 @@ namespace mqtt::mqttbroker::websocket {
             getName(),
             new mqtt::mqttbroker::lib::Mqtt(iot::mqtt::server::broker::Broker::instance(SUBSCRIBTION_MAX_QOS),
                                             mqtt::lib::JsonMappingReader::readMappingFromFile(
-                                                utils::Config::get_string_option_value("--mqtt-mapping-file"))["mapping"]));
+                                                utils::Config::getStringOptionValue("--mqtt-mapping-file"))["mapping"]));
     }
 
 } // namespace mqtt::mqttbroker::websocket

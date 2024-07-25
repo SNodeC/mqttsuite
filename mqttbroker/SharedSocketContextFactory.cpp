@@ -38,7 +38,7 @@ namespace mqtt::mqttbroker {
             socketConnection,
             new mqtt::mqttbroker::lib::Mqtt(broker,
                                             mqtt::lib::JsonMappingReader::readMappingFromFile(
-                                                utils::Config::get_string_option_value("--mqtt-mapping-file"))["mapping"]));
+                                                utils::Config::getStringOptionValue("--mqtt-mapping-file"))["mapping"]));
     }
 
 } // namespace mqtt::mqttbroker

@@ -41,7 +41,7 @@ namespace mqtt::mqttintegrator::websocket {
         iot::mqtt::client::SubProtocol* subProtocol = nullptr;
 
         nlohmann::json& mappingJson =
-            mqtt::lib::JsonMappingReader::readMappingFromFile(utils::Config::get_string_option_value("--mqtt-mapping-file"));
+            mqtt::lib::JsonMappingReader::readMappingFromFile(utils::Config::getStringOptionValue("--mqtt-mapping-file"));
 
         if (mappingJson.contains("connection")) {
             subProtocol = new iot::mqtt::client::SubProtocol(

@@ -37,7 +37,7 @@ namespace mqtt::mqttintegrator {
         iot::mqtt::SocketContext* socketContext = nullptr;
 
         nlohmann::json& mappingJson =
-            mqtt::lib::JsonMappingReader::readMappingFromFile(utils::Config::get_string_option_value("--mqtt-mapping-file"));
+            mqtt::lib::JsonMappingReader::readMappingFromFile(utils::Config::getStringOptionValue("--mqtt-mapping-file"));
 
         if (mappingJson.contains("connection")) {
             socketContext = new iot::mqtt::SocketContext(

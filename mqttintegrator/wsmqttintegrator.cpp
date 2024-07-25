@@ -112,12 +112,12 @@ int main(int argc, char* argv[]) {
     web::websocket::client::SubProtocolFactorySelector::link("mqtt", mqttClientSubProtocolFactory);
 #endif
 
-    utils::Config::add_string_option("--mqtt-mapping-file", "MQTT mapping file (json format) for integration", "[path]");
-    utils::Config::add_string_option("--mqtt-session-store", "Path to file for the persistent session store", "[path]", "");
+    utils::Config::addStringOption("--mqtt-mapping-file", "MQTT mapping file (json format) for integration", "[path]");
+    utils::Config::addStringOption("--mqtt-session-store", "Path to file for the persistent session store", "[path]", "");
 
     core::SNodeC::init(argc, argv);
 
-    setenv("MQTT_SESSION_STORE", utils::Config::get_string_option_value("--mqtt-session-store").data(), 0);
+    setenv("MQTT_SESSION_STORE", utils::Config::getStringOptionValue("--mqtt-session-store").data(), 0);
 
     startClient<web::http::legacy::in::Client>("in-wsmqtt", [](auto& config) -> void {
         config.Remote::setPort(8080);

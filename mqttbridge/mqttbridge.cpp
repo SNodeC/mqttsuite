@@ -233,13 +233,13 @@ int main(int argc, char* argv[]) {
     web::websocket::client::SubProtocolFactorySelector::link("mqtt", mqttClientSubProtocolFactory);
 #endif
 
-    CLI::App* bridgeApp = utils::Config::add_instance("bridge", "Configuration for Application mqttbridge", "MQTT-Bridge");
+    CLI::App* bridgeApp = utils::Config::addInstance("bridge", "Configuration for Application mqttbridge", "MQTT-Bridge");
     utils::Config::required(bridgeApp);
-    utils::Config::add_standard_flags(bridgeApp);
-    utils::Config::add_help(bridgeApp);
+    utils::Config::addStandardFlags(bridgeApp);
+    utils::Config::addHelp(bridgeApp);
 
     std::string bridgeDefinitionFile = "<REQUIRED>";
-    bridgeApp->needs(bridgeApp->add_option("--definition", bridgeDefinitionFile, "MQTT bridge definition file (JSON format)")
+    bridgeApp->needs(bridgeApp->addOption("--definition", bridgeDefinitionFile, "MQTT bridge definition file (JSON format)")
                          ->capture_default_str()
                          ->group(bridgeApp->get_formatter()->get_label("Persistent Options"))
                          ->type_name("[path]")
@@ -261,7 +261,7 @@ int main(int argc, char* argv[]) {
                     VLOG(1) << "    Topics:";
                     const std::list<iot::mqtt::Topic>& topics = broker.getTopics();
                     for (const iot::mqtt::Topic& topic : topics) {
-                        VLOG(1) << "      " << static_cast<uint16_t>(topic.getQoS()) << ":" << topic.getName();
+                        VLOG(1) << "      " << topic.getName() << ":" << static_cast<uint16_t>(topic.getQoS());
                     }
 
                     const std::string& transport = broker.getTransport();
