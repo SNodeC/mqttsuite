@@ -239,7 +239,7 @@ int main(int argc, char* argv[]) {
     utils::Config::addHelp(bridgeApp);
 
     std::string bridgeDefinitionFile = "<REQUIRED>";
-    bridgeApp->needs(bridgeApp->addOption("--definition", bridgeDefinitionFile, "MQTT bridge definition file (JSON format)")
+    bridgeApp->needs(bridgeApp->add_option("--definition", bridgeDefinitionFile, "MQTT bridge definition file (JSON format)")
                          ->capture_default_str()
                          ->group(bridgeApp->get_formatter()->get_label("Persistent Options"))
                          ->type_name("[path]")
