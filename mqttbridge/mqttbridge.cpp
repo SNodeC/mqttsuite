@@ -154,11 +154,12 @@ reportState(const std::string& instanceName, const core::socket::SocketAddress& 
 template <template <typename, typename...> typename SocketClient,
           typename SocketContextFactory,
           typename... SocketContextFactoryArgs,
+          typename Client = SocketClient<SocketContextFactory, SocketContextFactoryArgs&&...>,
+          typename SocketAddress = typename Client::SocketAddress,
           typename = std::enable_if_t<std::is_base_of_v<core::socket::stream::SocketContextFactory, SocketContextFactory>>>
-void startClient(const std::string& instanceName, const auto& configurator, SocketContextFactoryArgs&&... socketContextFactoryArgs) {
-    using Client = SocketClient<SocketContextFactory, SocketContextFactoryArgs&&...>;
-    using SocketAddress = typename Client::SocketAddress;
-
+void startClient(const std::string& instanceName,
+                 const std::function<void(typename Client::Config&)>& configurator,
+                 SocketContextFactoryArgs&&... socketContextFactoryArgs) {
     const Client client(instanceName, std::forward<SocketContextFactoryArgs>(socketContextFactoryArgs)...);
 
     configurator(client.getConfig());
@@ -171,13 +172,12 @@ void startClient(const std::string& instanceName, const auto& configurator, Sock
 template <template <typename, typename...> typename SocketClient,
           typename SocketContextFactory,
           typename... SocketContextFactoryArgs,
+          typename Client = SocketClient<SocketContextFactory, SocketContextFactoryArgs&&...>,
+          typename SocketAddress = typename Client::SocketAddress,
           typename = std::enable_if_t<std::is_base_of_v<core::socket::stream::SocketContextFactory, SocketContextFactory>>,
           typename = std::enable_if_t<not std::is_invocable_v<std::tuple_element_t<0, std::tuple<SocketContextFactoryArgs...>>,
                                                               typename SocketClient<SocketContextFactory>::Config&>>>
 void startClient(const std::string& instanceName, SocketContextFactoryArgs&&... socketContextFactoryArgs) {
-    using Client = SocketClient<SocketContextFactory, SocketContextFactoryArgs&&...>;
-    using SocketAddress = typename Client::SocketAddress;
-
     Client client(instanceName, std::forward<SocketContextFactoryArgs>(socketContextFactoryArgs)...);
 
     client.connect([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
@@ -186,11 +186,10 @@ void startClient(const std::string& instanceName, SocketContextFactoryArgs&&... 
 }
 
 template <typename HttpClient>
-void startClient(const std::string& name, const auto& configurator) {
-    using Client = HttpClient;
-    using SocketAddress = typename Client::SocketAddress;
+void startClient(const std::string& name, const std::function<void(typename HttpClient::Config&)>& configurator) {
+    using SocketAddress = typename HttpClient::SocketAddress;
 
-    const Client client(
+    const HttpClient httpClient(
         name,
         [](const std::shared_ptr<web::http::client::Request>& req) -> void {
             req->set("Sec-WebSocket-Protocol", "mqtt");
@@ -217,9 +216,9 @@ void startClient(const std::string& name, const auto& configurator) {
             VLOG(0) << "Session ended";
         });
 
-    configurator(client.getConfig());
+    configurator(httpClient.getConfig());
 
-    client.connect([name](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
+    httpClient.connect([name](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
         reportState(name, socketAddress, state);
     });
 }

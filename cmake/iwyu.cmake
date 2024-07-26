@@ -1,4 +1,5 @@
 find_program(iwyu_path NAMES include-what-you-use iwyu)
+
 if(iwyu_path)
     option(CHECK_INCLUDES "Check used headers")
 

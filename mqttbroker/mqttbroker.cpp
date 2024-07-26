@@ -159,17 +159,17 @@ void startServer(const std::string& instanceName, SocketContextFactoryArgs&&... 
         });
 }
 
-template <typename HttpServer>
-void startServer(const std::string& instanceName, const std::function<void(typename HttpServer::Config&)>& configurator = nullptr) {
-    using SocketAddress = typename HttpServer::SocketAddress;
+template <typename HttpExpressServer>
+void startServer(const std::string& instanceName, const std::function<void(typename HttpExpressServer::Config&)>& configurator = nullptr) {
+    using SocketAddress = typename HttpExpressServer::SocketAddress;
 
-    const HttpServer httpServer(instanceName, getRouter());
+    const HttpExpressServer httpExpressServer(instanceName, getRouter());
 
     if (configurator != nullptr) {
-        configurator(httpServer.getConfig());
+        configurator(httpExpressServer.getConfig());
     }
 
-    httpServer.listen([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
+    httpExpressServer.listen([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
         reportState(instanceName, socketAddress, state);
     });
 }
