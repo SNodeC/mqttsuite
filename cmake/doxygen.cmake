@@ -1,3 +1,5 @@
+unset(DOXYGEN_EXECUTABLE CACHE)
+
 find_package(Doxygen)
 
 if(DOXYGEN_FOUND)
