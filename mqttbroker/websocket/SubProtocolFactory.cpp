@@ -42,9 +42,9 @@ namespace mqtt::mqttbroker::websocket {
         return new iot::mqtt::server::SubProtocol(
             subProtocolContext,
             getName(),
-            new mqtt::mqttbroker::lib::Mqtt(iot::mqtt::server::broker::Broker::instance(SUBSCRIBTION_MAX_QOS),
-                                            mqtt::lib::JsonMappingReader::readMappingFromFile(
-                                                utils::Config::getStringOptionValue("--mqtt-mapping-file"))["mapping"]));
+            new mqtt::mqttbroker::lib::Mqtt(
+                iot::mqtt::server::broker::Broker::instance(SUBSCRIBTION_MAX_QOS),
+                mqtt::lib::JsonMappingReader::readMappingFromFile(utils::Config::getStringOptionValue("--mqtt-mapping-file"))["mapping"]));
     }
 
 } // namespace mqtt::mqttbroker::websocket

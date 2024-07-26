@@ -36,9 +36,9 @@ namespace mqtt::mqttbroker {
                                                                             std::shared_ptr<iot::mqtt::server::broker::Broker> broker) {
         return new iot::mqtt::SocketContext(
             socketConnection,
-            new mqtt::mqttbroker::lib::Mqtt(broker,
-                                            mqtt::lib::JsonMappingReader::readMappingFromFile(
-                                                utils::Config::getStringOptionValue("--mqtt-mapping-file"))["mapping"]));
+            new mqtt::mqttbroker::lib::Mqtt(
+                broker,
+                mqtt::lib::JsonMappingReader::readMappingFromFile(utils::Config::getStringOptionValue("--mqtt-mapping-file"))["mapping"]));
     }
 
 } // namespace mqtt::mqttbroker
