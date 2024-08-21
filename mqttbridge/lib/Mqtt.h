@@ -28,14 +28,9 @@ namespace mqtt::bridge::lib {
     class Broker;
 }
 
-#include <iot/mqtt/client/Mqtt.h> // IWYU pragma: export
-
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <cstdint>
-#include <iot/mqtt/Topic.h>
-#include <list>
-#include <string>
+#include <iot/mqtt/client/Mqtt.h> // IWYU pragma: export
 
 #endif
 

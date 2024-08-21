@@ -29,9 +29,7 @@ namespace iot::mqtt {
     }
 } // namespace iot::mqtt
 
-#include <cstdint>
 #include <list>
-#include <string>
 
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 

@@ -30,8 +30,6 @@ namespace mqtt::bridge::lib {
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <core/socket/stream/SocketContextFactory.h> // IWYU pragma: export
-#include <iot/mqtt/Topic.h>
-#include <list>
 
 #endif
 

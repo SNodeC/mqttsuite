@@ -21,13 +21,11 @@
 #include "Bridge.h"
 #include "Broker.h"
 
-#include <iot/mqtt/Topic.h>
-#include <iot/mqtt/packets/Connack.h>
-
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include <cstdint>
 #include <cstring>
-#include <list>
+#include <iot/mqtt/packets/Connack.h>
 #include <log/Logger.h>
 #include <utils/system/signal.h>
 
@@ -63,7 +61,6 @@ namespace mqtt::bridge::lib {
                     broker.getUsername(),
                     broker.getPassword(),
                     broker.getLoopPrevention());
-        VLOG(0) << "#########################: " << broker.getLoopPrevention();
     }
 
     void Mqtt::onDisconnected() {
