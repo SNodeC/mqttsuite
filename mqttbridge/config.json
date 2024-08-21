@@ -142,6 +142,39 @@
           "transport": "websocket"
         }
       ]
+    },
+    {
+      "brokers": [
+        {
+          "connection": {
+            "username": "test-application-voc@ttn",
+            "password": "NNSXS.SOX5JC3PDMP6Q6K6HVWQCXLNQ2JULTKWO3X6KDI.XLHSEVV2RZTL7YWLOP3F6TOXUOGAZA33UPIKSDZ6SRJ2YIM3OXBA"
+          },
+          "instance_name": "ttn",
+          "protocol": "in",
+          "encryption": "legacy",
+          "transport": "stream",
+          "topics": [
+            {
+              "qos": 0
+            }
+          ]
+        },
+        {
+          "connection": {
+            "loop_prevention": true
+          },
+          "instance_name": "local",
+          "protocol": "in",
+          "encryption": "legacy",
+          "transport": "stream",
+          "topics": [
+            {
+              "qos": 0
+            }
+          ]
+        }
+      ]
     }
   ]
 }
