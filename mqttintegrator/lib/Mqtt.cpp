@@ -76,7 +76,7 @@ namespace mqtt::mqttintegrator::lib {
         if (connack.getReturnCode() == 0 && !connack.getSessionPresent()) {
             sendPublish("snode.c/_cfg_/connection", connectionJson.dump(), 0, true);
 
-            std::list<iot::mqtt::Topic> topicList = MqttMapper::extractSubscriptions();
+            const std::list<iot::mqtt::Topic> topicList = MqttMapper::extractSubscriptions();
 
             for (const iot::mqtt::Topic& topic : topicList) {
                 VLOG(1) << "MQTT: Subscribe Topic: " << topic.getName() << ", qoS: " << static_cast<uint16_t>(topic.getQoS());
