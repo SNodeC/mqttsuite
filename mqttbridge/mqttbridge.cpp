@@ -252,7 +252,7 @@ int main(int argc, char* argv[]) {
             for (const auto& [instanceName, broker] : mqtt::bridge::lib::BridgeStore::instance().getBrokers()) {
                 if (!broker.getInstanceName().empty()) {
                     VLOG(1) << "  Creating Broker instance: " << instanceName;
-                    VLOG(1) << "    Bridge client id : " << broker.getBridge().getClientId();
+                    VLOG(1) << "    Bridge client id : " << broker.getClientId();
                     VLOG(1) << "    Transport: " << broker.getTransport();
                     VLOG(1) << "    Protocol: " << broker.getProtocol();
                     VLOG(1) << "    Encryption: " << broker.getEncryption();
@@ -278,8 +278,7 @@ int main(int argc, char* argv[]) {
                                         config.setRetryBase(1);
                                         config.setReconnect();
                                     },
-                                    broker.getBridge(),
-                                    broker.getTopics());
+                                    broker);
 #else  // MQTTBRIDGE_IN_STREAM_LEGACY
                                 VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                         << "' not supported.";
@@ -293,8 +292,7 @@ int main(int argc, char* argv[]) {
                                         config.setRetryBase(1);
                                         config.setReconnect();
                                     },
-                                    broker.getBridge(),
-                                    broker.getTopics());
+                                    broker);
 #else  // MQTTBRIDGE_IN_STREAM_TLS
                                 VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                         << "' not supported.";
@@ -310,8 +308,7 @@ int main(int argc, char* argv[]) {
                                         config.setRetryBase(1);
                                         config.setReconnect();
                                     },
-                                    broker.getBridge(),
-                                    broker.getTopics());
+                                    broker);
 #else  // MQTTBRIDGE_IN6_STREAM_LEGACY
                                 VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                         << "' not supported.";
@@ -325,8 +322,7 @@ int main(int argc, char* argv[]) {
                                         config.setRetryBase(1);
                                         config.setReconnect();
                                     },
-                                    broker.getBridge(),
-                                    broker.getTopics());
+                                    broker);
 #else  // MQTTBRIDGE_IN6_STREAM_TLS
                                 VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                         << "' not supported.";
@@ -342,8 +338,7 @@ int main(int argc, char* argv[]) {
                                         config.setRetryBase(1);
                                         config.setReconnect();
                                     },
-                                    broker.getBridge(),
-                                    broker.getTopics());
+                                    broker);
 #else  // MQTTBRIDGE_L2_STREAM_LEGACY
                                 VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                         << "' not supported.";
@@ -357,8 +352,7 @@ int main(int argc, char* argv[]) {
                                         config.setRetryBase(1);
                                         config.setReconnect();
                                     },
-                                    broker.getBridge(),
-                                    broker.getTopics());
+                                    broker);
 #else  // MQTTBRIDGE_L2_STREAM_TLS
                                 VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                         << "' not supported.";
@@ -374,8 +368,7 @@ int main(int argc, char* argv[]) {
                                         config.setRetryBase(1);
                                         config.setReconnect();
                                     },
-                                    broker.getBridge(),
-                                    broker.getTopics());
+                                    broker);
 #else  // MQTTBRIDGE_RC_STREAM_LEGACY
                                 VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                         << "' not supported.";
@@ -389,8 +382,7 @@ int main(int argc, char* argv[]) {
                                         config.setRetryBase(1);
                                         config.setReconnect();
                                     },
-                                    broker.getBridge(),
-                                    broker.getTopics());
+                                    broker);
 #else  // MQTTBRIDGE_RC_STREAM_TLS
                                 VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                         << "' not supported.";
@@ -406,8 +398,7 @@ int main(int argc, char* argv[]) {
                                         config.setRetryBase(1);
                                         config.setReconnect();
                                     },
-                                    broker.getBridge(),
-                                    broker.getTopics());
+                                    broker);
 #else  // MQTTBRIDGE_UN_STREAM_LEGACY
                                 VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                         << "' not supported.";
@@ -421,8 +412,7 @@ int main(int argc, char* argv[]) {
                                         config.setRetryBase(1);
                                         config.setReconnect();
                                     },
-                                    broker.getBridge(),
-                                    broker.getTopics());
+                                    broker);
 #else  // MQTTBRIDGE_UN_STREAM_TLS
                                 VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                         << "' not supported.";

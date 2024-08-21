@@ -1,19 +1,20 @@
 {
   "bridges": [
     {
-      "connection": {
-        "keep_alive": 60,
-        "client_id": "MQTT-Bridge",
-        "clean_session": true,
-        "will_topic": "will/topic",
-        "will_message": "Last Will",
-        "will_qos": 0,
-        "will_retain": false,
-        "username": "Username",
-        "password": "Password"
-      },
       "brokers": [
         {
+          "connection": {
+            "keep_alive": 60,
+            "client_id": "MQTT-Bridge",
+            "clean_session": true,
+            "will_topic": "will/topic",
+            "will_message": "Last Will",
+            "will_qos": 0,
+            "will_retain": false,
+            "username": "Username",
+            "password": "Password",
+            "loop_prevention": true
+          },
           "instance_name": "in-mqtt-1",
           "protocol": "in",
           "encryption": "legacy",
@@ -25,6 +26,18 @@
           ]
         },
         {
+          "connection": {
+            "keep_alive": 60,
+            "client_id": "MQTT-Bridge",
+            "clean_session": true,
+            "will_topic": "will/topic",
+            "will_message": "Last Will",
+            "will_qos": 0,
+            "will_retain": false,
+            "username": "Username",
+            "password": "Password",
+            "loop_prevention": true
+          },
           "instance_name": "in-mqtt-2",
           "protocol": "in",
           "encryption": "legacy",
@@ -35,6 +48,18 @@
           ]
         },
         {
+          "connection": {
+            "keep_alive": 60,
+            "client_id": "MQTT-Bridge",
+            "clean_session": true,
+            "will_topic": "will/topic",
+            "will_message": "Last Will",
+            "will_qos": 0,
+            "will_retain": false,
+            "username": "Username",
+            "password": "Password",
+            "loop_prevention": true
+          },
           "instance_name": "in-mqtt-3",
           "protocol": "in",
           "topics": [
@@ -48,21 +73,69 @@
           ]
         },
         {
+          "connection": {
+            "keep_alive": 60,
+            "client_id": "MQTT-Bridge",
+            "clean_session": true,
+            "will_topic": "will/topic",
+            "will_message": "Last Will",
+            "will_qos": 0,
+            "will_retain": false,
+            "username": "Username",
+            "password": "Password",
+            "loop_prevention": true
+          },
           "instance_name": "in-mqtt-4"
         },
         {
+          "connection": {
+            "keep_alive": 60,
+            "client_id": "MQTT-Bridge",
+            "clean_session": true,
+            "will_topic": "will/topic",
+            "will_message": "Last Will",
+            "will_qos": 0,
+            "will_retain": false,
+            "username": "Username",
+            "password": "Password",
+            "loop_prevention": true
+          },
           "instance_name": "in-wsmqtt-1",
           "protocol": "in",
           "encryption": "legacy",
           "transport": "websocket"
         },
         {
+          "connection": {
+            "keep_alive": 60,
+            "client_id": "MQTT-Bridge",
+            "clean_session": true,
+            "will_topic": "will/topic",
+            "will_message": "Last Will",
+            "will_qos": 0,
+            "will_retain": false,
+            "username": "Username",
+            "password": "Password",
+            "loop_prevention": true
+          },
           "instance_name": "in-wsmqtt-2",
           "protocol": "in",
           "encryption": "legacy",
           "transport": "websocket"
         },
         {
+          "connection": {
+            "keep_alive": 60,
+            "client_id": "MQTT-Bridge",
+            "clean_session": true,
+            "will_topic": "will/topic",
+            "will_message": "Last Will",
+            "will_qos": 0,
+            "will_retain": false,
+            "username": "Username",
+            "password": "Password",
+            "loop_prevention": true
+          },
           "instance_name": "in-wsmqtts",
           "protocol": "in",
           "encryption": "tls",

@@ -16,15 +16,66 @@
     "bridge": {
       "type": "object",
       "required": [
-        "connection",
         "brokers"
       ],
       "properties": {
-        "connection": {
-          "$ref": "#/$defs/connection"
-        },
         "brokers": {
           "$ref": "#/$defs/brokers"
+        }
+      }
+    },
+    "brokers": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/broker"
+      },
+      "minItems": 2
+    },
+    "broker": {
+      "type": "object",
+      "required": [
+        "instance_name"
+      ],
+      "properties": {
+        "connection": {
+          "$ref": "#/$defs/connection",
+          "default": {
+            "client_id": "",
+            "keep_alive": 60,
+            "clean_session": true,
+            "will_topic": "",
+            "will_message": "",
+            "will_qos": 0,
+            "will_retain": false,
+            "username": "",
+            "password": "",
+            "loop_prevention": false
+          }
+        },
+        "instance_name": {
+          "type": "string",
+          "minLenght": 1
+        },
+        "protocol": {
+          "$ref": "#/$defs/protocol",
+          "default": "in"
+        },
+        "encryption": {
+          "$ref": "#/$defs/encryption",
+          "default": "legacy"
+        },
+        "transport": {
+          "$ref": "#/$defs/transport",
+          "default": "stream"
+        },
+        "topics": {
+          "$ref": "#/$defs/topics",
+          "default": [
+            {
+              "topic": "#",
+              "qos": 0
+            }
+          ]
         }
       }
     },
@@ -71,53 +122,10 @@
         "password": {
           "type": "string",
           "default": ""
-        }
-      }
-    },
-    "brokers": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/broker"
-      },
-      "minItems": 2
-    },
-    "broker": {
-      "type": "object",
-      "required": [
-        "instance_name"
-      ],
-      "properties": {
-        "instance_name": {
-          "type": "string",
-          "minLenght": 1
         },
-        "protocol": {
-          "type": "string",
-          "enum": [
-            "in",
-            "in6",
-            "l2",
-            "rc",
-            "un"
-          ],
-          "default": "in"
-        },
-        "encryption": {
-          "$ref": "#/$defs/encryption",
-          "default": "legacy"
-        },
-        "transport": {
-          "$ref": "#/$defs/transport",
-          "default": "stream"
-        },
-        "topics": {
-          "$ref": "#/$defs/topics",
-          "default": [
-            {
-              "topic": "#",
-              "qos": 0
-            }
-          ]
+        "loop_prevention": {
+          "type": "boolean",
+          "default": false
         }
       }
     },

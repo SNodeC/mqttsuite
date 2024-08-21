@@ -36,6 +36,16 @@ namespace mqtt::bridge::lib {
     class Broker {
     public:
         Broker(Bridge& bridge,
+               std::string&& clientId,
+               uint16_t keepAlive,
+               bool cleanSession,
+               std::string&& willTopic,
+               std::string&& willMessage,
+               uint8_t willQoS,
+               bool willRetain,
+               std::string&& username,
+               std::string&& password,
+               bool loopPrevention,
                std::string&& instanceName,
                std::string&& protocol,
                std::string&& encryption,
@@ -48,6 +58,17 @@ namespace mqtt::bridge::lib {
 
         Bridge& getBridge() const;
 
+        const std::string& getClientId() const;
+        uint16_t getKeepAlive() const;
+        bool getCleanSession() const;
+        const std::string& getWillTopic() const;
+        const std::string& getWillMessage() const;
+        uint8_t getWillQoS() const;
+        bool getWillRetain() const;
+        const std::string& getUsername() const;
+        const std::string& getPassword() const;
+        bool getLoopPrevention() const;
+
         const std::string& getInstanceName() const;
         const std::string& getProtocol() const;
         const std::string& getEncryption() const;
@@ -56,6 +77,18 @@ namespace mqtt::bridge::lib {
 
     private:
         Bridge& bridge;
+
+        std::string clientId;
+        uint16_t keepAlive;
+        bool cleanSession;
+        std::string willTopic;
+        std::string willMessage;
+        uint8_t willQoS;
+        bool willRetain;
+        std::string username;
+        std::string password;
+        bool loopPrevention;
+
         std::string instanceName;
         std::string protocol;
         std::string encryption;

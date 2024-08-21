@@ -52,7 +52,7 @@ namespace mqtt::mqttbridge::websocket {
 
         if (!broker.getInstanceName().empty()) {
             VLOG(1) << "  Creating Broker instance: " << instanceName;
-            VLOG(1) << "    Bridge client id : " << broker.getBridge().getClientId();
+            VLOG(1) << "    Bridge client id : " << broker.getClientId();
             VLOG(1) << "    Transport: " << broker.getTransport();
             VLOG(1) << "    Protocol: " << broker.getProtocol();
             VLOG(1) << "    Encryption: " << broker.getEncryption();
@@ -64,8 +64,7 @@ namespace mqtt::mqttbridge::websocket {
             }
 
             if (!topics.empty()) {
-                subProtocol = new iot::mqtt::client::SubProtocol(
-                    subProtocolContext, getName(), new mqtt::bridge::lib::Mqtt(broker.getBridge(), broker.getTopics()));
+                subProtocol = new iot::mqtt::client::SubProtocol(subProtocolContext, getName(), new mqtt::bridge::lib::Mqtt(broker));
             }
         }
 

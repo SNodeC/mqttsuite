@@ -24,7 +24,7 @@ namespace core::socket::stream {
 }
 
 namespace mqtt::bridge::lib {
-    class Bridge;
+    class Broker;
 }
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -43,13 +43,12 @@ namespace mqtt::bridge {
 
     class SocketContextFactory : public core::socket::stream::SocketContextFactory {
     public:
-        SocketContextFactory(mqtt::bridge::lib::Bridge& bridge, const std::list<iot::mqtt::Topic>& topics);
+        explicit SocketContextFactory(const mqtt::bridge::lib::Broker& broker);
 
         core::socket::stream::SocketContext* create(core::socket::stream::SocketConnection* socketConnection) final;
 
     private:
-        mqtt::bridge::lib::Bridge& bridge;
-        const std::list<iot::mqtt::Topic> topics;
+        const mqtt::bridge::lib::Broker& broker;
     };
 
 } // namespace mqtt::bridge

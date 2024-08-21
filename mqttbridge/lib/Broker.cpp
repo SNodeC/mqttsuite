@@ -27,12 +27,32 @@
 namespace mqtt::bridge::lib {
 
     Broker::Broker(Bridge& bridge,
+                   std::string&& clientId,
+                   uint16_t keepAlive,
+                   bool cleanSession,
+                   std::string&& willTopic,
+                   std::string&& willMessage,
+                   uint8_t willQoS,
+                   bool willRetain,
+                   std::string&& userName,
+                   std::string&& passWord,
+                   bool loopPrevention,
                    std::string&& instanceName,
                    std::string&& protocol,
                    std::string&& encryption,
                    std::string&& transport,
                    std::list<iot::mqtt::Topic>&& topics)
         : bridge(bridge)
+        , clientId(clientId)
+        , keepAlive(keepAlive)
+        , cleanSession(cleanSession)
+        , willTopic(willTopic)
+        , willMessage(willMessage)
+        , willQoS(willQoS)
+        , willRetain(willRetain)
+        , username(userName)
+        , password(passWord)
+        , loopPrevention(loopPrevention)
         , instanceName(std::move(instanceName))
         , protocol(std::move(protocol))
         , encryption(std::move(encryption))
@@ -42,6 +62,46 @@ namespace mqtt::bridge::lib {
 
     Bridge& Broker::getBridge() const {
         return bridge;
+    }
+
+    const std::string& Broker::getClientId() const {
+        return clientId;
+    }
+
+    uint16_t Broker::getKeepAlive() const {
+        return keepAlive;
+    }
+
+    bool Broker::getCleanSession() const {
+        return cleanSession;
+    }
+
+    const std::string& Broker::getWillTopic() const {
+        return willTopic;
+    }
+
+    const std::string& Broker::getWillMessage() const {
+        return willMessage;
+    }
+
+    uint8_t Broker::getWillQoS() const {
+        return willQoS;
+    }
+
+    bool Broker::getWillRetain() const {
+        return willRetain;
+    }
+
+    const std::string& Broker::getUsername() const {
+        return username;
+    }
+
+    const std::string& Broker::getPassword() const {
+        return password;
+    }
+
+    bool Broker::getLoopPrevention() const {
+        return loopPrevention;
     }
 
     const std::string& Broker::getInstanceName() const {

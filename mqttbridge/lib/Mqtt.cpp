@@ -19,6 +19,7 @@
 #include "Mqtt.h"
 
 #include "Bridge.h"
+#include "Broker.h"
 
 #include <iot/mqtt/Topic.h>
 #include <iot/mqtt/packets/Connack.h>
@@ -34,37 +35,39 @@
 
 namespace mqtt::bridge::lib {
 
-    Mqtt::Mqtt(Bridge& bridge, const std::list<iot::mqtt::Topic>& topics)
-        : iot::mqtt::client::Mqtt(bridge.getClientId())
-        , bridge(bridge)
-        , topics(topics)
-        , keepAlive(bridge.getKeepAlive())
-        , cleanSession(bridge.getCleanSession())
-        , willTopic(bridge.getWillTopic())
-        , willMessage(bridge.getWillMessage())
-        , willQoS(bridge.getWillQoS())
-        , willRetain(bridge.getWillRetain())
-        , username(bridge.getUsername())
-        , password(bridge.getPassword()) {
-        LOG(TRACE) << "Keep Alive: " << keepAlive;
-        LOG(TRACE) << "Client Id: " << clientId;
-        LOG(TRACE) << "Clean Session: " << cleanSession;
-        LOG(TRACE) << "Will Topic: " << willTopic;
-        LOG(TRACE) << "Will Message: " << willMessage;
-        LOG(TRACE) << "Will QoS: " << static_cast<uint16_t>(willQoS);
-        LOG(TRACE) << "Will Retain " << willRetain;
-        LOG(TRACE) << "Username: " << username;
-        LOG(TRACE) << "Password: " << password;
+    Mqtt::Mqtt(const Broker& broker)
+        : iot::mqtt::client::Mqtt(broker.getClientId())
+        , broker(broker) {
+        LOG(TRACE) << "Keep Alive: " << broker.getKeepAlive();
+        LOG(TRACE) << "Client Id: " << broker.getClientId();
+        LOG(TRACE) << "Clean Session: " << broker.getCleanSession();
+        LOG(TRACE) << "Will Topic: " << broker.getWillTopic();
+        LOG(TRACE) << "Will Message: " << broker.getWillMessage();
+        LOG(TRACE) << "Will QoS: " << static_cast<uint16_t>(broker.getWillQoS());
+        LOG(TRACE) << "Will Retain " << broker.getWillRetain();
+        LOG(TRACE) << "Username: " << broker.getUsername();
+        LOG(TRACE) << "Password: " << broker.getPassword();
+        LOG(TRACE) << "Loop Prevention: " << broker.getLoopPrevention();
     }
 
     void Mqtt::onConnected() {
         VLOG(1) << "MQTT: Initiating Session";
 
-        sendConnect(keepAlive, clientId, cleanSession, willTopic, willMessage, willQoS, willRetain, username, password, false);
+        sendConnect(broker.getKeepAlive(),
+                    broker.getClientId(),
+                    broker.getCleanSession(),
+                    broker.getWillTopic(),
+                    broker.getWillMessage(),
+                    broker.getWillQoS(),
+                    broker.getWillRetain(),
+                    broker.getUsername(),
+                    broker.getPassword(),
+                    broker.getLoopPrevention());
+        VLOG(0) << "#########################: " << broker.getLoopPrevention();
     }
 
     void Mqtt::onDisconnected() {
-        bridge.removeMqtt(this);
+        broker.getBridge().removeMqtt(this);
         VLOG(1) << "MQTT: Disconnected";
     }
 
@@ -79,14 +82,14 @@ namespace mqtt::bridge::lib {
 
     void Mqtt::onConnack(const iot::mqtt::packets::Connack& connack) {
         if (connack.getReturnCode() == 0) {
-            bridge.addMqtt(this);
+            broker.getBridge().addMqtt(this);
 
-            sendSubscribe(topics);
+            sendSubscribe(broker.getTopics());
         }
     }
 
     void Mqtt::onPublish(const iot::mqtt::packets::Publish& publish) {
-        bridge.publish(this, publish);
+        broker.getBridge().publish(this, publish);
     }
 
 } // namespace mqtt::bridge::lib

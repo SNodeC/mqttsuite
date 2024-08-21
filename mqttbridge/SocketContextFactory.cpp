@@ -28,13 +28,12 @@
 
 namespace mqtt::bridge {
 
-    SocketContextFactory::SocketContextFactory(lib::Bridge& bridge, const std::list<iot::mqtt::Topic>& topics)
-        : bridge(bridge)
-        , topics(topics) {
+    SocketContextFactory::SocketContextFactory(const lib::Broker &broker)
+        : broker(broker) {
     }
 
     core::socket::stream::SocketContext* SocketContextFactory::create(core::socket::stream::SocketConnection* socketConnection) {
-        return new iot::mqtt::SocketContext(socketConnection, new mqtt::bridge::lib::Mqtt(bridge, topics));
+        return new iot::mqtt::SocketContext(socketConnection, new mqtt::bridge::lib::Mqtt(broker));
     }
 
 } // namespace mqtt::bridge

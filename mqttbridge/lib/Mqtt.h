@@ -25,7 +25,7 @@ namespace iot::mqtt::packets {
 } // namespace iot::mqtt::packets
 
 namespace mqtt::bridge::lib {
-    class Bridge;
+    class Broker;
 }
 
 #include <iot/mqtt/client/Mqtt.h> // IWYU pragma: export
@@ -43,7 +43,7 @@ namespace mqtt::bridge::lib {
 
     class Mqtt : public iot::mqtt::client::Mqtt {
     public:
-        explicit Mqtt(Bridge& bridge, const std::list<iot::mqtt::Topic>& topics);
+        explicit Mqtt(const Broker& broker);
 
     private:
         using Super = iot::mqtt::client::Mqtt;
@@ -55,17 +55,7 @@ namespace mqtt::bridge::lib {
         void onConnack(const iot::mqtt::packets::Connack& connack) final;
         void onPublish(const iot::mqtt::packets::Publish& publish) final;
 
-        mqtt::bridge::lib::Bridge& bridge;
-        std::list<iot::mqtt::Topic> topics;
-
-        uint16_t keepAlive;
-        bool cleanSession;
-        std::string willTopic;
-        std::string willMessage;
-        uint8_t willQoS;
-        bool willRetain;
-        std::string username;
-        std::string password;
+        const mqtt::bridge::lib::Broker& broker;
     };
 
 } // namespace mqtt::bridge::lib

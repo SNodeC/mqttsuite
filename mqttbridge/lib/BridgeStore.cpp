@@ -74,19 +74,8 @@ namespace mqtt::bridge::lib {
                                             bridgeConfigJson = bridgeConfigJson.patch(defaultPatch);
 
                                             for (const nlohmann::json& bridgeConfigJson : // cppcheck-suppress shadowVariable
-
                                                  bridgeConfigJson["bridges"]) {
-                                                const nlohmann::json& connection = bridgeConfigJson["connection"];
-
-                                                Bridge& bridge = bridgeList.emplace_back(connection["client_id"],
-                                                                                         connection["keep_alive"],
-                                                                                         connection["clean_session"],
-                                                                                         connection["will_topic"],
-                                                                                         connection["will_message"],
-                                                                                         connection["will_qos"],
-                                                                                         connection["will_retain"],
-                                                                                         connection["username"],
-                                                                                         connection["password"]);
+                                                Bridge& bridge = bridgeList.emplace_back();
 
                                                 for (const nlohmann::json& brokerConfigJson : bridgeConfigJson["brokers"]) {
                                                     std::list<iot::mqtt::Topic> topics;
@@ -95,8 +84,19 @@ namespace mqtt::bridge::lib {
                                                                             topicJson["qos"]);
                                                     }
 
+                                                    const nlohmann::json& connection = brokerConfigJson["connection"];
                                                     brokers.emplace(brokerConfigJson["instance_name"],
                                                                     Broker(bridge,
+                                                                           connection["client_id"],
+                                                                           connection["keep_alive"],
+                                                                           connection["clean_session"],
+                                                                           connection["will_topic"],
+                                                                           connection["will_message"],
+                                                                           connection["will_qos"],
+                                                                           connection["will_retain"],
+                                                                           connection["username"],
+                                                                           connection["password"],
+                                                                           connection["loop_prevention"],
                                                                            brokerConfigJson["instance_name"],
                                                                            brokerConfigJson["protocol"],
                                                                            brokerConfigJson["encryption"],
