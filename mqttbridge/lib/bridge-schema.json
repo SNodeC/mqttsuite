@@ -81,9 +81,6 @@
     },
     "connection": {
       "type": "object",
-      "required": [
-        "client_id"
-      ],
       "properties": {
         "client_id": {
           "type": "string",
@@ -95,7 +92,7 @@
         },
         "clean_session": {
           "type": "boolean",
-          "default": false
+          "default": true
         },
         "will_topic": {
           "type": "string",
