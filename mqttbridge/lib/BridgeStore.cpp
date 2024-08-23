@@ -52,7 +52,6 @@ namespace mqtt::bridge::lib {
         if (!success) {
             try {
                 const nlohmann::json bridgeJsonSchema = nlohmann::json::parse(bridgeJsonSchemaString);
-                nlohmann::json bridgeConfigJson;
 
                 if (!fileName.empty()) {
                     std::ifstream bridgeConfigJsonFile(fileName);
@@ -61,21 +60,22 @@ namespace mqtt::bridge::lib {
                         LOG(TRACE) << "Bridge config JSON: " << fileName;
 
                         try {
-                            bridgeConfigJsonFile >> bridgeConfigJson;
+                            nlohmann::json bridgesConfigJson;
+
+                            bridgeConfigJsonFile >> bridgesConfigJson;
 
                             try {
                                 const nlohmann::json_schema::json_validator validator(bridgeJsonSchema);
 
                                 try {
-                                    const nlohmann::json defaultPatch = validator.validate(bridgeConfigJson);
+                                    const nlohmann::json defaultPatch = validator.validate(bridgesConfigJson);
 
                                     if (!defaultPatch.empty()) {
                                         try {
-                                            bridgeConfigJson = bridgeConfigJson.patch(defaultPatch);
+                                            bridgesConfigJson = bridgesConfigJson.patch(defaultPatch);
 
-                                            for (const nlohmann::json& bridgeConfigJson : // cppcheck-suppress shadowVariable
-                                                 bridgeConfigJson["bridges"]) {
-                                                Bridge& bridge = bridgeList.emplace_back();
+                                            for (const nlohmann::json& bridgeConfigJson : bridgesConfigJson["bridges"]) {
+                                                Bridge& bridge = bridgeList.emplace_back(bridgeConfigJson["name"]);
 
                                                 for (const nlohmann::json& brokerConfigJson : bridgeConfigJson["brokers"]) {
                                                     std::list<iot::mqtt::Topic> topics;
@@ -109,22 +109,18 @@ namespace mqtt::bridge::lib {
                                         } catch (const std::exception& e) {
                                             LOG(ERROR) << "  Patching JSON with default patch failed:\n" << defaultPatch.dump(4);
                                             LOG(ERROR) << "    " << e.what();
-                                            bridgeConfigJson.clear();
                                         }
                                     }
                                 } catch (const std::exception& e) {
-                                    LOG(ERROR) << "  Validating JSON failed:\n" << bridgeConfigJson.dump(4);
+                                    LOG(ERROR) << "  Validating JSON failed:\n" << bridgesConfigJson.dump(4);
                                     LOG(ERROR) << "    " << e.what();
-                                    bridgeConfigJson.clear();
                                 }
                             } catch (const std::exception& e) {
                                 LOG(ERROR) << "  Setting root json mapping schema failed:\n" << bridgeJsonSchema.dump(4);
                                 LOG(ERROR) << "    " << e.what();
-                                bridgeConfigJson.clear();
                             }
                         } catch (const std::exception& e) {
                             LOG(ERROR) << "  JSON map file parsing failed:" << e.what() << " at " << bridgeConfigJsonFile.tellg();
-                            bridgeConfigJson.clear();
                         }
                         bridgeConfigJsonFile.close();
                     } else {

@@ -25,9 +25,6 @@ find_package(
                mqtt
 )
 
-set(MQTTBRIDGE_CPP mqttbridge.cpp SocketContextFactory.cpp)
-set(MQTTBRIDGE_H SocketContextFactory.h)
-
 macro(add_instance INSTANCE SOURCE)
     set(${INSTANCE}
         "ON"
@@ -49,6 +46,11 @@ macro(add_instance INSTANCE SOURCE)
     )
 endmacro(add_instance INSTANCE)
 
+set(MQTTBRIDGE_CPP mqttbridge.cpp SocketContextFactory.cpp)
+set(MQTTBRIDGE_H SocketContextFactory.h)
+
+add_executable(mqttbridge ${MQTTBRIDGE_CPP} ${MQTTBRIDGE_H})
+
 add_instance(MQTTBRIDGE_IN_STREAM_LEGACY mqttbridge.cpp)
 add_instance(MQTTBRIDGE_IN_STREAM_TLS mqttbridge.cpp)
 
@@ -69,8 +71,6 @@ add_instance(MQTTBRIDGE_IN6_WEBSOCKET_LEGACY mqttbridge.cpp)
 
 add_instance(MQTTBRIDGE_IN_WEBSOCKET_TLS mqttbridge.cpp)
 add_instance(MQTTBRIDGE_IN6_WEBSOCKET_TLS mqttbridge.cpp)
-
-add_executable(mqttbridge ${MQTTBRIDGE_CPP} ${MQTTBRIDGE_H})
 
 target_link_libraries(
     mqttbridge

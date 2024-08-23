@@ -30,6 +30,7 @@ namespace iot::mqtt {
 } // namespace iot::mqtt
 
 #include <list>
+#include <string>
 
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
@@ -37,6 +38,10 @@ namespace mqtt::bridge::lib {
 
     class Bridge {
     public:
+        explicit Bridge(const std::string& name);
+
+        const std::string& getName();
+
         void addMqtt(iot::mqtt::Mqtt* mqtt);
         void removeMqtt(iot::mqtt::Mqtt* mqtt);
 
@@ -45,6 +50,8 @@ namespace mqtt::bridge::lib {
         const std::list<iot::mqtt::Mqtt*>& getMqttList() const;
 
     private:
+        std::string name;
+        
         std::list<iot::mqtt::Mqtt*> mqttList;
     };
 

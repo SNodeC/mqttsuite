@@ -27,6 +27,14 @@
 
 namespace mqtt::bridge::lib {
 
+    Bridge::Bridge(const std::string& name)
+        : name(name) {
+    }
+
+    const std::string& Bridge::getName() {
+        return name;
+    }
+
     void Bridge::addMqtt(iot::mqtt::Mqtt* mqtt) {
         mqttList.push_back(mqtt);
     }

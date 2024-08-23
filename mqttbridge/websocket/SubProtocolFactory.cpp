@@ -51,7 +51,7 @@ namespace mqtt::mqttbridge::websocket {
         const mqtt::bridge::lib::Broker& broker = mqtt::bridge::lib::BridgeStore::instance().getBroker(instanceName);
 
         if (!broker.getInstanceName().empty()) {
-            VLOG(1) << "  Creating Broker instance: " << instanceName;
+            VLOG(1) << "  Creating Broker instance '" << instanceName << "' of Bridge '" << broker.getBridge().getName() << "'";
             VLOG(1) << "    Bridge client id : " << broker.getClientId();
             VLOG(1) << "    Transport: " << broker.getTransport();
             VLOG(1) << "    Protocol: " << broker.getProtocol();

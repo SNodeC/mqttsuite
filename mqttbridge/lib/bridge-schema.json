@@ -16,9 +16,14 @@
     "bridge": {
       "type": "object",
       "required": [
+        "name",
         "brokers"
       ],
       "properties": {
+        "name": {
+          "type": "string",
+          "minLenght": 1
+        },
         "brokers": {
           "$ref": "#/$defs/brokers"
         }

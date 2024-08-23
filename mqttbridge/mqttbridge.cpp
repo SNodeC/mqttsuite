@@ -154,7 +154,7 @@ reportState(const std::string& instanceName, const core::socket::SocketAddress& 
 template <template <typename, typename...> typename SocketClient,
           typename SocketContextFactory,
           typename... SocketContextFactoryArgs,
-          typename Client = SocketClient<SocketContextFactory, SocketContextFactoryArgs&&...>,
+          typename Client = SocketClient<SocketContextFactory, SocketContextFactoryArgs&&...>, // cppcheck-suppress syntaxError
           typename SocketAddress = typename Client::SocketAddress,
           typename = std::enable_if_t<std::is_base_of_v<core::socket::stream::SocketContextFactory, SocketContextFactory>>>
 void startClient(const std::string& instanceName,
@@ -251,8 +251,8 @@ int main(int argc, char* argv[]) {
         if (mqtt::bridge::lib::BridgeStore::instance().loadAndValidate(bridgeDefinitionFile)) {
             for (const auto& [instanceName, broker] : mqtt::bridge::lib::BridgeStore::instance().getBrokers()) {
                 if (!broker.getInstanceName().empty()) {
-                    VLOG(1) << "  Creating Broker instance: " << instanceName;
-                    VLOG(1) << "    Bridge client id : " << broker.getClientId();
+                    VLOG(1) << "  Creating Broker instance '" << instanceName << "' of Bridge '" << broker.getBridge().getName() << "'";
+                    VLOG(1) << "    Broker client id: " << broker.getClientId();
                     VLOG(1) << "    Transport: " << broker.getTransport();
                     VLOG(1) << "    Protocol: " << broker.getProtocol();
                     VLOG(1) << "    Encryption: " << broker.getEncryption();
