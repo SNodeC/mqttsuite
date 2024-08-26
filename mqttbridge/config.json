@@ -172,6 +172,7 @@
           "transport": "stream",
           "topics": [
             {
+              "topic": "v3/test-application-voc@ttn/#",
               "qos": 0
             }
           ]
