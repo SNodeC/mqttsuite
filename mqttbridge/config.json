@@ -156,6 +156,8 @@
           "protocol": "in",
           "encryption": "legacy",
           "transport": "stream",
+          "host": "eu1.cloud.thethings.network",
+          "port": 1883,
           "topics": [
             {
               "qos": 0

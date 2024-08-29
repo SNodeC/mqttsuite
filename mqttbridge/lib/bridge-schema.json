@@ -82,7 +82,114 @@
             }
           ]
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "protocol": {
+                "const": "in"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "host" : {
+                "type": "string",
+                "default": ""
+              },
+              "port": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 65535,
+                "default": 0
+              }
+            }
+          }
+        },{
+          "if": {
+            "properties": {
+              "protocol": {
+                "const": "in6"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "host" : {
+                "type": "string",
+                "default": ""
+              },
+              "port": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 65535,
+                "default": 0
+              }
+            }
+          }
+        },{
+          "if": {
+            "properties": {
+              "protocol": {
+                "const": "un"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sun_path" : {
+                "type": "string",
+                "default": ""
+              }
+            }
+          }
+        },{
+          "if": {
+            "properties": {
+              "protocol": {
+                "const": "rc"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "bt_address" : {
+                "type": "string",
+                "default": ""
+              },
+              "channel": {
+                "type": "integer",
+                "default": 0,
+                "minimum": 0,
+                "maximum": 16
+              }
+            }
+          }
+        },{
+          "if": {
+            "properties": {
+              "protocol": {
+                "const": "rc"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "bt_address" : {
+                "type": "string",
+                "default": ""
+              },
+              "psm": {
+                "type": "integer",
+                "default": 0,
+                "minimum": 0,
+                "maximum": 16
+              }
+            }
+          }
+        }
+      ]
     },
     "connection": {
       "type": "object",
