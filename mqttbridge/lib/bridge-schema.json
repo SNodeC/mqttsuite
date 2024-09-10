@@ -9,7 +9,10 @@
       "type": "array",
       "items": {
         "$ref": "#/$defs/bridge"
-      }
+      },
+      "required": [
+        "bridge"
+      ]
     }
   },
   "$defs": {
