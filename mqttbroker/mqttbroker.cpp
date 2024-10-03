@@ -44,8 +44,24 @@
 
 #endif
 
+static void upgrade APPLICATION(req, res) {
+    if (req->get("sec-websocket-protocol").find("mqtt") != std::string::npos) {
+        res->upgrade(req, [req, res](bool success) -> void {
+            if (success) {
+                VLOG(1) << "Successful upgrade to '" << req->get("upgrade") << "'";
+            } else {
+                VLOG(1) << "Can not upgrade to '" << req->get("upgrade") << "'";
+            }
+            res->end();
+        });
+    } else {
+        res->sendStatus(404);
+    }
+}
+
 static express::Router getRouter() {
     const express::Router router;
+
     router.get("/clients", [] APPLICATION(req, res) {
         const std::map<mqtt::mqttbroker::lib::Mqtt*, iot::mqtt::packets::Connect>& connectionList =
             mqtt::mqttbroker::lib::MqttModel::instance().getConnectedClients();
@@ -72,33 +88,11 @@ static express::Router getRouter() {
     });
 
     router.get("/ws/", [] APPLICATION(req, res) -> void {
-        if (req->get("sec-websocket-protocol").find("mqtt") != std::string::npos) {
-            res->upgrade(req, [req, res](bool success) -> void {
-                if (success) {
-                    VLOG(1) << "Successful upgrade to '" << req->get("upgrade") << "'";
-                } else {
-                    VLOG(1) << "Can not upgrade to '" << req->get("upgrade") << "'";
-                }
-                res->end();
-            });
-        } else {
-            res->sendStatus(404);
-        }
+        upgrade(req, res);
     });
 
     router.get("/", [] APPLICATION(req, res) -> void {
-        if (req->get("sec-websocket-protocol").find("mqtt") != std::string::npos) {
-            res->upgrade(req, [req, res](bool success) -> void {
-                if (success) {
-                    VLOG(1) << "Successful upgrade to '" << req->get("upgrade") << "'";
-                } else {
-                    VLOG(1) << "Can not upgrade to '" << req->get("upgrade") << "'";
-                }
-                res->end();
-            });
-        } else {
-            res->sendStatus(404);
-        }
+        upgrade(req, res);
     });
 
     return router;
