@@ -169,7 +169,7 @@
       "properties": {
         "topic": {
           "type": "string",
-          "default": "#"
+          "default": ""
         },
         "qos": {
           "type": "integer",
