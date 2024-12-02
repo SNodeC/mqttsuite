@@ -19,10 +19,6 @@
 #ifndef APPS_MQTTBROKER_MQTTBRIDGE_SOCKETCONTEXTFACTORY_H
 #define APPS_MQTTBROKER_MQTTBRIDGE_SOCKETCONTEXTFACTORY_H
 
-namespace core::socket::stream {
-    class SocketContext;
-}
-
 namespace mqtt::bridge::lib {
     class Broker;
 }
@@ -32,10 +28,6 @@ namespace mqtt::bridge::lib {
 #include <core/socket/stream/SocketContextFactory.h> // IWYU pragma: export
 
 #endif
-
-namespace core::socket::stream {
-    class SocketConnection;
-} // namespace core::socket::stream
 
 namespace mqtt::bridge {
 

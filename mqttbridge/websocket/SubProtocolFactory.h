@@ -22,10 +22,6 @@
 #include <iot/mqtt/client/SubProtocol.h>
 #include <web/websocket/SubProtocolFactory.h>
 
-namespace web::websocket {
-    class SubProtocolContext;
-}
-
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #endif

@@ -19,11 +19,6 @@
 #ifndef APPS_MQTTBROKER_MQTTBRIDGE_SOCKETCONTEXT_H
 #define APPS_MQTTBROKER_MQTTBRIDGE_SOCKETCONTEXT_H
 
-namespace iot::mqtt::packets {
-    class Connack;
-    class Publish;
-} // namespace iot::mqtt::packets
-
 namespace mqtt::bridge::lib {
     class Broker;
 }

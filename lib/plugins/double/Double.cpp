@@ -23,8 +23,8 @@
 #include "lib/inja.hpp"
 
 #include <functional>
-#include <map>
 #include <nlohmann/json.hpp>
+#include <string>
 #include <vector>
 
 #endif // DOXYGEN_SHOULD_SKIP_THIS

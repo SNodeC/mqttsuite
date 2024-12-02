@@ -19,25 +19,11 @@
 #ifndef APPS_MQTTBROKER_BROKER_SOCKETCONTEXTFACTORY_H
 #define APPS_MQTTBROKER_BROKER_SOCKETCONTEXTFACTORY_H
 
-namespace core::socket::stream {
-    class SocketContext;
-}
-
 #include <iot/mqtt/server/SharedSocketContextFactory.h> // IWYU pragma: export
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <memory>
-
 #endif
-
-namespace core::socket::stream {
-    class SocketConnection;
-} // namespace core::socket::stream
-
-namespace iot::mqtt::server::broker {
-    class Broker;
-}
 
 namespace mqtt::mqttbroker {
 

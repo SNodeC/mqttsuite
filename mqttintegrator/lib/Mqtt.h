@@ -21,11 +21,6 @@
 
 #include "lib/MqttMapper.h"
 
-namespace iot::mqtt::packets {
-    class Connack;
-    class Publish;
-} // namespace iot::mqtt::packets
-
 #include <iot/mqtt/client/Mqtt.h> // IWYU pragma: export
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS

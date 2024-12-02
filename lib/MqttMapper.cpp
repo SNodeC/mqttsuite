@@ -20,6 +20,7 @@
 
 #include "MqttMapperPlugin.h"
 
+#include <cmath>
 #include <core/DynamicLoader.h>
 #include <iot/mqtt/Topic.h>
 #include <iot/mqtt/packets/Publish.h>

@@ -22,10 +22,6 @@
 #include "lib/MqttMapper.h"
 
 namespace iot::mqtt {
-    namespace packets {
-        class Connect;
-        class Publish;
-    } // namespace packets
     namespace server::broker {
         class Broker;
     } // namespace server::broker
