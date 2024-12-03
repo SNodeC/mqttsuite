@@ -21,7 +21,7 @@
 
 #include "lib/MqttMapper.h"
 
-#include <iot/mqtt/client/Mqtt.h> // IWYU pragma: export
+#include <iot/mqtt/client/Mqtt.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 

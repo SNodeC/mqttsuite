@@ -21,13 +21,11 @@
 
 #include "lib/MqttMapper.h"
 
-namespace iot::mqtt {
-    namespace server::broker {
-        class Broker;
-    } // namespace server::broker
-} // namespace iot::mqtt
+namespace iot::mqtt::server::broker {
+    class Broker;
+} // namespace iot::mqtt::server::broker
 
-#include <iot/mqtt/server/Mqtt.h> // IWYU pragma: export
+#include <iot/mqtt/server/Mqtt.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 

@@ -23,7 +23,6 @@
 
 #include <core/SNodeC.h>
 //
-#include <iot/mqtt/Topic.h>
 #include <log/Logger.h>
 #include <utils/Config.h>
 //

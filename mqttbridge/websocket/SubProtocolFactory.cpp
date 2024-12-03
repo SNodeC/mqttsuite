@@ -22,7 +22,6 @@
 #include "lib/Mqtt.h"
 
 #include <core/socket/stream/SocketConnection.h>
-#include <iot/mqtt/Topic.h>
 #include <web/websocket/SubProtocolContext.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -31,7 +30,6 @@
 #include <cstdlib>
 #include <list>
 #include <log/Logger.h>
-#include <string>
 
 #endif
 

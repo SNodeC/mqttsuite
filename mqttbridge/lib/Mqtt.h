@@ -25,7 +25,7 @@ namespace mqtt::bridge::lib {
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <iot/mqtt/client/Mqtt.h> // IWYU pragma: export
+#include <iot/mqtt/client/Mqtt.h>
 
 #endif
 

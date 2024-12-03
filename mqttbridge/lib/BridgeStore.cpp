@@ -24,7 +24,6 @@
 
 #include <exception>
 #include <fstream>
-#include <iot/mqtt/Topic.h>
 #include <list>
 #include <log/Logger.h>
 #include <map>

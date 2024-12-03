@@ -63,9 +63,6 @@ static express::Router getRouter() {
     const express::Router router;
 
     router.get("/clients", [] APPLICATION(req, res) {
-        const std::map<mqtt::mqttbroker::lib::Mqtt*, iot::mqtt::packets::Connect>& connectionList =
-            mqtt::mqttbroker::lib::MqttModel::instance().getConnectedClients();
-
         std::string responseString = "<html>"
                                      "  <head>"
                                      "    <title>Mqtt Broker</title>"
@@ -75,7 +72,7 @@ static express::Router getRouter() {
                                      "    <table>"
                                      "      <tr><th>ClientId</th><th>Locale Address</th><th>Remote Address</th></tr>";
 
-        for (const auto& [mqtt, connectPacket] : connectionList) {
+        for (const auto& [mqtt, connectPacket] : mqtt::mqttbroker::lib::MqttModel::instance().getConnectedClients()) {
             responseString += "<tr><td>" + mqtt->getClientId() + "</td><td>" + mqtt->getSocketConnection()->getLocalAddress().toString() +
                               "</td><td>" + mqtt->getSocketConnection()->getRemoteAddress().toString() + "</td></tr>";
         }
