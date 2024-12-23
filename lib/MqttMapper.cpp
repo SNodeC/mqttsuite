@@ -81,7 +81,7 @@ namespace mqtt::lib {
             for (const nlohmann::json& pluginJson : mappingJson["plugins"]) {
                 const std::string plugin = pluginJson;
 
-                void* handle = core::DynamicLoader::dlOpen(plugin, RTLD_LOCAL | RTLD_LAZY);
+                void* handle = core::DynamicLoader::dlOpen(plugin);
 
                 if (handle != nullptr) {
                     pluginHandles.push_back(handle);
