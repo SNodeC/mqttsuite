@@ -8,7 +8,6 @@ find_package(snodec COMPONENTS mqtt-client)
 
 # Create bridge-schema.json.h in case bridge-schema.json has changed on disk.
 add_custom_command(
-    PRE_BUILD
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/bridge-schema.json.h
     COMMAND
         ${CMAKE_COMMAND} -DTARGET_PATH=${CMAKE_CURRENT_BINARY_DIR} -P

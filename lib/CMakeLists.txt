@@ -38,7 +38,6 @@ set_target_properties(
 
 # Create mapping-schema.json.h in case mapping-schema.json has changed on disk.
 add_custom_command(
-    PRE_BUILD
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/mapping-schema.json.h
     COMMAND
         ${CMAKE_COMMAND} -DTARGET_PATH=${CMAKE_CURRENT_BINARY_DIR} -P
