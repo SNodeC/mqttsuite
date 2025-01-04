@@ -78,15 +78,13 @@ void startClient(const std::string& name, const auto& configurator) {
                 "websocket",
                 [](const std::shared_ptr<web::http::client::Request>& req,
                    const std::shared_ptr<web::http::client::Response>& res) -> void {
-                    req->upgrade(
-                        res, [subProtocolsRequested = req->header("Upgrade"), subProtocol = res->headers["Upgrade"]](bool success) -> void {
-                            if (success) {
-                                VLOG(1) << "Upgrade to subprotocol '" << subProtocol
-                                        << "' successful: Requested: " << subProtocolsRequested;
-                            } else {
-                                VLOG(1) << "Upgrade to subprotocol '" << subProtocol << "' failed: requested: " << subProtocolsRequested;
-                            }
-                        });
+                    req->upgrade(res, [subProtocolsRequested = req->header("Upgrade")](const std::string& name) -> void {
+                        if (!name.empty()) {
+                            VLOG(1) << "Successful upgrade to '" << name << "' requested: " << subProtocolsRequested;
+                        } else {
+                            VLOG(1) << "Can not upgrade to any of '" << subProtocolsRequested << "'";
+                        }
+                    });
                 },
                 [](const std::shared_ptr<web::http::client::Request>& req, const std::string& reason) -> void {
                     VLOG(1) << "Upgrade to subprotocols '" << req->header("Upgrade") << "' failed with response parse error: " << reason;
@@ -109,7 +107,7 @@ int main(int argc, char* argv[]) {
 #endif
 
 #ifdef LINK_SUBPROTOCOL_STATIC
-    web::websocket::client::SubProtocolFactorySelector::link("mqtt", mqttClientSubProtocolFactory);
+    web::websocket::client::SubProtocolFactorySelector::link("mqtt", subProtocolFactory);
 #endif
 
     utils::Config::addStringOption("--mqtt-mapping-file", "MQTT mapping file (json format) for integration", "[path]");

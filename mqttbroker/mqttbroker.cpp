@@ -46,11 +46,11 @@
 
 static void upgrade APPLICATION(req, res) {
     if (req->get("sec-websocket-protocol").find("mqtt") != std::string::npos) {
-        res->upgrade(req, [req, res](bool success) -> void {
-            if (success) {
-                VLOG(1) << "Successful upgrade to '" << req->get("upgrade") << "'";
+        res->upgrade(req, [req, res](const std::string& name) -> void {
+            if (!name.empty()) {
+                VLOG(1) << "Successful upgrade to '" << name << "'  requested: " << req->get("upgrade");
             } else {
-                VLOG(1) << "Can not upgrade to '" << req->get("upgrade") << "'";
+                VLOG(1) << "Can not upgrade to any of '" << req->get("upgrade") << "'";
             }
             res->end();
         });

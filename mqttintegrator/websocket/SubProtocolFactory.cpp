@@ -53,6 +53,6 @@ namespace mqtt::mqttintegrator::websocket {
 
 } // namespace mqtt::mqttintegrator::websocket
 
-extern "C" mqtt::mqttintegrator::websocket::SubProtocolFactory* mqttClientSubProtocolFactory() {
+extern "C" mqtt::mqttintegrator::websocket::SubProtocolFactory* subProtocolFactory() {
     return new mqtt::mqttintegrator::websocket::SubProtocolFactory();
 }

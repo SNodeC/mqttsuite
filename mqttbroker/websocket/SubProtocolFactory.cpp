@@ -49,6 +49,6 @@ namespace mqtt::mqttbroker::websocket {
 
 } // namespace mqtt::mqttbroker::websocket
 
-extern "C" void* mqttServerSubProtocolFactory() {
+extern "C" mqtt::mqttbroker::websocket::SubProtocolFactory *subProtocolFactory() {
     return new mqtt::mqttbroker::websocket::SubProtocolFactory();
 }

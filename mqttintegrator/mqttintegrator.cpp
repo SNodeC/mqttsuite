@@ -124,15 +124,13 @@ void startClient(const std::string& name, const std::function<void(typename Http
                 "websocket",
                 [](const std::shared_ptr<web::http::client::Request>& req,
                    const std::shared_ptr<web::http::client::Response>& res) -> void {
-                    req->upgrade(
-                        res, [subProtocolsRequested = req->header("Upgrade"), subProtocol = res->headers["Upgrade"]](bool success) -> void {
-                            if (success) {
-                                VLOG(1) << "Upgrade to subprotocol '" << subProtocol
-                                        << "' successful: Requested: " << subProtocolsRequested;
-                            } else {
-                                VLOG(1) << "Upgrade to subprotocol '" << subProtocol << "' failed: requested: " << subProtocolsRequested;
-                            }
-                        });
+                    req->upgrade(res, [subProtocolsRequested = req->header("Upgrade")](const std::string& name) -> void {
+                        if (!name.empty()) {
+                            VLOG(1) << "Successful upgrade to '" << name << "' requested: " << subProtocolsRequested;
+                        } else {
+                            VLOG(1) << "Can not upgrade to any of '" << subProtocolsRequested << "'";
+                        }
+                    });
                 },
                 [](const std::shared_ptr<web::http::client::Request>& req, const std::string& reason) -> void {
                     VLOG(1) << "Upgrade to subprotocols '" << req->header("Upgrade") << "' failed with response parse error: " << reason;
