@@ -192,22 +192,25 @@ void startClient(const std::string& name, const std::function<void(typename Http
         name,
         [](const std::shared_ptr<web::http::client::Request>& req) -> void {
             req->set("Sec-WebSocket-Protocol", "mqtt");
-            req->upgrade(
-                "/ws/",
-                "websocket",
-                [](const std::shared_ptr<web::http::client::Request>& req,
-                   const std::shared_ptr<web::http::client::Response>& res) -> void {
-                    req->upgrade(res, [req](const std::string& name) -> void {
-                        if (!name.empty()) {
-                            VLOG(1) << "Successful upgrade to '" << name << "' requested: " << req->header("Upgrade");
-                        } else {
-                            VLOG(1) << "Can not upgrade to any of '" << req->header("Upgrade") << "'";
-                        }
-                    });
-                },
-                [](const std::shared_ptr<web::http::client::Request>& req, const std::string& reason) -> void {
-                    VLOG(1) << "Upgrade to subprotocols '" << req->header("Upgrade") << "' failed with response parse error: " << reason;
-                });
+            if (!req->upgrade(
+                    "/ws/",
+                    "websocket",
+                    [](const std::shared_ptr<web::http::client::Request>& req,
+                       const std::shared_ptr<web::http::client::Response>& res) -> void {
+                        req->upgrade(res, [req](const std::string& name) -> void {
+                            if (!name.empty()) {
+                                VLOG(1) << "Successful upgrade to '" << name << "' requested: " << req->header("Upgrade");
+                            } else {
+                                VLOG(1) << "Can not upgrade to any of '" << req->header("Upgrade") << "'";
+                            }
+                        });
+                    },
+                    [](const std::shared_ptr<web::http::client::Request>& req, const std::string& reason) -> void {
+                        VLOG(1) << "Upgrade to subprotocols '" << req->header("Upgrade")
+                                << "' failed with response parse error: " << reason;
+                    })) {
+                VLOG(1) << "Initiating upgrade to any of 'upgradeprotocol, websocket' failed";
+            }
         },
         []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req) -> void {
             VLOG(0) << "Session ended";
