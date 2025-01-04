@@ -88,11 +88,11 @@ namespace mqtt::lib {
 
                     VLOG(1) << "  Loading plugin: " << plugin << " ...";
 
-                    const std::vector<mqtt::lib::Function>* functions = // cppcheck-suppress shadowVariable
+                    const std::vector<mqtt::lib::Function>* loadedFunctions =
                         static_cast<std::vector<mqtt::lib::Function>*>(dlsym(handle, "functions"));
-                    if (functions != nullptr) {
+                    if (loadedFunctions != nullptr) {
                         VLOG(0) << "  Registering inja 'none void callbacks'";
-                        for (const mqtt::lib::Function& function : *functions) {
+                        for (const mqtt::lib::Function& function : *loadedFunctions) {
                             VLOG(1) << "    " << function.name;
 
                             if (function.numArgs >= 0) {
@@ -106,11 +106,11 @@ namespace mqtt::lib {
                         VLOG(1) << "  No inja none 'void callbacks found' in plugin " << plugin;
                     }
 
-                    const std::vector<mqtt::lib::VoidFunction>* voidFunctions = // cppcheck-suppress shadowVariable
+                    const std::vector<mqtt::lib::VoidFunction>* loadedVoidFunctions =
                         static_cast<std::vector<mqtt::lib::VoidFunction>*>(dlsym(handle, "voidFunctions"));
-                    if (voidFunctions != nullptr) {
+                    if (loadedVoidFunctions != nullptr) {
                         VLOG(0) << "  Registering inja 'void callbacks'";
-                        for (const mqtt::lib::VoidFunction& voidFunction : *voidFunctions) {
+                        for (const mqtt::lib::VoidFunction& voidFunction : *loadedVoidFunctions) {
                             VLOG(1) << "    " << voidFunction.name;
 
                             if (voidFunction.numArgs >= 0) {
