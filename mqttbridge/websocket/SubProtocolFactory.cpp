@@ -72,7 +72,7 @@ namespace mqtt::mqttbridge::websocket {
 
 } // namespace mqtt::mqttbridge::websocket
 
-extern "C" mqtt::mqttbridge::websocket::SubProtocolFactory* subProtocolFactory() {
+extern "C" mqtt::mqttbridge::websocket::SubProtocolFactory* mqttClientSubProtocolFactory() {
     mqtt::mqttbridge::websocket::SubProtocolFactory* subProtocolFactory = nullptr;
 
     const char* bridgeConfigFileEnvPtr = std::getenv("BRIDGE_CONFIG");

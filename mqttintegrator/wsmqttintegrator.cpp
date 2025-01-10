@@ -111,7 +111,7 @@ int main(int argc, char* argv[]) {
 #endif
 
 #ifdef LINK_SUBPROTOCOL_STATIC
-    web::websocket::client::SubProtocolFactorySelector::link("mqtt", subProtocolFactory);
+    web::websocket::client::SubProtocolFactorySelector::link("mqtt", mqttClientSubProtocolFactory);
 #endif
 
     utils::Config::addStringOption("--mqtt-mapping-file", "MQTT mapping file (json format) for integration", "[path]");

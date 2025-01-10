@@ -39,6 +39,6 @@ namespace mqtt::mqttintegrator::websocket {
 
 } // namespace mqtt::mqttintegrator::websocket
 
-extern "C" mqtt::mqttintegrator::websocket::SubProtocolFactory* subProtocolFactory();
+extern "C" mqtt::mqttintegrator::websocket::SubProtocolFactory* mqttClientSubProtocolFactory();
 
 #endif // APPS_MQTTBROKER_MQTTINTEGRATOR_WEBSOCKET_SUBPROTOCOLFACTORY_H
