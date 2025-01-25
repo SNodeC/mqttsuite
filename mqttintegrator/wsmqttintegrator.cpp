@@ -56,10 +56,10 @@ reportState(const std::string& instanceName, const core::socket::SocketAddress& 
             VLOG(1) << instanceName << ": disabled";
             break;
         case core::socket::State::ERROR:
-            LOG(ERROR) << instanceName << ": " << socketAddress.toString() << ": " << state.what();
+            VLOG(1) << instanceName << ": " << socketAddress.toString() << ": " << state.what();
             break;
         case core::socket::State::FATAL:
-            LOG(FATAL) << instanceName << ": " << socketAddress.toString() << ": " << state.what();
+            VLOG(1) << instanceName << ": " << socketAddress.toString() << ": " << state.what();
             break;
     }
 }

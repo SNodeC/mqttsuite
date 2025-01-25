@@ -37,16 +37,16 @@ namespace mqtt::bridge::lib {
     Mqtt::Mqtt(const Broker& broker)
         : iot::mqtt::client::Mqtt(broker.getClientId())
         , broker(broker) {
-        LOG(TRACE) << "Keep Alive: " << broker.getKeepAlive();
-        LOG(TRACE) << "Client Id: " << broker.getClientId();
-        LOG(TRACE) << "Clean Session: " << broker.getCleanSession();
-        LOG(TRACE) << "Will Topic: " << broker.getWillTopic();
-        LOG(TRACE) << "Will Message: " << broker.getWillMessage();
-        LOG(TRACE) << "Will QoS: " << static_cast<uint16_t>(broker.getWillQoS());
-        LOG(TRACE) << "Will Retain " << broker.getWillRetain();
-        LOG(TRACE) << "Username: " << broker.getUsername();
-        LOG(TRACE) << "Password: " << broker.getPassword();
-        LOG(TRACE) << "Loop Prevention: " << broker.getLoopPrevention();
+        VLOG(1) << "Keep Alive: " << broker.getKeepAlive();
+        VLOG(1) << "Client Id: " << broker.getClientId();
+        VLOG(1) << "Clean Session: " << broker.getCleanSession();
+        VLOG(1) << "Will Topic: " << broker.getWillTopic();
+        VLOG(1) << "Will Message: " << broker.getWillMessage();
+        VLOG(1) << "Will QoS: " << static_cast<uint16_t>(broker.getWillQoS());
+        VLOG(1) << "Will Retain " << broker.getWillRetain();
+        VLOG(1) << "Username: " << broker.getUsername();
+        VLOG(1) << "Password: " << broker.getPassword();
+        VLOG(1) << "Loop Prevention: " << broker.getLoopPrevention();
     }
 
     void Mqtt::onConnected() {

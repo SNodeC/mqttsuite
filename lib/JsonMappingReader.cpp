@@ -44,7 +44,7 @@ namespace mqtt::lib {
                 std::ifstream mapFile(mapFilePath);
 
                 if (mapFile.is_open()) {
-                    LOG(TRACE) << "MappingFilePath: " << mapFilePath;
+                    VLOG(1) << "MappingFilePath: " << mapFilePath;
 
                     try {
                         mapFile >> mapFileJsons[mapFilePath];
@@ -59,31 +59,31 @@ namespace mqtt::lib {
                                     try {
                                         mapFileJsons[mapFilePath] = mapFileJsons[mapFilePath].patch(defaultPatch);
                                     } catch (const std::exception& e) {
-                                        LOG(ERROR) << e.what();
-                                        LOG(ERROR) << "Patching JSON with default patch failed:\n" << defaultPatch.dump(4);
+                                        VLOG(1) << e.what();
+                                        VLOG(1) << "Patching JSON with default patch failed:\n" << defaultPatch.dump(4);
                                         mapFileJsons[mapFilePath].clear();
                                     }
                                 }
                             } catch (const std::exception& e) {
-                                LOG(ERROR) << "  Validating JSON failed:\n" << mapFileJsons[mapFilePath].dump(4);
-                                LOG(ERROR) << "    " << e.what();
+                                VLOG(1) << "  Validating JSON failed:\n" << mapFileJsons[mapFilePath].dump(4);
+                                VLOG(1) << "    " << e.what();
                                 mapFileJsons[mapFilePath].clear();
                             }
                         } catch (const std::exception& e) {
-                            LOG(ERROR) << e.what();
-                            LOG(ERROR) << "Setting root json mapping schema failed:\n" << mappingJsonSchema.dump(4);
+                            VLOG(1) << e.what();
+                            VLOG(1) << "Setting root json mapping schema failed:\n" << mappingJsonSchema.dump(4);
                             mapFileJsons[mapFilePath].clear();
                         }
                     } catch (const std::exception& e) {
-                        LOG(ERROR) << "JSON map file parsing failed: " << e.what() << " at " << mapFile.tellg();
+                        VLOG(1) << "JSON map file parsing failed: " << e.what() << " at " << mapFile.tellg();
                         mapFileJsons[mapFilePath].clear();
                     }
                     mapFile.close();
                 } else {
-                    LOG(TRACE) << "MappingFilePath: " << mapFilePath << " not found";
+                    VLOG(1) << "MappingFilePath: " << mapFilePath << " not found";
                 }
             } else {
-                LOG(TRACE) << "MappingFilePath empty";
+                VLOG(1) << "MappingFilePath empty";
             }
         }
 

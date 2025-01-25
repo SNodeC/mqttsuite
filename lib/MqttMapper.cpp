@@ -201,8 +201,8 @@ namespace mqtt::lib {
 
                         publishMappedTemplates(subscription["json"], json, publish);
                     } catch (const nlohmann::json::parse_error& e) {
-                        LOG(ERROR) << "  Parsing message into json failed: " << publish.getMessage();
-                        LOG(ERROR) << "     What: " << e.what() << '\n'
+                        VLOG(1) << "  Parsing message into json failed: " << publish.getMessage();
+                        VLOG(1) << "     What: " << e.what() << '\n'
                                    << "     Exception Id: " << e.id << '\n'
                                    << "     Byte position of error: " << e.byte;
                     }
@@ -307,16 +307,16 @@ namespace mqtt::lib {
                     VLOG(1) << "  Send mapping: suppressed";
                 }
             } catch (const inja::InjaError& e) {
-                LOG(ERROR) << "  Message template rendering failed: " << mappingTemplate << " : " << json.dump();
-                LOG(ERROR) << "    What: " << e.what();
-                LOG(ERROR) << "    INJA: " << e.type << ": " << e.message;
-                LOG(ERROR) << "    INJA (line:column):" << e.location.line << ":" << e.location.column;
+                VLOG(1) << "  Message template rendering failed: " << mappingTemplate << " : " << json.dump();
+                VLOG(1) << "    What: " << e.what();
+                VLOG(1) << "    INJA: " << e.type << ": " << e.message;
+                VLOG(1) << "    INJA (line:column):" << e.location.line << ":" << e.location.column;
             }
         } catch (const inja::InjaError& e) {
-            LOG(ERROR) << "  Topic template rendering failed: " << mappingTemplate << " : " << json.dump();
-            LOG(ERROR) << "    What: " << e.what();
-            LOG(ERROR) << "    INJA: " << e.type << ": " << e.message;
-            LOG(ERROR) << "    INJA (line:column):" << e.location.line << ":" << e.location.column;
+            VLOG(1) << "  Topic template rendering failed: " << mappingTemplate << " : " << json.dump();
+            VLOG(1) << "    What: " << e.what();
+            VLOG(1) << "    INJA: " << e.type << ": " << e.message;
+            VLOG(1) << "    INJA (line:column):" << e.location.line << ":" << e.location.column;
         }
     }
 
@@ -339,7 +339,7 @@ namespace mqtt::lib {
                 }
             }
         } catch (const nlohmann::json::exception& e) {
-            LOG(ERROR) << "JSON Exception during Render data:\n" << e.what();
+            VLOG(1) << "JSON Exception during Render data:\n" << e.what();
         }
     }
 

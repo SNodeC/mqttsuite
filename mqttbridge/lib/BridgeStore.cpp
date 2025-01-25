@@ -57,7 +57,7 @@ namespace mqtt::bridge::lib {
                     std::ifstream bridgeConfigJsonFile(fileName);
 
                     if (bridgeConfigJsonFile.is_open()) {
-                        LOG(TRACE) << "Bridge config JSON: " << fileName;
+                        VLOG(1) << "Bridge config JSON: " << fileName;
 
                         try {
                             nlohmann::json bridgesConfigJson;
@@ -107,34 +107,34 @@ namespace mqtt::bridge::lib {
 
                                             success = true;
                                         } catch (const std::exception& e) {
-                                            LOG(ERROR) << "  Patching JSON with default patch failed:\n" << defaultPatch.dump(4);
-                                            LOG(ERROR) << "    " << e.what();
+                                            VLOG(1) << "  Patching JSON with default patch failed:\n" << defaultPatch.dump(4);
+                                            VLOG(1) << "    " << e.what();
                                         }
                                     }
                                 } catch (const std::exception& e) {
-                                    LOG(ERROR) << "  Validating JSON failed:\n" << bridgesConfigJson.dump(4);
-                                    LOG(ERROR) << "    " << e.what();
+                                    VLOG(1) << "  Validating JSON failed:\n" << bridgesConfigJson.dump(4);
+                                    VLOG(1) << "    " << e.what();
                                 }
                             } catch (const std::exception& e) {
-                                LOG(ERROR) << "  Setting root json mapping schema failed:\n" << bridgeJsonSchema.dump(4);
-                                LOG(ERROR) << "    " << e.what();
+                                VLOG(1) << "  Setting root json mapping schema failed:\n" << bridgeJsonSchema.dump(4);
+                                VLOG(1) << "    " << e.what();
                             }
                         } catch (const std::exception& e) {
-                            LOG(ERROR) << "  JSON map file parsing failed:" << e.what() << " at " << bridgeConfigJsonFile.tellg();
+                            VLOG(1) << "  JSON map file parsing failed:" << e.what() << " at " << bridgeConfigJsonFile.tellg();
                         }
                         bridgeConfigJsonFile.close();
                     } else {
-                        LOG(ERROR) << "BridgeJsonConfig: " << fileName << " not found";
+                        VLOG(1) << "BridgeJsonConfig: " << fileName << " not found";
                     }
                 } else {
                     // Do not log missing path. In regular use this missing option is captured by the command line interface
                 }
             } catch (const std::exception& e) {
-                LOG(ERROR) << "Parsing schema failed: " << e.what();
-                LOG(ERROR) << bridgeJsonSchemaString;
+                VLOG(1) << "Parsing schema failed: " << e.what();
+                VLOG(1) << bridgeJsonSchemaString;
             }
         } else {
-            LOG(TRACE) << "MappingFile already loaded and validated";
+            VLOG(1) << "MappingFile already loaded and validated";
         }
 
         return success;

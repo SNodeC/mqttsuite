@@ -47,15 +47,15 @@ namespace mqtt::mqttintegrator::lib {
         , willRetain(connectionJson["will_retain"])
         , username(connectionJson["username"])
         , password(connectionJson["password"]) {
-        LOG(TRACE) << "Keep Alive: " << keepAlive;
-        LOG(TRACE) << "Client Id: " << clientId;
-        LOG(TRACE) << "Clean Session: " << cleanSession;
-        LOG(TRACE) << "Will Topic: " << willTopic;
-        LOG(TRACE) << "Will Message: " << willMessage;
-        LOG(TRACE) << "Will QoS: " << static_cast<uint16_t>(willQoS);
-        LOG(TRACE) << "Will Retain " << willRetain;
-        LOG(TRACE) << "Username: " << username;
-        LOG(TRACE) << "Password: " << password;
+        VLOG(1) << "Keep Alive: " << keepAlive;
+        VLOG(1) << "Client Id: " << clientId;
+        VLOG(1) << "Clean Session: " << cleanSession;
+        VLOG(1) << "Will Topic: " << willTopic;
+        VLOG(1) << "Will Message: " << willMessage;
+        VLOG(1) << "Will QoS: " << static_cast<uint16_t>(willQoS);
+        VLOG(1) << "Will Retain " << willRetain;
+        VLOG(1) << "Username: " << username;
+        VLOG(1) << "Password: " << password;
     }
 
     void Mqtt::onConnected() {
