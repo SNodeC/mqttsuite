@@ -122,6 +122,7 @@ namespace mqtt::bridge::lib {
                         } catch (const std::exception& e) {
                             VLOG(1) << "  JSON map file parsing failed:" << e.what() << " at " << bridgeConfigJsonFile.tellg();
                         }
+
                         bridgeConfigJsonFile.close();
                     } else {
                         VLOG(1) << "BridgeJsonConfig: " << fileName << " not found";

@@ -47,7 +47,7 @@
 
 static void upgrade APPLICATION(req, res) {
     if (req->get("sec-websocket-protocol").find("mqtt") != std::string::npos) {
-        res->upgrade(req, [req, res](const std::string& name) -> void {
+        res->upgrade(req, [req, res](const std::string& name) {
             if (!name.empty()) {
                 VLOG(1) << "Successful upgrade to '" << name << "'  requested: " << req->get("upgrade");
             } else {
@@ -85,11 +85,11 @@ static express::Router getRouter() {
         res->send(responseString);
     });
 
-    router.get("/ws/", [] APPLICATION(req, res) -> void {
+    router.get("/ws/", [] APPLICATION(req, res) {
         upgrade(req, res);
     });
 
-    router.get("/", [] APPLICATION(req, res) -> void {
+    router.get("/", [] APPLICATION(req, res) {
         upgrade(req, res);
     });
 
@@ -127,7 +127,7 @@ void startServer(const std::string& instanceName,
 
     configurator(server.getConfig());
 
-    server.listen([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
+    server.listen([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) {
         reportState(instanceName, socketAddress, state);
     });
 }
@@ -146,7 +146,7 @@ template <template <typename, typename...> typename SocketServer,
           >
 void startServer(const std::string& instanceName, SocketContextFactoryArgs&&... socketContextFactoryArgs) {
     Server(instanceName, std::forward<SocketContextFactoryArgs>(socketContextFactoryArgs)...)
-        .listen([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
+        .listen([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) {
             reportState(instanceName, socketAddress, state);
         });
 }
@@ -161,7 +161,7 @@ void startServer(const std::string& instanceName, const std::function<void(typen
         configurator(httpExpressServer.getConfig());
     }
 
-    httpExpressServer.listen([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
+    httpExpressServer.listen([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) {
         reportState(instanceName, socketAddress, state);
     });
 }
@@ -174,53 +174,53 @@ int main(int argc, char* argv[]) {
 
     setenv("MQTT_SESSION_STORE", utils::Config::getStringOptionValue("--mqtt-session-store").data(), 0);
 
-    startServer<net::in::stream::legacy::SocketServer, mqtt::mqttbroker::SharedSocketContextFactory>("in-mqtt", [](auto& config) -> void {
+    startServer<net::in::stream::legacy::SocketServer, mqtt::mqttbroker::SharedSocketContextFactory>("in-mqtt", [](auto& config) {
         config.setPort(1883);
         config.setRetry();
     });
 
-    startServer<net::in::stream::tls::SocketServer, mqtt::mqttbroker::SharedSocketContextFactory>("in-mqtts", [](auto& config) -> void {
+    startServer<net::in::stream::tls::SocketServer, mqtt::mqttbroker::SharedSocketContextFactory>("in-mqtts", [](auto& config) {
         config.setPort(8883);
         config.setRetry();
     });
 
-    startServer<net::in6::stream::legacy::SocketServer, mqtt::mqttbroker::SharedSocketContextFactory>("in6-mqtt", [](auto& config) -> void {
+    startServer<net::in6::stream::legacy::SocketServer, mqtt::mqttbroker::SharedSocketContextFactory>("in6-mqtt", [](auto& config) {
         config.setPort(1883);
         config.setRetry();
 
         config.setIPv6Only();
     });
 
-    startServer<net::in6::stream::tls::SocketServer, mqtt::mqttbroker::SharedSocketContextFactory>("in6-mqtts", [](auto& config) -> void {
+    startServer<net::in6::stream::tls::SocketServer, mqtt::mqttbroker::SharedSocketContextFactory>("in6-mqtts", [](auto& config) {
         config.setPort(8883);
         config.setRetry();
 
         config.setIPv6Only();
     });
 
-    startServer<net::un::stream::legacy::SocketServer, mqtt::mqttbroker::SharedSocketContextFactory>("un-mqtt", [](auto& config) -> void {
+    startServer<net::un::stream::legacy::SocketServer, mqtt::mqttbroker::SharedSocketContextFactory>("un-mqtt", [](auto& config) {
         config.setSunPath("/tmp/" + utils::Config::getApplicationName());
         config.setRetry();
     });
 
-    startServer<express::legacy::in::WebApp>("in-http", [](auto& config) -> void {
+    startServer<express::legacy::in::WebApp>("in-http", [](auto& config) {
         config.setPort(8080);
         config.setRetry();
     });
 
-    startServer<express::tls::in::WebApp>("in-https", [](auto& config) -> void {
+    startServer<express::tls::in::WebApp>("in-https", [](auto& config) {
         config.setPort(8088);
         config.setRetry();
     });
 
-    startServer<express::legacy::in6::WebApp>("in6-http", [](auto& config) -> void {
+    startServer<express::legacy::in6::WebApp>("in6-http", [](auto& config) {
         config.setPort(8080);
         config.setRetry();
 
         config.setIPv6Only();
     });
 
-    startServer<express::tls::in6::WebApp>("in6-https", [](auto& config) -> void {
+    startServer<express::tls::in6::WebApp>("in6-https", [](auto& config) {
         config.setPort(8088);
         config.setRetry();
 

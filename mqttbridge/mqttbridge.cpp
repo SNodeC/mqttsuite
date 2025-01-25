@@ -164,7 +164,7 @@ void startClient(const std::string& instanceName,
 
     configurator(client.getConfig());
 
-    client.connect([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
+    client.connect([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) {
         reportState(instanceName, socketAddress, state);
     });
 }
@@ -180,7 +180,7 @@ template <template <typename, typename...> typename SocketClient,
 void startClient(const std::string& instanceName, SocketContextFactoryArgs&&... socketContextFactoryArgs) {
     Client client(instanceName, std::forward<SocketContextFactoryArgs>(socketContextFactoryArgs)...);
 
-    client.connect([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
+    client.connect([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) {
         reportState(instanceName, socketAddress, state);
     });
 }
@@ -191,14 +191,13 @@ void startClient(const std::string& name, const std::function<void(typename Http
 
     const HttpClient httpClient(
         name,
-        [](const std::shared_ptr<web::http::client::Request>& req) -> void {
+        [](const std::shared_ptr<web::http::client::Request>& req) {
             req->set("Sec-WebSocket-Protocol", "mqtt");
             if (!req->upgrade(
                     "/ws/",
                     "websocket",
-                    [](const std::shared_ptr<web::http::client::Request>& req,
-                       const std::shared_ptr<web::http::client::Response>& res) -> void {
-                        req->upgrade(res, [req](const std::string& name) -> void {
+                    [](const std::shared_ptr<web::http::client::Request>& req, const std::shared_ptr<web::http::client::Response>& res) {
+                        req->upgrade(res, [req](const std::string& name) {
                             if (!name.empty()) {
                                 VLOG(1) << "Successful upgrade to '" << name << "' requested: " << req->header("Upgrade");
                             } else {
@@ -206,20 +205,20 @@ void startClient(const std::string& name, const std::function<void(typename Http
                             }
                         });
                     },
-                    [](const std::shared_ptr<web::http::client::Request>& req, const std::string& reason) -> void {
+                    [](const std::shared_ptr<web::http::client::Request>& req, const std::string& reason) {
                         VLOG(1) << "Upgrade to subprotocols '" << req->header("Upgrade")
                                 << "' failed with response parse error: " << reason;
                     })) {
                 VLOG(1) << "Initiating upgrade to any of 'upgradeprotocol, websocket' failed";
             }
         },
-        []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req) -> void {
+        []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req) {
             VLOG(0) << "Session ended";
         });
 
     configurator(httpClient.getConfig());
 
-    httpClient.connect([name](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
+    httpClient.connect([name](const SocketAddress& socketAddress, const core::socket::State& state) {
         reportState(name, socketAddress, state);
     });
 }
@@ -274,7 +273,7 @@ int main(int argc, char* argv[]) {
 #if defined(MQTTBRIDGE_IN_STREAM_LEGACY)
                                 startClient<net::in::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
                                     instanceName,
-                                    [](auto& config) -> void {
+                                    [](auto& config) {
                                         config.setRetry();
                                         config.setRetryBase(1);
                                         config.setReconnect();
@@ -288,7 +287,7 @@ int main(int argc, char* argv[]) {
 #if defined(MQTTBRIDGE_IN_STREAM_TLS)
                                 startClient<net::in::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
                                     instanceName,
-                                    [](auto& config) -> void {
+                                    [](auto& config) {
                                         config.setRetry();
                                         config.setRetryBase(1);
                                         config.setReconnect();
@@ -304,7 +303,7 @@ int main(int argc, char* argv[]) {
 #if defined(MQTTBRIDGE_IN6_STREAM_LEGACY)
                                 startClient<net::in6::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
                                     instanceName,
-                                    [](auto& config) -> void {
+                                    [](auto& config) {
                                         config.setRetry();
                                         config.setRetryBase(1);
                                         config.setReconnect();
@@ -318,7 +317,7 @@ int main(int argc, char* argv[]) {
 #if defined(MQTTBRIDGE_IN6_STREAM_TLS)
                                 startClient<net::in6::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
                                     instanceName,
-                                    [](auto& config) -> void {
+                                    [](auto& config) {
                                         config.setRetry();
                                         config.setRetryBase(1);
                                         config.setReconnect();
@@ -334,7 +333,7 @@ int main(int argc, char* argv[]) {
 #if defined(MQTTBRIDGE_L2_STREAM_LEGACY)
                                 startClient<net::l2::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
                                     instanceName,
-                                    [](auto& config) -> void {
+                                    [](auto& config) {
                                         config.setRetry();
                                         config.setRetryBase(1);
                                         config.setReconnect();
@@ -348,7 +347,7 @@ int main(int argc, char* argv[]) {
 #if defined(MQTTBRIDGE_L2_STREAM_TLS)
                                 startClient<net::l2::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
                                     instanceName,
-                                    [](auto& config) -> void {
+                                    [](auto& config) {
                                         config.setRetry();
                                         config.setRetryBase(1);
                                         config.setReconnect();
@@ -364,7 +363,7 @@ int main(int argc, char* argv[]) {
 #if defined(MQTTBRIDGE_RC_STREAM_LEGACY)
                                 startClient<net::rc::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
                                     instanceName,
-                                    [](auto& config) -> void {
+                                    [](auto& config) {
                                         config.setRetry();
                                         config.setRetryBase(1);
                                         config.setReconnect();
@@ -378,7 +377,7 @@ int main(int argc, char* argv[]) {
 #if defined(MQTTBRIDGE_RC_STREAM_TLS)
                                 startClient<net::rc::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
                                     instanceName,
-                                    [](auto& config) -> void {
+                                    [](auto& config) {
                                         config.setRetry();
                                         config.setRetryBase(1);
                                         config.setReconnect();
@@ -394,7 +393,7 @@ int main(int argc, char* argv[]) {
 #if defined(MQTTBRIDGE_UN_STREAM_LEGACY)
                                 startClient<net::un::stream::legacy::SocketClient, mqtt::bridge::SocketContextFactory>(
                                     instanceName,
-                                    [](auto& config) -> void {
+                                    [](auto& config) {
                                         config.setRetry();
                                         config.setRetryBase(1);
                                         config.setReconnect();
@@ -408,7 +407,7 @@ int main(int argc, char* argv[]) {
 #if defined(MQTTBRIDGE_UN_STREAM_TLS)
                                 startClient<net::un::stream::tls::SocketClient, mqtt::bridge::SocketContextFactory>(
                                     instanceName,
-                                    [](auto& config) -> void {
+                                    [](auto& config) {
                                         config.setRetry();
                                         config.setRetryBase(1);
                                         config.setReconnect();
@@ -424,7 +423,7 @@ int main(int argc, char* argv[]) {
                         if (protocol == "in") {
                             if (encryption == "legacy") {
 #if defined(MQTTBRIDGE_IN_WEBSOCKET_LEGACY)
-                                startClient<web::http::legacy::in::Client>(broker.getInstanceName(), [](auto& config) -> void {
+                                startClient<web::http::legacy::in::Client>(broker.getInstanceName(), [](auto& config) {
                                     config.Remote::setPort(8080);
 
                                     config.setRetry();
@@ -437,7 +436,7 @@ int main(int argc, char* argv[]) {
 #endif // MQTTBRIDGE_IN_WEBSOCKET_LEGACY
                             } else if (encryption == "tls") {
 #if defined(MQTTBRIDGE_IN_WEBSOCKET_TLS)
-                                startClient<web::http::tls::in::Client>(broker.getInstanceName(), [](auto& config) -> void {
+                                startClient<web::http::tls::in::Client>(broker.getInstanceName(), [](auto& config) {
                                     config.Remote::setPort(8088);
 
                                     config.setRetry();
@@ -452,7 +451,7 @@ int main(int argc, char* argv[]) {
                         } else if (protocol == "in6") {
                             if (encryption == "legacy") {
 #if defined(MQTTBRIDGE_IN6_WEBSOCKET_LEGACY)
-                                startClient<web::http::legacy::in6::Client>(broker.getInstanceName(), [](auto& config) -> void {
+                                startClient<web::http::legacy::in6::Client>(broker.getInstanceName(), [](auto& config) {
                                     config.Remote::setPort(8080);
 
                                     config.setRetry();
@@ -465,7 +464,7 @@ int main(int argc, char* argv[]) {
 #endif // MQTTBRIDGE_IN6_WEBSOCKET_LEGACY
                             } else if (encryption == "tls") {
 #if defined(MQTTBRIDGE_IN6_WEBSOCKET_TLS)
-                                startClient<web::http::tls::in6::Client>(broker.getInstanceName(), [](auto& config) -> void {
+                                startClient<web::http::tls::in6::Client>(broker.getInstanceName(), [](auto& config) {
                                     config.Remote::setPort(8088);
 
                                     config.setRetry();
