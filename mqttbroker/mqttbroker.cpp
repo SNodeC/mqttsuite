@@ -56,6 +56,8 @@ static void upgrade APPLICATION(req, res) {
             res->end();
         });
     } else {
+        VLOG(1) << "Not supporting any of: " << req->get("sec-websocket-protocol");
+
         res->sendStatus(404);
     }
 }
