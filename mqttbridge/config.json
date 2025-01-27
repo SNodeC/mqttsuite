@@ -212,7 +212,7 @@
           "instance_name": "ttn-local",
           "protocol": "in",
           "encryption": "legacy",
-          "transport": "stream",
+          "transport": "websocket",
           "topics": [
             {
               "topic": "v3/test-application-voc@ttn/devices/+/down/push",
