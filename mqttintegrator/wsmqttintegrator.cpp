@@ -71,15 +71,14 @@ void startClient(const std::string& name, const auto& configurator) {
 
     const Client client(
         name,
-        [](const std::shared_ptr<web::http::client::Request>& req) -> void {
+        [](const std::shared_ptr<web::http::client::Request>& req) {
             req->set("Sec-WebSocket-Protocol", "mqtt");
 
             if (!req->upgrade(
                     "/ws/",
                     "websocket",
-                    [](const std::shared_ptr<web::http::client::Request>& req,
-                       const std::shared_ptr<web::http::client::Response>& res) -> void {
-                        req->upgrade(res, [subProtocolsRequested = req->header("Upgrade")](const std::string& name) -> void {
+                    [](const std::shared_ptr<web::http::client::Request>& req, const std::shared_ptr<web::http::client::Response>& res) {
+                        req->upgrade(res, [subProtocolsRequested = req->header("Upgrade")](const std::string& name) {
                             if (!name.empty()) {
                                 VLOG(1) << "Successful upgrade to '" << name << "' requested: " << subProtocolsRequested;
                             } else {
@@ -87,20 +86,20 @@ void startClient(const std::string& name, const auto& configurator) {
                             }
                         });
                     },
-                    [](const std::shared_ptr<web::http::client::Request>& req, const std::string& reason) -> void {
+                    [](const std::shared_ptr<web::http::client::Request>& req, const std::string& reason) {
                         VLOG(1) << "Upgrade to subprotocols '" << req->header("Upgrade")
                                 << "' failed with response parse error: " << reason;
                     })) {
                 VLOG(1) << "Initiating upgrade to any of 'upgradeprotocol, websocket' failed";
             }
         },
-        []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req) -> void {
+        []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req) {
             VLOG(0) << "Session ended";
         });
 
     configurator(client.getConfig());
 
-    client.connect([name](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
+    client.connect([name](const SocketAddress& socketAddress, const core::socket::State& state) {
         reportState(name, socketAddress, state);
     });
 }
@@ -121,7 +120,7 @@ int main(int argc, char* argv[]) {
 
     setenv("MQTT_SESSION_STORE", utils::Config::getStringOptionValue("--mqtt-session-store").data(), 0);
 
-    startClient<web::http::legacy::in::Client>("in-wsmqtt", [](auto& config) -> void {
+    startClient<web::http::legacy::in::Client>("in-wsmqtt", [](auto& config) {
         config.Remote::setPort(8080);
 
         config.setRetry();
@@ -129,7 +128,7 @@ int main(int argc, char* argv[]) {
         config.setReconnect();
     });
 
-    startClient<web::http::tls::in::Client>("in-wsmqtts", [](auto& config) -> void {
+    startClient<web::http::tls::in::Client>("in-wsmqtts", [](auto& config) {
         config.Remote::setPort(8088);
 
         config.setRetry();
