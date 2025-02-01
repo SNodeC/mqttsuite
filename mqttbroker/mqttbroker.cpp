@@ -41,6 +41,7 @@
 #include <nlohmann/json.hpp>
 // IWYU pragma: no_include <nlohmann/json_fwd.hpp>
 //
+#include <algorithm>
 #include <cstdlib>
 #include <string>
 #include <tuple>
@@ -111,20 +112,19 @@ static express::Router getRouter() {
             "    </style>"
             "    <script>"
             "      // This function performs an HTTP GET request when a button in any row is clicked.\n"
-            "      function executeCode(rowNumber) {"
-            "        // const url = \"https://api.example.com/data?row=\" + rowNumber + \";\"\n"
-            "        // Example URL endpoint (update with your own URL as needed)\n"
-            "        const url = \"http://localhost:8080/clients\""
+            "      function executeCode(connectionName) {"
+            "        const url = \"clients\";"
             "        // Using the Fetch API to perform the HTTP GET request.\n"
             "       fetch(url , {"
             "           method: \"POST\","
             "           body: JSON.stringify({"
-            "               row: rowNumber"
+            "               connection_name: connectionName"
             "               }),"
             "           headers: {"
             "               \"Content-type\": \"application/json; charset=UTF-8\""
             "           }})"
             "          .then(response => {"
+            "            window.location.reload();"
             "            if (!response.ok) {"
             "              throw new Error(\"Network response was not ok\");"
             "            }"
@@ -134,11 +134,10 @@ static express::Router getRouter() {
             "          .then(data => {"
             "            // Process the returned data. Here we log it and display an alert.\n"
             "            console.log(\"Data received:\", data);"
-            "            alert(\"HTTP Request successful: \" + JSON.stringify(data));"
             "          })"
             "          .catch(error => {"
             "            console.error(\"There was a problem with the fetch operation:\", error);"
-            "            alert(\"HTTP Request failed: \" + error.message);"
+            "            alert(error);"
             "          });"
             "      }"
             "    </script>"
@@ -173,11 +172,12 @@ static express::Router getRouter() {
                               mqtt->getConnectionName() +
                               "')"
                               "\">"
-                              "Click Me"
+                              "Disconnect"
                               "</button>"
                               "  </td>"
                               "</tr>";
         }
+
         responseString += "      </tbody>"
                           "    </table>"
                           "  </body>"
@@ -197,16 +197,34 @@ static express::Router getRouter() {
         std::string jsonString;
 
         req->getAttribute<nlohmann::json>(
-            [&jsonString](nlohmann::json& json) {
+            [&res, &jsonString](nlohmann::json& json) {
                 jsonString = json.dump(4);
                 VLOG(0) << "Application received body:\n" << jsonString;
+
+                const std::map<mqtt::mqttbroker::lib::Mqtt*, iot::mqtt::packets::Connect> clientMap =
+                    mqtt::mqttbroker::lib::MqttModel::instance().getConnectedClients();
+
+                VLOG(0) << "-----";
+                auto elementIterator = std::find_if(clientMap.begin(), clientMap.end(), [&json](const auto& element) -> bool {
+                    return element.first->getMqttContext()->getSocketConnection()->getConnectionName() ==
+                           json["connection_name"].get<std::string>();
+                    return true;
+                });
+
+                if (elementIterator != clientMap.end()) {
+                    elementIterator->first->getMqttContext()->getSocketConnection()->close();
+
+                    res->send(jsonString);
+                } else {
+                    res->status(404).send("Client has already gone away");
+                }
             },
-            [](const std::string& key) {
-                VLOG(0) << key << " attribute not found";
+            [&res](const std::string& key) {
+                VLOG(0) << "Attribute type not found: " << key;
+
+                res->send("Attribute type not found: " + key);
             });
         VLOG(0) << "-----------------------------";
-
-        res->send(jsonString);
     });
 
     router.use(jsonRouter);
