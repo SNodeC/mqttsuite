@@ -24,6 +24,7 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <core/SNodeC.h>
+#include <iot/mqtt/MqttContext.h>
 //
 #include <express/legacy/in/WebApp.h>
 #include <express/legacy/in6/WebApp.h>
@@ -62,29 +63,131 @@ static void upgrade APPLICATION(req, res) {
     }
 }
 
+/*
+fetch(url , {
+method: "POST",
+        body: JSON.stringify({
+            row: rowNumber
+        }),
+        headers: {
+            "Content-type": "application/json; charset=UTF-8"
+        }
+)
+*/
+
 static express::Router getRouter() {
     const express::Router router;
 
     router.get("/clients", [] APPLICATION(req, res) {
-        std::string responseString = "<html>"
-                                     "  <head>"
-                                     "    <title>Mqtt Broker</title>"
-                                     "  </head>"
-                                     "  <body>"
-                                     "    <h1>List of all Connected Clients</h1>"
-                                     "    <table>"
-                                     "      <tr><th>ClientId</th><th>Locale Address</th><th>Remote Address</th></tr>";
+        std::string responseString =
+            "<html>"
+            "  <head>"
+            "    <title>Mqtt Broker</title>"
+            "    <style>"
+            "      table {"
+            "        width: 100%;"
+            "        border-collapse: collapse;"
+            "        margin: 20px 0;"
+            "        font-family: Arial, sans-serif;"
+            "      }"
+            "      th, td {"
+            "        padding: 12px;"
+            "        border: 1px solid #ccc;"
+            "        text-align: left;"
+            "      }"
+            "      th {"
+            "        background-color: #f4f4f4;"
+            "      }"
+            "      tr:nth-child(even) {"
+            "        background-color: #f9f9f9;"
+            "      }"
+            "      tr:hover {"
+            "        background-color: #e0e0e0;"
+            "      }"
+            "    </style>"
+            "    <script>"
+            "      // This function performs an HTTP GET request when a button in any row is clicked.\n"
+            "      function executeCode(rowNumber) {"
+            "        // const url = \"https://api.example.com/data?row=\" + rowNumber + \";\"\n"
+            "        // Example URL endpoint (update with your own URL as needed)\n"
+            "        const url = \"http://localhost:8080/clients\""
+            "        // Using the Fetch API to perform the HTTP GET request.\n"
+            "       fetch(url , {"
+            "           method: \"POST\","
+            "           body: JSON.stringify({"
+            "               row: rowNumber"
+            "               }),"
+            "           headers: {"
+            "               \"Content-type\": \"application/json; charset=UTF-8\""
+            "           }})"
+            "          .then(response => {"
+            "            if (!response.ok) {"
+            "              throw new Error(\"Network response was not ok\");"
+            "            }"
+            "            // Assuming the response is in JSON format.\n"
+            "            return response.text();"
+            "          })"
+            "          .then(data => {"
+            "            // Process the returned data. Here we log it and display an alert.\n"
+            "            console.log(\"Data received:\", data);"
+            "            alert(\"HTTP Request successful: \" + JSON.stringify(data));"
+            "          })"
+            "          .catch(error => {"
+            "            console.error(\"There was a problem with the fetch operation:\", error);"
+            "            alert(\"HTTP Request failed: \" + error.message);"
+            "          });"
+            "      }"
+            "    </script>"
+            "  </head>"
+            "  <body>"
+            "    <h1>List of all Connected Clients</h1>"
+            "    <table>"
+            "      <thead>"
+            "        <tr><th>Client ID</th><th>Connection</th><th>Locale Address</th><th>Remote Address</th><th>Action</th></tr>"
+            "      </thead>"
+            "      <tbody>";
 
         for (const auto& [mqtt, connectPacket] : mqtt::mqttbroker::lib::MqttModel::instance().getConnectedClients()) {
-            responseString += "<tr><td>" + mqtt->getClientId() + "</td><td>" + mqtt->getSocketConnection()->getLocalAddress().toString() +
-                              "</td><td>" + mqtt->getSocketConnection()->getRemoteAddress().toString() + "</td></tr>";
-        }
+            core::socket::stream::SocketConnection* socketConnection = mqtt->getMqttContext()->getSocketConnection();
+            mqtt->getConnectionName();
 
-        responseString += "    </table>"
+            responseString += "<tr>"
+                              "  <td>" +
+                              mqtt->getClientId() +
+                              "</td>"
+                              "  <td>" +
+                              socketConnection->getConnectionName() +
+                              "  </td>"
+                              "  <td>" +
+                              socketConnection->getLocalAddress().toString() +
+                              "  </td>"
+                              "  <td>" +
+                              socketConnection->getRemoteAddress().toString() +
+                              "  </td>"
+                              "  <td>"
+                              "    <button onclick=\"executeCode('" +
+                              mqtt->getConnectionName() +
+                              "')"
+                              "\">"
+                              "Click Me"
+                              "</button>"
+                              "  </td>"
+                              "</tr>";
+        }
+        responseString += "      </tbody>"
+                          "    </table>"
                           "  </body>"
                           "</html>";
 
+        res->set("Access-Control-Allow-Origin", "*");
+
         res->send(responseString);
+    });
+
+    router.post("/clients", [] APPLICATION(req, res) {
+        VLOG(0) << "-----------------------------";
+        VLOG(0) << std::string(req->body.begin(), req->body.end());
+        VLOG(0) << "-----------------------------";
     });
 
     router.get("/ws/", [] APPLICATION(req, res) {
