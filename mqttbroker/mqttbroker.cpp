@@ -28,6 +28,7 @@
 //
 #include <express/legacy/in/WebApp.h>
 #include <express/legacy/in6/WebApp.h>
+#include <express/middleware/JsonMiddleware.h>
 #include <express/tls/in/WebApp.h>
 #include <express/tls/in6/WebApp.h>
 #include <net/in/stream/legacy/SocketServer.h>
@@ -36,6 +37,9 @@
 //
 #include <log/Logger.h>
 #include <utils/Config.h>
+//
+#include <nlohmann/json.hpp>
+// IWYU pragma: no_include <nlohmann/json_fwd.hpp>
 //
 #include <cstdlib>
 #include <string>
@@ -184,11 +188,28 @@ static express::Router getRouter() {
         res->send(responseString);
     });
 
-    router.post("/clients", [] APPLICATION(req, res) {
+    const express::Router& jsonRouter = express::middleware::JsonMiddleware();
+
+    jsonRouter.post("/clients", [] APPLICATION(req, res) {
         VLOG(0) << "-----------------------------";
         VLOG(0) << std::string(req->body.begin(), req->body.end());
         VLOG(0) << "-----------------------------";
+        std::string jsonString;
+
+        req->getAttribute<nlohmann::json>(
+            [&jsonString](nlohmann::json& json) {
+                jsonString = json.dump(4);
+                VLOG(0) << "Application received body:\n" << jsonString;
+            },
+            [](const std::string& key) {
+                VLOG(0) << key << " attribute not found";
+            });
+        VLOG(0) << "-----------------------------";
+
+        res->send(jsonString);
     });
+
+    router.use(jsonRouter);
 
     router.get("/ws/", [] APPLICATION(req, res) {
         upgrade(req, res);
