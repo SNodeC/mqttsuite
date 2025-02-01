@@ -62,7 +62,10 @@ namespace mqtt::mqttbridge::websocket {
         }
 
         if (!topics.empty()) {
-            subProtocol = new iot::mqtt::client::SubProtocol(subProtocolContext, getName(), new mqtt::bridge::lib::Mqtt(broker));
+            subProtocol = new iot::mqtt::client::SubProtocol(
+                subProtocolContext,
+                getName(),
+                new mqtt::bridge::lib::Mqtt(subProtocolContext->getSocketConnection()->getConnectionName(), broker));
         }
 
         return subProtocol;

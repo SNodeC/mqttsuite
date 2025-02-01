@@ -22,7 +22,9 @@
 #include "lib/JsonMappingReader.h"
 #include "lib/Mqtt.h"
 
+#include <core/socket/stream/SocketConnection.h>
 #include <iot/mqtt/server/broker/Broker.h>
+#include <web/websocket/SubProtocolContext.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
@@ -44,6 +46,7 @@ namespace mqtt::mqttbroker::websocket {
             subProtocolContext,
             getName(),
             new mqtt::mqttbroker::lib::Mqtt(
+                subProtocolContext->getSocketConnection()->getConnectionName(),
                 iot::mqtt::server::broker::Broker::instance(SUBSCRIBTION_MAX_QOS),
                 mqtt::lib::JsonMappingReader::readMappingFromFile(utils::Config::getStringOptionValue("--mqtt-mapping-file"))["mapping"]));
     }

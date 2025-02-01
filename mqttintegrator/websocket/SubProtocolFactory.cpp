@@ -22,6 +22,9 @@
 #include "lib/JsonMappingReader.h"
 #include "lib/Mqtt.h"
 
+#include <core/socket/stream/SocketConnection.h>
+#include <web/websocket/SubProtocolContext.h>
+
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <map>
@@ -46,7 +49,10 @@ namespace mqtt::mqttintegrator::websocket {
 
         if (mappingJson.contains("connection")) {
             subProtocol = new iot::mqtt::client::SubProtocol(
-                subProtocolContext, getName(), new mqtt::mqttintegrator::lib::Mqtt(mappingJson["connection"], mappingJson["mapping"]));
+                subProtocolContext,
+                getName(),
+                new mqtt::mqttintegrator::lib::Mqtt(
+                    subProtocolContext->getSocketConnection()->getConnectionName(), mappingJson["connection"], mappingJson["mapping"]));
         }
 
         return subProtocol;

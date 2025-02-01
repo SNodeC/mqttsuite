@@ -27,6 +27,7 @@ namespace mqtt::bridge::lib {
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <iot/mqtt/client/Mqtt.h>
+#include <string>
 
 #endif
 
@@ -34,7 +35,7 @@ namespace mqtt::bridge::lib {
 
     class Mqtt : public iot::mqtt::client::Mqtt {
     public:
-        explicit Mqtt(const Broker& broker);
+        explicit Mqtt(const std::string& connectionName, const Broker& broker);
 
     private:
         using Super = iot::mqtt::client::Mqtt;

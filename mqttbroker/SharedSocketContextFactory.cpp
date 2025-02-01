@@ -22,6 +22,7 @@
 #include "lib/JsonMappingReader.h"
 #include "mqttbroker/lib/Mqtt.h"
 
+#include <core/socket/stream/SocketConnection.h>
 #include <iot/mqtt/SocketContext.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -40,6 +41,7 @@ namespace mqtt::mqttbroker {
         return new iot::mqtt::SocketContext(
             socketConnection,
             new mqtt::mqttbroker::lib::Mqtt(
+                socketConnection->getConnectionName(),
                 broker,
                 mqtt::lib::JsonMappingReader::readMappingFromFile(utils::Config::getStringOptionValue("--mqtt-mapping-file"))["mapping"]));
     }

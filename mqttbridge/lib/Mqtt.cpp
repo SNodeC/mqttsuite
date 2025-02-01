@@ -34,8 +34,8 @@
 
 namespace mqtt::bridge::lib {
 
-    Mqtt::Mqtt(const Broker& broker)
-        : iot::mqtt::client::Mqtt(broker.getClientId())
+    Mqtt::Mqtt(const std::string& connectionName, const Broker& broker)
+        : iot::mqtt::client::Mqtt(connectionName, broker.getClientId())
         , broker(broker) {
         VLOG(1) << "Keep Alive: " << broker.getKeepAlive();
         VLOG(1) << "Client Id: " << broker.getClientId();

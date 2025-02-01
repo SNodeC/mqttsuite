@@ -35,8 +35,8 @@
 
 namespace mqtt::mqttintegrator::lib {
 
-    Mqtt::Mqtt(const nlohmann::json& connectionJson, const nlohmann::json& mappingJson)
-        : iot::mqtt::client::Mqtt(connectionJson["client_id"])
+    Mqtt::Mqtt(const std::string& connectionName, const nlohmann::json& connectionJson, const nlohmann::json& mappingJson)
+        : iot::mqtt::client::Mqtt(connectionName, connectionJson["client_id"])
         , mqtt::lib::MqttMapper(mappingJson)
         , connectionJson(connectionJson)
         , keepAlive(connectionJson["keep_alive"])

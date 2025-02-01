@@ -22,6 +22,7 @@
 #include "lib/JsonMappingReader.h"
 #include "lib/Mqtt.h"
 
+#include <core/socket/stream/SocketConnection.h>
 #include <iot/mqtt/SocketContext.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -42,8 +43,10 @@ namespace mqtt::mqttintegrator {
             mqtt::lib::JsonMappingReader::readMappingFromFile(utils::Config::getStringOptionValue("--mqtt-mapping-file"));
 
         if (mappingJson.contains("connection")) {
-            socketContext = new iot::mqtt::SocketContext(
-                socketConnection, new mqtt::mqttintegrator::lib::Mqtt(mappingJson["connection"], mappingJson["mapping"]));
+            socketContext =
+                new iot::mqtt::SocketContext(socketConnection,
+                                             new mqtt::mqttintegrator::lib::Mqtt(
+                                                 socketConnection->getConnectionName(), mappingJson["connection"], mappingJson["mapping"]));
         }
 
         return socketContext;

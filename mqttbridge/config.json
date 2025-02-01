@@ -207,6 +207,7 @@
         },
         {
           "connection": {
+            "client_id": "TTN-Bridge",
             "loop_prevention": true
           },
           "instance_name": "ttn-local",

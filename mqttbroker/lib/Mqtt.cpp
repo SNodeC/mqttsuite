@@ -32,8 +32,10 @@
 
 namespace mqtt::mqttbroker::lib {
 
-    Mqtt::Mqtt(const std::shared_ptr<iot::mqtt::server::broker::Broker>& broker, const nlohmann::json& mappingJson)
-        : iot::mqtt::server::Mqtt(broker)
+    Mqtt::Mqtt(const std::string& connectionName,
+               const std::shared_ptr<iot::mqtt::server::broker::Broker>& broker,
+               const nlohmann::json& mappingJson)
+        : iot::mqtt::server::Mqtt(connectionName, broker)
         , mqtt::lib::MqttMapper(mappingJson) {
     }
 

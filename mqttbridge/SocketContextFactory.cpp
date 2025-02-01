@@ -21,6 +21,7 @@
 
 #include "lib/Mqtt.h"
 
+#include <core/socket/stream/SocketConnection.h>
 #include <iot/mqtt/SocketContext.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -29,12 +30,12 @@
 
 namespace mqtt::bridge {
 
-    SocketContextFactory::SocketContextFactory(const lib::Broker &broker)
+    SocketContextFactory::SocketContextFactory(const lib::Broker& broker)
         : broker(broker) {
     }
 
     core::socket::stream::SocketContext* SocketContextFactory::create(core::socket::stream::SocketConnection* socketConnection) {
-        return new iot::mqtt::SocketContext(socketConnection, new mqtt::bridge::lib::Mqtt(broker));
+        return new iot::mqtt::SocketContext(socketConnection, new mqtt::bridge::lib::Mqtt(socketConnection->getConnectionName(), broker));
     }
 
 } // namespace mqtt::bridge

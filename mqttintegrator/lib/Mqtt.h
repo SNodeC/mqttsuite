@@ -37,7 +37,7 @@ namespace mqtt::mqttintegrator::lib {
         : public iot::mqtt::client::Mqtt
         , public mqtt::lib::MqttMapper {
     public:
-        explicit Mqtt(const nlohmann::json& connectionJson, const nlohmann::json& mappingJson);
+        explicit Mqtt(const std::string& connectionName, const nlohmann::json& connectionJson, const nlohmann::json& mappingJson);
 
     private:
         using Super = iot::mqtt::client::Mqtt;
