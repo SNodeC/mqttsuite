@@ -39,7 +39,7 @@ namespace mqtt::mqttbroker::lib {
     struct MqttModelEntry {
         Mqtt* mqtt;
         iot::mqtt::packets::Connect connectPacket;
-        std::chrono::time_point<std::chrono::system_clock> connectedSince;
+        std::chrono::time_point<std::chrono::system_clock> onlineSince;
     };
 
     class MqttModel {
@@ -55,6 +55,10 @@ namespace mqtt::mqttbroker::lib {
         std::map<std::string, MqttModelEntry>& getClients();
 
         Mqtt* getMqtt(const std::string& connectionId);
+
+        static const std::string onlineSince(const MqttModelEntry& mqttModelEntry);
+
+        static const std::string onlineDuration(const MqttModelEntry& mqttModelEntry);
 
     protected:
         std::map<std::string, MqttModelEntry> modelMap;

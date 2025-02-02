@@ -34,7 +34,7 @@ namespace iot::mqtt::server::broker {
 #include <memory>
 #include <string>
 
-#endif
+#endif // DOXYGEN_SHOULD_SKIP_THIS
 
 namespace mqtt::mqttbroker::lib {
 
