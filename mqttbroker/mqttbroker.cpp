@@ -99,22 +99,27 @@ static express::Router getRouter() {
             "    </style>"
             "    <script>"
             "      function executeCode(connectionName) {"
-            "       fetch(\"clients\" , {"
-            "           method: \"POST\","
-            "           body: JSON.stringify({"
-            "               connection_name: connectionName"
-            "               }),"
-            "           headers: {"
-            "               \"Content-type\": \"application/json; charset=UTF-8\""
-            "           }})"
+            "        fetch(\"clients\" , {"
+            "          method: \"POST\","
+            "          body: JSON.stringify({"
+            "            connection_name: connectionName"
+            "          }),"
+            "          headers: {"
+            "            \"Content-type\": \"application/json; charset=UTF-8\""
+            "          }})"
             "          .then(response => {"
-            "            if (!response.ok) {"
-            "              throw new Error(\"Network response was not ok\" + response.text());"
-            "            }"
-            "            return response.text();"
+            "            return response.text().then(body => {"
+            "              return { status: response.status, body: body, ok: response.ok };"
+            "            })"
             "          })"
-            "          .then(data => {"
-            "            console.log(\"Data received:\", data);"
+            "          .then(result => {"
+            "            if (!result.ok) {"
+            "              throw new Error(\"Network response was not ok\\n\" + result.status + \": \" + result.body);"
+            "            }"
+            "            return result.body;"
+            "          })"
+            "          .then(body => {"
+            "            console.log(\"Data received:\", body);"
             "            window.location.reload();"
             "          })"
             "          .catch(error => {"
@@ -188,7 +193,7 @@ static express::Router getRouter() {
                     mqtt->getMqttContext()->getSocketConnection()->close();
                     res->send(jsonString);
                 } else {
-                    res->status(404).send("Client has already gone away: " + json["connection_name"].get<std::string>());
+                    res->status(404).send("MQTT client has already gone away: " + json["connection_name"].get<std::string>());
                 }
             },
             [&res](const std::string& key) {
