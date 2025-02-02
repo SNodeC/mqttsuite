@@ -29,10 +29,16 @@ namespace mqtt::mqttbroker::lib {
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <map>
+#include <string>
 
 #endif
 
 namespace mqtt::mqttbroker::lib {
+
+    struct MqttModelEntry {
+        Mqtt* mqtt;
+        iot::mqtt::packets::Connect connectPacket;
+    };
 
     class MqttModel {
     private:
@@ -41,13 +47,23 @@ namespace mqtt::mqttbroker::lib {
     public:
         static MqttModel& instance();
 
-        void addConnectedClient(mqtt::mqttbroker::lib::Mqtt* mqtt, const iot::mqtt::packets::Connect& connect);
-        void delDisconnectedClient(mqtt::mqttbroker::lib::Mqtt* mqtt);
+        void addClient(const std::string& connectionId, Mqtt* mqtt, const iot::mqtt::packets::Connect& connect);
+        void delClient(const std::string& connectionId);
 
-        const std::map<mqtt::mqttbroker::lib::Mqtt*, iot::mqtt::packets::Connect>& getConnectedClients() const;
+        std::map<std::string, MqttModelEntry>& getClients();
+
+        Mqtt* getMqtt(const std::string& connectionId) {
+            Mqtt* mqtt = nullptr;
+
+            if (modelMap.contains(connectionId)) {
+                mqtt = modelMap[connectionId].mqtt;
+            }
+
+            return mqtt;
+        }
 
     protected:
-        std::map<mqtt::mqttbroker::lib::Mqtt*, iot::mqtt::packets::Connect> connectedClients;
+        std::map<std::string, MqttModelEntry> modelMap;
     };
 
 } // namespace mqtt::mqttbroker::lib

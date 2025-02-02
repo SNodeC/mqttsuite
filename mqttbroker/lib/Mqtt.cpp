@@ -41,7 +41,8 @@ namespace mqtt::mqttbroker::lib {
 
     void Mqtt::onConnect(const iot::mqtt::packets::Connect& connect) {
         VLOG(1) << "MQTT: Connected";
-        MqttModel::instance().addConnectedClient(this, connect);
+
+        MqttModel::instance().addClient(connectionName, this, connect);
     }
 
     void Mqtt::onPublish(const iot::mqtt::packets::Publish& publish) {
@@ -49,7 +50,8 @@ namespace mqtt::mqttbroker::lib {
     }
 
     void Mqtt::onDisconnected() {
-        MqttModel::instance().delDisconnectedClient(this);
+        MqttModel::instance().delClient(connectionName);
+
         VLOG(1) << "MQTT: Disconnected";
     }
 

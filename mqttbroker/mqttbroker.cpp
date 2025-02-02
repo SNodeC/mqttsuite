@@ -41,7 +41,6 @@
 #include <nlohmann/json.hpp>
 // IWYU pragma: no_include <nlohmann/json_fwd.hpp>
 //
-#include <algorithm>
 #include <cstdlib>
 #include <string>
 #include <tuple>
@@ -67,18 +66,6 @@ static void upgrade APPLICATION(req, res) {
         res->sendStatus(404);
     }
 }
-
-/*
-fetch(url , {
-method: "POST",
-        body: JSON.stringify({
-            row: rowNumber
-        }),
-        headers: {
-            "Content-type": "application/json; charset=UTF-8"
-        }
-)
-*/
 
 static express::Router getRouter() {
     const express::Router router;
@@ -111,11 +98,8 @@ static express::Router getRouter() {
             "      }"
             "    </style>"
             "    <script>"
-            "      // This function performs an HTTP GET request when a button in any row is clicked.\n"
             "      function executeCode(connectionName) {"
-            "        const url = \"clients\";"
-            "        // Using the Fetch API to perform the HTTP GET request.\n"
-            "       fetch(url , {"
+            "       fetch(\"clients\" , {"
             "           method: \"POST\","
             "           body: JSON.stringify({"
             "               connection_name: connectionName"
@@ -124,20 +108,19 @@ static express::Router getRouter() {
             "               \"Content-type\": \"application/json; charset=UTF-8\""
             "           }})"
             "          .then(response => {"
-            "            window.location.reload();"
             "            if (!response.ok) {"
-            "              throw new Error(\"Network response was not ok\");"
+            "              throw new Error(\"Network response was not ok\" + response.text());"
             "            }"
-            "            // Assuming the response is in JSON format.\n"
             "            return response.text();"
             "          })"
             "          .then(data => {"
-            "            // Process the returned data. Here we log it and display an alert.\n"
             "            console.log(\"Data received:\", data);"
+            "            window.location.reload();"
             "          })"
             "          .catch(error => {"
             "            console.error(\"There was a problem with the fetch operation:\", error);"
             "            alert(error);"
+            "            window.location.reload();"
             "          });"
             "      }"
             "    </script>"
@@ -150,9 +133,10 @@ static express::Router getRouter() {
             "      </thead>"
             "      <tbody>";
 
-        for (const auto& [mqtt, connectPacket] : mqtt::mqttbroker::lib::MqttModel::instance().getConnectedClients()) {
+        for (const auto& [connectionName, mqttModelEntry] : mqtt::mqttbroker::lib::MqttModel::instance().getClients()) {
+            mqtt::mqttbroker::lib::Mqtt* mqtt = mqttModelEntry.mqtt;
+
             core::socket::stream::SocketConnection* socketConnection = mqtt->getMqttContext()->getSocketConnection();
-            mqtt->getConnectionName();
 
             responseString += "<tr>"
                               "  <td>" +
@@ -183,51 +167,39 @@ static express::Router getRouter() {
                           "  </body>"
                           "</html>";
 
-        res->set("Access-Control-Allow-Origin", "*");
-
         res->send(responseString);
     });
 
     const express::Router& jsonRouter = express::middleware::JsonMiddleware();
 
-    jsonRouter.post("/clients", [] APPLICATION(req, res) {
+    jsonRouter.post([] APPLICATION(req, res) {
+        VLOG(0) << "-----------------------------\n" << std::string(req->body.begin(), req->body.end());
         VLOG(0) << "-----------------------------";
-        VLOG(0) << std::string(req->body.begin(), req->body.end());
-        VLOG(0) << "-----------------------------";
-        std::string jsonString;
 
         req->getAttribute<nlohmann::json>(
-            [&res, &jsonString](nlohmann::json& json) {
-                jsonString = json.dump(4);
-                VLOG(0) << "Application received body:\n" << jsonString;
+            [&res](nlohmann::json& json) {
+                std::string jsonString = json.dump(4);
+                VLOG(0) << "Application received JSON body\n" << jsonString;
 
-                const std::map<mqtt::mqttbroker::lib::Mqtt*, iot::mqtt::packets::Connect> clientMap =
-                    mqtt::mqttbroker::lib::MqttModel::instance().getConnectedClients();
+                std::string connectionName = json["connection_name"].get<std::string>();
+                mqtt::mqttbroker::lib::Mqtt* mqtt = mqtt::mqttbroker::lib::MqttModel::instance().getMqtt(connectionName);
 
-                VLOG(0) << "-----";
-                auto elementIterator = std::find_if(clientMap.begin(), clientMap.end(), [&json](const auto& element) -> bool {
-                    return element.first->getMqttContext()->getSocketConnection()->getConnectionName() ==
-                           json["connection_name"].get<std::string>();
-                    return true;
-                });
-
-                if (elementIterator != clientMap.end()) {
-                    elementIterator->first->getMqttContext()->getSocketConnection()->close();
-
+                if (mqtt != nullptr) {
+                    mqtt->getMqttContext()->getSocketConnection()->close();
                     res->send(jsonString);
                 } else {
-                    res->status(404).send("Client has already gone away");
+                    res->status(404).send("Client has already gone away: " + json["connection_name"].get<std::string>());
                 }
             },
             [&res](const std::string& key) {
                 VLOG(0) << "Attribute type not found: " << key;
 
-                res->send("Attribute type not found: " + key);
+                res->status(400).send("Attribute type not found: " + key);
             });
         VLOG(0) << "-----------------------------";
     });
 
-    router.use(jsonRouter);
+    router.use("/clients", jsonRouter);
 
     router.get("/ws/", [] APPLICATION(req, res) {
         upgrade(req, res);

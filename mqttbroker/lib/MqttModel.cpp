@@ -27,16 +27,16 @@ namespace mqtt::mqttbroker::lib {
         return mqttModel;
     }
 
-    void MqttModel::addConnectedClient(mqtt::mqttbroker::lib::Mqtt* mqtt, const iot::mqtt::packets::Connect& connect) {
-        connectedClients[mqtt] = connect;
+    void MqttModel::addClient(const std::string& connectionId, Mqtt* mqtt, const iot::mqtt::packets::Connect& connect) {
+        modelMap[connectionId] = MqttModelEntry{.mqtt = mqtt, .connectPacket = connect};
     }
 
-    void MqttModel::delDisconnectedClient(mqtt::mqttbroker::lib::Mqtt* mqtt) {
-        connectedClients.erase(mqtt);
+    void MqttModel::delClient(const std::string& connectionId) {
+        modelMap.erase(connectionId);
     }
 
-    const std::map<mqtt::mqttbroker::lib::Mqtt*, iot::mqtt::packets::Connect>& MqttModel::getConnectedClients() const {
-        return connectedClients;
+    std::map<std::string, MqttModelEntry> &MqttModel::getClients() {
+        return modelMap;
     }
 
 } // namespace mqtt::mqttbroker::lib
