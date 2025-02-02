@@ -42,6 +42,7 @@
 // IWYU pragma: no_include <nlohmann/json_fwd.hpp>
 //
 #include <cstdlib>
+#include <format>
 #include <string>
 #include <tuple>
 #include <type_traits>
@@ -134,7 +135,8 @@ static express::Router getRouter() {
             "    <h1>List of all Connected Clients</h1>"
             "    <table>"
             "      <thead>"
-            "        <tr><th>Client ID</th><th>Connection</th><th>Locale Address</th><th>Remote Address</th><th>Action</th></tr>"
+            "        <tr><th>Client ID</th><th>Online Since</th><th>Connection</th><th>Locale Address</th><th>Remote "
+            "Address</th><th>Action</th></tr>"
             "      </thead>"
             "      <tbody>";
 
@@ -146,6 +148,9 @@ static express::Router getRouter() {
             responseString += "<tr>"
                               "  <td>" +
                               mqtt->getClientId() +
+                              "  </td>"
+                              "  <td>" +
+                              std::format("{0:%F %R:%OS %Z}", mqttModelEntry.connectedSince) +
                               "</td>"
                               "  <td>" +
                               socketConnection->getConnectionName() +

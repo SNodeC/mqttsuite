@@ -28,6 +28,7 @@ namespace mqtt::mqttbroker::lib {
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include <chrono> // IWYU pragma: export
 #include <map>
 #include <string>
 
@@ -38,6 +39,7 @@ namespace mqtt::mqttbroker::lib {
     struct MqttModelEntry {
         Mqtt* mqtt;
         iot::mqtt::packets::Connect connectPacket;
+        std::chrono::time_point<std::chrono::system_clock> connectedSince;
     };
 
     class MqttModel {
@@ -52,15 +54,7 @@ namespace mqtt::mqttbroker::lib {
 
         std::map<std::string, MqttModelEntry>& getClients();
 
-        Mqtt* getMqtt(const std::string& connectionId) {
-            Mqtt* mqtt = nullptr;
-
-            if (modelMap.contains(connectionId)) {
-                mqtt = modelMap[connectionId].mqtt;
-            }
-
-            return mqtt;
-        }
+        Mqtt* getMqtt(const std::string& connectionId);
 
     protected:
         std::map<std::string, MqttModelEntry> modelMap;
