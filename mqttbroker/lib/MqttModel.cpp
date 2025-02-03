@@ -31,14 +31,18 @@ struct tm;
 
 namespace mqtt::mqttbroker::lib {
 
+    MqttModel::MqttModel()
+        : onlineSinceTimePoint(std::chrono::system_clock::now()) {
+    }
+
     MqttModel& MqttModel::instance() {
         static MqttModel mqttModel;
 
         return mqttModel;
     }
 
-    void MqttModel::addClient(const std::string& connectionId, Mqtt* mqtt, const iot::mqtt::packets::Connect& connect) {
-        modelMap[connectionId] = MqttModelEntry(mqtt, connect);
+    void MqttModel::addClient(const std::string& connectionId, Mqtt* mqtt) {
+        modelMap[connectionId] = MqttModelEntry(mqtt);
     }
 
     void MqttModel::delClient(const std::string& connectionId) {
@@ -59,9 +63,16 @@ namespace mqtt::mqttbroker::lib {
         return mqtt;
     }
 
-    MqttModel::MqttModelEntry::MqttModelEntry(const Mqtt* mqtt, const iot::mqtt::packets::Connect& connect)
+    std::string MqttModel::onlineSince() {
+        return timePointToString(onlineSinceTimePoint);
+    }
+
+    std::string MqttModel::onlineDuration() {
+        return durationToString(onlineSinceTimePoint);
+    }
+
+    MqttModel::MqttModelEntry::MqttModelEntry(const Mqtt* mqtt)
         : mqtt(mqtt)
-        , connectPacket(connect)
         , onlineSinceTimePoint(std::chrono::system_clock::now()) {
     }
 
@@ -75,10 +86,6 @@ namespace mqtt::mqttbroker::lib {
 
     const Mqtt* MqttModel::MqttModelEntry::getMqtt() const {
         return mqtt;
-    }
-
-    const iot::mqtt::packets::Connect& MqttModel::MqttModelEntry::getConnectPacket() const {
-        return connectPacket;
     }
 
     std::string MqttModel::timePointToString(const std::chrono::time_point<std::chrono::system_clock>& timePoint) {

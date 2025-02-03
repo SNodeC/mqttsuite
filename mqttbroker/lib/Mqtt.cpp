@@ -39,10 +39,10 @@ namespace mqtt::mqttbroker::lib {
         , mqtt::lib::MqttMapper(mappingJson) {
     }
 
-    void Mqtt::onConnect(const iot::mqtt::packets::Connect& connect) {
+    void Mqtt::onConnect([[maybe_unused]] const iot::mqtt::packets::Connect& connect) {
         VLOG(1) << "MQTT: Connected";
 
-        MqttModel::instance().addClient(connectionName, this, connect);
+        MqttModel::instance().addClient(connectionName, this);
     }
 
     void Mqtt::onPublish(const iot::mqtt::packets::Publish& publish) {

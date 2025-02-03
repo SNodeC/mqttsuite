@@ -68,6 +68,10 @@ static void upgrade APPLICATION(req, res) {
     }
 }
 
+static std::string href(const std::string& text, const std::string& link) {
+    return "<a href=\"" + link + "\" style=\"color:inherit;\">" + text + "</a>";
+}
+
 static express::Router getRouter() {
     const express::Router router;
 
@@ -75,8 +79,33 @@ static express::Router getRouter() {
         std::string responseString =
             "<html>"
             "  <head>"
-            "    <title>Mqtt Broker</title>"
+            "    <title>MqttBroker</title>"
             "    <style>"
+            "      body {"
+            "        margin: 0;"
+            "      }"
+            "      main {"
+            "        margin: 10px;"
+            "      }"
+            "      h1 {"
+            "        font-family: Arial, sans-serif;"
+            "      }"
+            "      footer {"
+            "        position: fixed;"
+            "        font-family: Arial, sans-serif;"
+            "        bottom: 0;"
+            "        background: #e0e0e0;"
+            "        margin-top: auto;"
+            "        width: 100%;"
+            "      right {"
+            "        float: right;"
+            "        padding: 10px;"
+            "      }"
+            "      left {"
+            "        float: left;"
+            "        padding: 10px;"
+            "      }"
+            "      }"
             "      table {"
             "        width: 100%;"
             "        border-collapse: collapse;"
@@ -132,7 +161,8 @@ static express::Router getRouter() {
             "    </script>"
             "  </head>"
             "  <body>"
-            "    <h1>List of all Connected Clients</h1>"
+            "  <main>"
+            "    <h1>List of all connected MQTT Clients</h1>"
             "    <table>"
             "      <thead>"
             "        <tr><th>Client ID</th><th>Online Since</th><th>Duration</th><th>Connection</th><th>Locale Address</th><th>Remote "
@@ -140,7 +170,9 @@ static express::Router getRouter() {
             "      </thead>"
             "      <tbody>";
 
-        for (const auto& [connectionName, mqttModelEntry] : mqtt::mqttbroker::lib::MqttModel::instance().getClients()) {
+        mqtt::mqttbroker::lib::MqttModel& mqttModel = mqtt::mqttbroker::lib::MqttModel::instance();
+
+        for (const auto& [connectionName, mqttModelEntry] : mqttModel.getClients()) {
             const mqtt::mqttbroker::lib::Mqtt* mqtt = mqttModelEntry.getMqtt();
 
             core::socket::stream::SocketConnection* socketConnection = mqtt->getMqttContext()->getSocketConnection();
@@ -177,6 +209,20 @@ static express::Router getRouter() {
 
         responseString += "      </tbody>"
                           "    </table>"
+                          "  </main>"
+                          "  <footer>"
+                          "     <left>" +
+                          href("MQTTSuites", "https://github.com/SNodeC/mqttsuite") +                        //
+                          " " +                                                                              //
+                          href("MQTTBroker", "https://github.com/SNodeC/mqttsuite/tree/master/mqttbroker") + //
+                          " powered by " +                                                                   //
+                          href("SNode.C", "https://github.com/SNodeC/snode.c") +                             //
+                          "</left>"
+                          "     <right>"
+                          "Online since: " +
+                          mqttModel.onlineSince() + ", elapsed: " + mqttModel.onlineDuration() +
+                          "</right>"
+                          "</footer>"
                           "  </body>"
                           "</html>";
 

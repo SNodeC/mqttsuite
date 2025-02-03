@@ -24,8 +24,6 @@ namespace mqtt::mqttbroker::lib {
     class Mqtt;
 }
 
-#include <iot/mqtt/packets/Connect.h>
-
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <chrono>
@@ -41,32 +39,34 @@ namespace mqtt::mqttbroker::lib {
         class MqttModelEntry {
         public:
             MqttModelEntry() = default;
-            MqttModelEntry(const Mqtt* mqtt, const iot::mqtt::packets::Connect& connect);
+            MqttModelEntry(const Mqtt* mqtt);
 
             const Mqtt* getMqtt() const;
-            const iot::mqtt::packets::Connect& getConnectPacket() const;
 
             const std::string onlineSince() const;
             const std::string onlineDuration() const;
 
         private:
             const Mqtt* mqtt = nullptr;
-            iot::mqtt::packets::Connect connectPacket;
             std::chrono::time_point<std::chrono::system_clock> onlineSinceTimePoint;
         };
 
     private:
-        MqttModel() = default;
+        MqttModel();
 
     public:
         static MqttModel& instance();
 
-        void addClient(const std::string& connectionId, Mqtt* mqtt, const iot::mqtt::packets::Connect& connect);
+        void addClient(const std::string& connectionId, Mqtt* mqtt);
         void delClient(const std::string& connectionId);
 
         std::map<std::string, MqttModelEntry>& getClients();
 
         const Mqtt* getMqtt(const std::string& connectionId);
+
+        std::string onlineSince();
+
+        std::string onlineDuration();
 
         static std::string timePointToString(const std::chrono::time_point<std::chrono::system_clock>& timePoint);
         static std::string
@@ -75,6 +75,8 @@ namespace mqtt::mqttbroker::lib {
 
     protected:
         std::map<std::string, MqttModelEntry> modelMap;
+
+        std::chrono::time_point<std::chrono::system_clock> onlineSinceTimePoint;
     };
 
 } // namespace mqtt::mqttbroker::lib
