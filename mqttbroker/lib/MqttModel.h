@@ -36,13 +36,26 @@ namespace mqtt::mqttbroker::lib {
 
 namespace mqtt::mqttbroker::lib {
 
-    struct MqttModelEntry {
-        Mqtt* mqtt;
-        iot::mqtt::packets::Connect connectPacket;
-        std::chrono::time_point<std::chrono::system_clock> onlineSince;
-    };
-
     class MqttModel {
+    private:
+        class MqttModelEntry {
+        public:
+            MqttModelEntry() = default;
+            MqttModelEntry(const Mqtt* mqtt, const iot::mqtt::packets::Connect& connect);
+
+            const std::string onlineSince() const;
+            const std::string onlineDuration() const;
+
+            const Mqtt* getMqtt() const;
+
+            const iot::mqtt::packets::Connect& getConnectPacket() const;
+
+        private:
+            const Mqtt* mqtt = nullptr;
+            iot::mqtt::packets::Connect connectPacket;
+            std::chrono::time_point<std::chrono::system_clock> onlineSinceTimePoint;
+        };
+
     private:
         MqttModel() = default;
 
@@ -54,11 +67,7 @@ namespace mqtt::mqttbroker::lib {
 
         std::map<std::string, MqttModelEntry>& getClients();
 
-        Mqtt* getMqtt(const std::string& connectionId);
-
-        static const std::string onlineSince(const MqttModelEntry& mqttModelEntry);
-
-        static const std::string onlineDuration(const MqttModelEntry& mqttModelEntry);
+        const Mqtt* getMqtt(const std::string& connectionId);
 
     protected:
         std::map<std::string, MqttModelEntry> modelMap;

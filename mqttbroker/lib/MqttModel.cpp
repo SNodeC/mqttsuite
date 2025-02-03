@@ -38,29 +38,35 @@ namespace mqtt::mqttbroker::lib {
     }
 
     void MqttModel::addClient(const std::string& connectionId, Mqtt* mqtt, const iot::mqtt::packets::Connect& connect) {
-        modelMap[connectionId] = MqttModelEntry{.mqtt = mqtt, .connectPacket = connect, .onlineSince = std::chrono::system_clock::now()};
+        modelMap[connectionId] = MqttModelEntry(mqtt, connect);
     }
 
     void MqttModel::delClient(const std::string& connectionId) {
         modelMap.erase(connectionId);
     }
 
-    std::map<std::string, MqttModelEntry>& MqttModel::getClients() {
+    std::map<std::string, MqttModel::MqttModelEntry>& MqttModel::getClients() {
         return modelMap;
     }
 
-    Mqtt* MqttModel::getMqtt(const std::string& connectionId) {
-        Mqtt* mqtt = nullptr;
+    const Mqtt* MqttModel::getMqtt(const std::string& connectionId) {
+        const Mqtt* mqtt = nullptr;
 
         if (modelMap.contains(connectionId)) {
-            mqtt = modelMap[connectionId].mqtt;
+            mqtt = modelMap[connectionId].getMqtt();
         }
 
         return mqtt;
     }
 
-    const std::string MqttModel::onlineSince(const MqttModelEntry& mqttModelEntry) {
-        std::time_t time = std::chrono::system_clock::to_time_t(mqttModelEntry.onlineSince);
+    MqttModel::MqttModelEntry::MqttModelEntry(const Mqtt* mqtt, const iot::mqtt::packets::Connect& connect)
+        : mqtt(mqtt)
+        , connectPacket(connect)
+        , onlineSinceTimePoint(std::chrono::system_clock::now()) {
+    }
+
+    const std::string MqttModel::MqttModelEntry::onlineSince() const {
+        std::time_t time = std::chrono::system_clock::to_time_t(onlineSinceTimePoint);
         std::tm* tm_ptr = std::gmtime(&time);
 
         char buffer[100];
@@ -74,11 +80,11 @@ namespace mqtt::mqttbroker::lib {
         return onlineSince;
     }
 
-    const std::string MqttModel::onlineDuration(const MqttModelEntry& mqttModelEntry) {
+    const std::string MqttModel::MqttModelEntry::onlineDuration() const {
         using seconds_duration_type = std::chrono::duration<std::chrono::seconds::rep>::rep;
 
         seconds_duration_type totalSeconds =
-            std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - mqttModelEntry.onlineSince).count();
+            std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - onlineSinceTimePoint).count();
 
         // Compute days, hours, minutes, and seconds
         seconds_duration_type days = totalSeconds / 86400; // 86400 seconds in a day
@@ -97,6 +103,14 @@ namespace mqtt::mqttbroker::lib {
             << std::setfill('0') << seconds;
 
         return oss.str();
+    }
+
+    const Mqtt* MqttModel::MqttModelEntry::getMqtt() const {
+        return mqtt;
+    }
+
+    const iot::mqtt::packets::Connect& MqttModel::MqttModelEntry::getConnectPacket() const {
+        return connectPacket;
     }
 
 } // namespace mqtt::mqttbroker::lib
