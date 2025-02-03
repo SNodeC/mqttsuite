@@ -66,7 +66,23 @@ namespace mqtt::mqttbroker::lib {
     }
 
     const std::string MqttModel::MqttModelEntry::onlineSince() const {
-        std::time_t time = std::chrono::system_clock::to_time_t(onlineSinceTimePoint);
+        return MqttModel::timePointToString(onlineSinceTimePoint);
+    }
+
+    const std::string MqttModel::MqttModelEntry::onlineDuration() const {
+        return MqttModel::durationToString(onlineSinceTimePoint);
+    }
+
+    const Mqtt* MqttModel::MqttModelEntry::getMqtt() const {
+        return mqtt;
+    }
+
+    const iot::mqtt::packets::Connect& MqttModel::MqttModelEntry::getConnectPacket() const {
+        return connectPacket;
+    }
+
+    std::string MqttModel::timePointToString(const std::chrono::time_point<std::chrono::system_clock>& timePoint) {
+        std::time_t time = std::chrono::system_clock::to_time_t(timePoint);
         std::tm* tm_ptr = std::gmtime(&time);
 
         char buffer[100];
@@ -80,11 +96,11 @@ namespace mqtt::mqttbroker::lib {
         return onlineSince;
     }
 
-    const std::string MqttModel::MqttModelEntry::onlineDuration() const {
+    std::string MqttModel::durationToString(const std::chrono::time_point<std::chrono::system_clock>& bevore,
+                                            const std::chrono::time_point<std::chrono::system_clock>& later) {
         using seconds_duration_type = std::chrono::duration<std::chrono::seconds::rep>::rep;
 
-        seconds_duration_type totalSeconds =
-            std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - onlineSinceTimePoint).count();
+        seconds_duration_type totalSeconds = std::chrono::duration_cast<std::chrono::seconds>(later - bevore).count();
 
         // Compute days, hours, minutes, and seconds
         seconds_duration_type days = totalSeconds / 86400; // 86400 seconds in a day
@@ -103,14 +119,6 @@ namespace mqtt::mqttbroker::lib {
             << std::setfill('0') << seconds;
 
         return oss.str();
-    }
-
-    const Mqtt* MqttModel::MqttModelEntry::getMqtt() const {
-        return mqtt;
-    }
-
-    const iot::mqtt::packets::Connect& MqttModel::MqttModelEntry::getConnectPacket() const {
-        return connectPacket;
     }
 
 } // namespace mqtt::mqttbroker::lib

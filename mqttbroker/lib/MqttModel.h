@@ -24,11 +24,11 @@ namespace mqtt::mqttbroker::lib {
     class Mqtt;
 }
 
-#include <iot/mqtt/packets/Connect.h> // IWYU pragma: export
+#include <iot/mqtt/packets/Connect.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <chrono> // IWYU pragma: export
+#include <chrono>
 #include <map>
 #include <string>
 
@@ -43,12 +43,11 @@ namespace mqtt::mqttbroker::lib {
             MqttModelEntry() = default;
             MqttModelEntry(const Mqtt* mqtt, const iot::mqtt::packets::Connect& connect);
 
+            const Mqtt* getMqtt() const;
+            const iot::mqtt::packets::Connect& getConnectPacket() const;
+
             const std::string onlineSince() const;
             const std::string onlineDuration() const;
-
-            const Mqtt* getMqtt() const;
-
-            const iot::mqtt::packets::Connect& getConnectPacket() const;
 
         private:
             const Mqtt* mqtt = nullptr;
@@ -68,6 +67,11 @@ namespace mqtt::mqttbroker::lib {
         std::map<std::string, MqttModelEntry>& getClients();
 
         const Mqtt* getMqtt(const std::string& connectionId);
+
+        static std::string timePointToString(const std::chrono::time_point<std::chrono::system_clock>& timePoint);
+        static std::string
+        durationToString(const std::chrono::time_point<std::chrono::system_clock>& bevore,
+                         const std::chrono::time_point<std::chrono::system_clock>& later = std::chrono::system_clock::now());
 
     protected:
         std::map<std::string, MqttModelEntry> modelMap;
