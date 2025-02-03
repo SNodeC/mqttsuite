@@ -34,6 +34,7 @@
 #include <net/in/stream/legacy/SocketServer.h>
 #include <net/in/stream/tls/SocketServer.h>
 #include <net/un/stream/legacy/SocketServer.h>
+#include <net/un/stream/tls/SocketServer.h>
 //
 #include <log/Logger.h>
 #include <utils/Config.h>
@@ -140,7 +141,7 @@ static express::Router getRouter() {
             "      <tbody>";
 
         for (const auto& [connectionName, mqttModelEntry] : mqtt::mqttbroker::lib::MqttModel::instance().getClients()) {
-            mqtt::mqttbroker::lib::Mqtt* mqtt = mqttModelEntry.mqtt;
+            const mqtt::mqttbroker::lib::Mqtt* mqtt = mqttModelEntry.getMqtt();
 
             core::socket::stream::SocketConnection* socketConnection = mqtt->getMqttContext()->getSocketConnection();
 
@@ -149,10 +150,10 @@ static express::Router getRouter() {
                               mqtt->getClientId() +
                               "  </td>"
                               "  <td>" +
-                              mqtt::mqttbroker::lib::MqttModel::onlineSince(mqttModelEntry) +
+                              mqttModelEntry.onlineSince() +
                               "</td>"
                               "  <td>" +
-                              mqtt::mqttbroker::lib::MqttModel::onlineDuration(mqttModelEntry) +
+                              mqttModelEntry.onlineDuration() +
                               "</td>"
                               "  <td>" +
                               socketConnection->getConnectionName() +
@@ -194,7 +195,7 @@ static express::Router getRouter() {
                 VLOG(0) << "Application received JSON body\n" << jsonString;
 
                 std::string connectionName = json["connection_name"].get<std::string>();
-                mqtt::mqttbroker::lib::Mqtt* mqtt = mqtt::mqttbroker::lib::MqttModel::instance().getMqtt(connectionName);
+                const mqtt::mqttbroker::lib::Mqtt* mqtt = mqtt::mqttbroker::lib::MqttModel::instance().getMqtt(connectionName);
 
                 if (mqtt != nullptr) {
                     mqtt->getMqttContext()->getSocketConnection()->close();
@@ -327,7 +328,12 @@ int main(int argc, char* argv[]) {
     });
 
     startServer<net::un::stream::legacy::SocketServer, mqtt::mqttbroker::SharedSocketContextFactory>("un-mqtt", [](auto& config) {
-        config.setSunPath("/tmp/" + utils::Config::getApplicationName());
+        config.setSunPath("/tmp/" + utils::Config::getApplicationName() + "-" + config.getInstanceName());
+        config.setRetry();
+    });
+
+    startServer<net::un::stream::tls::SocketServer, mqtt::mqttbroker::SharedSocketContextFactory>("un-mqtts", [](auto& config) {
+        config.setSunPath("/tmp/" + utils::Config::getApplicationName() + "-" + config.getInstanceName());
         config.setRetry();
     });
 
