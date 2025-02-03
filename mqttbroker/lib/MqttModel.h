@@ -65,7 +65,6 @@ namespace mqtt::mqttbroker::lib {
         const Mqtt* getMqtt(const std::string& connectionId);
 
         std::string onlineSince();
-
         std::string onlineDuration();
 
         static std::string timePointToString(const std::chrono::time_point<std::chrono::system_clock>& timePoint);

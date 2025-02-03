@@ -72,10 +72,52 @@ static std::string href(const std::string& text, const std::string& link) {
     return "<a href=\"" + link + "\" style=\"color:inherit;\">" + text + "</a>";
 }
 
+static std::string getMqttClientTable(mqtt::mqttbroker::lib::MqttModel& mqttModel) {
+    std::string table;
+
+    for (const auto& [connectionName, mqttModelEntry] : mqttModel.getClients()) {
+        const mqtt::mqttbroker::lib::Mqtt* mqtt = mqttModelEntry.getMqtt();
+        const core::socket::stream::SocketConnection* socketConnection = mqtt->getMqttContext()->getSocketConnection();
+
+        table += "<tr>"
+                 "  <td>" +
+                 mqtt->getClientId() +
+                 "  </td>"
+                 "  <td>" +
+                 mqttModelEntry.onlineSince() +
+                 "</td>"
+                 "  <td>" +
+                 mqttModelEntry.onlineDuration() +
+                 "</td>"
+                 "  <td>" +
+                 mqtt->getConnectionName() +
+                 "  </td>"
+                 "  <td>" +
+                 socketConnection->getLocalAddress().toString() +
+                 "  </td>"
+                 "  <td>" +
+                 socketConnection->getRemoteAddress().toString() +
+                 "  </td>"
+                 "  <td>"
+                 "    <button onclick=\"executeCode('" +
+                 mqtt->getConnectionName() +
+                 "')"
+                 "\">"
+                 "Disconnect"
+                 "</button>"
+                 "  </td>"
+                 "</tr>";
+    }
+
+    return table;
+}
+
 static express::Router getRouter() {
     const express::Router router;
 
     router.get("/clients", [] APPLICATION(req, res) {
+        mqtt::mqttbroker::lib::MqttModel& mqttModel = mqtt::mqttbroker::lib::MqttModel::instance();
+
         std::string responseString =
             "<html>"
             "  <head>"
@@ -119,6 +161,18 @@ static express::Router getRouter() {
             "      }"
             "      th {"
             "        background-color: #f4f4f4;"
+            "      }"
+            "      td:nth-child(1) {"
+            "        white-space: nowrap;"
+            "      }"
+            "      td:nth-child(2) {"
+            "        white-space: nowrap;"
+            "      }"
+            "      td:nth-child(3) {"
+            "        white-space: nowrap;"
+            "      }"
+            "      td:nth-child(4) {"
+            "        white-space: nowrap;"
             "      }"
             "      tr:nth-child(even) {"
             "        background-color: #f9f9f9;"
@@ -168,63 +222,45 @@ static express::Router getRouter() {
             "        <tr><th>Client ID</th><th>Online Since</th><th>Duration</th><th>Connection</th><th>Locale Address</th><th>Remote "
             "Address</th><th>Action</th></tr>"
             "      </thead>"
-            "      <tbody>";
-
-        mqtt::mqttbroker::lib::MqttModel& mqttModel = mqtt::mqttbroker::lib::MqttModel::instance();
-
-        for (const auto& [connectionName, mqttModelEntry] : mqttModel.getClients()) {
-            const mqtt::mqttbroker::lib::Mqtt* mqtt = mqttModelEntry.getMqtt();
-
-            core::socket::stream::SocketConnection* socketConnection = mqtt->getMqttContext()->getSocketConnection();
-
-            responseString += "<tr>"
-                              "  <td>" +
-                              mqtt->getClientId() +
-                              "  </td>"
-                              "  <td>" +
-                              mqttModelEntry.onlineSince() +
-                              "</td>"
-                              "  <td>" +
-                              mqttModelEntry.onlineDuration() +
-                              "</td>"
-                              "  <td>" +
-                              socketConnection->getConnectionName() +
-                              "  </td>"
-                              "  <td>" +
-                              socketConnection->getLocalAddress().toString() +
-                              "  </td>"
-                              "  <td>" +
-                              socketConnection->getRemoteAddress().toString() +
-                              "  </td>"
-                              "  <td>"
-                              "    <button onclick=\"executeCode('" +
-                              mqtt->getConnectionName() +
-                              "')"
-                              "\">"
-                              "Disconnect"
-                              "</button>"
-                              "  </td>"
-                              "</tr>";
-        }
-
-        responseString += "      </tbody>"
-                          "    </table>"
-                          "  </main>"
-                          "  <footer>"
-                          "     <left>" +
-                          href("MQTTSuites", "https://github.com/SNodeC/mqttsuite") +                        //
-                          " " +                                                                              //
-                          href("MQTTBroker", "https://github.com/SNodeC/mqttsuite/tree/master/mqttbroker") + //
-                          " powered by " +                                                                   //
-                          href("SNode.C", "https://github.com/SNodeC/snode.c") +                             //
-                          "</left>"
-                          "     <right>"
-                          "Online since: " +
-                          mqttModel.onlineSince() + ", elapsed: " + mqttModel.onlineDuration() +
-                          "</right>"
-                          "</footer>"
-                          "  </body>"
-                          "</html>";
+            "      <tbody>" +
+            //**************
+            getMqttClientTable(mqttModel) +
+            //**************
+            "      </tbody>"
+            "    </table>"
+            "  </main>"
+            "  <footer>"
+            "     <left>" +
+            " &copy; " +
+            //**************
+            href("Volker Christian", "https://github.com/VolkerChristian/") +
+            //**************
+            " | " +
+            //**************
+            href("MQTTSuites", "https://github.com/SNodeC/mqttsuite") +
+            //**************
+            " " +
+            //**************
+            href("MQTTBroker", "https://github.com/SNodeC/mqttsuite/tree/master/mqttbroker") +
+            //
+            " | Powered by " +
+            //**************
+            href("SNode.C", "https://github.com/SNodeC/snode.c") +
+            //**************
+            "</left>"
+            "     <right>"
+            "Online since: " +
+            //**************
+            mqttModel.onlineSince() +
+            //**************
+            " | Elapsed: " +
+            //**************
+            mqttModel.onlineDuration() +
+            //**************
+            "</right>"
+            "</footer>"
+            "  </body>"
+            "</html>";
 
         res->send(responseString);
     });
