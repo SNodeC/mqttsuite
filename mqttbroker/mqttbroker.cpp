@@ -118,149 +118,162 @@ static express::Router getRouter() {
     router.get("/clients", [] APPLICATION(req, res) {
         mqtt::mqttbroker::lib::MqttModel& mqttModel = mqtt::mqttbroker::lib::MqttModel::instance();
 
-        std::string responseString =
-            "<html>"
-            "  <head>"
-            "    <title>MqttBroker</title>"
-            "    <style>"
-            "      body {"
-            "        margin: 0;"
-            "      }"
-            "      main {"
-            "        margin: 10px;"
-            "      }"
-            "      h1 {"
-            "        font-family: Arial, sans-serif;"
-            "      }"
-            "      footer {"
-            "        position: fixed;"
-            "        font-family: Arial, sans-serif;"
-            "        bottom: 0;"
-            "        background: #e0e0e0;"
-            "        margin-top: auto;"
-            "        width: 100%;"
-            "      right {"
-            "        float: right;"
-            "        padding: 10px;"
-            "      }"
-            "      left {"
-            "        float: left;"
-            "        padding: 10px;"
-            "      }"
-            "      }"
-            "      table {"
-            "        width: 100%;"
-            "        border-collapse: collapse;"
-            "        margin: 20px 0;"
-            "        font-family: Arial, sans-serif;"
-            "      }"
-            "      th, td {"
-            "        padding: 12px;"
-            "        border: 1px solid #ccc;"
-            "        text-align: left;"
-            "      }"
-            "      th {"
-            "        background-color: #f4f4f4;"
-            "      }"
-            "      td:nth-child(1) {"
-            "        white-space: nowrap;"
-            "      }"
-            "      td:nth-child(2) {"
-            "        white-space: nowrap;"
-            "      }"
-            "      td:nth-child(3) {"
-            "        white-space: nowrap;"
-            "      }"
-            "      td:nth-child(4) {"
-            "        white-space: nowrap;"
-            "      }"
-            "      tr:nth-child(even) {"
-            "        background-color: #f9f9f9;"
-            "      }"
-            "      tr:hover {"
-            "        background-color: #e0e0e0;"
-            "      }"
-            "    </style>"
-            "    <script>"
-            "      function executeCode(connectionName) {"
-            "        fetch(\"/clients/\" , {"
-            "          method: \"POST\","
-            "          body: JSON.stringify({"
-            "            connection_name: connectionName"
-            "          }),"
-            "          headers: {"
-            "            \"Content-type\": \"application/json; charset=UTF-8\""
-            "          }})"
-            "          .then(response => {"
-            "            return response.text().then(body => {"
-            "              return { status: response.status, body: body, ok: response.ok };"
-            "            })"
-            "          })"
-            "          .then(result => {"
-            "            if (!result.ok) {"
-            "              throw new Error(\"Network response was not ok\\n\" + result.status + \": \" + result.body);"
-            "            }"
-            "            return result.body;"
-            "          })"
-            "          .then(body => {"
-            "            console.log(\"Data received:\", body);"
-            "            window.location.reload();"
-            "          })"
-            "          .catch(error => {"
-            "            console.error(\"There was a problem with the fetch operation:\", error);"
-            "            alert(error);"
-            "            window.location.reload();"
-            "          });"
-            "      }"
-            "    </script>"
-            "  </head>"
-            "  <body>"
-            "  <main>"
-            "    <h1>List of all connected MQTT Clients</h1>"
-            "    <table>"
-            "      <thead>"
-            "        <tr><th>Client ID</th><th>Online Since</th><th>Duration</th><th>Connection</th><th>Locale Address</th><th>Remote "
-            "Address</th><th>Action</th></tr>"
-            "      </thead>"
-            "      <tbody>" +
-            //**************
-            getMqttClientTable(mqttModel) +
-            //**************
-            "      </tbody>"
-            "    </table>"
-            "  </main>"
-            "  <footer>"
-            "     <left>" +
-            " &copy; " +
-            //**************
-            href("Volker Christian", "https://github.com/VolkerChristian/") +
-            //**************
-            " | " +
-            //**************
-            href("MQTTSuites", "https://github.com/SNodeC/mqttsuite") +
-            //**************
-            " " +
-            //**************
-            href("MQTTBroker", "https://github.com/SNodeC/mqttsuite/tree/master/mqttbroker") +
-            //
-            " | Powered by " +
-            //**************
-            href("SNode.C", "https://github.com/SNodeC/snode.c") +
-            //**************
-            "</left>"
-            "     <right>"
-            "Online since: " +
-            //**************
-            mqttModel.onlineSince() +
-            //**************
-            " | Elapsed: " +
-            //**************
-            mqttModel.onlineDuration() +
-            //**************
-            "</right>"
-            "</footer>"
-            "  </body>"
-            "</html>";
+        std::string responseString = R"(
+<html>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      overflow: hidden; /* Prevent outer scrollbars */
+    }
+
+    /* Use the body as a flex container with column direction */
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* The main content area grows to fill available space and scrolls if needed */
+    main {
+      flex: 1 1 auto;
+      overflow-y: auto;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+
+    /* The footer’s height is determined by its content */
+    footer {
+      background: #e0e0e0;
+      font-family: Arial, sans-serif;
+      display: flex;                /* Layout inner content with flexbox */
+      justify-content: space-between; /* Space out left/right parts */
+      align-items: center;          /* Vertically center the footer content */
+      padding: 10px;                /* Padding can be adjusted as needed */
+      box-sizing: border-box;
+    }
+
+    /* Additional styling for headings and tables */
+    h1 {
+      font-family: Arial, sans-serif;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-family: Arial, sans-serif;
+    }
+
+    th, td {
+      padding: 12px;
+      border: 1px solid #ccc;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f4f4f4;
+    }
+
+    td:nth-child(1),
+    td:nth-child(2),
+    td:nth-child(3),
+    td:nth-child(4) {
+      white-space: nowrap;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+
+    tr:hover {
+      background-color: #e0e0e0;
+    }
+  </style>
+  <script>
+    function executeCode(connectionName) {
+      fetch("/clients/", {
+        method: "POST",
+        body: JSON.stringify({
+          connection_name: connectionName
+        }),
+        headers: {
+          "Content-type": "application/json; charset=UTF-8"
+        }
+      })
+      .then(response => {
+        return response.text().then(body => {
+          return { status: response.status, body: body, ok: response.ok };
+        });
+      })
+      .then(result => {
+        if (!result.ok) {
+          throw new Error("Network response was not ok\n" + result.status + ": " + result.body);
+        }
+        return result.body;
+      })
+      .then(body => {
+        console.log("Data received:", body);
+        window.location.reload();
+      })
+      .catch(error => {
+        console.error("There was a problem with the fetch operation:", error);
+        alert(error);
+        window.location.reload();
+      });
+    }
+  </script>
+</head>
+<body>
+  <main>
+    <h1>List of all connected MQTT Clients</h1>
+    <table>
+      <thead>
+        <tr>
+          <th>Client ID</th>
+          <th>Online Since</th>
+          <th>Duration</th>
+          <th>Connection</th>
+          <th>Locale Address</th>
+          <th>Remote Address</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+)";
+
+        // Append dynamic table rows.
+        responseString += getMqttClientTable(mqttModel);
+
+        responseString += R"(
+      </tbody>
+    </table>
+  </main>
+  <footer>
+    <left>
+      &copy; )";
+
+        // Append dynamic href links.
+        responseString += href("Volker Christian", "https://github.com/VolkerChristian/");
+        responseString += R"( | )";
+        responseString += href("MQTTBroker", "https://github.com/SNodeC/mqttsuite/tree/master/mqttbroker");
+        responseString += R"( | )";
+        responseString += href("MQTTSuite", "https://github.com/SNodeC/mqttsuite");
+        responseString += R"( | Powered by )";
+        responseString += href("SNode.C", "https://github.com/SNodeC/snode.c");
+        responseString += R"(
+    </left>
+    <right>
+      Online since: )";
+
+        responseString += mqttModel.onlineSince();
+        responseString += R"( | Elapsed: )";
+        responseString += mqttModel.onlineDuration();
+        responseString += R"(
+    </right>
+  </footer>
+</body>
+</html>
+)";
 
         res->send(responseString);
     });
