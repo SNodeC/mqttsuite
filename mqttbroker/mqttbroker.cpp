@@ -79,33 +79,18 @@ static std::string getMqttClientTable(mqtt::mqttbroker::lib::MqttModel& mqttMode
         const mqtt::mqttbroker::lib::Mqtt* mqtt = mqttModelEntry.getMqtt();
         const core::socket::stream::SocketConnection* socketConnection = mqtt->getMqttContext()->getSocketConnection();
 
-        table += "<tr>"
-                 "  <td>" +
-                 mqtt->getClientId() +
-                 "  </td>"
-                 "  <td>" +
-                 mqttModelEntry.onlineSince() +
-                 "</td>"
-                 "  <td>" +
-                 mqttModelEntry.onlineDuration() +
-                 "</td>"
-                 "  <td>" +
-                 mqtt->getConnectionName() +
-                 "  </td>"
-                 "  <td>" +
-                 socketConnection->getLocalAddress().toString() +
-                 "  </td>"
-                 "  <td>" +
-                 socketConnection->getRemoteAddress().toString() +
-                 "  </td>"
-                 "  <td>"
-                 "    <button onclick=\"executeCode('" +
-                 mqtt->getConnectionName() +
-                 "')"
-                 "\">"
-                 "Disconnect"
-                 "</button>"
-                 "  </td>"
+        table += std::string("<tr>\n") +                                                       //
+                 "  <td>" + mqtt->getClientId() + "</td>\n" +                                  //
+                 "  <td>" + mqttModelEntry.onlineSince() + "</td>\n" +                         //
+                 "  <td>" + mqttModelEntry.onlineDuration() + "</td>\n" +                      //
+                 "  <td>" + mqtt->getConnectionName() + "</td>\n" +                            //
+                 "  <td>" + socketConnection->getLocalAddress().toString() + "</td>\n" +       //
+                 "  <td>" + socketConnection->getRemoteAddress().toString() + "</td>\n" +      //
+                 "  <td>\n" +                                                                  //
+                 "    <button onclick=\"executeCode('" + mqtt->getConnectionName() + "')\">" + //
+                 "      Disconnect" +                                                          //
+                 "    </button>\n"                                                             //
+                 "  </td>\n" +                                                                 //
                  "</tr>";
     }
 
@@ -221,6 +206,72 @@ static express::Router getRouter() {
         window.location.reload();
       });
     }
+
+    // Example: initial duration string. Replace this with the actual value from mqttModel.onlineDuration()
+    // Examples:
+    // "00:00:00" (no days)
+    // "1 day, 12:34:56" (one day)
+    // "2 days, 01:02:03" (multiple days)
+    var initialDurationStr = ")";
+
+        responseString += mqttModel.onlineDuration();
+        responseString += R"(";
+    // Parse a duration string into total seconds.
+    // The format may be either "hh:mm:ss" or "x day(s), hh:mm:ss".
+    function parseDuration(durationStr) {
+      var days = 0;
+      var timeStr = durationStr;
+      if (durationStr.indexOf(",") !== -1) {
+        // Split on the comma to separate the day part and the time part.
+        var parts = durationStr.split(",");
+        // Expecting something like "1 day" or "2 days"
+        var dayPart = parts[0].trim();
+        // Extract the number (assumes the first token is the day count)
+        days = parseInt(dayPart.split(" ")[0], 10);
+        timeStr = parts[1].trim();
+      }
+      var timeParts = timeStr.split(":");
+      var hours = parseInt(timeParts[0], 10);
+      var minutes = parseInt(timeParts[1], 10);
+      var seconds = parseInt(timeParts[2], 10);
+      return days * 86400 + hours * 3600 + minutes * 60 + seconds;
+    }
+
+    // Format total seconds into a string.
+    // If the total seconds include one or more days, prepend "x day" or "x days, " to the time.
+    function formatDuration(totalSeconds) {
+      var days = Math.floor(totalSeconds / 86400);
+      var remainder = totalSeconds % 86400;
+      var hours = Math.floor(remainder / 3600);
+      remainder %= 3600;
+      var minutes = Math.floor(remainder / 60);
+      var seconds = remainder % 60;
+
+      // Format hours, minutes, and seconds with two digits.
+      var hh = (hours < 10 ? "0" : "") + hours;
+      var mm = (minutes < 10 ? "0" : "") + minutes;
+      var ss = (seconds < 10 ? "0" : "") + seconds;
+
+      if (days > 0) {
+        // Choose singular or plural based on the day count.
+        var dayStr = days + " " + (days === 1 ? "day" : "days");
+        return dayStr + ", " + hh + ":" + mm + ":" + ss;
+      } else {
+        return hh + ":" + mm + ":" + ss;
+      }
+    }
+
+    // Convert the initial duration string to total seconds.
+    var totalSeconds = parseDuration(initialDurationStr);
+
+    // Function to update the clock display every second.
+    function updateClock() {
+      totalSeconds++; // Increment the total seconds by one.
+      document.getElementById("elapsedClock").textContent = formatDuration(totalSeconds);
+    }
+
+    // Update the clock every 1000 milliseconds (1 second).
+    setInterval(updateClock, 1000);
   </script>
 </head>
 <body>
@@ -266,9 +317,9 @@ static express::Router getRouter() {
       Online since: )";
 
         responseString += mqttModel.onlineSince();
-        responseString += R"( | Elapsed: )";
+        responseString += R"( | Elapsed: <span id="elapsedClock">)";
         responseString += mqttModel.onlineDuration();
-        responseString += R"(
+        responseString += R"(</span>
     </right>
   </footer>
 </body>
