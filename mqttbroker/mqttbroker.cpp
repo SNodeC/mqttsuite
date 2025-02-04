@@ -183,7 +183,7 @@ static express::Router getRouter() {
             "    </style>"
             "    <script>"
             "      function executeCode(connectionName) {"
-            "        fetch(\"clients\" , {"
+            "        fetch(\"/clients/\" , {"
             "          method: \"POST\","
             "          body: JSON.stringify({"
             "            connection_name: connectionName"
@@ -268,7 +268,8 @@ static express::Router getRouter() {
     const express::Router& jsonRouter = express::middleware::JsonMiddleware();
 
     jsonRouter.post([] APPLICATION(req, res) {
-        VLOG(0) << "-----------------------------\n" << std::string(req->body.begin(), req->body.end());
+        VLOG(0) << "-----------------------------\n" //
+                << std::string(req->body.begin(), req->body.end());
         VLOG(0) << "-----------------------------";
 
         req->getAttribute<nlohmann::json>(
@@ -297,11 +298,19 @@ static express::Router getRouter() {
     router.use("/clients", jsonRouter);
 
     router.get("/ws/", [] APPLICATION(req, res) {
-        upgrade(req, res);
+        if (req->headers.contains("upgrade")) {
+            upgrade(req, res);
+        } else {
+            res->redirect("/clients");
+        }
     });
 
     router.get("/", [] APPLICATION(req, res) {
-        upgrade(req, res);
+        if (req->headers.contains("upgrade")) {
+            upgrade(req, res);
+        } else {
+            res->redirect("/clients");
+        }
     });
 
     return router;
