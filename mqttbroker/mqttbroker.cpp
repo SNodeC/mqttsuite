@@ -79,18 +79,18 @@ static std::string getMqttClientTable(mqtt::mqttbroker::lib::MqttModel& mqttMode
         const mqtt::mqttbroker::lib::Mqtt* mqtt = mqttModelEntry.getMqtt();
         const core::socket::stream::SocketConnection* socketConnection = mqtt->getMqttContext()->getSocketConnection();
 
-        table += std::string("<tr>\n") +                                                       //
-                 "  <td>" + mqtt->getClientId() + "</td>\n" +                                  //
-                 "  <td>" + mqttModelEntry.onlineSince() + "</td>\n" +                         //
-                 "  <td>" + mqttModelEntry.onlineDuration() + "</td>\n" +                      //
-                 "  <td>" + mqtt->getConnectionName() + "</td>\n" +                            //
-                 "  <td>" + socketConnection->getLocalAddress().toString() + "</td>\n" +       //
-                 "  <td>" + socketConnection->getRemoteAddress().toString() + "</td>\n" +      //
-                 "  <td>\n" +                                                                  //
-                 "    <button onclick=\"executeCode('" + mqtt->getConnectionName() + "')\">" + //
-                 "      Disconnect" +                                                          //
-                 "    </button>\n"                                                             //
-                 "  </td>\n" +                                                                 //
+        table += std::string("<tr>\n") +                                                                 //
+                 "  <td>" + mqtt->getClientId() + "</td>\n" +                                            //
+                 "  <td>" + mqttModelEntry.onlineSince() + "</td>\n" +                                   //
+                 "  <td><duration-cell>" + mqttModelEntry.onlineDuration() + "</duration-cell></td>\n" + //
+                 "  <td>" + mqtt->getConnectionName() + "</td>\n" +                                      //
+                 "  <td>" + socketConnection->getLocalAddress().toString() + "</td>\n" +                 //
+                 "  <td>" + socketConnection->getRemoteAddress().toString() + "</td>\n" +                //
+                 "  <td>\n" +                                                                            //
+                 "    <button onclick=\"executeCode('" + mqtt->getConnectionName() + "')\">" +           //
+                 "      Disconnect" +                                                                    //
+                 "    </button>\n"                                                                       //
+                 "  </td>\n" +                                                                           //
                  "</tr>";
     }
 
@@ -147,6 +147,9 @@ static express::Router getRouter() {
       border-collapse: collapse;
       margin: 20px 0;
       font-family: Arial, sans-serif;
+    }
+
+    duration-cell {
     }
 
     th, td {
@@ -261,13 +264,19 @@ static express::Router getRouter() {
       }
     }
 
-    // Convert the initial duration string to total seconds.
-    var totalSeconds = parseDuration(initialDurationStr);
 
     // Function to update the clock display every second.
     function updateClock() {
+      // Convert the initial duration string to total seconds.
+      var totalSeconds = parseDuration(document.getElementById("elapsedClock").textContent);
       totalSeconds++; // Increment the total seconds by one.
       document.getElementById("elapsedClock").textContent = formatDuration(totalSeconds);
+
+      document.querySelectorAll("duration-cell").forEach(durationCell => {
+        var totalSeconds = parseDuration(durationCell.textContent);
+        totalSeconds++; // Increment the total seconds by one.
+        durationCell.textContent = formatDuration(totalSeconds);
+      });
     }
 
     // Update the clock every 1000 milliseconds (1 second).
