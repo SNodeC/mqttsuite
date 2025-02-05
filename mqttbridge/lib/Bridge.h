@@ -52,7 +52,7 @@ namespace mqtt::bridge::lib {
 
     private:
         std::string name;
-        
+
         std::list<iot::mqtt::Mqtt*> mqttList;
     };
 

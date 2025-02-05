@@ -203,8 +203,8 @@ namespace mqtt::lib {
                     } catch (const nlohmann::json::parse_error& e) {
                         VLOG(1) << "  Parsing message into json failed: " << publish.getMessage();
                         VLOG(1) << "     What: " << e.what() << '\n'
-                                   << "     Exception Id: " << e.id << '\n'
-                                   << "     Byte position of error: " << e.byte;
+                                << "     Exception Id: " << e.id << '\n'
+                                << "     Byte position of error: " << e.byte;
                     }
                 }
             }
