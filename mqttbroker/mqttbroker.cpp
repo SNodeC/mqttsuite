@@ -43,7 +43,9 @@
 // IWYU pragma: no_include <nlohmann/json_fwd.hpp>
 //
 #include <cstdlib>
+#include <fmt/core.h>
 #include <string>
+#include <string_view>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -72,193 +74,34 @@ static std::string href(const std::string& text, const std::string& link) {
     return "<a href=\"" + link + "\" style=\"color:inherit;\">" + text + "</a>";
 }
 
-static std::string getMqttClientTable(mqtt::mqttbroker::lib::MqttModel& mqttModel) {
+static std::string getHTMLClientTable(mqtt::mqttbroker::lib::MqttModel& mqttModel) {
+    static constexpr std::string_view htmlClientTable = R""(
+        <tr>
+          <td>{client_id}</td>
+          <td>{online_since}</td>
+          <td><duration>{online_duration}</duration></td>
+          <td>{connection_name}</td>
+          <td>{local_address}</td>
+          <td>{remote_address}</td>
+          <td><button onclick="disconnectClient('{connection_name}')">Disconnect</button></td>
+        </tr>)"";
+
     std::string table;
 
     for (const auto& [connectionName, mqttModelEntry] : mqttModel.getClients()) {
         const mqtt::mqttbroker::lib::Mqtt* mqtt = mqttModelEntry.getMqtt();
         const core::socket::stream::SocketConnection* socketConnection = mqtt->getMqttContext()->getSocketConnection();
 
-        table += "        <tr>\n";
-        table += "          <td>";
-        table += mqtt->getClientId() + "</td>\n";
-        table += "          <td>";
-        table += mqttModelEntry.onlineSince();
-        table += "</td>\n";
-        table += "          <td>\n";
-        table += "            <duration>";
-        table += mqttModelEntry.onlineDuration();
-        table += "</duration>\n";
-        table += "          </td>\n";
-        table += "          <td>";
-        table += mqtt->getConnectionName();
-        table += "</td>\n";
-        table += "          <td>";
-        table += socketConnection->getLocalAddress().toString();
-        table += "</td>\n";
-        table += "          <td>";
-        table += socketConnection->getRemoteAddress().toString();
-        table += "</td>\n";
-        table += "          <td>\n";
-        table += "            <button onclick=\"disconnectClient";
-        table += "('" + mqtt->getConnectionName() + "')";
-        table += "\">";
-        table += "Disconnect";
-        table += "</button>\n";
-        table += "          </td>\n";
-        table += "        </tr>";
+        table += fmt::format(htmlClientTable,
+                             fmt::arg("client_id", mqtt->getClientId()),
+                             fmt::arg("online_since", mqttModelEntry.onlineSince()),
+                             fmt::arg("online_duration", mqttModelEntry.onlineDuration()),
+                             fmt::arg("connection_name", mqtt->getConnectionName()),
+                             fmt::arg("local_address", socketConnection->getLocalAddress().toString()),
+                             fmt::arg("remote_address", socketConnection->getRemoteAddress().toString()));
     }
 
-    return table;
-}
-
-static express::Router getRouter() {
-    const express::Router router;
-
-    router.get("/clients", [] APPLICATION(req, res) {
-        mqtt::mqttbroker::lib::MqttModel& mqttModel = mqtt::mqttbroker::lib::MqttModel::instance();
-
-        std::string responseString = R"(<!DOCTYPE html>
-<html>
-  <style>
-    html, body {
-      height: 100%;
-      margin: 0;
-      overflow: hidden;
-    }
-    body {
-      display: flex;
-      flex-direction: column;
-    }
-    main {
-      flex: 1 1 auto;
-      overflow-y: auto;
-      padding: 10px;
-      box-sizing: border-box;
-    }
-    footer {
-      background: #e0e0e0;
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px;
-      box-sizing: border-box;
-    }
-    h1 {
-      font-family: Arial, sans-serif;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 20px 0;
-      font-family: Arial, sans-serif;
-    }
-    th, td {
-      padding: 12px;
-      border: 1px solid #ccc;
-      text-align: left;
-    }
-    th {
-      background-color: #f4f4f4;
-    }
-    td:nth-child(1),
-    td:nth-child(2),
-    td:nth-child(3),
-    td:nth-child(4) {
-      white-space: nowrap;
-    }
-    tr:nth-child(even) {
-      background-color: #f9f9f9;
-    }
-    tr:hover {
-      background-color: #e0e0e0;
-    }
-  </style>
-  <script>
-    function disconnectClient(connectionName) {
-      fetch("/clients/", {
-        method: "POST",
-        body: JSON.stringify({
-          connection_name: connectionName
-        }),
-        headers: {
-          "Content-type": "application/json; charset=UTF-8"
-        }
-      })
-      .then(response => {
-        return response.text().then(body => {
-          return { status: response.status, body: body, ok: response.ok };
-        });
-      })
-      .then(result => {
-        if (!result.ok) {
-          throw new Error("Network response was not ok\n" + result.status + ": " + result.body);
-        }
-        return result.body;
-      })
-      .then(body => {
-        console.log("Data received:", body);
-        window.location.reload();
-      })
-      .catch(error => {
-        console.error("There was a problem with the fetch operation:", error);
-        alert(error);
-        window.location.reload();
-      });
-    }
-
-    function parseDuration(durationStr) {
-      var days = 0;
-      var timeStr = durationStr;
-      if (durationStr.indexOf(",") !== -1) {
-        var parts = durationStr.split(",");
-        var dayPart = parts[0].trim();
-        days = parseInt(dayPart.split(" ")[0], 10);
-        timeStr = parts[1].trim();
-      }
-      var timeParts = timeStr.split(":");
-      var hours = parseInt(timeParts[0], 10);
-      var minutes = parseInt(timeParts[1], 10);
-      var seconds = parseInt(timeParts[2], 10);
-      return days * 86400 + hours * 3600 + minutes * 60 + seconds;
-    }
-
-    function formatDuration(totalSeconds) {
-      var days = Math.floor(totalSeconds / 86400);
-      var remainder = totalSeconds % 86400;
-      var hours = Math.floor(remainder / 3600);
-      remainder %= 3600;
-      var minutes = Math.floor(remainder / 60);
-      var seconds = remainder % 60;
-
-      var hh = (hours < 10 ? "0" : "") + hours;
-      var mm = (minutes < 10 ? "0" : "") + minutes;
-      var ss = (seconds < 10 ? "0" : "") + seconds;
-
-      if (days > 0) {
-        var dayStr = days + " " + (days === 1 ? "day" : "days");
-        return dayStr + ", " + hh + ":" + mm + ":" + ss;
-      } else {
-        return hh + ":" + mm + ":" + ss;
-      }
-    }
-
-    function updateClock() {
-      document.querySelectorAll("duration").forEach(duration => {
-        var totalSeconds = parseDuration(duration.textContent);
-        totalSeconds++;
-        duration.textContent = formatDuration(totalSeconds);
-      });
-    }
-
-    setInterval(updateClock, 1000);
-  </script>
-</head>
-<body>
-  <main>
-    <h1>List of all connected MQTT Clients</h1>
-    <table>
+    return R""(<table>
       <thead>
         <tr>
           <th>Client ID</th>
@@ -270,40 +113,179 @@ static express::Router getRouter() {
           <th>Action</th>
         </tr>
       </thead>
-      <tbody>
-)";
-
-        // Append dynamic table rows.
-        responseString += getMqttClientTable(mqttModel);
-        responseString += R"(
+      <tbody>)"" +
+           table + R""(
       </tbody>
-    </table>
+    </table>)"";
+}
+
+static std::string getHTMLPageClientTable(mqtt::mqttbroker::lib::MqttModel& mqttModel) {
+    static constexpr std::string_view htmlPageClientTable = R""(<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    html, body {{
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+    }}
+    body {{
+      display: flex;
+      flex-direction: column;
+    }}
+    main {{
+      flex: 1 1 auto;
+      overflow-y: auto;
+      padding: 10px;
+      box-sizing: border-box;
+    }}
+    footer {{
+      background: #e0e0e0;
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      box-sizing: border-box;
+    }}
+    h1 {{
+      font-family: Arial, sans-serif;
+    }}
+    table {{
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-family: Arial, sans-serif;
+    }}
+    th, td {{
+      padding: 12px;
+      border: 1px solid #ccc;
+      text-align: left;
+    }}
+    th {{
+      background-color: #f4f4f4;
+    }}
+    td:nth-child(1),
+    td:nth-child(2),
+    td:nth-child(3),
+    td:nth-child(4) {{
+      white-space: nowrap;
+    }}
+    tr:nth-child(even) {{
+      background-color: #f9f9f9;
+    }}
+    tr:hover {{
+      background-color: #e0e0e0;
+    }}
+  </style>
+  <script>
+    function disconnectClient(connectionName) {{
+      fetch("/clients/", {{
+        method: "POST",
+        body: JSON.stringify({{
+          connection_name: connectionName
+        }}),
+        headers: {{
+          "Content-type": "application/json; charset=UTF-8"
+        }}
+      }})
+      .then(response => {{
+        return response.text().then(body => {{
+          return {{ status: response.status, body: body, ok: response.ok }};
+        }});
+      }})
+      .then(result => {{
+        if (!result.ok) {{
+          throw new Error("Network response was not ok\n" + result.status + ": " + result.body);
+        }}
+        return result.body;
+      }})
+      .then(body => {{
+        console.log("Data received:", body);
+        window.location.reload();
+      }})
+      .catch(error => {{
+        console.error("There was a problem with the fetch operation:", error);
+        alert(error);
+        window.location.reload();
+      }});
+    }}
+
+    function parseDuration(durationStr) {{
+      var days = 0;
+      var timeStr = durationStr;
+      if (durationStr.indexOf(",") !== -1) {{
+        var parts = durationStr.split(",");
+        var dayPart = parts[0].trim();
+        days = parseInt(dayPart.split(" ")[0], 10);
+        timeStr = parts[1].trim();
+      }}
+      var timeParts = timeStr.split(":");
+      var hours = parseInt(timeParts[0], 10);
+      var minutes = parseInt(timeParts[1], 10);
+      var seconds = parseInt(timeParts[2], 10);
+      return days * 86400 + hours * 3600 + minutes * 60 + seconds;
+    }}
+
+    function formatDuration(totalSeconds) {{
+      var days = Math.floor(totalSeconds / 86400);
+      var remainder = totalSeconds % 86400;
+      var hours = Math.floor(remainder / 3600);
+      remainder %= 3600;
+      var minutes = Math.floor(remainder / 60);
+      var seconds = remainder % 60;
+
+      var hh = (hours < 10 ? "0" : "") + hours;
+      var mm = (minutes < 10 ? "0" : "") + minutes;
+      var ss = (seconds < 10 ? "0" : "") + seconds;
+
+      if (days > 0) {{
+        var dayStr = days + " " + (days === 1 ? "day" : "days");
+        return dayStr + ", " + hh + ":" + mm + ":" + ss;
+      }} else {{
+        return hh + ":" + mm + ":" + ss;
+      }}
+    }}
+
+    function updateClock() {{
+      document.querySelectorAll("duration").forEach(duration => {{
+        var totalSeconds = parseDuration(duration.textContent);
+        totalSeconds++;
+        duration.textContent = formatDuration(totalSeconds);
+      }});
+    }}
+
+    setInterval(updateClock, 1000);
+  </script>
+</head>
+<body>
+  <main>
+    <h1>List of all connected MQTT Clients</h1>
+    {client_table}
   </main>
   <footer>
-    <left>)";
-
-        // Append dynamic href links.
-        responseString += "&copy; ";
-        responseString += href("Volker Christian", "https://github.com/VolkerChristian/");
-        responseString += " | ";
-        responseString += href("MQTTBroker", "https://github.com/SNodeC/mqttsuite/tree/master/mqttbroker");
-        responseString += " | ";
-        responseString += href("MQTTSuite", "https://github.com/SNodeC/mqttsuite");
-        responseString += " | Powered by ";
-        responseString += href("SNode.C", "https://github.com/SNodeC/snode.c");
-        responseString += R"(</left>
-    <right>)";
-        responseString += "Online since: ";
-        responseString += mqttModel.onlineSince();
-        responseString += " | ";
-        responseString += "Elapsed: <duration>" + mqttModel.onlineDuration() + "</duration>";
-        responseString += R"(</right>
+    <left>&copy; {me} | {broker} | {suite} | {snodec}</left>
+    <right>Online since: {since} | Elapsed: <duration>{duration}</duration></right>
   </footer>
 </body>
 </html>
-)";
+)"";
 
-        res->send(responseString);
+    return fmt::format(htmlPageClientTable,
+                       fmt::arg("client_table", getHTMLClientTable(mqttModel)),
+                       fmt::arg("me", href("Volker Christian", "https://github.com/VolkerChristian/")),
+                       fmt::arg("broker", href("MQTTBroker", "https://github.com/SNodeC/mqttsuite/tree/master/mqttbroker")),
+                       fmt::arg("suite", href("MQTTSuite", "https://github.com/SNodeC/mqttsuite")),
+                       fmt::arg("snodec", "Powered by " + href("SNode.C", "https://github.com/SNodeC/snode.c")),
+                       fmt::arg("since", mqttModel.onlineSince()),
+                       fmt::arg("duration", mqttModel.onlineDuration()));
+}
+
+static express::Router getRouter() {
+    const express::Router router;
+
+    router.get("/clients", [] APPLICATION(req, res) {
+        res->send(getHTMLPageClientTable(mqtt::mqttbroker::lib::MqttModel::instance()));
     });
 
     const express::Router& jsonRouter = express::middleware::JsonMiddleware();
@@ -428,6 +410,7 @@ void startServer(const std::string& instanceName, const std::function<void(typen
 }
 
 int main(int argc, char* argv[]) {
+    VLOG(0) << fmt::format("{x} + {xb}\n", fmt::arg("x", 3), fmt::arg("xb", 5));
     utils::Config::addStringOption("--mqtt-mapping-file", "MQTT mapping file (json format) for integration", "[path]", "");
     utils::Config::addStringOption("--mqtt-session-store", "Path to file for the persistent session store", "[path]", "");
 
