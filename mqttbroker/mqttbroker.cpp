@@ -133,6 +133,10 @@ static std::string getHTMLPageClientTable(mqtt::mqttbroker::lib::MqttModel& mqtt
       display: flex;
       flex-direction: column;
     }}
+    header {{
+      background: #e0e0e0;
+      text-align: center;
+    }}
     main {{
       flex: 1 1 auto;
       overflow-y: auto;
@@ -162,8 +166,11 @@ static std::string getHTMLPageClientTable(mqtt::mqttbroker::lib::MqttModel& mqtt
       border: 1px solid #ccc;
       text-align: left;
     }}
-    th {{
+    thead th {{
       background-color: #f4f4f4;
+      position: sticky;
+      border: 1px solid #ccc;
+      top: 20px;
     }}
     td:nth-child(1),
     td:nth-child(2),
@@ -257,10 +264,13 @@ static std::string getHTMLPageClientTable(mqtt::mqttbroker::lib::MqttModel& mqtt
 
     setInterval(updateClock, 1000);
   </script>
+  <title>{title}</title>
 </head>
 <body>
+  <header>
+    <h1>{title}</h1>
+  </header>
   <main>
-    <h1>List of all connected MQTT Clients</h1>
     {client_table}
   </main>
   <footer>
@@ -272,6 +282,7 @@ static std::string getHTMLPageClientTable(mqtt::mqttbroker::lib::MqttModel& mqtt
 )"";
 
     return fmt::format(htmlPageClientTable,
+                       fmt::arg("title", "MQTTBroker | Connected MQTT Clients"),
                        fmt::arg("client_table", getHTMLClientTable(mqttModel)),
                        fmt::arg("me", href("Volker Christian", "https://github.com/VolkerChristian/")),
                        fmt::arg("broker", href("MQTTBroker", "https://github.com/SNodeC/mqttsuite/tree/master/mqttbroker")),
