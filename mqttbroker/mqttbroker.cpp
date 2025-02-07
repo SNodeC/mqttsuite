@@ -139,9 +139,12 @@ static std::string getHTMLPageClientTable(mqtt::mqttbroker::lib::MqttModel& mqtt
     }}
     main {{
       flex: 1 1 auto;
-      overflow-y: auto;
-      padding: 10px;
+      overflow: hidden;
       box-sizing: border-box;
+      padding-left: 10px;
+      padding-right:  10px;
+      padding-top: 20px;
+      padding-bottom: 20px;
     }}
     footer {{
       background: #e0e0e0;
@@ -158,19 +161,14 @@ static std::string getHTMLPageClientTable(mqtt::mqttbroker::lib::MqttModel& mqtt
     table {{
       width: 100%;
       border-collapse: collapse;
-      margin: 20px 0;
       font-family: Arial, sans-serif;
     }}
-    th, td {{
+    th {{
+      background-color:#e0e0e0;
       padding: 12px;
-      border: 1px solid #ccc;
-      text-align: left;
     }}
-    thead th {{
-      background-color: #f4f4f4;
-      position: sticky;
-      border: 1px solid #ccc;
-      top: 20px;
+    td {{
+      padding: 12px;
     }}
     td:nth-child(1),
     td:nth-child(2),
@@ -183,6 +181,23 @@ static std::string getHTMLPageClientTable(mqtt::mqttbroker::lib::MqttModel& mqtt
     }}
     tr:hover {{
       background-color: #e0e0e0;
+    }}
+    .tableFixHead {{
+      overflow: auto;
+      height: 100%;
+    }}
+    .tableFixHead thead th {{
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }}
+    .tableFixHead td {{
+      box-shadow: inset 0px 0px 0px 1px #ccc, inset 0px 0px 0px 0px #ccc;
+      z-index: 1;
+    }}
+    .tableFixHead th {{
+      box-shadow: inset 0px 0px 0px 1px #ccc, inset 0px 0px 0px 0px #ccc;
+      text-align: left;
     }}
   </style>
   <script>
@@ -271,7 +286,9 @@ static std::string getHTMLPageClientTable(mqtt::mqttbroker::lib::MqttModel& mqtt
     <h1>{title}</h1>
   </header>
   <main>
-    {client_table}
+<div class="tableFixHead">
+  {client_table}
+</div>
   </main>
   <footer>
     <left>&copy; {me} | {broker} | {suite} | {snodec}</left>
