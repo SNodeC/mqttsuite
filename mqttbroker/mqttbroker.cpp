@@ -299,7 +299,7 @@ static std::string getHTMLPageClientTable(mqtt::mqttbroker::lib::MqttModel& mqtt
 )"";
 
     return fmt::format(htmlPageClientTable,
-                       fmt::arg("title", "MQTTBroker | Connected MQTT Clients"),
+                       fmt::arg("title", "MQTTBroker | Active Clients"),
                        fmt::arg("client_table", getHTMLClientTable(mqttModel)),
                        fmt::arg("me", href("Volker Christian", "https://github.com/VolkerChristian/")),
                        fmt::arg("broker", href("MQTTBroker", "https://github.com/SNodeC/mqttsuite/tree/master/mqttbroker")),
