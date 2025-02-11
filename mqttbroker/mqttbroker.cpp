@@ -137,15 +137,6 @@ static std::string getHTMLPageClientTable(mqtt::mqttbroker::lib::MqttModel& mqtt
       background: #e0e0e0;
       text-align: center;
     }}
-    main {{
-      flex: 1 1 auto;
-      overflow: hidden;
-      box-sizing: border-box;
-      padding-left: 10px;
-      padding-right:  10px;
-      padding-top: 20px;
-      padding-bottom: 20px;
-    }}
     footer {{
       background: #e0e0e0;
       font-family: Arial, sans-serif;
@@ -157,6 +148,15 @@ static std::string getHTMLPageClientTable(mqtt::mqttbroker::lib::MqttModel& mqtt
     }}
     h1 {{
       font-family: Arial, sans-serif;
+    }}
+    main {{
+      flex: 1 1 auto;
+      overflow: hidden;
+      box-sizing: border-box;
+      padding-left: 10px;
+      padding-right:  10px;
+      padding-top: 20px;
+      padding-bottom: 20px;
     }}
     table {{
       width: 100%;
