@@ -79,11 +79,11 @@ static std::string getHTMLClientTable(mqtt::mqttbroker::lib::MqttModel& mqttMode
         <tr>
           <td>{client_id}</td>
           <td>{online_since}</td>
-          <td><duration>{online_duration}</duration></td>
+          <td align="right"><duration>{online_duration}</duration></td>
           <td>{connection_name}</td>
           <td>{local_address}</td>
           <td>{remote_address}</td>
-          <td><button onclick="disconnectClient('{connection_name}')">Disconnect</button></td>
+          <td align="center"><button onclick="disconnectClient('{connection_name}')">Disconnect</button></td>
         </tr>)"";
 
     std::string table;
@@ -158,46 +158,36 @@ static std::string getHTMLPageClientTable(mqtt::mqttbroker::lib::MqttModel& mqtt
       padding-top: 20px;
       padding-bottom: 20px;
     }}
-    table {{
-      width: 100%;
-      border-collapse: collapse;
-      font-family: Arial, sans-serif;
-    }}
-    th {{
-      background-color:#e0e0e0;
-      padding: 12px;
-    }}
-    td {{
-      padding: 12px;
-    }}
-    td:nth-child(1),
-    td:nth-child(2),
-    td:nth-child(3),
-    td:nth-child(4) {{
-      white-space: nowrap;
-    }}
-    tr:nth-child(even) {{
-      background-color: #f9f9f9;
-    }}
-    tr:hover {{
-      background-color: #e0e0e0;
-    }}
     .tableFixHead {{
       overflow: auto;
       height: 100%;
-    }}
-    .tableFixHead thead th {{
-      position: sticky;
-      top: 0;
-      z-index: 1;
-    }}
-    .tableFixHead td {{
-      box-shadow: inset 0px 0px 0px 1px #ccc, inset 0px 0px 0px 0px #ccc;
-      z-index: 1;
-    }}
-    .tableFixHead th {{
-      box-shadow: inset 0px 0px 0px 1px #ccc, inset 0px 0px 0px 0px #ccc;
-      text-align: left;
+      table {{
+        width: 100%;
+        border-collapse: collapse;
+        font-family: Arial, sans-serif;
+      }}
+      th {{
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        background-color:#e0e0e0;
+      }}
+      tr:nth-child(even) {{
+        background-color: #f9f9f9;
+      }}
+      tr:hover {{
+        background-color: #e0e0e0;
+      }}
+      th, td {{
+        padding: 12px;
+        box-shadow: inset 0px 0px 0px 1px #ccc, inset 0px 0px 0px 0px #ccc;
+      }}
+      td:nth-child(1),
+      td:nth-child(2),
+      td:nth-child(3),
+      td:nth-child(4) {{
+        white-space: nowrap;
+      }}
     }}
   </style>
   <script>
@@ -232,7 +222,6 @@ static std::string getHTMLPageClientTable(mqtt::mqttbroker::lib::MqttModel& mqtt
         window.location.reload();
       }});
     }}
-
     function parseDuration(durationStr) {{
       var days = 0;
       var timeStr = durationStr;
@@ -248,7 +237,6 @@ static std::string getHTMLPageClientTable(mqtt::mqttbroker::lib::MqttModel& mqtt
       var seconds = parseInt(timeParts[2], 10);
       return days * 86400 + hours * 3600 + minutes * 60 + seconds;
     }}
-
     function formatDuration(totalSeconds) {{
       var days = Math.floor(totalSeconds / 86400);
       var remainder = totalSeconds % 86400;
@@ -268,7 +256,6 @@ static std::string getHTMLPageClientTable(mqtt::mqttbroker::lib::MqttModel& mqtt
         return hh + ":" + mm + ":" + ss;
       }}
     }}
-
     function updateClock() {{
       document.querySelectorAll("duration").forEach(duration => {{
         var totalSeconds = parseDuration(duration.textContent);
@@ -286,9 +273,9 @@ static std::string getHTMLPageClientTable(mqtt::mqttbroker::lib::MqttModel& mqtt
     <h1>{title}</h1>
   </header>
   <main>
-<div class="tableFixHead">
-  {client_table}
-</div>
+    <div class="tableFixHead">
+      {client_table}
+    </div>
   </main>
   <footer>
     <left>&copy; {me} | {broker} | {suite} | {snodec}</left>
