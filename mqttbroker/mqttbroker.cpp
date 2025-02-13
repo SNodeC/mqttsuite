@@ -93,7 +93,7 @@ static std::string getHTMLClientTable(mqtt::mqttbroker::lib::MqttModel& mqttMode
         const core::socket::stream::SocketConnection* socketConnection = mqtt->getMqttContext()->getSocketConnection();
 
         table += fmt::format(htmlClientTable,
-                             fmt::arg("client_id", mqtt->getClientId()),
+                             fmt::arg("client_id", href(mqtt->getClientId(), "/client/?" + mqtt->getConnectionName())),
                              fmt::arg("online_since", mqttModelEntry.onlineSince()),
                              fmt::arg("online_duration", mqttModelEntry.onlineDuration()),
                              fmt::arg("connection_name", mqtt->getConnectionName()),
@@ -296,11 +296,82 @@ static std::string getHTMLPageClientTable(mqtt::mqttbroker::lib::MqttModel& mqtt
                        fmt::arg("duration", mqttModel.onlineDuration()));
 }
 
+static std::string urlDecode(const std::string& encoded) {
+    std::string decoded;
+    size_t i = 0;
+
+    while (i < encoded.length()) {
+        char ch = encoded[i];
+        if (ch == '%') {
+            // Make sure there are at least two characters after '%'
+            if (i + 2 < encoded.length() && std::isxdigit(encoded[i + 1]) && std::isxdigit(encoded[i + 2])) {
+                // Convert the two hex digits to a character
+                std::string hexValue = encoded.substr(i + 1, 2);
+                char decodedChar = static_cast<char>(std::stoi(hexValue, nullptr, 16));
+                decoded.push_back(decodedChar);
+                i += 3; // Skip over the % and the two hex digits
+            } else {
+                // Malformed encoding, just add the '%' as is.
+                decoded.push_back(ch);
+                ++i;
+            }
+        } else if (ch == '+') {
+            // Convert '+' to space (common in URL encoding)
+            decoded.push_back(' ');
+            ++i;
+        } else {
+            // Regular character, just append it.
+            decoded.push_back(ch);
+            ++i;
+        }
+    }
+
+    return decoded;
+}
+
 static express::Router getRouter() {
     const express::Router router;
 
     router.get("/clients", [] APPLICATION(req, res) {
         res->send(getHTMLPageClientTable(mqtt::mqttbroker::lib::MqttModel::instance()));
+    });
+
+    router.get("/client", [] APPLICATION(req, res) {
+        std::string response = R""(<!DOCTYPE html>
+<html>
+<head></head><body>)"";
+
+        if (req->queries.size() == 1) {
+            const mqtt::mqttbroker::lib::Mqtt* mqtt =
+                mqtt::mqttbroker::lib::MqttModel::instance().getMqtt(urlDecode(req->queries.begin()->first));
+
+            if (mqtt != nullptr) {
+                response += "<table>";
+                response += "<tr><th>Entity</th><th>Value</th><tr>";
+                response += "<tr><td>Client ID</td><td>" + mqtt->getClientId() + "</td></tr>";
+                response += "<tr><td>Connection Name</td><td>" + mqtt->getConnectionName() + "</td></tr>";
+                response += "<tr><td>Clien Session</td><td>" + std::string(mqtt->getCleanSession() ? "true" : "false") + "</td></tr>";
+                response += "<tr><td>Connect Flags</td><td>" + std::to_string(mqtt->getConnectFlags()) + "</td></tr>";
+                response += "<tr><td>Username</td><td>" + mqtt->getUsername() + "</td></tr>";
+                response += "<tr><td>Username Flag</td><td>" + std::string(mqtt->getUsernameFlag() ? "true" : "false") + "</td></tr>";
+                response += "<tr><td>Password</td><td>" + mqtt->getPassword() + "</td></tr>";
+                response += "<tr><td>Password Flag</td><td>" + std::string(mqtt->getPasswordFlag() ? "true" : "false") + "</td></tr>";
+                response += "<tr><td>Keep Alive</td><td>" + std::to_string(mqtt->getKeepAlive()) + "</td></tr>";
+                response += "<tr><td>Protocol</td><td>" + mqtt->getProtocol() + "</td></tr>";
+                response += "<tr><td>Protocol Level </td><td>" + std::to_string(mqtt->getLevel()) + "</td></tr>";
+                response += "<tr><td>Suppress Reflect</td><td>" + std::string(mqtt->getReflect() ? "true" : "false") + "</td></tr>";
+                response += "<tr><td>Will Message</td><td>" + mqtt->getWillMessage() + "</td></tr>";
+                response += "<tr><td>Will Topic</td><td>" + mqtt->getWillTopic() + "</td></tr>";
+                response += "<tr><td>Will QoS</td><td>" + std::to_string(mqtt->getWillQoS()) + "</td></tr>";
+                response += "<tr><td>Will Flag</td><td>" + std::string(mqtt->getWillFlag() ? "true" : "false") + "</td></tr>";
+                response += "<tr><td>Will Retain</td><td>" + std::string(mqtt->getWillRetain() ? "true" : "false") + "</td></tr>";
+                response += "</table>";
+            }
+        }
+
+        response += "</bod></html>";
+
+        res->send(response);
     });
 
     const express::Router& jsonRouter = express::middleware::JsonMiddleware();
