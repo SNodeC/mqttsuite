@@ -76,7 +76,8 @@ static std::string href(const std::string& text, const std::string& link) {
 
 static std::string href(const std::string& text, const std::string& url, const std::string& windowId, uint16_t width, uint16_t height) {
     return "<a href=\"#\" onClick=\"" + windowId + "=window.open('" + url + "', '" + windowId + "', 'width=" + std::to_string(width) +
-           ", height=" + std::to_string(height) + ",location=no'); return false;\"  \" style=\"color:inherit;\">" + text + "</a>";
+           ", height=" + std::to_string(height) +
+           ",location=no, menubar=no, status=no, toolbar=no'); return false;\"  \" style=\"color:inherit;\">" + text + "</a>";
 }
 
 static std::string getHTMLClientTable(mqtt::mqttbroker::lib::MqttModel& mqttModel) {
@@ -131,6 +132,9 @@ static std::string getHTMLPageClientTable(mqtt::mqttbroker::lib::MqttModel& mqtt
 <html>
 <head>
   <style>
+    * {{
+      font-family: Arial, sans-serif;
+    }}
     html, body {{
       height: 100%;
       margin: 0;
@@ -146,15 +150,11 @@ static std::string getHTMLPageClientTable(mqtt::mqttbroker::lib::MqttModel& mqtt
     }}
     footer {{
       background: #e0e0e0;
-      font-family: Arial, sans-serif;
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 10px;
       box-sizing: border-box;
-    }}
-    h1 {{
-      font-family: Arial, sans-serif;
     }}
     main {{
       flex: 1 1 auto;
@@ -171,7 +171,6 @@ static std::string getHTMLPageClientTable(mqtt::mqttbroker::lib::MqttModel& mqtt
       table {{
         width: 100%;
         border-collapse: collapse;
-        font-family: Arial, sans-serif;
       }}
       th {{
         position: sticky;
@@ -355,6 +354,9 @@ static express::Router getRouter() {
 <html>
   <head>
     <style>
+      * {{
+        font-family: Arial, sans-serif;
+      }}
       html, body {{
         height: 100%;
         margin: 0;
@@ -370,15 +372,11 @@ static express::Router getRouter() {
       }}
       footer {{
         background: #e0e0e0;
-        font-family: Arial, sans-serif;
         display: flex;
         justify-content: space-between;
         align-items: center;
         padding: 10px;
         box-sizing: border-box;
-      }}
-      h1 {{
-        font-family: Arial, sans-serif;
       }}
       main {{
         flex: 1 1 auto;
@@ -394,8 +392,8 @@ static express::Router getRouter() {
         height: 100%;
         table {{
           width: 100%;
+          table-layout: fixed;
           border-collapse: collapse;
-          font-family: Arial, sans-serif;
         }}
         th {{
           position: sticky;
