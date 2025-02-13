@@ -43,7 +43,7 @@
 // IWYU pragma: no_include <nlohmann/json_fwd.hpp>
 //
 #include <cstdlib>
-#include <fmt/core.h>
+#include <fmt/format.h>
 #include <string>
 #include <string_view>
 #include <tuple>
@@ -74,6 +74,11 @@ static std::string href(const std::string& text, const std::string& link) {
     return "<a href=\"" + link + "\" style=\"color:inherit;\">" + text + "</a>";
 }
 
+static std::string href(const std::string& text, const std::string& url, const std::string& windowId, uint16_t width, uint16_t height) {
+    return "<a href=\"#\" onClick=\"" + windowId + "=window.open('" + url + "', '" + windowId + "', 'width=" + std::to_string(width) +
+           ", height=" + std::to_string(height) + ",location=no'); return false;\"  \" style=\"color:inherit;\">" + text + "</a>";
+}
+
 static std::string getHTMLClientTable(mqtt::mqttbroker::lib::MqttModel& mqttModel) {
     static constexpr std::string_view htmlClientTable = R""(
         <tr>
@@ -92,8 +97,10 @@ static std::string getHTMLClientTable(mqtt::mqttbroker::lib::MqttModel& mqttMode
         const mqtt::mqttbroker::lib::Mqtt* mqtt = mqttModelEntry.getMqtt();
         const core::socket::stream::SocketConnection* socketConnection = mqtt->getMqttContext()->getSocketConnection();
 
+        std::string windowId = "window" + std::to_string(reinterpret_cast<unsigned long long>(mqtt));
+
         table += fmt::format(htmlClientTable,
-                             fmt::arg("client_id", href(mqtt->getClientId(), "/client/?" + mqtt->getConnectionName())),
+                             fmt::arg("client_id", href(mqtt->getClientId(), "/client/?" + mqtt->getConnectionName(), windowId, 450, 900)),
                              fmt::arg("online_since", mqttModelEntry.onlineSince()),
                              fmt::arg("online_duration", mqttModelEntry.onlineDuration()),
                              fmt::arg("connection_name", mqtt->getConnectionName()),
@@ -263,7 +270,6 @@ static std::string getHTMLPageClientTable(mqtt::mqttbroker::lib::MqttModel& mqtt
         duration.textContent = formatDuration(totalSeconds);
       }});
     }}
-
     setInterval(updateClock, 1000);
   </script>
   <title>{title}</title>
@@ -337,41 +343,200 @@ static express::Router getRouter() {
     });
 
     router.get("/client", [] APPLICATION(req, res) {
-        std::string response = R""(<!DOCTYPE html>
-<html>
-<head></head><body>)"";
+        std::string responseString;
+        int responseStatus = 200;
 
         if (req->queries.size() == 1) {
             const mqtt::mqttbroker::lib::Mqtt* mqtt =
                 mqtt::mqttbroker::lib::MqttModel::instance().getMqtt(urlDecode(req->queries.begin()->first));
 
             if (mqtt != nullptr) {
-                response += "<table>";
-                response += "<tr><th>Entity</th><th>Value</th><tr>";
-                response += "<tr><td>Client ID</td><td>" + mqtt->getClientId() + "</td></tr>";
-                response += "<tr><td>Connection Name</td><td>" + mqtt->getConnectionName() + "</td></tr>";
-                response += "<tr><td>Clien Session</td><td>" + std::string(mqtt->getCleanSession() ? "true" : "false") + "</td></tr>";
-                response += "<tr><td>Connect Flags</td><td>" + std::to_string(mqtt->getConnectFlags()) + "</td></tr>";
-                response += "<tr><td>Username</td><td>" + mqtt->getUsername() + "</td></tr>";
-                response += "<tr><td>Username Flag</td><td>" + std::string(mqtt->getUsernameFlag() ? "true" : "false") + "</td></tr>";
-                response += "<tr><td>Password</td><td>" + mqtt->getPassword() + "</td></tr>";
-                response += "<tr><td>Password Flag</td><td>" + std::string(mqtt->getPasswordFlag() ? "true" : "false") + "</td></tr>";
-                response += "<tr><td>Keep Alive</td><td>" + std::to_string(mqtt->getKeepAlive()) + "</td></tr>";
-                response += "<tr><td>Protocol</td><td>" + mqtt->getProtocol() + "</td></tr>";
-                response += "<tr><td>Protocol Level </td><td>" + std::to_string(mqtt->getLevel()) + "</td></tr>";
-                response += "<tr><td>Suppress Reflect</td><td>" + std::string(mqtt->getReflect() ? "true" : "false") + "</td></tr>";
-                response += "<tr><td>Will Message</td><td>" + mqtt->getWillMessage() + "</td></tr>";
-                response += "<tr><td>Will Topic</td><td>" + mqtt->getWillTopic() + "</td></tr>";
-                response += "<tr><td>Will QoS</td><td>" + std::to_string(mqtt->getWillQoS()) + "</td></tr>";
-                response += "<tr><td>Will Flag</td><td>" + std::string(mqtt->getWillFlag() ? "true" : "false") + "</td></tr>";
-                response += "<tr><td>Will Retain</td><td>" + std::string(mqtt->getWillRetain() ? "true" : "false") + "</td></tr>";
-                response += "</table>";
+                static constexpr std::string_view clientInformation = R""(<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      html, body {{
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+      }}
+      body {{
+        display: flex;
+        flex-direction: column;
+      }}
+      header {{
+        background: #e0e0e0;
+        text-align: center;
+      }}
+      footer {{
+        background: #e0e0e0;
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+        box-sizing: border-box;
+      }}
+      h1 {{
+        font-family: Arial, sans-serif;
+      }}
+      main {{
+        flex: 1 1 auto;
+        overflow: hidden;
+        box-sizing: border-box;
+        padding-left: 10px;
+        padding-right:  10px;
+        padding-top: 20px;
+        padding-bottom: 20px;
+      }}
+      .tableFixHead {{
+        overflow: auto;
+        height: 100%;
+        table {{
+          width: 100%;
+          border-collapse: collapse;
+          font-family: Arial, sans-serif;
+        }}
+        th {{
+          position: sticky;
+          top: 0;
+          z-index: 1;
+          background-color:#e0e0e0;
+        }}
+        tr:nth-child(even) {{
+          background-color: #f9f9f9;
+        }}
+        tr:hover {{
+          background-color: #e0e0e0;
+        }}
+        th, td {{
+          padding: 12px;
+          box-shadow: inset 0px 0px 0px 1px #ccc, inset 0px 0px 0px 0px #ccc;
+        }}
+        td:nth-child(1),
+        td:nth-child(2) {{
+          white-space: nowrap;
+        }}
+      }}
+    </style>
+      <title>{title}</title>
+  </head>
+  <body>
+    <header>
+      <h1>
+        {title}
+    </h1>
+    </header>
+    <main>
+      <div class="tableFixHead">
+        <table>
+          <tr>
+            <th>Attribute</th>
+            <th>Value</th>
+          </tr>
+          <tr>
+            <td>Client ID</td>
+            <td>{client_id}</td>
+          </tr>
+          <tr>
+            <td>Connection</td>
+            <td>{connection}</td>
+          </tr>
+          <tr>
+            <td>Clean Session</td>
+            <td>{clean_session}</td>
+          </tr>
+          <tr>
+            <td>Connect Flags</td>
+            <td>{connect_flags}</td>
+          </tr>
+          <tr>
+            <td>Username</td>
+            <td>{username}</td>
+          </tr>
+          <tr>
+            <td>Username Flag</td>
+            <td>{username_flag}</td>
+          </tr>
+          <tr>
+            <td>Password</td>
+            <td>{password}</td>
+          </tr>
+          <tr>
+            <td>Password Flag</td>
+            <td>{password_flag}</td>
+          </tr>
+          <tr>
+            <td>Keep Alive</td>
+            <td>{keep_alive}</td>
+          </tr>
+          <tr>
+            <td>Protocol</td>
+            <td>{protocol}</td>
+          </tr>
+          <tr>
+            <td>Protocol Level</td>
+            <td>{protocol_level}</td>
+          </tr>
+          <tr>
+            <td>Loop Prevention</td>
+            <td>{loop_prevention}</td>
+          </tr>
+          <tr>
+            <td>Will Message</td>
+            <td>{will_message}</td>
+          </tr>
+          <tr>
+            <td>Will Topic</td>
+            <td>{will_topic}</td>
+          </tr>
+          <tr>
+            <td>Will QoS</td>
+            <td>{will_qos}</td>
+          </tr>
+          <tr>
+            <td>Will Flag</td>
+            <td>{will_flag}</td>
+          </tr>
+          <tr>
+            <td>Will Retain</td>
+            <td>{will_retain}</td>
+          </tr>
+        </table>
+      </div>
+    </main>
+  </body>
+</html>)"";
+
+                responseString = fmt::format(clientInformation,
+                                             fmt::arg("title", mqtt->getClientId()),
+                                             fmt::arg("client_id", mqtt->getClientId()),
+                                             fmt::arg("connection", mqtt->getConnectionName()),
+                                             fmt::arg("clean_session", mqtt->getCleanSession()),
+                                             fmt::arg("connect_flags", mqtt->getConnectFlags()),
+                                             fmt::arg("username", mqtt->getUsername()),
+                                             fmt::arg("username_flag", mqtt->getUsernameFlag()),
+                                             fmt::arg("password", mqtt->getPassword()),
+                                             fmt::arg("password_flag", mqtt->getPasswordFlag()),
+                                             fmt::arg("keep_alive", mqtt->getKeepAlive()),
+                                             fmt::arg("protocol", mqtt->getProtocol()),
+                                             fmt::arg("protocol_level", mqtt->getLevel()),
+                                             fmt::arg("loop_prevention", !mqtt->getReflect()),
+                                             fmt::arg("will_message", mqtt->getWillMessage()),
+                                             fmt::arg("will_topic", mqtt->getWillTopic()),
+                                             fmt::arg("will_qos", mqtt->getWillQoS()),
+                                             fmt::arg("will_flag", mqtt->getWillFlag()),
+                                             fmt::arg("will_retain", mqtt->getWillRetain()));
+            } else {
+                responseStatus = 404;
+                responseString = "Not Found: " + urlDecode(req->queries.begin()->first);
             }
+        } else {
+            responseStatus = 400;
+            responseString = "Bad Request: No Client requested";
         }
 
-        response += "</bod></html>";
-
-        res->send(response);
+        res->status(responseStatus).send(responseString);
     });
 
     const express::Router& jsonRouter = express::middleware::JsonMiddleware();
