@@ -43,9 +43,8 @@
 // IWYU pragma: no_include <nlohmann/json_fwd.hpp>
 //
 #include <cstdlib>
-#include <fmt/format.h>
+#include <fmt/core.h>
 #include <string>
-#include <string_view>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -81,7 +80,7 @@ static std::string href(const std::string& text, const std::string& url, const s
 }
 
 static std::string getHTMLClientTable(mqtt::mqttbroker::lib::MqttModel& mqttModel) {
-    static constexpr std::string_view htmlClientTable = R""(
+    static std::string htmlClientTable = R""(
         <tr>
           <td>{client_id}</td>
           <td>{online_since}</td>
@@ -96,11 +95,12 @@ static std::string getHTMLClientTable(mqtt::mqttbroker::lib::MqttModel& mqttMode
 
     for (const auto& [connectionName, mqttModelEntry] : mqttModel.getClients()) {
         const mqtt::mqttbroker::lib::Mqtt* mqtt = mqttModelEntry.getMqtt();
+
         const core::socket::stream::SocketConnection* socketConnection = mqtt->getMqttContext()->getSocketConnection();
 
         std::string windowId = "window" + std::to_string(reinterpret_cast<unsigned long long>(mqtt));
 
-        table += fmt::format(htmlClientTable,
+        table += fmt::format(fmt::runtime(htmlClientTable),
                              fmt::arg("client_id", href(mqtt->getClientId(), "/client/?" + mqtt->getConnectionName(), windowId, 450, 900)),
                              fmt::arg("online_since", mqttModelEntry.onlineSince()),
                              fmt::arg("online_duration", mqttModelEntry.onlineDuration()),
@@ -128,169 +128,167 @@ static std::string getHTMLClientTable(mqtt::mqttbroker::lib::MqttModel& mqttMode
 }
 
 static std::string getHTMLPageClientTable(mqtt::mqttbroker::lib::MqttModel& mqttModel) {
-    static constexpr std::string_view htmlPageClientTable = R""(<!DOCTYPE html>
+    static std::string htmlPageClientTable = R""(<!DOCTYPE html>
 <html>
-<head>
-  <style>
-    * {{
-      font-family: Arial, sans-serif;
-    }}
-    html, body {{
-      height: 100%;
-      margin: 0;
-      overflow: hidden;
-    }}
-    body {{
-      display: flex;
-      flex-direction: column;
-    }}
-    header {{
-      background: #e0e0e0;
-      text-align: center;
-    }}
-    footer {{
-      background: #e0e0e0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px;
-      box-sizing: border-box;
-    }}
-    main {{
-      flex: 1 1 auto;
-      overflow: hidden;
-      box-sizing: border-box;
-      padding-left: 10px;
-      padding-right:  10px;
-      padding-top: 20px;
-      padding-bottom: 20px;
-    }}
-    .tableFixHead {{
-      overflow: auto;
-      height: 100%;
-      table {{
-        width: 100%;
-        border-collapse: collapse;
+  <head>
+    <style>
+      * {{
+        font-family: Arial, sans-serif;
       }}
-      th {{
-        position: sticky;
-        top: 0;
-        z-index: 1;
-        background-color:#e0e0e0;
+      html, body {{
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
       }}
-      tr:nth-child(even) {{
-        background-color: #f9f9f9;
+      body {{
+        display: flex;
+        flex-direction: column;
       }}
-      tr:hover {{
-        background-color: #e0e0e0;
+      header {{
+        background: #e0e0e0;
+        text-align: center;
       }}
-      th, td {{
-        padding: 12px;
-        box-shadow: inset 0px 0px 0px 1px #ccc, inset 0px 0px 0px 0px #ccc;
+      footer {{
+        background: #e0e0e0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+        box-sizing: border-box;
       }}
-      td:nth-child(1),
-      td:nth-child(2),
-      td:nth-child(3),
-      td:nth-child(4) {{
-        white-space: nowrap;
+      main {{
+        flex: 1 1 auto;
+        overflow: hidden;
+        box-sizing: border-box;
+        padding-left: 10px;
+        padding-right:  10px;
+        padding-top: 20px;
+        padding-bottom: 20px;
       }}
-    }}
-  </style>
-  <script>
-    function disconnectClient(connectionName) {{
-      fetch("/clients/", {{
-        method: "POST",
-        body: JSON.stringify({{
-          connection_name: connectionName
-        }}),
-        headers: {{
-          "Content-type": "application/json; charset=UTF-8"
+      .tableFixHead {{
+        overflow: auto;
+        height: 100%;
+        table {{
+          width: 100%;
+          border-collapse: collapse;
         }}
-      }})
-      .then(response => {{
-        return response.text().then(body => {{
-          return {{ status: response.status, body: body, ok: response.ok }};
+        th {{
+          position: sticky;
+          top: 0;
+          z-index: 1;
+          background-color:#e0e0e0;
+        }}
+        tr:nth-child(even) {{
+          background-color: #f9f9f9;
+        }}
+        tr:hover {{
+          background-color: #e0e0e0;
+        }}
+        th, td {{
+          padding: 12px;
+          box-shadow: inset 0px 0px 0px 1px #ccc, inset 0px 0px 0px 0px #ccc;
+        }}
+        td:nth-child(1),
+        td:nth-child(2),
+        td:nth-child(3),
+        td:nth-child(4) {{
+          white-space: nowrap;
+        }}
+      }}
+    </style>
+    <script>
+      function disconnectClient(connectionName) {{
+        fetch("/clients/", {{
+          method: "POST",
+          body: JSON.stringify({{
+            connection_name: connectionName
+          }}),
+          headers: {{
+            "Content-type": "application/json; charset=UTF-8"
+          }}
+        }})
+        .then(response => {{
+          return response.text().then(body => {{
+            return {{ status: response.status, body: body, ok: response.ok }};
+          }});
+        }})
+        .then(result => {{
+          if (!result.ok) {{
+            throw new Error("Network response was not ok\n" + result.status + ": " + result.body);
+          }}
+          return result.body;
+        }})
+        .then(body => {{
+          console.log("Data received:", body);
+          window.location.reload();
+        }})
+        .catch(error => {{
+          console.error("There was a problem with the fetch operation:", error);
+          alert(error);
+          window.location.reload();
         }});
-      }})
-      .then(result => {{
-        if (!result.ok) {{
-          throw new Error("Network response was not ok\n" + result.status + ": " + result.body);
+      }}
+      function parseDuration(durationStr) {{
+        var days = 0;
+        var timeStr = durationStr;
+        if (durationStr.indexOf(",") !== -1) {{
+          var parts = durationStr.split(",");
+          var dayPart = parts[0].trim();
+          days = parseInt(dayPart.split(" ")[0], 10);
+          timeStr = parts[1].trim();
         }}
-        return result.body;
-      }})
-      .then(body => {{
-        console.log("Data received:", body);
-        window.location.reload();
-      }})
-      .catch(error => {{
-        console.error("There was a problem with the fetch operation:", error);
-        alert(error);
-        window.location.reload();
-      }});
-    }}
-    function parseDuration(durationStr) {{
-      var days = 0;
-      var timeStr = durationStr;
-      if (durationStr.indexOf(",") !== -1) {{
-        var parts = durationStr.split(",");
-        var dayPart = parts[0].trim();
-        days = parseInt(dayPart.split(" ")[0], 10);
-        timeStr = parts[1].trim();
+        var timeParts = timeStr.split(":");
+        var hours = parseInt(timeParts[0], 10);
+        var minutes = parseInt(timeParts[1], 10);
+        var seconds = parseInt(timeParts[2], 10);
+        return days * 86400 + hours * 3600 + minutes * 60 + seconds;
       }}
-      var timeParts = timeStr.split(":");
-      var hours = parseInt(timeParts[0], 10);
-      var minutes = parseInt(timeParts[1], 10);
-      var seconds = parseInt(timeParts[2], 10);
-      return days * 86400 + hours * 3600 + minutes * 60 + seconds;
-    }}
-    function formatDuration(totalSeconds) {{
-      var days = Math.floor(totalSeconds / 86400);
-      var remainder = totalSeconds % 86400;
-      var hours = Math.floor(remainder / 3600);
-      remainder %= 3600;
-      var minutes = Math.floor(remainder / 60);
-      var seconds = remainder % 60;
-
-      var hh = (hours < 10 ? "0" : "") + hours;
-      var mm = (minutes < 10 ? "0" : "") + minutes;
-      var ss = (seconds < 10 ? "0" : "") + seconds;
-
-      if (days > 0) {{
-        var dayStr = days + " " + (days === 1 ? "day" : "days");
-        return dayStr + ", " + hh + ":" + mm + ":" + ss;
-      }} else {{
-        return hh + ":" + mm + ":" + ss;
+      function formatDuration(totalSeconds) {{
+        var days = Math.floor(totalSeconds / 86400);
+        var remainder = totalSeconds % 86400;
+        var hours = Math.floor(remainder / 3600);
+        remainder %= 3600;
+        var minutes = Math.floor(remainder / 60);
+        var seconds = remainder % 60;
+        var hh = (hours < 10 ? "0" : "") + hours;
+        var mm = (minutes < 10 ? "0" : "") + minutes;
+        var ss = (seconds < 10 ? "0" : "") + seconds;
+        if (days > 0) {{
+          var dayStr = days + " " + (days === 1 ? "day" : "days");
+          return dayStr + ", " + hh + ":" + mm + ":" + ss;
+        }} else {{
+          return hh + ":" + mm + ":" + ss;
+        }}
       }}
-    }}
-    function updateClock() {{
-      document.querySelectorAll("duration").forEach(duration => {{
-        var totalSeconds = parseDuration(duration.textContent);
-        totalSeconds++;
-        duration.textContent = formatDuration(totalSeconds);
-      }});
-    }}
-    setInterval(updateClock, 1000);
-  </script>
+      function updateClock() {{
+        document.querySelectorAll("duration").forEach(duration => {{
+          var totalSeconds = parseDuration(duration.textContent);
+          totalSeconds++;
+          duration.textContent = formatDuration(totalSeconds);
+        }});
+      }}
+      setInterval(updateClock, 1000);
+    </script>
   <title>{title}</title>
 </head>
-<body>
-  <header>
-    <h1>{title}</h1>
-  </header>
-  <main>
-    <div class="tableFixHead">
-      {client_table}
-    </div>
-  </main>
-  <footer>
-    <left>&copy; {me} | {broker} | {suite} | {snodec}</left>
-    <right>Online since: {since} | Elapsed: <duration>{duration}</duration></right>
-  </footer>
-</body>
+  <body>
+    <header>
+      <h1>{title}</h1>
+    </header>
+    <main>
+      <div class="tableFixHead">
+        {client_table}
+      </div>
+    </main>
+    <footer>
+      <left>&copy; {me} | {broker} | {suite} | {snodec}</left>
+      <right>Online since: {since} | Elapsed: <duration>{duration}</duration></right>
+    </footer>
+  </body>
 </html>
 )"";
 
-    return fmt::format(htmlPageClientTable,
+    return fmt::format(fmt::runtime(htmlPageClientTable),
                        fmt::arg("title", "MQTTBroker | Active Clients"),
                        fmt::arg("client_table", getHTMLClientTable(mqttModel)),
                        fmt::arg("me", href("Volker Christian", "https://github.com/VolkerChristian/")),
@@ -301,56 +299,8 @@ static std::string getHTMLPageClientTable(mqtt::mqttbroker::lib::MqttModel& mqtt
                        fmt::arg("duration", mqttModel.onlineDuration()));
 }
 
-static std::string urlDecode(const std::string& encoded) {
-    std::string decoded;
-    size_t i = 0;
-
-    while (i < encoded.length()) {
-        char ch = encoded[i];
-        if (ch == '%') {
-            // Make sure there are at least two characters after '%'
-            if (i + 2 < encoded.length() && std::isxdigit(encoded[i + 1]) && std::isxdigit(encoded[i + 2])) {
-                // Convert the two hex digits to a character
-                std::string hexValue = encoded.substr(i + 1, 2);
-                char decodedChar = static_cast<char>(std::stoi(hexValue, nullptr, 16));
-                decoded.push_back(decodedChar);
-                i += 3; // Skip over the % and the two hex digits
-            } else {
-                // Malformed encoding, just add the '%' as is.
-                decoded.push_back(ch);
-                ++i;
-            }
-        } else if (ch == '+') {
-            // Convert '+' to space (common in URL encoding)
-            decoded.push_back(' ');
-            ++i;
-        } else {
-            // Regular character, just append it.
-            decoded.push_back(ch);
-            ++i;
-        }
-    }
-
-    return decoded;
-}
-
-static express::Router getRouter() {
-    const express::Router router;
-
-    router.get("/clients", [] APPLICATION(req, res) {
-        res->send(getHTMLPageClientTable(mqtt::mqttbroker::lib::MqttModel::instance()));
-    });
-
-    router.get("/client", [] APPLICATION(req, res) {
-        std::string responseString;
-        int responseStatus = 200;
-
-        if (req->queries.size() == 1) {
-            const mqtt::mqttbroker::lib::Mqtt* mqtt =
-                mqtt::mqttbroker::lib::MqttModel::instance().getMqtt(urlDecode(req->queries.begin()->first));
-
-            if (mqtt != nullptr) {
-                static constexpr std::string_view clientInformation = R""(<!DOCTYPE html>
+static std::string getDetailedPage(const mqtt::mqttbroker::lib::Mqtt* mqtt) {
+    static std::string clientInformation = R""(<!DOCTYPE html>
 <html>
   <head>
     <style>
@@ -506,25 +456,77 @@ static express::Router getRouter() {
   </body>
 </html>)"";
 
-                responseString = fmt::format(clientInformation,
-                                             fmt::arg("title", mqtt->getClientId()),
-                                             fmt::arg("client_id", mqtt->getClientId()),
-                                             fmt::arg("connection", mqtt->getConnectionName()),
-                                             fmt::arg("clean_session", mqtt->getCleanSession()),
-                                             fmt::arg("connect_flags", mqtt->getConnectFlags()),
-                                             fmt::arg("username", mqtt->getUsername()),
-                                             fmt::arg("username_flag", mqtt->getUsernameFlag()),
-                                             fmt::arg("password", mqtt->getPassword()),
-                                             fmt::arg("password_flag", mqtt->getPasswordFlag()),
-                                             fmt::arg("keep_alive", mqtt->getKeepAlive()),
-                                             fmt::arg("protocol", mqtt->getProtocol()),
-                                             fmt::arg("protocol_level", mqtt->getLevel()),
-                                             fmt::arg("loop_prevention", !mqtt->getReflect()),
-                                             fmt::arg("will_message", mqtt->getWillMessage()),
-                                             fmt::arg("will_topic", mqtt->getWillTopic()),
-                                             fmt::arg("will_qos", mqtt->getWillQoS()),
-                                             fmt::arg("will_flag", mqtt->getWillFlag()),
-                                             fmt::arg("will_retain", mqtt->getWillRetain()));
+    return fmt::format(fmt::runtime(clientInformation),
+                       fmt::arg("title", mqtt->getClientId()),
+                       fmt::arg("client_id", mqtt->getClientId()),
+                       fmt::arg("connection", mqtt->getConnectionName()),
+                       fmt::arg("clean_session", mqtt->getCleanSession()),
+                       fmt::arg("connect_flags", mqtt->getConnectFlags()),
+                       fmt::arg("username", mqtt->getUsername()),
+                       fmt::arg("username_flag", mqtt->getUsernameFlag()),
+                       fmt::arg("password", mqtt->getPassword()),
+                       fmt::arg("password_flag", mqtt->getPasswordFlag()),
+                       fmt::arg("keep_alive", mqtt->getKeepAlive()),
+                       fmt::arg("protocol", mqtt->getProtocol()),
+                       fmt::arg("protocol_level", mqtt->getLevel()),
+                       fmt::arg("loop_prevention", !mqtt->getReflect()),
+                       fmt::arg("will_message", mqtt->getWillMessage()),
+                       fmt::arg("will_topic", mqtt->getWillTopic()),
+                       fmt::arg("will_qos", mqtt->getWillQoS()),
+                       fmt::arg("will_flag", mqtt->getWillFlag()),
+                       fmt::arg("will_retain", mqtt->getWillRetain()));
+}
+
+static std::string urlDecode(const std::string& encoded) {
+    std::string decoded;
+    size_t i = 0;
+
+    while (i < encoded.length()) {
+        char ch = encoded[i];
+        if (ch == '%') {
+            // Make sure there are at least two characters after '%'
+            if (i + 2 < encoded.length() && std::isxdigit(encoded[i + 1]) && std::isxdigit(encoded[i + 2])) {
+                // Convert the two hex digits to a character
+                std::string hexValue = encoded.substr(i + 1, 2);
+                char decodedChar = static_cast<char>(std::stoi(hexValue, nullptr, 16));
+                decoded.push_back(decodedChar);
+                i += 3; // Skip over the % and the two hex digits
+            } else {
+                // Malformed encoding, just add the '%' as is.
+                decoded.push_back(ch);
+                ++i;
+            }
+        } else if (ch == '+') {
+            // Convert '+' to space (common in URL encoding)
+            decoded.push_back(' ');
+            ++i;
+        } else {
+            // Regular character, just append it.
+            decoded.push_back(ch);
+            ++i;
+        }
+    }
+
+    return decoded;
+}
+
+static express::Router getRouter() {
+    const express::Router router;
+
+    router.get("/clients", [] APPLICATION(req, res) {
+        res->send(getHTMLPageClientTable(mqtt::mqttbroker::lib::MqttModel::instance()));
+    });
+
+    router.get("/client", [] APPLICATION(req, res) {
+        std::string responseString;
+        int responseStatus = 200;
+
+        if (req->queries.size() == 1) {
+            const mqtt::mqttbroker::lib::Mqtt* mqtt =
+                mqtt::mqttbroker::lib::MqttModel::instance().getMqtt(urlDecode(req->queries.begin()->first));
+
+            if (mqtt != nullptr) {
+                responseString = getDetailedPage(mqtt);
             } else {
                 responseStatus = 404;
                 responseString = "Not Found: " + urlDecode(req->queries.begin()->first);
@@ -609,7 +611,7 @@ reportState(const std::string& instanceName, const core::socket::SocketAddress& 
 template <template <typename, typename...> typename SocketServer,
           typename SocketContextFactory,
           typename... SocketContextFactoryArgs,
-          typename Server = SocketServer<SocketContextFactory, SocketContextFactoryArgs&&...>, // cppcheck-suppress syntaxError
+          typename Server = SocketServer<SocketContextFactory, SocketContextFactoryArgs&&...>,
           typename SocketAddress = typename Server::SocketAddress,
           typename = std::enable_if_t<std::is_base_of_v<core::socket::stream::SocketContextFactory, SocketContextFactory>>>
 void startServer(const std::string& instanceName,
@@ -627,11 +629,8 @@ void startServer(const std::string& instanceName,
 template <template <typename, typename...> typename SocketServer,
           typename SocketContextFactory,
           typename... SocketContextFactoryArgs,
-          typename Server = SocketServer<SocketContextFactory, SocketContextFactoryArgs&&...>, // cppcheck-suppress syntaxError
+          typename Server = SocketServer<SocketContextFactory, SocketContextFactoryArgs&&...>,
           typename SocketAddress = typename Server::SocketAddress,
-          typename = std::enable_if_t<std::is_base_of_v<core::socket::stream::SocketContextFactory, SocketContextFactory>>,
-          typename = std::enable_if_t<
-              std::is_invocable_v<std::tuple_element_t<0, std::tuple<SocketContextFactoryArgs...>>, typename Server::Config&>>,
           typename = std::enable_if_t<not std::is_invocable_v<std::tuple_element_t<0, std::tuple<SocketContextFactoryArgs...>>,
                                                               typename SocketServer<SocketContextFactory>::Config&>>
 

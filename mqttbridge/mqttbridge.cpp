@@ -174,7 +174,6 @@ template <template <typename, typename...> typename SocketClient,
           typename... SocketContextFactoryArgs,
           typename Client = SocketClient<SocketContextFactory, SocketContextFactoryArgs&&...>,
           typename SocketAddress = typename Client::SocketAddress,
-          typename = std::enable_if_t<std::is_base_of_v<core::socket::stream::SocketContextFactory, SocketContextFactory>>,
           typename = std::enable_if_t<not std::is_invocable_v<std::tuple_element_t<0, std::tuple<SocketContextFactoryArgs...>>,
                                                               typename SocketClient<SocketContextFactory>::Config&>>>
 void startClient(const std::string& instanceName, SocketContextFactoryArgs&&... socketContextFactoryArgs) {
