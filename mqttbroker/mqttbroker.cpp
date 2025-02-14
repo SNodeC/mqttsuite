@@ -21,10 +21,24 @@
 #include "lib/Mqtt.h"
 #include "lib/MqttModel.h"
 
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#ifdef __has_warning
+#if __has_warning("-Wcovered-switch-default")
+#pragma GCC diagnostic ignored "-Wcovered-switch-default"
+#endif
+#endif
+#endif
+#include "lib/inja.hpp"
+#ifdef __GNUC_
+#pragma GCC diagnostic pop
+#endif
+
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <core/SNodeC.h>
 #include <iot/mqtt/MqttContext.h>
+#include <utils/Config.h>
 //
 #include <express/legacy/in/WebApp.h>
 #include <express/legacy/in6/WebApp.h>
@@ -37,7 +51,7 @@
 #include <net/un/stream/tls/SocketServer.h>
 //
 #include <log/Logger.h>
-#include <utils/Config.h>
+#include <utils/CLI11.hpp>
 //
 #include <nlohmann/json.hpp>
 // IWYU pragma: no_include <nlohmann/json_fwd.hpp>
@@ -74,407 +88,82 @@ static std::string href(const std::string& text, const std::string& link) {
 }
 
 static std::string href(const std::string& text, const std::string& url, const std::string& windowId, uint16_t width, uint16_t height) {
-    return "<a href=\"#\" onClick=\"" + windowId + "=window.open('" + url + "', '" + windowId + "', 'width=" + std::to_string(width) +
+    return "<a href=\\\"#\\\" onClick=\\\"" + windowId + "=window.open('" + url + "', '" + windowId + "', 'width=" + std::to_string(width) +
            ", height=" + std::to_string(height) +
-           ",location=no, menubar=no, status=no, toolbar=no'); return false;\"  \" style=\"color:inherit;\">" + text + "</a>";
-}
-
-static std::string getHTMLClientTable(mqtt::mqttbroker::lib::MqttModel& mqttModel) {
-    static std::string htmlClientTable = R""(
-        <tr>
-          <td>{client_id}</td>
-          <td>{online_since}</td>
-          <td align="right"><duration>{online_duration}</duration></td>
-          <td>{connection_name}</td>
-          <td>{local_address}</td>
-          <td>{remote_address}</td>
-          <td align="center"><button onclick="disconnectClient('{connection_name}')">Disconnect</button></td>
-        </tr>)"";
-
-    std::string table;
-
-    for (const auto& [connectionName, mqttModelEntry] : mqttModel.getClients()) {
-        const mqtt::mqttbroker::lib::Mqtt* mqtt = mqttModelEntry.getMqtt();
-
-        const core::socket::stream::SocketConnection* socketConnection = mqtt->getMqttContext()->getSocketConnection();
-
-        std::string windowId = "window" + std::to_string(reinterpret_cast<unsigned long long>(mqtt));
-
-        table += fmt::format(fmt::runtime(htmlClientTable),
-                             fmt::arg("client_id", href(mqtt->getClientId(), "/client/?" + mqtt->getConnectionName(), windowId, 450, 900)),
-                             fmt::arg("online_since", mqttModelEntry.onlineSince()),
-                             fmt::arg("online_duration", mqttModelEntry.onlineDuration()),
-                             fmt::arg("connection_name", mqtt->getConnectionName()),
-                             fmt::arg("local_address", socketConnection->getLocalAddress().toString()),
-                             fmt::arg("remote_address", socketConnection->getRemoteAddress().toString()));
-    }
-
-    return R""(<table>
-      <thead>
-        <tr>
-          <th>Client ID</th>
-          <th>Online Since</th>
-          <th>Duration</th>
-          <th>Connection</th>
-          <th>Locale Address</th>
-          <th>Remote Address</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody>)"" +
-           table + R""(
-      </tbody>
-    </table>)"";
+           ",location=no, menubar=no, status=no, toolbar=no'); return false;\\\"  \\\" style=\\\"color:inherit;\\\">" + text + "</a>";
 }
 
 static std::string getHTMLPageClientTable(mqtt::mqttbroker::lib::MqttModel& mqttModel) {
-    static std::string htmlPageClientTable = R""(<!DOCTYPE html>
-<html>
-  <head>
-    <style>
-      * {{
-        font-family: Arial, sans-serif;
-      }}
-      html, body {{
-        height: 100%;
-        margin: 0;
-        overflow: hidden;
-      }}
-      body {{
-        display: flex;
-        flex-direction: column;
-      }}
-      header {{
-        background: #e0e0e0;
-        text-align: center;
-      }}
-      footer {{
-        background: #e0e0e0;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px;
-        box-sizing: border-box;
-      }}
-      main {{
-        flex: 1 1 auto;
-        overflow: hidden;
-        box-sizing: border-box;
-        padding-left: 10px;
-        padding-right:  10px;
-        padding-top: 20px;
-        padding-bottom: 20px;
-      }}
-      .tableFixHead {{
-        overflow: auto;
-        height: 100%;
-        table {{
-          width: 100%;
-          border-collapse: collapse;
-        }}
-        th {{
-          position: sticky;
-          top: 0;
-          z-index: 1;
-          background-color:#e0e0e0;
-        }}
-        tr:nth-child(even) {{
-          background-color: #f9f9f9;
-        }}
-        tr:hover {{
-          background-color: #e0e0e0;
-        }}
-        th, td {{
-          padding: 12px;
-          box-shadow: inset 0px 0px 0px 1px #ccc, inset 0px 0px 0px 0px #ccc;
-        }}
-        td:nth-child(1),
-        td:nth-child(2),
-        td:nth-child(3),
-        td:nth-child(4) {{
-          white-space: nowrap;
-        }}
-      }}
-    </style>
-    <script>
-      function disconnectClient(connectionName) {{
-        fetch("/clients/", {{
-          method: "POST",
-          body: JSON.stringify({{
-            connection_name: connectionName
-          }}),
-          headers: {{
-            "Content-type": "application/json; charset=UTF-8"
-          }}
-        }})
-        .then(response => {{
-          return response.text().then(body => {{
-            return {{ status: response.status, body: body, ok: response.ok }};
-          }});
-        }})
-        .then(result => {{
-          if (!result.ok) {{
-            throw new Error("Network response was not ok\n" + result.status + ": " + result.body);
-          }}
-          return result.body;
-        }})
-        .then(body => {{
-          console.log("Data received:", body);
-          window.location.reload();
-        }})
-        .catch(error => {{
-          console.error("There was a problem with the fetch operation:", error);
-          alert(error);
-          window.location.reload();
-        }});
-      }}
-      function parseDuration(durationStr) {{
-        var days = 0;
-        var timeStr = durationStr;
-        if (durationStr.indexOf(",") !== -1) {{
-          var parts = durationStr.split(",");
-          var dayPart = parts[0].trim();
-          days = parseInt(dayPart.split(" ")[0], 10);
-          timeStr = parts[1].trim();
-        }}
-        var timeParts = timeStr.split(":");
-        var hours = parseInt(timeParts[0], 10);
-        var minutes = parseInt(timeParts[1], 10);
-        var seconds = parseInt(timeParts[2], 10);
-        return days * 86400 + hours * 3600 + minutes * 60 + seconds;
-      }}
-      function formatDuration(totalSeconds) {{
-        var days = Math.floor(totalSeconds / 86400);
-        var remainder = totalSeconds % 86400;
-        var hours = Math.floor(remainder / 3600);
-        remainder %= 3600;
-        var minutes = Math.floor(remainder / 60);
-        var seconds = remainder % 60;
-        var hh = (hours < 10 ? "0" : "") + hours;
-        var mm = (minutes < 10 ? "0" : "") + minutes;
-        var ss = (seconds < 10 ? "0" : "") + seconds;
-        if (days > 0) {{
-          var dayStr = days + " " + (days === 1 ? "day" : "days");
-          return dayStr + ", " + hh + ":" + mm + ":" + ss;
-        }} else {{
-          return hh + ":" + mm + ":" + ss;
-        }}
-      }}
-      function updateClock() {{
-        document.querySelectorAll("duration").forEach(duration => {{
-          var totalSeconds = parseDuration(duration.textContent);
-          totalSeconds++;
-          duration.textContent = formatDuration(totalSeconds);
-        }});
-      }}
-      setInterval(updateClock, 1000);
-    </script>
-  <title>{title}</title>
-</head>
-  <body>
-    <header>
-      <h1>{title}</h1>
-    </header>
-    <main>
-      <div class="tableFixHead">
-        {client_table}
-      </div>
-    </main>
-    <footer>
-      <left>&copy; {me} | {broker} | {suite} | {snodec}</left>
-      <right>Online since: {since} | Elapsed: <duration>{duration}</duration></right>
-    </footer>
-  </body>
-</html>
-)"";
+    inja::json json{{"title", "MQTTBroker | Active Clients"},
+                    {"header_row", {"Client ID", "Online Since", "Duration", "Connection", "Locale Address", "Remote Address", "Action"}}};
 
-    return fmt::format(fmt::runtime(htmlPageClientTable),
-                       fmt::arg("title", "MQTTBroker | Active Clients"),
-                       fmt::arg("client_table", getHTMLClientTable(mqttModel)),
-                       fmt::arg("me", href("Volker Christian", "https://github.com/VolkerChristian/")),
-                       fmt::arg("broker", href("MQTTBroker", "https://github.com/SNodeC/mqttsuite/tree/master/mqttbroker")),
-                       fmt::arg("suite", href("MQTTSuite", "https://github.com/SNodeC/mqttsuite")),
-                       fmt::arg("snodec", "Powered by " + href("SNode.C", "https://github.com/SNodeC/snode.c")),
-                       fmt::arg("since", mqttModel.onlineSince()),
-                       fmt::arg("duration", mqttModel.onlineDuration()));
+    std::string jsonString = R"(
+    {
+        "data_rows": [
+    )";
+
+    for (const auto& [connectionName, mqttModelEntry] : mqttModel.getClients()) {
+        const mqtt::mqttbroker::lib::Mqtt* mqtt = mqttModelEntry.getMqtt();
+        const core::socket::stream::SocketConnection* socketConnection = mqtt->getMqttContext()->getSocketConnection();
+
+        const std::string windowId = "window" + std::to_string(reinterpret_cast<unsigned long long>(mqtt));
+
+        jsonString += std::string("[") +                                                                                       //
+                      "\"" + href(mqtt->getClientId(), "/client/?" + mqtt->getConnectionName(), windowId, 450, 900) + "\" ," + //
+                      "\"" + mqttModelEntry.onlineSince() + "\" ," +                                                           //
+                      "\"" + mqttModelEntry.onlineDuration() + "\" ," +                                                        //
+                      "\"" + mqtt->getConnectionName() + "\" ," +                                                              //
+                      "\"" + socketConnection->getLocalAddress().toString() + "\" ," +                                         //
+                      "\"" + socketConnection->getRemoteAddress().toString() + "\" , " +                                       //
+                      "\"" + mqtt->getClientId()                                                                               //
+                      + "\"],";
+    }
+    jsonString.pop_back();
+
+    jsonString += "]}";
+
+    json.merge_patch(inja::json::parse(jsonString));
+
+    json["voc"] = href("Volker Christian", "https://github.com/VolkerChristian/");
+    json["broker"] = href("MQTTBroker", "https://github.com/SNodeC/mqttsuite/tree/master/mqttbroker");
+    json["suite"] = href("MQTTSuite", "https://github.com/SNodeC/mqttsuite");
+    json["snodec"] = "Powered by " + href("SNode.C", "https://github.com/SNodeC/snode.c");
+    json["since"] = mqttModel.onlineSince();
+    json["duration"] = mqttModel.onlineDuration();
+
+    inja::Environment env;
+
+    const std::string& htmlPath = utils::Config::getStringOptionValue("--html-dir");
+
+    return env.render_file(htmlPath + "/OverviewPage.html", json);
 }
 
 static std::string getDetailedPage(const mqtt::mqttbroker::lib::Mqtt* mqtt) {
-    static std::string clientInformation = R""(<!DOCTYPE html>
-<html>
-  <head>
-    <style>
-      * {{
-        font-family: Arial, sans-serif;
-      }}
-      html, body {{
-        height: 100%;
-        margin: 0;
-        overflow: hidden;
-      }}
-      body {{
-        display: flex;
-        flex-direction: column;
-      }}
-      header {{
-        background: #e0e0e0;
-        text-align: center;
-      }}
-      footer {{
-        background: #e0e0e0;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px;
-        box-sizing: border-box;
-      }}
-      main {{
-        flex: 1 1 auto;
-        overflow: hidden;
-        box-sizing: border-box;
-        padding-left: 10px;
-        padding-right:  10px;
-        padding-top: 20px;
-        padding-bottom: 20px;
-      }}
-      .tableFixHead {{
-        overflow: auto;
-        height: 100%;
-        table {{
-          width: 100%;
-          table-layout: fixed;
-          border-collapse: collapse;
-        }}
-        th {{
-          position: sticky;
-          top: 0;
-          z-index: 1;
-          background-color:#e0e0e0;
-        }}
-        tr:nth-child(even) {{
-          background-color: #f9f9f9;
-        }}
-        tr:hover {{
-          background-color: #e0e0e0;
-        }}
-        th, td {{
-          padding: 12px;
-          box-shadow: inset 0px 0px 0px 1px #ccc, inset 0px 0px 0px 0px #ccc;
-        }}
-        td:nth-child(1),
-        td:nth-child(2) {{
-          white-space: nowrap;
-        }}
-      }}
-    </style>
-      <title>{title}</title>
-  </head>
-  <body>
-    <header>
-      <h1>
-        {title}
-    </h1>
-    </header>
-    <main>
-      <div class="tableFixHead">
-        <table>
-          <tr>
-            <th>Attribute</th>
-            <th>Value</th>
-          </tr>
-          <tr>
-            <td>Client ID</td>
-            <td>{client_id}</td>
-          </tr>
-          <tr>
-            <td>Connection</td>
-            <td>{connection}</td>
-          </tr>
-          <tr>
-            <td>Clean Session</td>
-            <td>{clean_session}</td>
-          </tr>
-          <tr>
-            <td>Connect Flags</td>
-            <td>{connect_flags}</td>
-          </tr>
-          <tr>
-            <td>Username</td>
-            <td>{username}</td>
-          </tr>
-          <tr>
-            <td>Username Flag</td>
-            <td>{username_flag}</td>
-          </tr>
-          <tr>
-            <td>Password</td>
-            <td>{password}</td>
-          </tr>
-          <tr>
-            <td>Password Flag</td>
-            <td>{password_flag}</td>
-          </tr>
-          <tr>
-            <td>Keep Alive</td>
-            <td>{keep_alive}</td>
-          </tr>
-          <tr>
-            <td>Protocol</td>
-            <td>{protocol}</td>
-          </tr>
-          <tr>
-            <td>Protocol Level</td>
-            <td>{protocol_level}</td>
-          </tr>
-          <tr>
-            <td>Loop Prevention</td>
-            <td>{loop_prevention}</td>
-          </tr>
-          <tr>
-            <td>Will Message</td>
-            <td>{will_message}</td>
-          </tr>
-          <tr>
-            <td>Will Topic</td>
-            <td>{will_topic}</td>
-          </tr>
-          <tr>
-            <td>Will QoS</td>
-            <td>{will_qos}</td>
-          </tr>
-          <tr>
-            <td>Will Flag</td>
-            <td>{will_flag}</td>
-          </tr>
-          <tr>
-            <td>Will Retain</td>
-            <td>{will_retain}</td>
-          </tr>
-        </table>
-      </div>
-    </main>
-  </body>
-</html>)"";
+    inja::Environment env;
 
-    return fmt::format(fmt::runtime(clientInformation),
-                       fmt::arg("title", mqtt->getClientId()),
-                       fmt::arg("client_id", mqtt->getClientId()),
-                       fmt::arg("connection", mqtt->getConnectionName()),
-                       fmt::arg("clean_session", mqtt->getCleanSession()),
-                       fmt::arg("connect_flags", mqtt->getConnectFlags()),
-                       fmt::arg("username", mqtt->getUsername()),
-                       fmt::arg("username_flag", mqtt->getUsernameFlag()),
-                       fmt::arg("password", mqtt->getPassword()),
-                       fmt::arg("password_flag", mqtt->getPasswordFlag()),
-                       fmt::arg("keep_alive", mqtt->getKeepAlive()),
-                       fmt::arg("protocol", mqtt->getProtocol()),
-                       fmt::arg("protocol_level", mqtt->getLevel()),
-                       fmt::arg("loop_prevention", !mqtt->getReflect()),
-                       fmt::arg("will_message", mqtt->getWillMessage()),
-                       fmt::arg("will_topic", mqtt->getWillTopic()),
-                       fmt::arg("will_qos", mqtt->getWillQoS()),
-                       fmt::arg("will_flag", mqtt->getWillFlag()),
-                       fmt::arg("will_retain", mqtt->getWillRetain()));
+    const std::string& htmlPath = utils::Config::getStringOptionValue("--html-dir");
+
+    return env.render_file(htmlPath + "/DetailPage.html",
+                           {{"title", mqtt->getClientId()},
+                            {"header_row", {"Attribute", "Value"}},
+                            {"data_rows",
+                             inja::json::array({{"Client ID", mqtt->getClientId()},
+                                                {"Connection", mqtt->getConnectionName()},
+                                                {"Clean Session", mqtt->getCleanSession() ? "true" : "false"},
+                                                {"Connect Flags", std::to_string(mqtt->getConnectFlags())},
+                                                {"Username", mqtt->getUsername()},
+                                                {"Username Flag", mqtt->getUsernameFlag() ? "true" : "false"},
+                                                {"Password", mqtt->getPassword()},
+                                                {"Password Flag", mqtt->getPasswordFlag() ? "true" : "false"},
+                                                {"Keep Alive", std::to_string(mqtt->getKeepAlive())},
+                                                {"Protocol", mqtt->getProtocol()},
+                                                {"Protocol Level", std::to_string(mqtt->getLevel())},
+                                                {"Loop Prevention", !mqtt->getReflect() ? "true" : "false"},
+                                                {"Will Message", mqtt->getWillMessage()},
+                                                {"Will Topic", mqtt->getWillTopic()},
+                                                {"Will QoS", std::to_string(mqtt->getWillQoS())},
+                                                {"Will Flag", mqtt->getWillFlag() ? "true" : "false"},
+                                                {"Will Retain", mqtt->getWillRetain() ? "true" : "false"}})}});
 }
 
 static std::string urlDecode(const std::string& encoded) {
@@ -542,14 +231,14 @@ static express::Router getRouter() {
     const express::Router& jsonRouter = express::middleware::JsonMiddleware();
 
     jsonRouter.post([] APPLICATION(req, res) {
-        VLOG(0) << "-----------------------------\n" //
+        VLOG(2) << "+++++++++++++++++++++++++++++\n" //
                 << std::string(req->body.begin(), req->body.end());
-        VLOG(0) << "-----------------------------";
+        VLOG(2) << "-----------------------------";
 
         req->getAttribute<nlohmann::json>(
             [&res](nlohmann::json& json) {
                 std::string jsonString = json.dump(4);
-                VLOG(0) << "Application received JSON body\n" << jsonString;
+                VLOG(2) << "Application received JSON body\n" << jsonString;
 
                 std::string connectionName = json["connection_name"].get<std::string>();
                 const mqtt::mqttbroker::lib::Mqtt* mqtt = mqtt::mqttbroker::lib::MqttModel::instance().getMqtt(connectionName);
@@ -566,7 +255,7 @@ static express::Router getRouter() {
 
                 res->status(400).send("Attribute type not found: " + key);
             });
-        VLOG(0) << "-----------------------------";
+        VLOG(2) << "+++++++++++++++++++++++++++++";
     });
 
     router.use("/clients", jsonRouter);
@@ -651,16 +340,15 @@ void startServer(const std::string& instanceName, const std::function<void(typen
     if (configurator != nullptr) {
         configurator(httpExpressServer.getConfig());
     }
-
     httpExpressServer.listen([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) {
         reportState(instanceName, socketAddress, state);
     });
 }
 
 int main(int argc, char* argv[]) {
-    VLOG(0) << fmt::format("{x} + {xb}\n", fmt::arg("x", 3), fmt::arg("xb", 5));
     utils::Config::addStringOption("--mqtt-mapping-file", "MQTT mapping file (json format) for integration", "[path]", "");
     utils::Config::addStringOption("--mqtt-session-store", "Path to file for the persistent session store", "[path]", "");
+    utils::Config::addStringOption("--html-dir", "Path to html source directory", "[path]", "")->required();
 
     core::SNodeC::init(argc, argv);
 

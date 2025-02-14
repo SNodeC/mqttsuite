@@ -43,3 +43,12 @@ target_link_libraries(
 )
 
 install(TARGETS mqttbroker RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+install(
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/html/
+    DESTINATION /var/www/snode.c/
+    FILES_MATCHING
+    PATTERN "*.html"
+    PATTERN "*.css"
+    PATTERN "*.js"
+)

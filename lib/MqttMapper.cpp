@@ -31,26 +31,8 @@
 #ifdef __GNUC__
 #pragma GCC diagnostic push
 #ifdef __has_warning
-#if __has_warning("-Wc++98-compat-pedantic")
-#pragma GCC diagnostic ignored "-Wc++98-compat-pedantic"
-#endif
 #if __has_warning("-Wcovered-switch-default")
 #pragma GCC diagnostic ignored "-Wcovered-switch-default"
-#endif
-#if __has_warning("-Wexit-time-destructors")
-#pragma GCC diagnostic ignored "-Wexit-time-destructors"
-#endif
-#if __has_warning("-Wglobal-constructors")
-#pragma GCC diagnostic ignored "-Wglobal-constructors"
-#endif
-#if __has_warning("-Wreserved-macro-identifier")
-#pragma GCC diagnostic ignored "-Wreserved-macro-identifier"
-#endif
-#if __has_warning("-Wswitch-enum")
-#pragma GCC diagnostic ignored "-Wswitch-enum"
-#endif
-#if __has_warning("-Wweak-vtables")
-#pragma GCC diagnostic ignored "-Wweak-vtables"
 #endif
 #endif
 #endif

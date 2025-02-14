@@ -1,0 +1,40 @@
+main {
+    flex: 1 1 auto;
+    overflow: hidden;
+    box-sizing: border-box;
+    padding-left: 10px;
+    padding-right:  10px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    .tableFixHead {
+        overflow: auto;
+        height: 100%;
+        table {
+            width: 100%;
+            table-layout: fixed;
+            border-collapse: collapse;
+        }
+        th {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            background-color:#e0e0e0;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #e0e0e0;
+        }
+        th, td {
+            padding: 12px;
+            box-shadow: inset 0px 0px 0px 1px #ccc, inset 0px 0px 0px 0px #ccc;
+        }
+        td:nth-child(1),
+        td:nth-child(2),
+        td:nth-child(3),
+        td:nth-child(4) {
+            white-space: nowrap;
+        }
+    }
+}

@@ -1,0 +1,24 @@
+* {
+    font-family: Arial, sans-serif;
+}
+html, body {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+}
+body {
+    display: flex;
+    flex-direction: column;
+}
+header {
+    background: #e0e0e0;
+    text-align: center;
+}
+footer {
+    background: #e0e0e0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    box-sizing: border-box;
+}
