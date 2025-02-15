@@ -8,7 +8,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 add_subdirectory(lib)
 add_subdirectory(websocket)
 
-find_package(nlohmann_json 3.7.0)
+find_package(nlohmann_json 3.7.0  REQUIRED)
 find_package(
     snodec 0.90.0
     COMPONENTS net-in-stream-legacy
@@ -23,6 +23,7 @@ find_package(
                net-rc-stream-tls
                http-client
                mqtt
+     REQUIRED
 )
 
 macro(add_instance INSTANCE SOURCE)

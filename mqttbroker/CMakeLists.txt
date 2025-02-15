@@ -20,6 +20,7 @@ find_package(
                net-un-stream-tls
                http-server-express
                mqtt-server
+    REQUIRED
 )
 
 set(MQTTBROKER_CPP mqttbroker.cpp SharedSocketContextFactory.cpp)

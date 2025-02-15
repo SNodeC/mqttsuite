@@ -9,8 +9,8 @@ unset(CMAKE_CXX_INCLUDE_WHAT_YOU_USE)
 add_subdirectory(json-schema-validator)
 set(CMAKE_CXX_INCLUDE_WHAT_YOU_USE ${TMP_CMAKE_CXX_INCLUDE_WHAT_YOU_USE})
 
-find_package(nlohmann_json 3.7.0)
-find_package(snodec COMPONENTS mqtt)
+find_package(nlohmann_json 3.7.0 REQUIRED)
+find_package(snodec COMPONENTS mqtt REQUIRED)
 
 target_compile_options(
     nlohmann_json_schema_validator
