@@ -93,7 +93,7 @@ static std::string href(const std::string& text, const std::string& url, const s
            ",location=no, menubar=no, status=no, toolbar=no'); return false;\" style=\"color:inherit;\">" + text + "</a>";
 }
 
-static std::string getHTMLPageClientTable(mqtt::mqttbroker::lib::MqttModel& mqttModel) {
+static std::string getHTMLPageClientTable(inja::Environment& environment, mqtt::mqttbroker::lib::MqttModel& mqttModel) {
     inja::json json;
 
     json["title"] = "MQTTBroker | Active Clients";
@@ -123,39 +123,31 @@ static std::string getHTMLPageClientTable(mqtt::mqttbroker::lib::MqttModel& mqtt
                                 "<button onClick=\"disconnectClient('" + mqtt->getConnectionName() + "')\">Disconnect</button>"});
     }
 
-    inja::Environment env;
-
-    const std::string& htmlPath = utils::Config::getStringOptionValue("--html-dir");
-
-    return env.render_file(htmlPath + "/OverviewPage.html", json);
+    return environment.render_file("OverviewPage.html", json);
 }
 
-static std::string getDetailedPage(const mqtt::mqttbroker::lib::Mqtt* mqtt) {
-    inja::Environment env;
-
-    const std::string& htmlPath = utils::Config::getStringOptionValue("--html-dir");
-
-    return env.render_file(htmlPath + "/DetailPage.html",
-                           {{"title", mqtt->getClientId()},
-                            {"header_row", {"Attribute", "Value"}},
-                            {"data_rows",
-                             inja::json::array({{"Client ID", mqtt->getClientId()},
-                                                {"Connection", mqtt->getConnectionName()},
-                                                {"Clean Session", mqtt->getCleanSession() ? "true" : "false"},
-                                                {"Connect Flags", std::to_string(mqtt->getConnectFlags())},
-                                                {"Username", mqtt->getUsername()},
-                                                {"Username Flag", mqtt->getUsernameFlag() ? "true" : "false"},
-                                                {"Password", mqtt->getPassword()},
-                                                {"Password Flag", mqtt->getPasswordFlag() ? "true" : "false"},
-                                                {"Keep Alive", std::to_string(mqtt->getKeepAlive())},
-                                                {"Protocol", mqtt->getProtocol()},
-                                                {"Protocol Level", std::to_string(mqtt->getLevel())},
-                                                {"Loop Prevention", !mqtt->getReflect() ? "true" : "false"},
-                                                {"Will Message", mqtt->getWillMessage()},
-                                                {"Will Topic", mqtt->getWillTopic()},
-                                                {"Will QoS", std::to_string(mqtt->getWillQoS())},
-                                                {"Will Flag", mqtt->getWillFlag() ? "true" : "false"},
-                                                {"Will Retain", mqtt->getWillRetain() ? "true" : "false"}})}});
+static std::string getDetailedPage(inja::Environment& environment, const mqtt::mqttbroker::lib::Mqtt* mqtt) {
+    return environment.render_file("DetailPage.html",
+                                   {{"title", mqtt->getClientId()},
+                                    {"header_row", {"Attribute", "Value"}},
+                                    {"data_rows",
+                                     inja::json::array({{"Client ID", mqtt->getClientId()},
+                                                        {"Connection", mqtt->getConnectionName()},
+                                                        {"Clean Session", mqtt->getCleanSession() ? "true" : "false"},
+                                                        {"Connect Flags", std::to_string(mqtt->getConnectFlags())},
+                                                        {"Username", mqtt->getUsername()},
+                                                        {"Username Flag", mqtt->getUsernameFlag() ? "true" : "false"},
+                                                        {"Password", mqtt->getPassword()},
+                                                        {"Password Flag", mqtt->getPasswordFlag() ? "true" : "false"},
+                                                        {"Keep Alive", std::to_string(mqtt->getKeepAlive())},
+                                                        {"Protocol", mqtt->getProtocol()},
+                                                        {"Protocol Level", std::to_string(mqtt->getLevel())},
+                                                        {"Loop Prevention", !mqtt->getReflect() ? "true" : "false"},
+                                                        {"Will Message", mqtt->getWillMessage()},
+                                                        {"Will Topic", mqtt->getWillTopic()},
+                                                        {"Will QoS", std::to_string(mqtt->getWillQoS())},
+                                                        {"Will Flag", mqtt->getWillFlag() ? "true" : "false"},
+                                                        {"Will Retain", mqtt->getWillRetain() ? "true" : "false"}})}});
 }
 
 static std::string urlDecode(const std::string& encoded) {
@@ -191,14 +183,14 @@ static std::string urlDecode(const std::string& encoded) {
     return decoded;
 }
 
-static express::Router getRouter() {
+static express::Router getRouter(inja::Environment& environment) {
     const express::Router router;
 
-    router.get("/clients", [] APPLICATION(req, res) {
-        res->send(getHTMLPageClientTable(mqtt::mqttbroker::lib::MqttModel::instance()));
+    router.get("/clients", [&environment] APPLICATION(req, res) {
+        res->send(getHTMLPageClientTable(environment, mqtt::mqttbroker::lib::MqttModel::instance()));
     });
 
-    router.get("/client", [] APPLICATION(req, res) {
+    router.get("/client", [&environment] APPLICATION(req, res) {
         std::string responseString;
         int responseStatus = 200;
 
@@ -207,7 +199,7 @@ static express::Router getRouter() {
                 mqtt::mqttbroker::lib::MqttModel::instance().getMqtt(urlDecode(req->queries.begin()->first));
 
             if (mqtt != nullptr) {
-                responseString = getDetailedPage(mqtt);
+                responseString = getDetailedPage(environment, mqtt);
             } else {
                 responseStatus = 404;
                 responseString = "Not Found: " + urlDecode(req->queries.begin()->first);
@@ -324,10 +316,12 @@ void startServer(const std::string& instanceName, SocketContextFactoryArgs&&... 
 }
 
 template <typename HttpExpressServer>
-void startServer(const std::string& instanceName, const std::function<void(typename HttpExpressServer::Config&)>& configurator = nullptr) {
+void startServer(const std::string& instanceName,
+                 inja::Environment& environment,
+                 const std::function<void(typename HttpExpressServer::Config&)>& configurator = nullptr) {
     using SocketAddress = typename HttpExpressServer::SocketAddress;
 
-    const HttpExpressServer httpExpressServer(instanceName, getRouter());
+    const HttpExpressServer httpExpressServer(instanceName, getRouter(environment));
 
     if (configurator != nullptr) {
         configurator(httpExpressServer.getConfig());
@@ -380,24 +374,26 @@ int main(int argc, char* argv[]) {
         config.setRetry();
     });
 
-    startServer<express::legacy::in::WebApp>("in-http", [](auto& config) {
+    inja::Environment environment{utils::Config::getStringOptionValue("--html-dir") + "/"};
+
+    startServer<express::legacy::in::WebApp>("in-http", environment, [](auto& config) {
         config.setPort(8080);
         config.setRetry();
     });
 
-    startServer<express::tls::in::WebApp>("in-https", [](auto& config) {
+    startServer<express::tls::in::WebApp>("in-https", environment, [](auto& config) {
         config.setPort(8088);
         config.setRetry();
     });
 
-    startServer<express::legacy::in6::WebApp>("in6-http", [](auto& config) {
+    startServer<express::legacy::in6::WebApp>("in6-http", environment, [](auto& config) {
         config.setPort(8080);
         config.setRetry();
 
         config.setIPv6Only();
     });
 
-    startServer<express::tls::in6::WebApp>("in6-https", [](auto& config) {
+    startServer<express::tls::in6::WebApp>("in6-https", environment, [](auto& config) {
         config.setPort(8088);
         config.setRetry();
 
