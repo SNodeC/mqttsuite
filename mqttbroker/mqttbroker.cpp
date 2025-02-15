@@ -93,7 +93,7 @@ static std::string href(const std::string& text, const std::string& url, const s
            ",location=no, menubar=no, status=no, toolbar=no'); return false;\" style=\"color:inherit;\">" + text + "</a>";
 }
 
-static std::string getHTMLPageClientTable(inja::Environment& environment, mqtt::mqttbroker::lib::MqttModel& mqttModel) {
+static std::string getOverviewPage(inja::Environment& environment, mqtt::mqttbroker::lib::MqttModel& mqttModel) {
     inja::json json;
 
     json["title"] = "MQTTBroker | Active Clients";
@@ -187,7 +187,17 @@ static express::Router getRouter(inja::Environment& environment) {
     const express::Router router;
 
     router.get("/clients", [&environment] APPLICATION(req, res) {
-        res->send(getHTMLPageClientTable(environment, mqtt::mqttbroker::lib::MqttModel::instance()));
+        std::string responseString;
+        int responseStatus = 200;
+
+        try {
+            responseString = getOverviewPage(environment, mqtt::mqttbroker::lib::MqttModel::instance());
+        } catch (...) {
+            responseStatus = 500;
+            responseString = "Internal Server Error";
+        }
+
+        res->status(responseStatus).send(responseString);
     });
 
     router.get("/client", [&environment] APPLICATION(req, res) {
@@ -199,7 +209,12 @@ static express::Router getRouter(inja::Environment& environment) {
                 mqtt::mqttbroker::lib::MqttModel::instance().getMqtt(urlDecode(req->queries.begin()->first));
 
             if (mqtt != nullptr) {
-                responseString = getDetailedPage(environment, mqtt);
+                try {
+                    responseString = getDetailedPage(environment, mqtt);
+                } catch (...) {
+                    responseStatus = 500;
+                    responseString = "Internal Server Error";
+                }
             } else {
                 responseStatus = 404;
                 responseString = "Not Found: " + urlDecode(req->queries.begin()->first);
