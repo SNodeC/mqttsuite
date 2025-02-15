@@ -88,19 +88,25 @@ static std::string href(const std::string& text, const std::string& link) {
 }
 
 static std::string href(const std::string& text, const std::string& url, const std::string& windowId, uint16_t width, uint16_t height) {
-    return "<a href=\\\"#\\\" onClick=\\\"" + windowId + "=window.open('" + url + "', '" + windowId + "', 'width=" + std::to_string(width) +
+    return "<a href=\"#\" onClick=\"" + windowId + "=window.open('" + url + "', '" + windowId + "', 'width=" + std::to_string(width) +
            ", height=" + std::to_string(height) +
-           ",location=no, menubar=no, status=no, toolbar=no'); return false;\\\"  \\\" style=\\\"color:inherit;\\\">" + text + "</a>";
+           ",location=no, menubar=no, status=no, toolbar=no'); return false;\" style=\"color:inherit;\">" + text + "</a>";
 }
 
 static std::string getHTMLPageClientTable(mqtt::mqttbroker::lib::MqttModel& mqttModel) {
-    inja::json json{{"title", "MQTTBroker | Active Clients"},
-                    {"header_row", {"Client ID", "Online Since", "Duration", "Connection", "Locale Address", "Remote Address", "Action"}}};
+    inja::json json;
 
-    std::string jsonString = R"(
-    {
-        "data_rows": [
-    )";
+    json["title"] = "MQTTBroker | Active Clients";
+    json["header_row"] = {"Client ID", "Online Since", "Duration", "Connection", "Locale Address", "Remote Address", "Action"};
+    json["voc"] = href("Volker Christian", "https://github.com/VolkerChristian/");
+    json["broker"] = href("MQTTBroker", "https://github.com/SNodeC/mqttsuite/tree/master/mqttbroker");
+    json["suite"] = href("MQTTSuite", "https://github.com/SNodeC/mqttsuite");
+    json["snodec"] = "Powered by " + href("SNode.C", "https://github.com/SNodeC/snode.c");
+    json["since"] = mqttModel.onlineSince();
+    json["duration"] = mqttModel.onlineDuration();
+
+    json["data_rows"] = inja::json::array();
+    inja::json& jsonDataRows = json["data_rows"];
 
     for (const auto& [connectionName, mqttModelEntry] : mqttModel.getClients()) {
         const mqtt::mqttbroker::lib::Mqtt* mqtt = mqttModelEntry.getMqtt();
@@ -108,36 +114,14 @@ static std::string getHTMLPageClientTable(mqtt::mqttbroker::lib::MqttModel& mqtt
 
         const std::string windowId = "window" + std::to_string(reinterpret_cast<unsigned long long>(mqtt));
 
-        jsonString += std::string("[") + //                                                                          //
-                      "\"" +
-                      href(mqtt->getClientId(),
-                           "/client/?" + //
-                               mqtt->getConnectionName(),
-                           windowId,
-                           450,
-                           900) +
-                      "\" ," +                                                              //
-                      "\"" + mqttModelEntry.onlineSince() + "\" ," +                        //
-                      "\"<duration>" + mqttModelEntry.onlineDuration() + "<duration>\" ," + //
-                      "\"" + mqtt->getConnectionName() + "\" ," +                           //
-                      "\"" + socketConnection->getLocalAddress().toString() + "\" ," +      //
-                      "\"" + socketConnection->getRemoteAddress().toString() + "\" , " +    //
-                      "\"<button onclick=\\\"disconnectClient('" + mqtt->getConnectionName() +
-                      "')\\\">Disconnect</button>\"" //
-                      "],";
+        jsonDataRows.push_back({href(mqtt->getClientId(), "/client/?" + mqtt->getConnectionName(), windowId, 450, 900),
+                                mqttModelEntry.onlineSince(),
+                                "<duration>" + mqttModelEntry.onlineDuration() + "</duration>",
+                                mqtt->getConnectionName(),
+                                socketConnection->getLocalAddress().toString(),
+                                socketConnection->getRemoteAddress().toString(),
+                                "<button onClick=\"disconnectClient('" + mqtt->getConnectionName() + "')\">Disconnect</button>"});
     }
-    jsonString.pop_back();
-
-    jsonString += "]}";
-
-    json.merge_patch(inja::json::parse(jsonString));
-
-    json["voc"] = href("Volker Christian", "https://github.com/VolkerChristian/");
-    json["broker"] = href("MQTTBroker", "https://github.com/SNodeC/mqttsuite/tree/master/mqttbroker");
-    json["suite"] = href("MQTTSuite", "https://github.com/SNodeC/mqttsuite");
-    json["snodec"] = "Powered by " + href("SNode.C", "https://github.com/SNodeC/snode.c");
-    json["since"] = mqttModel.onlineSince();
-    json["duration"] = mqttModel.onlineDuration();
 
     inja::Environment env;
 
