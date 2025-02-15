@@ -104,10 +104,9 @@ static std::string getOverviewPage(inja::Environment& environment, mqtt::mqttbro
     json["snodec"] = "Powered by " + href("SNode.C", "https://github.com/SNodeC/snode.c");
     json["since"] = mqttModel.onlineSince();
     json["duration"] = mqttModel.onlineDuration();
-
     json["data_rows"] = inja::json::array();
-    inja::json& jsonDataRows = json["data_rows"];
 
+    inja::json& jsonDataRows = json["data_rows"];
     for (const auto& [connectionName, mqttModelEntry] : mqttModel.getClients()) {
         const mqtt::mqttbroker::lib::Mqtt* mqtt = mqttModelEntry.getMqtt();
         const core::socket::stream::SocketConnection* socketConnection = mqtt->getMqttContext()->getSocketConnection();
