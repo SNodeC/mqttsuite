@@ -1,0 +1,7 @@
+main {
+    .tableFixHead {
+        table {
+            table-layout: fixed;
+        }
+    }
+}

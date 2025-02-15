@@ -46,7 +46,7 @@ install(TARGETS mqttbroker RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 install(
     DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/html/
-    DESTINATION /var/www/snode.c/
+    DESTINATION /var/www/mqttsuite/mqttbroker/
     FILES_MATCHING
     PATTERN "*.html"
     PATTERN "*.css"
