@@ -108,15 +108,23 @@ static std::string getHTMLPageClientTable(mqtt::mqttbroker::lib::MqttModel& mqtt
 
         const std::string windowId = "window" + std::to_string(reinterpret_cast<unsigned long long>(mqtt));
 
-        jsonString += std::string("[") +                                                                                       //
-                      "\"" + href(mqtt->getClientId(), "/client/?" + mqtt->getConnectionName(), windowId, 450, 900) + "\" ," + //
-                      "\"" + mqttModelEntry.onlineSince() + "\" ," +                                                           //
-                      "\"" + mqttModelEntry.onlineDuration() + "\" ," +                                                        //
-                      "\"" + mqtt->getConnectionName() + "\" ," +                                                              //
-                      "\"" + socketConnection->getLocalAddress().toString() + "\" ," +                                         //
-                      "\"" + socketConnection->getRemoteAddress().toString() + "\" , " +                                       //
-                      "\"" + mqtt->getClientId()                                                                               //
-                      + "\"],";
+        jsonString += std::string("[") + //                                                                          //
+                      "\"" +
+                      href(mqtt->getClientId(),
+                           "/client/?" + //
+                               mqtt->getConnectionName(),
+                           windowId,
+                           450,
+                           900) +
+                      "\" ," +                                                              //
+                      "\"" + mqttModelEntry.onlineSince() + "\" ," +                        //
+                      "\"<duration>" + mqttModelEntry.onlineDuration() + "<duration>\" ," + //
+                      "\"" + mqtt->getConnectionName() + "\" ," +                           //
+                      "\"" + socketConnection->getLocalAddress().toString() + "\" ," +      //
+                      "\"" + socketConnection->getRemoteAddress().toString() + "\" , " +    //
+                      "\"<button onclick=\\\"disconnectClient('" + mqtt->getConnectionName() +
+                      "')\\\">Disconnect</button>\"" //
+                      "],";
     }
     jsonString.pop_back();
 
