@@ -1,0 +1,57 @@
+{
+  "bridges": [
+    {
+      "name": "TTN IoT",
+      "brokers": [
+        {
+          "connection": {
+            "username": "test-application-voc@ttn",
+            "password": "NNSXS.SOX5JC3PDMP6Q6K6HVWQCXLNQ2JULTKWO3X6KDI.XLHSEVV2RZTL7YWLOP3F6TOXUOGAZA33UPIKSDZ6SRJ2YIM3OXBA"
+          },
+          "instance_name": "ttn-remote",
+          "protocol": "in",
+          "encryption": "legacy",
+          "transport": "stream",
+          "topics": [
+            {
+              "topic": "#",
+              "qos": 0
+            }
+          ]
+        },
+        {
+          "connection": {
+            "username": "test-application-voc@ttn",
+            "password": "NNSXS.SOX5JC3PDMP6Q6K6HVWQCXLNQ2JULTKWO3X6KDI.XLHSEVV2RZTL7YWLOP3F6TOXUOGAZA33UPIKSDZ6SRJ2YIM3OXBA"
+          },
+          "instance_name": "ttns-remote",
+          "protocol": "in",
+          "encryption": "tls",
+          "transport": "stream",
+          "topics": [
+            {
+              "topic": "#",
+              "qos": 0
+            }
+          ]
+        },
+        {
+          "connection": {
+            "client_id": "TTN-Bridge",
+            "loop_prevention": true
+          },
+          "instance_name": "ttn-local",
+          "protocol": "in",
+          "encryption": "legacy",
+          "transport": "websocket",
+          "topics": [
+            {
+              "topic": "v3/test-application-voc@ttn/devices/+/down/push",
+              "qos": 0
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
