@@ -97,7 +97,7 @@ static std::string getOverviewPage(inja::Environment& environment, mqtt::mqttbro
     inja::json json;
 
     json["title"] = "MQTTBroker | Active Clients";
-    json["header_row"] = {"Client ID", "Online Since", "Duration", "Connection", "Locale Address", "Remote Address", "Action"};
+    json["header_row"] = {"Client ID", "Online Since", "Duration", "Connection", "Local Address", "Remote Address", "Action"};
     json["voc"] = href("Volker Christian", "https://github.com/VolkerChristian/");
     json["broker"] = href("MQTTBroker", "https://github.com/SNodeC/mqttsuite/tree/master/mqttbroker");
     json["suite"] = href("MQTTSuite", "https://github.com/SNodeC/mqttsuite");
