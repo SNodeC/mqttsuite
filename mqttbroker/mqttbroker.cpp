@@ -113,7 +113,7 @@ static std::string getOverviewPage(inja::Environment& environment, mqtt::mqttbro
 
         const std::string windowId = "window" + std::to_string(reinterpret_cast<unsigned long long>(mqtt));
 
-        jsonDataRows.push_back({href(mqtt->getClientId(), "/client/?" + mqtt->getConnectionName(), windowId, 450, 900),
+        jsonDataRows.push_back({href(mqtt->getClientId(), "/client?" + mqtt->getConnectionName(), windowId, 450, 900),
                                 mqttModelEntry.onlineSince(),
                                 "<duration>" + mqttModelEntry.onlineDuration() + "</duration>",
                                 mqtt->getConnectionName(),
@@ -185,6 +185,33 @@ static std::string urlDecode(const std::string& encoded) {
 static express::Router getRouter(inja::Environment& environment) {
     const express::Router router;
 
+    const express::Router& jsonRouter = express::middleware::JsonMiddleware();
+
+    jsonRouter.post([] APPLICATION(req, res) {
+        req->getAttribute<nlohmann::json>(
+            [&res](nlohmann::json& json) {
+                std::string jsonString = json.dump(4);
+                VLOG(1) << "Application received JSON body\n" << jsonString;
+
+                std::string connectionName = json["connection_name"].get<std::string>();
+                const mqtt::mqttbroker::lib::Mqtt* mqtt = mqtt::mqttbroker::lib::MqttModel::instance().getMqtt(connectionName);
+
+                if (mqtt != nullptr) {
+                    mqtt->getMqttContext()->getSocketConnection()->close();
+                    res->send(jsonString);
+                } else {
+                    res->status(404).send("MQTT client has already gone away: " + json["connection_name"].get<std::string>());
+                }
+            },
+            [&res](const std::string& key) {
+                VLOG(1) << "Attribute type not found: " << key;
+
+                res->status(400).send("Attribute type not found: " + key);
+            });
+    });
+
+    router.use("/clients", jsonRouter);
+
     router.get("/clients", [&environment] APPLICATION(req, res) {
         std::string responseString;
         int responseStatus = 200;
@@ -226,39 +253,7 @@ static express::Router getRouter(inja::Environment& environment) {
         res->status(responseStatus).send(responseString);
     });
 
-    const express::Router& jsonRouter = express::middleware::JsonMiddleware();
-
-    jsonRouter.post([] APPLICATION(req, res) {
-        VLOG(2) << "+++++++++++++++++++++++++++++\n" //
-                << std::string(req->body.begin(), req->body.end());
-        VLOG(2) << "-----------------------------";
-
-        req->getAttribute<nlohmann::json>(
-            [&res](nlohmann::json& json) {
-                std::string jsonString = json.dump(4);
-                VLOG(2) << "Application received JSON body\n" << jsonString;
-
-                std::string connectionName = json["connection_name"].get<std::string>();
-                const mqtt::mqttbroker::lib::Mqtt* mqtt = mqtt::mqttbroker::lib::MqttModel::instance().getMqtt(connectionName);
-
-                if (mqtt != nullptr) {
-                    mqtt->getMqttContext()->getSocketConnection()->close();
-                    res->send(jsonString);
-                } else {
-                    res->status(404).send("MQTT client has already gone away: " + json["connection_name"].get<std::string>());
-                }
-            },
-            [&res](const std::string& key) {
-                VLOG(0) << "Attribute type not found: " << key;
-
-                res->status(400).send("Attribute type not found: " + key);
-            });
-        VLOG(2) << "+++++++++++++++++++++++++++++";
-    });
-
-    router.use("/clients", jsonRouter);
-
-    router.get("/ws/", [] APPLICATION(req, res) {
+    router.get("/ws", [] APPLICATION(req, res) {
         if (req->headers.contains("upgrade")) {
             upgrade(req, res);
         } else {

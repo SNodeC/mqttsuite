@@ -74,7 +74,7 @@ namespace mqtt::lib {
                     const std::vector<mqtt::lib::Function>* loadedFunctions =
                         static_cast<std::vector<mqtt::lib::Function>*>(dlsym(handle, "functions"));
                     if (loadedFunctions != nullptr) {
-                        VLOG(0) << "  Registering inja 'none void callbacks'";
+                        VLOG(1) << "  Registering inja 'none void callbacks'";
                         for (const mqtt::lib::Function& function : *loadedFunctions) {
                             VLOG(1) << "    " << function.name;
 
@@ -84,7 +84,7 @@ namespace mqtt::lib {
                                 injaEnvironment->add_callback(function.name, function.function);
                             }
                         }
-                        VLOG(0) << "  Registering inja 'none void callbacks done'";
+                        VLOG(1) << "  Registering inja 'none void callbacks done'";
                     } else {
                         VLOG(1) << "  No inja none 'void callbacks found' in plugin " << plugin;
                     }
@@ -92,7 +92,7 @@ namespace mqtt::lib {
                     const std::vector<mqtt::lib::VoidFunction>* loadedVoidFunctions =
                         static_cast<std::vector<mqtt::lib::VoidFunction>*>(dlsym(handle, "voidFunctions"));
                     if (loadedVoidFunctions != nullptr) {
-                        VLOG(0) << "  Registering inja 'void callbacks'";
+                        VLOG(1) << "  Registering inja 'void callbacks'";
                         for (const mqtt::lib::VoidFunction& voidFunction : *loadedVoidFunctions) {
                             VLOG(1) << "    " << voidFunction.name;
 
@@ -102,7 +102,7 @@ namespace mqtt::lib {
                                 injaEnvironment->add_void_callback(voidFunction.name, voidFunction.function);
                             }
                         }
-                        VLOG(0) << "  Registering inja 'void callbacks' done";
+                        VLOG(1) << "  Registering inja 'void callbacks' done";
                     } else {
                         VLOG(1) << "  No inja 'void callbacks' found in plugin " << plugin;
                     }
@@ -311,7 +311,7 @@ namespace mqtt::lib {
         json["package_identifier"] = publish.getPacketIdentifier();
 
         try {
-            VLOG(0) << "  Render data: " << json.dump();
+            VLOG(1) << "  Render data: " << json.dump();
 
             if (templateMapping.is_object()) {
                 publishMappedTemplate(templateMapping, json);
@@ -342,7 +342,7 @@ namespace mqtt::lib {
     void MqttMapper::publishMappedMessage(const nlohmann::json& staticMapping, const iot::mqtt::packets::Publish& publish) {
         const nlohmann::json& messageMapping = staticMapping["message_mapping"];
 
-        VLOG(0) << "  Message mapping: " << messageMapping.dump();
+        VLOG(1) << "  Message mapping: " << messageMapping.dump();
 
         if (messageMapping.is_object()) {
             if (messageMapping["message"] == publish.getMessage()) {

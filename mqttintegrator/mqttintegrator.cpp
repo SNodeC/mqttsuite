@@ -120,7 +120,7 @@ void startClient(const std::string& name, const std::function<void(typename Http
             req->set("Sec-WebSocket-Protocol", "mqtt");
 
             if (!req->upgrade(
-                    "/ws/",
+                    "/ws",
                     "websocket",
                     [](const std::shared_ptr<web::http::client::Request>& req, const std::shared_ptr<web::http::client::Response>& res) {
                         req->upgrade(res, [subProtocolsRequested = req->header("Upgrade")](const std::string& name) {
@@ -139,7 +139,7 @@ void startClient(const std::string& name, const std::function<void(typename Http
             }
         },
         []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req) {
-            VLOG(0) << "Session ended";
+            VLOG(1) << "Session ended";
         });
 
     configurator(httpClient.getConfig());

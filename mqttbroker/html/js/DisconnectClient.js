@@ -1,5 +1,5 @@
 function disconnectClient(connectionName) {
-    fetch("/clients/", {
+    fetch("/clients", {
               "method": "POST",
               "body": JSON.stringify({
                                          "connection_name": connectionName

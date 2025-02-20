@@ -212,7 +212,7 @@ void startClient(const std::string& name, const std::function<void(typename Http
             }
         },
         []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req) {
-            VLOG(0) << "Session ended";
+            VLOG(1) << "Session ended";
         });
 
     configurator(httpClient.getConfig());
