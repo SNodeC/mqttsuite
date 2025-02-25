@@ -13,6 +13,8 @@ The [*MQTTSuite*](https://snodec.github.io/mqttsuite-doc/html/index.html) projec
 <!--ts-->
 * [MQTTSuite: A lightweight MQTT Integration System](#mqttsuite-a-lightweight-mqtt-integration-system)
 * [Table of Content](#table-of-content)
+* [License](#license)
+* [Copyright](#copyright)
 * [Installation](#installation)
    * [Supported Systems and Hardware](#supported-systems-and-hardware)
    * [Minimum required Compiler Versions](#minimum-required-compiler-versions)
@@ -60,7 +62,7 @@ The [*MQTTSuite*](https://snodec.github.io/mqttsuite-doc/html/index.html) projec
             * [<strong>JSON</strong> Mapping](#json-mapping)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: runner, at: Tue Feb 25 12:59:28 UTC 2025 -->
+<!-- Added by: runner, at: Tue Feb 25 22:41:45 UTC 2025 -->
 
 <!--te-->
 
