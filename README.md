@@ -64,6 +64,17 @@ The [*MQTTSuite*](https://snodec.github.io/mqttsuite-doc/html/index.html) projec
 
 <!--te-->
 
+# License
+
+SNode.C  is dual-licensed under MIT and GPL-3.0 (or any later version).
+You can choose between one of them if you use this work.
+
+`SPDX-License-Identifier: MIT OR GPL-3.0-or-later`
+
+# Copyright
+
+Volker Christian ([me@vchrist.at](mailto:me@vchrist.at) or [Volker.Christian@fh-hagenberg.at](mailto:volker.christian@fh-hagenberg.at))
+
 # Installation
 
 The installation of the MQTTSuite is straight forward:
