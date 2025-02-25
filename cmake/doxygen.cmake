@@ -24,6 +24,8 @@ if(DOXYGEN_FOUND)
             doc
             COMMAND rm -rf ${SNODEC_DOC_ROOTDIR}/html
             COMMAND rm -f ${SNODEC_DOC_ROOTDIR}/inline_umlgraph_cache_all.pu
+            COMMAND mkdir -p ${SNODEC_DOC_ROOTDIR}/html/docs/
+            COMMAND cp -a ${CMAKE_SOURCE_DIR}/docs/images ${SNODEC_DOC_ROOTDIR}/html/docs/
             COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYFILE}
             WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
             COMMENT "Generating API documentation with Doxygen"
@@ -33,6 +35,8 @@ if(DOXYGEN_FOUND)
         add_custom_target(
             doc-fast
             COMMAND rm -f ${SNODEC_DOC_ROOTDIR}/inline_umlgraph_cache_all.pu
+            COMMAND mkdir -p ${SNODEC_DOC_ROOTDIR}/html/docs/
+            COMMAND cp -a ${CMAKE_SOURCE_DIR}/docs/images ${SNODEC_DOC_ROOTDIR}/html/docs/
             COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYFILE}
             WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
             COMMENT "Generating API documentation with Doxygen"
