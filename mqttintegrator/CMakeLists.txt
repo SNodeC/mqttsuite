@@ -16,6 +16,7 @@ find_package(
                net-in6-stream-legacy
                net-in6-stream-tls
                net-un-stream-legacy
+               net-un-stream-tls
                http-client
                websocket-client
                mqtt-client
@@ -36,6 +37,7 @@ target_link_libraries(
            snodec::net-in6-stream-legacy
            snodec::net-in6-stream-tls
            snodec::net-un-stream-legacy
+           snodec::net-un-stream-tls
            snodec::http-client
            snodec::websocket-client
            snodec::mqtt-client

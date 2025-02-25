@@ -193,7 +193,7 @@ void startClient(const std::string& name, const std::function<void(typename Http
         [](const std::shared_ptr<web::http::client::Request>& req) {
             req->set("Sec-WebSocket-Protocol", "mqtt");
             if (!req->upgrade(
-                    "/ws/",
+                    "/ws",
                     "websocket",
                     [](const std::shared_ptr<web::http::client::Request>& req, const std::shared_ptr<web::http::client::Response>& res) {
                         req->upgrade(res, [req](const std::string& name) {

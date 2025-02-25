@@ -42,6 +42,7 @@
 #include <net/in6/stream/legacy/SocketClient.h>
 #include <net/in6/stream/tls/SocketClient.h>
 #include <net/un/stream/legacy/SocketClient.h>
+#include <net/un/stream/tls/SocketClient.h>
 #include <web/http/legacy/in/Client.h>
 #include <web/http/legacy/in6/Client.h>
 #include <web/http/tls/in/Client.h>
@@ -198,6 +199,16 @@ int main(int argc, char* argv[]) {
     });
 
     startClient<net::un::stream::legacy::SocketClient, mqtt::mqttintegrator::SocketContextFactory>("un-mqtt", [](auto& config) {
+        config.Remote::setSunPath("/var/mqttbroker-un-mqtt");
+
+        config.setRetry();
+        config.setRetryBase(1);
+        config.setReconnect();
+    });
+
+    startClient<net::un::stream::tls::SocketClient, mqtt::mqttintegrator::SocketContextFactory>("un-mqtts", [](auto& config) {
+        config.Remote::setSunPath("/var/mqttbroker-un-mqtts");
+
         config.setRetry();
         config.setRetryBase(1);
         config.setReconnect();
