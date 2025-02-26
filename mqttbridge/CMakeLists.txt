@@ -47,20 +47,20 @@ add_subdirectory(websocket)
 
 find_package(nlohmann_json 3.7.0 REQUIRED)
 find_package(
-    snodec 0.90.0
+    snodec 0.90.0 REQUIRED
     COMPONENTS net-in-stream-legacy
                net-in6-stream-legacy
                net-un-stream-legacy
-               net-l2-stream-legacy
-               net-rc-stream-legacy
                net-in-stream-tls
                net-in6-stream-tls
                net-un-stream-tls
-               net-l2-stream-tls
-               net-rc-stream-tls
                http-client
                mqtt
-    REQUIRED
+    OPTIONAL_COMPONENTS
+               net-l2-stream-legacy
+               net-rc-stream-legacy
+               net-l2-stream-tls
+               net-rc-stream-tls
 )
 
 macro(add_instance INSTANCE SOURCE)
@@ -95,12 +95,6 @@ add_instance(MQTTBRIDGE_IN_STREAM_TLS mqttbridge.cpp)
 add_instance(MQTTBRIDGE_IN6_STREAM_LEGACY mqttbridge.cpp)
 add_instance(MQTTBRIDGE_IN6_STREAM_TLS mqttbridge.cpp)
 
-add_instance(MQTTBRIDGE_L2_STREAM_LEGACY mqttbridge.cpp)
-add_instance(MQTTBRIDGE_L2_STREAM_TLS mqttbridge.cpp)
-
-add_instance(MQTTBRIDGE_RC_STREAM_LEGACY mqttbridge.cpp)
-add_instance(MQTTBRIDGE_RC_STREAM_TLS mqttbridge.cpp)
-
 add_instance(MQTTBRIDGE_UN_STREAM_LEGACY mqttbridge.cpp)
 add_instance(MQTTBRIDGE_UN_STREAM_TLS mqttbridge.cpp)
 
@@ -110,18 +104,33 @@ add_instance(MQTTBRIDGE_IN6_WEBSOCKET_LEGACY mqttbridge.cpp)
 add_instance(MQTTBRIDGE_IN_WEBSOCKET_TLS mqttbridge.cpp)
 add_instance(MQTTBRIDGE_IN6_WEBSOCKET_TLS mqttbridge.cpp)
 
+if(TARGET snodec::net-l2-stream-legacy)
+    add_instance(MQTTBRIDGE_L2_STREAM_LEGACY mqttbridge.cpp)
+    list(APPEND BLUETOOTH_LIBS "snodec::net-l2-stream-legacy")
+endif(TARGET snodec::net-l2-stream-legacy)
+if(TARGET snodec::net-l2-stream-tls)
+    add_instance(MQTTBRIDGE_L2_STREAM_TLS mqttbridge.cpp)
+    list(APPEND BLUETOOTH_LIBS "snodec::net-l2-stream-tls")
+endif(TARGET snodec::net-l2-stream-tls)
+
+if(TARGET snodec::net-rc-stream-legacy)
+    add_instance(MQTTBRIDGE_RC_STREAM_LEGACY mqttbridge.cpp)
+    list(APPEND BLUETOOTH_LIBS "snodec::net-rc-stream-legacy")
+endif(TARGET snodec::net-rc-stream-legacy)
+if(TARGET snodec::net-rc-stream-tls)
+    add_instance(MQTTBRIDGE_RC_STREAM_TLS mqttbridge.cpp)
+    list(APPEND BLUETOOTH_LIBS "snodec::net-rc-stream-tls")
+endif(TARGET snodec::net-rc-stream-tls)
+
 target_link_libraries(
     mqttbridge
     PUBLIC snodec::net-in-stream-legacy
            snodec::net-un-stream-legacy
            snodec::net-in6-stream-legacy
-           snodec::net-rc-stream-legacy
-           snodec::net-l2-stream-legacy
            snodec::net-in-stream-tls
            snodec::net-un-stream-tls
            snodec::net-in6-stream-tls
-           snodec::net-rc-stream-tls
-           snodec::net-l2-stream-tls
+           ${BLUETOOTH_LIBS}
            snodec::http-client
            snodec::mqtt
            mqtt-bridge

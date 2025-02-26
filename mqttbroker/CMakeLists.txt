@@ -63,6 +63,13 @@ find_package(
 set(MQTTBROKER_CPP mqttbroker.cpp SharedSocketContextFactory.cpp)
 set(MQTTBROKER_H SharedSocketContextFactory.h)
 
+set_property(
+    SOURCE mqttbroker.cpp
+    APPEND
+    PROPERTY COMPILE_DEFINITIONS
+             CMAKE_INSTALL_PREFIX=\"${CMAKE_INSTALL_PREFIX}\"
+)
+
 add_executable(mqttbroker ${MQTTBROKER_CPP} ${MQTTBROKER_H})
 
 target_link_libraries(
@@ -84,7 +91,7 @@ install(TARGETS mqttbroker RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 install(
     DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/html/
-    DESTINATION /var/www/mqttsuite/mqttbroker/
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/var/www/mqttsuite/mqttbroker/
     FILES_MATCHING
     PATTERN "*.html"
     PATTERN "*.css"

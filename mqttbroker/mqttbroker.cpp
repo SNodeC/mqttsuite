@@ -365,7 +365,8 @@ void startServer(const std::string& instanceName,
 int main(int argc, char* argv[]) {
     utils::Config::addStringOption("--mqtt-mapping-file", "MQTT mapping file (json format) for integration", "[path]", "");
     utils::Config::addStringOption("--mqtt-session-store", "Path to file for the persistent session store", "[path]", "");
-    utils::Config::addStringOption("--html-dir", "Path to html source directory", "[path]", "/var/www/mqttsuite/mqttbroker");
+    utils::Config::addStringOption(
+        "--html-dir", "Path to html source directory", "[path]", std::string(CMAKE_INSTALL_PREFIX) + "/var/www/mqttsuite/mqttbroker");
 
     core::SNodeC::init(argc, argv);
 
