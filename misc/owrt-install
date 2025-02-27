@@ -1,0 +1,22 @@
+#!/bin/sh
+
+set -e
+
+if grep -qFm1 vchrist /etc/opkg/customfeeds.conf; then
+  echo "The file /etc/opkg/customfeeds.conf has already been patched to include the following feed:"
+  echo "  src/gz vchrist https://www.vchrist.at/owrt/packages/`opkg print-architecture | grep -Ev 'all|noarch' | awk '{print $2}'`"
+else
+  echo "Updating /etc/opkg/customfeeds.conf to include the following feed:"
+  echo "  src/gz vchrist https://www.vchrist.at/owrt/packages/`opkg print-architecture | grep -Ev 'all|noarch' | awk '{print $2}'`"
+
+  echo "src/gz vchrist https://www.vchrist.at/owrt/packages/`opkg print-architecture | grep -Ev 'all|noarch' | awk '{print $2}'`" >> /etc/opkg/customfeeds.conf
+
+  echo "Downloading package signing key:"
+  echo "  https://raw.githubusercontent.com/SNodeC/OpenWRT/refs/heads/infra/7646d48820c9bd9d"
+  wget -O "/etc/opkg/keys/7646d48820c9bd9d" "https://raw.githubusercontent.com/SNodeC/OpenWRT/refs/heads/infra/7646d48820c9bd9d"
+fi
+
+opkg update
+
+! opkg --force-removal-of-dependent-packages remove snode.c
+opkg install mqttsuite
