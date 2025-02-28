@@ -14,6 +14,9 @@ else
   echo "Downloading package signing key:"
   echo "  https://raw.githubusercontent.com/SNodeC/OpenWRT/refs/heads/infra/7646d48820c9bd9d"
   wget -O "/etc/opkg/keys/7646d48820c9bd9d" "https://raw.githubusercontent.com/SNodeC/OpenWRT/refs/heads/infra/7646d48820c9bd9d"
+
+  echo "Removing a potentially existing Mosquitto broker."
+  ! opkg --force-removal-of-dependent-packages remove mosquitto
 fi
 
 opkg update
