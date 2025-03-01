@@ -99,6 +99,8 @@ MQTTSuite is known to compile and run successful on
   - Raspberry Pi 3, 4 and 5
 - **OpenWrt** 23.05.0 and later
   - All architectures
+- **Android** via [Termux](https://termux.dev/en/)
+  -   Documentation in preparation
 
 ## Minimum required Compiler Versions
 
