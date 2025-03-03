@@ -1,0 +1,34 @@
+name: Create Release Archive with Submodules
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository with submodules
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Download git-archive-all script
+        run: |
+          wget https://raw.githubusercontent.com/Kentzo/git-archive-all/master/git_archive_all.py
+          chmod +x git_archive_all.py
+
+      - name: Create archive with submodules
+        run: |
+          ARCHIVE_NAME="${{ github.event.release.tag_name }}.tar.gz"
+          ./git_archive_all.py --prefix=mqttsuite/ "$ARCHIVE_NAME"
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ${{ github.event.release.tag_name }}.tar.gz
+          asset_name: ${{ github.event.release.tag_name }}.tar.gz
+          asset_content_type: application/gzip
