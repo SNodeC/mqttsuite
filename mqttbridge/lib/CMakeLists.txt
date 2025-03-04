@@ -77,6 +77,6 @@ target_link_libraries(
     mqtt-bridge PUBLIC snodec::mqtt-client nlohmann_json_schema_validator
 )
 
-set_target_properties(mqtt-bridge PROPERTIES SOVERSION "${MQTTSUITE_SOVERSION}")
+set_target_properties(mqtt-bridge PROPERTIES SOVERSION "${SNODEC_SOVERSION}")
 
 install(TARGETS mqtt-bridge RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR})

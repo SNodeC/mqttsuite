@@ -42,7 +42,6 @@ project(
     DESCRIPTION "A lightweight MQTT Integration System"
     VERSION 1.0
 )
-set(MQTTSUITE_SOVERSION ${MQTTSuite_VERSION_MAJOR})
 
 include(GNUInstallDirs)
 
