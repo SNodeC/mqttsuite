@@ -20,7 +20,7 @@ jobs:
 
       - name: Create archive with submodules
         run: |
-          ARCHIVE_NAME="${{ github.event.release.tag_name }}.tar.gz"
+          ARCHIVE_NAME="mqttsuite.tar.gz"
           ./git_archive_all.py --prefix=mqttsuite/ "$ARCHIVE_NAME"
 
       - name: Upload Release Asset
