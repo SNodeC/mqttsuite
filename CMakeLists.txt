@@ -37,7 +37,12 @@
 
 cmake_minimum_required(VERSION 3.14)
 
-project(MQTTBroker LANGUAGES CXX)
+project(
+    MQTTSuite
+    DESCRIPTION "A lightweight MQTT Integration System"
+    VERSION 1.0
+)
+set(MQTTSUITE_SOVERSION ${MQTTSuite_VERSION_MAJOR})
 
 include(GNUInstallDirs)
 

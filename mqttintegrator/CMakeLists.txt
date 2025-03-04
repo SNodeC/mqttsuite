@@ -47,7 +47,7 @@ add_subdirectory(websocket)
 
 find_package(nlohmann_json 3.7.0 REQUIRED)
 find_package(
-    snodec 0.90.0
+    snodec 1.0.0 REQUIRED
     COMPONENTS net-in-stream-legacy
                net-in-stream-tls
                net-in6-stream-legacy
@@ -57,7 +57,6 @@ find_package(
                http-client
                websocket-client
                mqtt-client
-    REQUIRED
 )
 
 set(MQTTINTEGRATOR_CPP mqttintegrator.cpp SocketContextFactory.cpp)

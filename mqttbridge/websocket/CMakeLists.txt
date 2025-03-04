@@ -62,7 +62,7 @@ target_link_libraries(
 
 set_target_properties(
     websocket-mqtt-bridge PROPERTIES OUTPUT_NAME "snodec-websocket-mqtt-client"
-                                     SOVERSION "${SNODEC_SOVERSION}"
+                                     SOVERSION "${MQTTSUITE_SOVERSION}"
 )
 
 install(TARGETS websocket-mqtt-bridge

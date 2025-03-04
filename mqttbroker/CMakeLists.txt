@@ -48,7 +48,7 @@ add_subdirectory(websocket)
 find_package(nlohmann_json 3.7.0 REQUIRED)
 find_package(fmt REQUIRED)
 find_package(
-    snodec 0.90.0
+    snodec 1.0.0 REQUIRED
     COMPONENTS net-in-stream-legacy
                net-in-stream-tls
                net-in6-stream-legacy
@@ -57,7 +57,6 @@ find_package(
                net-un-stream-tls
                http-server-express
                mqtt-server
-    REQUIRED
 )
 
 set(MQTTBROKER_CPP mqttbroker.cpp SharedSocketContextFactory.cpp)

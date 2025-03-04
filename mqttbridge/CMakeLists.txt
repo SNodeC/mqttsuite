@@ -47,7 +47,7 @@ add_subdirectory(websocket)
 
 find_package(nlohmann_json 3.7.0 REQUIRED)
 find_package(
-    snodec 0.90.0 REQUIRED
+    snodec 1.0.0 REQUIRED
     COMPONENTS net-in-stream-legacy
                net-in6-stream-legacy
                net-un-stream-legacy
@@ -56,11 +56,8 @@ find_package(
                net-un-stream-tls
                http-client
                mqtt
-    OPTIONAL_COMPONENTS
-               net-l2-stream-legacy
-               net-rc-stream-legacy
-               net-l2-stream-tls
-               net-rc-stream-tls
+    OPTIONAL_COMPONENTS net-l2-stream-legacy net-rc-stream-legacy
+                        net-l2-stream-tls net-rc-stream-tls
 )
 
 macro(add_instance INSTANCE SOURCE)
