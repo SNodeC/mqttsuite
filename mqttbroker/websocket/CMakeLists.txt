@@ -61,8 +61,10 @@ target_link_libraries(
 )
 
 set_target_properties(
-    websocket-mqtt-server PROPERTIES OUTPUT_NAME "snodec-websocket-mqtt-server"
-                                     SOVERSION "${SNODEC_SOVERSION}"
+    websocket-mqtt-server
+    PROPERTIES OUTPUT_NAME "snodec-websocket-mqtt-server"
+               VERSION ${MQTTSuite_VERSION}
+               SOVERSION ${SNODEC_SOVERSION}
 )
 
 install(TARGETS websocket-mqtt-server

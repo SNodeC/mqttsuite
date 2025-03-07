@@ -60,7 +60,10 @@ target_link_libraries(
                        mqtt-mapping
 )
 
-set_target_properties(mqtt-broker PROPERTIES SOVERSION "${SNODEC_SOVERSION}")
+set_target_properties(
+    mqtt-broker PROPERTIES VERSION ${MQTTSuite_VERSION} SOVERSION
+                                                        ${MQTTSUITE_SOVERSION}
+)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     target_compile_options(mqtt-broker PRIVATE -Wno-shadow-field)

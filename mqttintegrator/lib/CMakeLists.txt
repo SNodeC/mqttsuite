@@ -57,7 +57,10 @@ target_link_libraries(
 )
 
 set_target_properties(
-    mqtt-integrator PROPERTIES SOVERSION "${SNODEC_SOVERSION}"
+    mqtt-integrator
+    PROPERTIES VERSION ${MQTTSuite_VERSION}
+               VERSION ${MQTTSuite_VERSION}
+               SOVERSION ${MQTTSUITE_SOVERSION}
 )
 
 install(TARGETS mqtt-integrator RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR})
