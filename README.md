@@ -2,7 +2,7 @@
 
 # MQTTSuite: A lightweight MQTT Integration System
 
-The [*MQTTSuite*](https://snodec.github.io/mqttsuite-doc/html/index.html) project consist of three applications *MQTTBroker*, *MQTTIntegrator* and *MQTTBridge* powered by *[SNode.C](https://github.com/VolkerChristian/snode.c)*, a si*mapping description file*ngle threaded, single tasking framework for networking applications written entirely in C++. Due to it's little resource usage it is especially usable on resource limited systems.
+The [*MQTTSuite*](https://snodec.github.io/mqttsuite-doc/html/index.html) project consist of three applications *MQTTBroker*, *MQTTIntegrator* and *MQTTBridge* powered by *[SNode.C](https://github.com/VolkerChristian/snode.c)*, a single threaded, single tasking framework for networking applications written entirely in C++. Due to it's little resource usage it is especially usable on resource limited systems.
 
 - **MQTTBroker**: Is a full featured MQTT broker utilizing version [3.1.1](https://docs.oasis-open.org/mqtt/mqtt/v3.1.1/mqtt-v3.1.1.html) of the MQTT protocol standard. It accepts encrypted and unencrypted incoming plain and WebSockets MQTT connections.
   In addition it provides a rudimentary Web-Interface showing all currently connected MQTT-clients.
