@@ -194,6 +194,7 @@ int main(int argc, char* argv[]) {
         config.setRetry();
         config.setRetryBase(1);
         config.setReconnect();
+        config.setDisableNagleAlgorithm();
     });
 
     startClient<net::in::stream::tls::SocketClient, mqtt::mqttintegrator::SocketContextFactory>("in-mqtts", [](auto& config) {
@@ -202,6 +203,7 @@ int main(int argc, char* argv[]) {
         config.setRetry();
         config.setRetryBase(1);
         config.setReconnect();
+        config.setDisableNagleAlgorithm();
     });
 
     startClient<net::in6::stream::legacy::SocketClient, mqtt::mqttintegrator::SocketContextFactory>("in6-mqtt", [](auto& config) {
@@ -210,6 +212,7 @@ int main(int argc, char* argv[]) {
         config.setRetry();
         config.setRetryBase(1);
         config.setReconnect();
+        config.setDisableNagleAlgorithm();
     });
 
     startClient<net::in6::stream::tls::SocketClient, mqtt::mqttintegrator::SocketContextFactory>("in6-mqtts", [](auto& config) {
@@ -218,6 +221,7 @@ int main(int argc, char* argv[]) {
         config.setRetry();
         config.setRetryBase(1);
         config.setReconnect();
+        config.setDisableNagleAlgorithm();
     });
 
     startClient<net::un::stream::legacy::SocketClient, mqtt::mqttintegrator::SocketContextFactory>("un-mqtt", [](auto& config) {
@@ -242,6 +246,7 @@ int main(int argc, char* argv[]) {
         config.setRetry();
         config.setRetryBase(1);
         config.setReconnect();
+        config.setDisableNagleAlgorithm();
     });
 
     startClient<web::http::tls::in::Client>("in-wsmqtts", [](auto& config) {
@@ -250,6 +255,7 @@ int main(int argc, char* argv[]) {
         config.setRetry();
         config.setRetryBase(1);
         config.setReconnect();
+        config.setDisableNagleAlgorithm();
     });
 
     startClient<web::http::legacy::in6::Client>("in6-wsmqtt", [](auto& config) {
@@ -258,6 +264,7 @@ int main(int argc, char* argv[]) {
         config.setRetry();
         config.setRetryBase(1);
         config.setReconnect();
+        config.setDisableNagleAlgorithm();
     });
 
     startClient<web::http::tls::in6::Client>("in6-wsmqtts", [](auto& config) {
@@ -266,6 +273,7 @@ int main(int argc, char* argv[]) {
         config.setRetry();
         config.setRetryBase(1);
         config.setReconnect();
+        config.setDisableNagleAlgorithm();
     });
 
     return core::SNodeC::start();

@@ -296,6 +296,7 @@ int main(int argc, char* argv[]) {
                                 config.setRetry();
                                 config.setRetryBase(1);
                                 config.setReconnect();
+                                config.setDisableNagleAlgorithm();
                             },
                             broker);
 #else  // MQTTBRIDGE_IN_STREAM_LEGACY
@@ -310,6 +311,7 @@ int main(int argc, char* argv[]) {
                                 config.setRetry();
                                 config.setRetryBase(1);
                                 config.setReconnect();
+                                config.setDisableNagleAlgorithm();
                             },
                             broker);
 #else  // MQTTBRIDGE_IN_STREAM_TLS
@@ -326,6 +328,7 @@ int main(int argc, char* argv[]) {
                                 config.setRetry();
                                 config.setRetryBase(1);
                                 config.setReconnect();
+                                config.setDisableNagleAlgorithm();
                             },
                             broker);
 #else  // MQTTBRIDGE_IN6_STREAM_LEGACY
@@ -340,6 +343,7 @@ int main(int argc, char* argv[]) {
                                 config.setRetry();
                                 config.setRetryBase(1);
                                 config.setReconnect();
+                                config.setDisableNagleAlgorithm();
                             },
                             broker);
 #else  // MQTTBRIDGE_IN6_STREAM_TLS
@@ -448,6 +452,7 @@ int main(int argc, char* argv[]) {
                             config.setRetry();
                             config.setRetryBase(1);
                             config.setReconnect();
+                            config.setDisableNagleAlgorithm();
                         });
 #else  // MQTTBRIDGE_IN_WEBSOCKET_LEGACY
                         VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
@@ -461,6 +466,7 @@ int main(int argc, char* argv[]) {
                             config.setRetry();
                             config.setRetryBase(1);
                             config.setReconnect();
+                            config.setDisableNagleAlgorithm();
                         });
 #else  // MQTTBRIDGE_IN_WEBSOCKET_TLS
                         VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
@@ -476,6 +482,7 @@ int main(int argc, char* argv[]) {
                             config.setRetry();
                             config.setRetryBase(1);
                             config.setReconnect();
+                            config.setDisableNagleAlgorithm();
                         });
 #else  // MQTTBRIDGE_IN6_WEBSOCKET_LEGACY
                         VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
@@ -489,6 +496,7 @@ int main(int argc, char* argv[]) {
                             config.setRetry();
                             config.setRetryBase(1);
                             config.setReconnect();
+                            config.setDisableNagleAlgorithm();
                         });
 #else  // MQTTBRIDGE_IN6_WEBSOCKET_TLS
                         VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption

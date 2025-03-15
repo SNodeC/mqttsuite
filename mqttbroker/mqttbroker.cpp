@@ -375,16 +375,19 @@ int main(int argc, char* argv[]) {
     startServer<net::in::stream::legacy::SocketServer, mqtt::mqttbroker::SharedSocketContextFactory>("in-mqtt", [](auto& config) {
         config.setPort(1883);
         config.setRetry();
+        config.setDisableNagleAlgorithm();
     });
 
     startServer<net::in::stream::tls::SocketServer, mqtt::mqttbroker::SharedSocketContextFactory>("in-mqtts", [](auto& config) {
         config.setPort(8883);
         config.setRetry();
+        config.setDisableNagleAlgorithm();
     });
 
     startServer<net::in6::stream::legacy::SocketServer, mqtt::mqttbroker::SharedSocketContextFactory>("in6-mqtt", [](auto& config) {
         config.setPort(1883);
         config.setRetry();
+        config.setDisableNagleAlgorithm();
 
         config.setIPv6Only();
     });
@@ -392,6 +395,7 @@ int main(int argc, char* argv[]) {
     startServer<net::in6::stream::tls::SocketServer, mqtt::mqttbroker::SharedSocketContextFactory>("in6-mqtts", [](auto& config) {
         config.setPort(8883);
         config.setRetry();
+        config.setDisableNagleAlgorithm();
 
         config.setIPv6Only();
     });
@@ -411,16 +415,19 @@ int main(int argc, char* argv[]) {
     startServer<express::legacy::in::WebApp>("in-http", environment, [](auto& config) {
         config.setPort(8080);
         config.setRetry();
+        config.setDisableNagleAlgorithm();
     });
 
     startServer<express::tls::in::WebApp>("in-https", environment, [](auto& config) {
         config.setPort(8088);
         config.setRetry();
+        config.setDisableNagleAlgorithm();
     });
 
     startServer<express::legacy::in6::WebApp>("in6-http", environment, [](auto& config) {
         config.setPort(8080);
         config.setRetry();
+        config.setDisableNagleAlgorithm();
 
         config.setIPv6Only();
     });
@@ -428,6 +435,7 @@ int main(int argc, char* argv[]) {
     startServer<express::tls::in6::WebApp>("in6-https", environment, [](auto& config) {
         config.setPort(8088);
         config.setRetry();
+        config.setDisableNagleAlgorithm();
 
         config.setIPv6Only();
     });
