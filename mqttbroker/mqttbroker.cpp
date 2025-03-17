@@ -73,13 +73,14 @@
 #include <net/un/stream/tls/SocketServer.h>
 //
 #include <log/Logger.h>
-#include <utils/CLI11.hpp>
 //
 #include <nlohmann/json.hpp>
 // IWYU pragma: no_include <nlohmann/json_fwd.hpp>
+// IWYU pragma: no_include <nlohmann/detail/json_ref.hpp>
 //
+#include <cctype>
 #include <cstdlib>
-#include <fmt/core.h>
+#include <list>
 #include <string>
 #include <tuple>
 #include <type_traits>
@@ -257,6 +258,11 @@ static express::Router getRouter(inja::Environment& environment) {
                 mqtt::mqttbroker::lib::MqttModel::instance().getMqtt(urlDecode(req->queries.begin()->first));
 
             if (mqtt != nullptr) {
+                VLOG(1) << "Subscriptions for client " << mqtt->getClientId();
+                for (const std::string& subscription : mqtt->getSubscriptions()) {
+                    VLOG(1) << "  " << subscription;
+                }
+
                 try {
                     responseString = getDetailedPage(environment, mqtt);
                 } catch (...) {
