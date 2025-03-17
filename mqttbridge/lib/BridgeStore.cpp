@@ -92,46 +92,44 @@ namespace mqtt::bridge::lib {
                                 try {
                                     const nlohmann::json defaultPatch = validator.validate(bridgesConfigJson);
 
-                                    if (!defaultPatch.empty()) {
-                                        try {
-                                            bridgesConfigJson = bridgesConfigJson.patch(defaultPatch);
+                                    try {
+                                        bridgesConfigJson = bridgesConfigJson.patch(defaultPatch);
 
-                                            for (const nlohmann::json& bridgeConfigJson : bridgesConfigJson["bridges"]) {
-                                                Bridge& bridge = bridgeList.emplace_back(bridgeConfigJson["name"]);
+                                        for (const nlohmann::json& bridgeConfigJson : bridgesConfigJson["bridges"]) {
+                                            Bridge& bridge = bridgeList.emplace_back(bridgeConfigJson["name"]);
 
-                                                for (const nlohmann::json& brokerConfigJson : bridgeConfigJson["brokers"]) {
-                                                    std::list<iot::mqtt::Topic> topics;
-                                                    for (const nlohmann::json& topicJson : brokerConfigJson["topics"]) {
-                                                        topics.emplace_back(topicJson["topic"], // cppcheck-suppress useStlAlgorithm
-                                                                            topicJson["qos"]);
-                                                    }
-
-                                                    const nlohmann::json& connection = brokerConfigJson["connection"];
-                                                    brokers.emplace(brokerConfigJson["instance_name"],
-                                                                    Broker(bridge,
-                                                                           connection["client_id"],
-                                                                           connection["keep_alive"],
-                                                                           connection["clean_session"],
-                                                                           connection["will_topic"],
-                                                                           connection["will_message"],
-                                                                           connection["will_qos"],
-                                                                           connection["will_retain"],
-                                                                           connection["username"],
-                                                                           connection["password"],
-                                                                           connection["loop_prevention"],
-                                                                           brokerConfigJson["instance_name"],
-                                                                           brokerConfigJson["protocol"],
-                                                                           brokerConfigJson["encryption"],
-                                                                           brokerConfigJson["transport"],
-                                                                           std::move(topics)));
+                                            for (const nlohmann::json& brokerConfigJson : bridgeConfigJson["brokers"]) {
+                                                std::list<iot::mqtt::Topic> topics;
+                                                for (const nlohmann::json& topicJson : brokerConfigJson["topics"]) {
+                                                    topics.emplace_back(topicJson["topic"], // cppcheck-suppress useStlAlgorithm
+                                                                        topicJson["qos"]);
                                                 }
-                                            }
 
-                                            success = true;
-                                        } catch (const std::exception& e) {
-                                            VLOG(1) << "  Patching JSON with default patch failed:\n" << defaultPatch.dump(4);
-                                            VLOG(1) << "    " << e.what();
+                                                const nlohmann::json& connection = brokerConfigJson["connection"];
+                                                brokers.emplace(brokerConfigJson["instance_name"],
+                                                                Broker(bridge,
+                                                                       connection["client_id"],
+                                                                       connection["keep_alive"],
+                                                                       connection["clean_session"],
+                                                                       connection["will_topic"],
+                                                                       connection["will_message"],
+                                                                       connection["will_qos"],
+                                                                       connection["will_retain"],
+                                                                       connection["username"],
+                                                                       connection["password"],
+                                                                       connection["loop_prevention"],
+                                                                       brokerConfigJson["instance_name"],
+                                                                       brokerConfigJson["protocol"],
+                                                                       brokerConfigJson["encryption"],
+                                                                       brokerConfigJson["transport"],
+                                                                       std::move(topics)));
+                                            }
                                         }
+
+                                        success = true;
+                                    } catch (const std::exception& e) {
+                                        VLOG(1) << "  Patching JSON with default patch failed:\n" << defaultPatch.dump(4);
+                                        VLOG(1) << "    " << e.what();
                                     }
                                 } catch (const std::exception& e) {
                                     VLOG(1) << "  Validating JSON failed:\n" << bridgesConfigJson.dump(4);
