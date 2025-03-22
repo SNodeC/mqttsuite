@@ -2,7 +2,6 @@
     <head>
         <style>
             {% include "css/Base.css" %}
-            {% include "css/TableFixHeader.css" %}
         </style>
         <script>
             {% include "js/DisconnectClient.js" %}
@@ -11,8 +10,8 @@
         <title>{{ title }}</title>
     </head>
     <body>
-        {% include "Header.html" %}
-        {% include "TableFixHeader.html" %}
-        {% include "Footer.html" %}
+        {% include "widgets/Header.html" %}
+        {% include "widgets/TableFixHeader.html" %}
+        {% include "widgets/Footer.html" %}
     </body>
 </html>

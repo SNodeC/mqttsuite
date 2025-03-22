@@ -370,9 +370,11 @@ static express::Router getRouter(inja::Environment& environment) {
 
         try {
             responseString = getOverviewPage(environment, mqtt::mqttbroker::lib::MqttModel::instance());
-        } catch (...) {
+        } catch (const inja::InjaError& error) {
             responseStatus = 500;
-            responseString = "Internal Server Error";
+            responseString = "Internal Server Error\n";
+            responseString +=
+                error.type + " " + error.message + " " + std::to_string(error.location.line) + std::to_string(error.location.column);
         }
 
         res->status(responseStatus).send(responseString);
@@ -394,9 +396,11 @@ static express::Router getRouter(inja::Environment& environment) {
 
                 try {
                     responseString = getDetailedPage(environment, mqtt);
-                } catch (...) {
+                } catch (const inja::InjaError& error) {
                     responseStatus = 500;
                     responseString = "Internal Server Error";
+                    responseString += error.type + " " + error.message + " " + std::to_string(error.location.line) +
+                                      std::to_string(error.location.column);
                 }
             } else {
                 responseStatus = 404;

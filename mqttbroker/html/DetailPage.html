@@ -2,19 +2,13 @@
     <head>
         <style>
             {% include "css/Base.css" %}
-            {% include "css/TableFixHeader.css" %}
-            {% include "css/TableLayoutFixed.css" %}
-            {% include "css/TopicsTree.css" %}
         </style>
-        <script>
-            {% include "js/TopicsTree.js" %}
-        </script>
         <title>{{ title }}</title>
     </head>
     <body>
-        {% include "Header.html" %}
-        {% include "TableFixHeader.html" %}
+        {% include "widgets/Header.html" %}
+        {% include "widgets/TableFixHeaderFixed.html" %}
         <hr style="margin: 0px 10px; border: none; height: 1px; background-color: #ccc;">
-        {% include "TopicsTree.html" %}
+        {% include "widgets/TopicsTree.html" %}
     </body>
 </html>
