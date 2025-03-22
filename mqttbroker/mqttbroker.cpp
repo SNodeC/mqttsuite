@@ -342,11 +342,12 @@ static express::Router getRouter(inja::Environment& environment) {
 
                 std::string connectionName = json["connection_name"].get<std::string>();
                 std::string topic = json["topic"].get<std::string>();
+                uint8_t qoS = json["qos"].get<uint8_t>();
 
                 const mqtt::mqttbroker::lib::Mqtt* mqtt = mqtt::mqttbroker::lib::MqttModel::instance().getMqtt(connectionName);
 
                 if (mqtt != nullptr) {
-                    mqtt->subscribe(topic, 0);
+                    mqtt->subscribe(topic, qoS);
                     res->send(jsonString);
                 } else {
                     res->status(404).send("MQTT client has already gone away: " + json["connection_name"].get<std::string>());

@@ -11,6 +11,9 @@
     </table>
     <div class="input-container">
         <input type="text" id="subscribeInput" placeholder="Enter topic to subscribe">
-        <button onclick="subscribe('{{ connection_name }}', document.getElementById('subscribeInput').value)">Subscribe</button>
+        <input type="number" id="qosInput" min="0" max="2" value="0" style="width: 60px;">
+        <button onclick="subscribe('{{ connection_name }}', document.getElementById('subscribeInput').value, parseInt(document.getElementById('qosInput').value))">
+            Subscribe
+        </button>
     </div>
 </topics_tree>

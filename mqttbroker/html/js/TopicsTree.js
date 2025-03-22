@@ -44,11 +44,12 @@ function unsubscribe(connectionName, topic) {
                                            })
 }
 
-function subscribe(connectionName, topic) {
+function subscribe(connectionName, topic, qos) {
     fetch("/subscribe", {
               "method": "POST",
               "body": JSON.stringify({   "connection_name": connectionName,
-                                         "topic": topic
+                                         "topic": topic,
+                                         "qos": qos
                                      }),
               "headers": {
                   "Content-type": "application/json; charset=UTF-8"
