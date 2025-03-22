@@ -136,7 +136,8 @@ static void insertTopic(Node& root, const std::string& topic) {
 // Compresses chains with exactly one child (i.e. concatenates keys)
 // until a branch or leaf is reached.
 // For expandable nodes, child rows are wrapped in a <tbody> (hidden by default) with a unique id.
-static std::string renderRows(const std::string& clientId, const Node& node, const std::string& prefix, int level, int& groupCounter) {
+static std::string
+renderRows(const std::string& connectionName, const Node& node, const std::string& prefix, int level, int& groupCounter) {
     std::ostringstream oss;
     for (const auto& pair : node.children) {
         std::string key = pair.first;
@@ -163,7 +164,7 @@ static std::string renderRows(const std::string& clientId, const Node& node, con
             oss << "</tr>\n";
             // Render child rows inside a tbody that is hidden by default.
             oss << "<tbody id=\"" << groupId << "\" style=\"display:none;\">";
-            oss << renderRows(clientId, *current, fullPath, level + 1, groupCounter);
+            oss << renderRows(connectionName, *current, fullPath, level + 1, groupCounter);
             oss << "</tbody>\n";
         } else {
             // Leaf node: output a single row.
@@ -173,7 +174,7 @@ static std::string renderRows(const std::string& clientId, const Node& node, con
             // Second column: topic text with left padding.
             oss << "<td style=\"padding-left:" << (20 * level) << "px;\">" << fullPath << "</td>";
             // Third column: Unsubscribe button triggering a JavaScript function.
-            oss << "<td><button onclick=\"unsubscribe('" << clientId << "', '" << fullPath << "')\">Unsubscribe</button></td>";
+            oss << "<td><button onclick=\"unsubscribe('" << connectionName << "', '" << fullPath << "')\">Unsubscribe</button></td>";
             oss << "</tr>\n";
         }
     }
@@ -243,7 +244,8 @@ static std::string getDetailedPage(inja::Environment& environment, const mqtt::m
                                                         {"Will QoS", std::to_string(mqtt->getWillQoS())},
                                                         {"Will Flag", mqtt->getWillFlag() ? "true" : "false"},
                                                         {"Will Retain", mqtt->getWillRetain() ? "true" : "false"}})},
-                                    {"table_rows", renderRows(mqtt->getConnectionName(), root, "", 0, groupCounter)}});
+                                    {"table_rows", renderRows(mqtt->getConnectionName(), root, "", 0, groupCounter)},
+                                    {"connection_name", mqtt->getConnectionName()}});
 }
 
 static std::string urlDecode(const std::string& encoded) {
@@ -320,6 +322,31 @@ static express::Router getRouter(inja::Environment& environment) {
 
                 if (mqtt != nullptr) {
                     mqtt->unsubscribe(topic);
+                    res->send(jsonString);
+                } else {
+                    res->status(404).send("MQTT client has already gone away: " + json["connection_name"].get<std::string>());
+                }
+            },
+            [&res](const std::string& key) {
+                VLOG(1) << "Attribute type not found: " << key;
+
+                res->status(400).send("Attribute type not found: " + key);
+            });
+    });
+
+    jsonRouter.post("/subscribe", [] APPLICATION(req, res) {
+        req->getAttribute<nlohmann::json>(
+            [&res](nlohmann::json& json) {
+                std::string jsonString = json.dump(4);
+                VLOG(1) << "Application received JSON body\n" << jsonString;
+
+                std::string connectionName = json["connection_name"].get<std::string>();
+                std::string topic = json["topic"].get<std::string>();
+
+                const mqtt::mqttbroker::lib::Mqtt* mqtt = mqtt::mqttbroker::lib::MqttModel::instance().getMqtt(connectionName);
+
+                if (mqtt != nullptr) {
+                    mqtt->subscribe(topic, 0);
                     res->send(jsonString);
                 } else {
                     res->status(404).send("MQTT client has already gone away: " + json["connection_name"].get<std::string>());

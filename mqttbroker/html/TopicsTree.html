@@ -9,4 +9,8 @@
             {{ table_rows }}
         </tbody>
     </table>
+    <div class="input-container">
+        <input type="text" id="subscribeInput" placeholder="Enter topic to subscribe">
+        <button onclick="subscribe('{{ connection_name }}', document.getElementById('subscribeInput').value)">Subscribe</button>
+    </div>
 </topics_tree>
