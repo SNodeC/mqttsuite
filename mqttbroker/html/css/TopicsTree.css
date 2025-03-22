@@ -3,13 +3,25 @@ topics_tree {
         width: 100%;
         font-family: sans-serif;
         border-collapse: collapse;
+        border-spacing: 0px;
     }
 
     td {
-        padding: 4px;
         vertical-align: middle;
-        text-align: left;
         border: none;
+    }
+
+    td:nth-child(1) {
+        text-align: left;
+    }
+
+    td:nth-child(2) {
+        text-align: left;
+    }
+
+    td:nth-child(3) {
+        text-align: right;
+        padding: 4px 8px;
     }
 
     .fold-btn { background: none; border: none; cursor: pointer; font-size: 1em;
@@ -17,4 +29,17 @@ topics_tree {
     .input-container { margin-bottom: 10px; }
     .input-container input { font-size: 1em; padding: 4px; }
     .input-container button { font-size: 1em; padding: 4px 8px; }
+}
+
+.aligned-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.aligned-table td:nth-child(1) {
+  text-align: left;
+}
+
+.aligned-table td:nth-child(2) {
+  text-align: right;
 }

@@ -1,19 +1,28 @@
 <topics_tree>
-    <table>
-        <colgroup>
-            <col style='width:2em;'>
-            <col>
-            <col style='width:8em;'>
-        </colgroup>
-        <tbody>
-            {{ table_rows }}
-        </tbody>
-    </table>
-    <div class="input-container">
-        <input type="text" id="subscribeInput" placeholder="Enter topic to subscribe">
-        <input type="number" id="qoSInput" min="0" max="2" value="0" style="width: 60px;">
-        <button onclick="subscribe('{{ connection_name }}', document.getElementById('subscribeInput').value, parseInt(document.getElementById('qoSInput').value))">
-            Subscribe
-        </button>
+    <div class="input-container" style="margin: 20px 10px;">
+        <h2 style="background-color: #e0e0e0; padding: 6px 12px; margin-bottom: 10px;">Subscribed Topics</h2>
+        <table>
+            <colgroup>
+                <col style='width:2em;'>
+                <col>
+                <col style='width:8em;'>
+            </colgroup>
+            <tbody>
+                {{ table_rows }}
+            </tbody>
+        </table>
+    </div>
+    <hr style="margin: 0px 10px; border: none; height: 1px; background-color: #ccc;">
+    <div class="input-container" style="margin: 20px 10px;">
+        <h2 style="background-color:#e0e0e0; padding: 6px 12px; margin-bottom: 10px;">Subscribe</h2>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <input type="text" id="subscribeInput" placeholder="Enter topic to subscribe" style="padding: 6px; flex: 1;">
+            <input type="number" id="qosInput" min="0" max="2" value="0" style="width: 40px; padding: 6px;">
+            <button
+                onclick="subscribe('{{ connection_name }}', document.getElementById('subscribeInput').value, parseInt(document.getElementById('qosInput').value))"
+                style="padding: 6px 12px;">
+                Subscribe
+            </button>
+        </div>
     </div>
 </topics_tree>

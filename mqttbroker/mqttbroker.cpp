@@ -174,7 +174,8 @@ renderRows(const std::string& connectionName, const Node& node, const std::strin
             // Second column: topic text with left padding.
             oss << "<td style=\"padding-left:" << (20 * level) << "px;\">" << fullPath << "</td>";
             // Third column: Unsubscribe button triggering a JavaScript function.
-            oss << "<td><button onclick=\"unsubscribe('" << connectionName << "', '" << fullPath << "')\">Unsubscribe</button></td>";
+            oss << "<td style=\"padding-right: 0px;\"><button style=\"padding: 6px 12px;\" onclick=\"unsubscribe('" << connectionName
+                << "', '" << fullPath << "')\">Unsubscribe</button></td>";
             oss << "</tr>\n";
         }
     }
@@ -207,7 +208,8 @@ static std::string getOverviewPage(inja::Environment& environment, mqtt::mqttbro
                                 mqtt->getConnectionName(),
                                 socketConnection->getLocalAddress().toString(),
                                 socketConnection->getRemoteAddress().toString(),
-                                "<button onClick=\"disconnectClient('" + mqtt->getConnectionName() + "')\">Disconnect</button>"});
+                                "<button  style=\"padding: 6px 12px;\" onClick=\"disconnectClient('" + mqtt->getConnectionName() +
+                                    "')\">Disconnect</button>"});
     }
 
     return environment.render_file("OverviewPage.html", json);
