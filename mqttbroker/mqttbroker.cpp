@@ -81,6 +81,7 @@
 #include <cctype>
 #include <cstdlib>
 #include <list>
+#include <sstream>
 #include <string>
 #include <tuple>
 #include <type_traits>
@@ -116,6 +117,122 @@ static std::string href(const std::string& text, const std::string& url, const s
            ",location=no, menubar=no, status=no, toolbar=no'); return false;\" style=\"color:inherit;\">" + text + "</a>";
 }
 
+// --- Tree structure for topics ---
+struct Node {
+    std::map<std::string, Node> children;
+};
+
+// Insert a topic (a slash‑separated string) into the tree.
+static void insertTopic(Node& root, const std::string& topic) {
+    std::istringstream iss(topic);
+    std::string part;
+    Node* current = &root;
+    while (std::getline(iss, part, '/')) {
+        current = &current->children[part]; // Create node if it doesn't exist.
+    }
+}
+
+// Recursively render table rows as an HTML string.
+// Compresses chains with exactly one child (i.e. concatenates keys)
+// until a branch or leaf is reached.
+// For expandable nodes, child rows are wrapped in a <tbody> (hidden by default) with a unique id.
+static std::string renderRows(const Node& node, const std::string& prefix, int level, int& groupCounter) {
+    std::ostringstream oss;
+    for (const auto& pair : node.children) {
+        std::string key = pair.first;
+        const Node& child = pair.second;
+        std::string fullPath = prefix.empty() ? key : prefix + "/" + key;
+        const Node* current = &child;
+        // Compress the chain while there is exactly one child.
+        while (current->children.size() == 1) {
+            auto it = current->children.begin();
+            fullPath += "/" + it->first;
+            current = &it->second;
+        }
+        bool expandable = !current->children.empty();
+        if (expandable) {
+            // Generate a unique group id for the child rows.
+            std::string groupId = "group" + std::to_string(groupCounter++);
+            oss << "<tr>";
+            // First column: fold button with onclick to toggle the group.
+            oss << "<td><button class=\"fold-btn\" onclick=\"toggleGroup('" << groupId << "', this)\">►</button></td>";
+            // Second column: topic text with left padding proportional to the level.
+            oss << "<td style=\"padding-left:" << (20 * level) << "px;\">" << fullPath << "</td>";
+            // Third column: empty for expandable nodes.
+            oss << "<td></td>";
+            oss << "</tr>\n";
+            // Render child rows inside a tbody that is hidden by default.
+            oss << "<tbody id=\"" << groupId << "\" style=\"display:none;\">";
+            oss << renderRows(*current, fullPath, level + 1, groupCounter);
+            oss << "</tbody>\n";
+        } else {
+            // Leaf node: output a single row.
+            oss << "<tr>";
+            // First column: placeholder (to align with fold buttons).
+            oss << "<td><span style=\"display:inline-block; width:1em;\"></span></td>";
+            // Second column: topic text with left padding.
+            oss << "<td style=\"padding-left:" << (20 * level) << "px;\">" << fullPath << "</td>";
+            // Third column: Unsubscribe button triggering a JavaScript function.
+            oss << "<td><button onclick=\"trigger('" << fullPath << "')\">Unsubscribe</button></td>";
+            oss << "</tr>\n";
+        }
+    }
+    return oss.str();
+}
+
+// Render the complete HTML page using an Inja template.
+[[maybe_unused]] static std::string renderHTML(const Node& root) {
+    int groupCounter = 1;
+    std::string tableRows = renderRows(root, "", 0, groupCounter);
+
+    inja::Environment env;
+    std::string templateStr = R"(
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>MQTT Topics</title>
+  <style>
+    table { width: 100%; font-family: sans-serif; border-collapse: collapse; }
+    td { padding: 4px; vertical-align: middle; text-align: left; border: none; }
+    .fold-btn { background: none; border: none; cursor: pointer; font-size: 1em; }
+  </style>
+  <script>
+    function toggleGroup(id, btn) {
+      var group = document.getElementById(id);
+      if (group.style.display === 'none') {
+        group.style.display = '';
+        btn.textContent = '▼';
+      } else {
+        group.style.display = 'none';
+        btn.textContent = '►';
+      }
+    }
+    function trigger(topic) {
+      alert('Unsubscribed from topic: ' + topic);
+    }
+  </script>
+</head>
+<body>
+  <table>
+    <colgroup>
+      <col style='width:2em;'>
+      <col>
+      <col style='width:8em;'>
+    </colgroup>
+    <tbody>
+      {{ table_rows | safe }}
+    </tbody>
+  </table>
+</body>
+</html>
+    )";
+
+    nlohmann::json data;
+    data["table_rows"] = tableRows;
+    return env.render(templateStr, data);
+}
+
 static std::string getOverviewPage(inja::Environment& environment, mqtt::mqttbroker::lib::MqttModel& mqttModel) {
     inja::json json;
 
@@ -149,6 +266,15 @@ static std::string getOverviewPage(inja::Environment& environment, mqtt::mqttbro
 }
 
 static std::string getDetailedPage(inja::Environment& environment, const mqtt::mqttbroker::lib::Mqtt* mqtt) {
+    std::list<std::string> topicsList = mqtt->getSubscriptions();
+
+    Node root;
+    for (const auto& topic : topicsList) {
+        insertTopic(root, topic);
+    }
+
+    int groupCounter = 1;
+
     return environment.render_file("DetailPage.html",
                                    {{"title", mqtt->getClientId()},
                                     {"header_row", {"Attribute", "Value"}},
@@ -169,7 +295,8 @@ static std::string getDetailedPage(inja::Environment& environment, const mqtt::m
                                                         {"Will Topic", mqtt->getWillTopic()},
                                                         {"Will QoS", std::to_string(mqtt->getWillQoS())},
                                                         {"Will Flag", mqtt->getWillFlag() ? "true" : "false"},
-                                                        {"Will Retain", mqtt->getWillRetain() ? "true" : "false"}})}});
+                                                        {"Will Retain", mqtt->getWillRetain() ? "true" : "false"}})},
+                                    {"table_rows", renderRows(root, "", 0, groupCounter)}});
 }
 
 static std::string urlDecode(const std::string& encoded) {

@@ -1,0 +1,16 @@
+topics_tree {
+    table {
+        width: 100%;
+        font-family: sans-serif;
+        border-collapse: collapse;
+    }
+
+    td {
+        padding: 4px;
+        vertical-align: middle;
+        text-align: left;
+        border: none;
+    }
+
+    .fold-btn { background: none; border: none; cursor: pointer; font-size: 1em;
+}
