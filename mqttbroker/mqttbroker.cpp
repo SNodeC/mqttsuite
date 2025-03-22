@@ -136,7 +136,7 @@ static void insertTopic(Node& root, const std::string& topic) {
 // Compresses chains with exactly one child (i.e. concatenates keys)
 // until a branch or leaf is reached.
 // For expandable nodes, child rows are wrapped in a <tbody> (hidden by default) with a unique id.
-static std::string renderRows(const Node& node, const std::string& prefix, int level, int& groupCounter) {
+static std::string renderRows(const std::string& clientId, const Node& node, const std::string& prefix, int level, int& groupCounter) {
     std::ostringstream oss;
     for (const auto& pair : node.children) {
         std::string key = pair.first;
@@ -163,7 +163,7 @@ static std::string renderRows(const Node& node, const std::string& prefix, int l
             oss << "</tr>\n";
             // Render child rows inside a tbody that is hidden by default.
             oss << "<tbody id=\"" << groupId << "\" style=\"display:none;\">";
-            oss << renderRows(*current, fullPath, level + 1, groupCounter);
+            oss << renderRows(clientId, *current, fullPath, level + 1, groupCounter);
             oss << "</tbody>\n";
         } else {
             // Leaf node: output a single row.
@@ -173,64 +173,11 @@ static std::string renderRows(const Node& node, const std::string& prefix, int l
             // Second column: topic text with left padding.
             oss << "<td style=\"padding-left:" << (20 * level) << "px;\">" << fullPath << "</td>";
             // Third column: Unsubscribe button triggering a JavaScript function.
-            oss << "<td><button onclick=\"trigger('" << fullPath << "')\">Unsubscribe</button></td>";
+            oss << "<td><button onclick=\"unsubscribe('" << clientId << "', '" << fullPath << "')\">Unsubscribe</button></td>";
             oss << "</tr>\n";
         }
     }
     return oss.str();
-}
-
-// Render the complete HTML page using an Inja template.
-[[maybe_unused]] static std::string renderHTML(const Node& root) {
-    int groupCounter = 1;
-    std::string tableRows = renderRows(root, "", 0, groupCounter);
-
-    inja::Environment env;
-    std::string templateStr = R"(
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>MQTT Topics</title>
-  <style>
-    table { width: 100%; font-family: sans-serif; border-collapse: collapse; }
-    td { padding: 4px; vertical-align: middle; text-align: left; border: none; }
-    .fold-btn { background: none; border: none; cursor: pointer; font-size: 1em; }
-  </style>
-  <script>
-    function toggleGroup(id, btn) {
-      var group = document.getElementById(id);
-      if (group.style.display === 'none') {
-        group.style.display = '';
-        btn.textContent = '▼';
-      } else {
-        group.style.display = 'none';
-        btn.textContent = '►';
-      }
-    }
-    function trigger(topic) {
-      alert('Unsubscribed from topic: ' + topic);
-    }
-  </script>
-</head>
-<body>
-  <table>
-    <colgroup>
-      <col style='width:2em;'>
-      <col>
-      <col style='width:8em;'>
-    </colgroup>
-    <tbody>
-      {{ table_rows | safe }}
-    </tbody>
-  </table>
-</body>
-</html>
-    )";
-
-    nlohmann::json data;
-    data["table_rows"] = tableRows;
-    return env.render(templateStr, data);
 }
 
 static std::string getOverviewPage(inja::Environment& environment, mqtt::mqttbroker::lib::MqttModel& mqttModel) {
@@ -296,7 +243,7 @@ static std::string getDetailedPage(inja::Environment& environment, const mqtt::m
                                                         {"Will QoS", std::to_string(mqtt->getWillQoS())},
                                                         {"Will Flag", mqtt->getWillFlag() ? "true" : "false"},
                                                         {"Will Retain", mqtt->getWillRetain() ? "true" : "false"}})},
-                                    {"table_rows", renderRows(root, "", 0, groupCounter)}});
+                                    {"table_rows", renderRows(mqtt->getConnectionName(), root, "", 0, groupCounter)}});
 }
 
 static std::string urlDecode(const std::string& encoded) {
@@ -337,7 +284,7 @@ static express::Router getRouter(inja::Environment& environment) {
 
     const express::Router& jsonRouter = express::middleware::JsonMiddleware();
 
-    jsonRouter.post([] APPLICATION(req, res) {
+    jsonRouter.post("/clients", [] APPLICATION(req, res) {
         req->getAttribute<nlohmann::json>(
             [&res](nlohmann::json& json) {
                 std::string jsonString = json.dump(4);
@@ -360,7 +307,32 @@ static express::Router getRouter(inja::Environment& environment) {
             });
     });
 
-    router.use("/clients", jsonRouter);
+    jsonRouter.post("/unsubscribe", [] APPLICATION(req, res) {
+        req->getAttribute<nlohmann::json>(
+            [&res](nlohmann::json& json) {
+                std::string jsonString = json.dump(4);
+                VLOG(1) << "Application received JSON body\n" << jsonString;
+
+                std::string connectionName = json["connection_name"].get<std::string>();
+                std::string topic = json["topic"].get<std::string>();
+
+                const mqtt::mqttbroker::lib::Mqtt* mqtt = mqtt::mqttbroker::lib::MqttModel::instance().getMqtt(connectionName);
+
+                if (mqtt != nullptr) {
+                    mqtt->unsubscribe(topic);
+                    res->send(jsonString);
+                } else {
+                    res->status(404).send("MQTT client has already gone away: " + json["connection_name"].get<std::string>());
+                }
+            },
+            [&res](const std::string& key) {
+                VLOG(1) << "Attribute type not found: " << key;
+
+                res->status(400).send("Attribute type not found: " + key);
+            });
+    });
+
+    router.use(jsonRouter);
 
     router.get("/clients", [&environment] APPLICATION(req, res) {
         std::string responseString;
