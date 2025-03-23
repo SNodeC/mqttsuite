@@ -1,42 +1,44 @@
 topics_tree {
+    body {
+        font-family: sans-serif;
+        margin: 20px;
+    }
     table {
         width: 100%;
-        font-family: sans-serif;
         border-collapse: collapse;
-        border-spacing: 0px;
-    } 
-    tr:nth-child(even) {
-      background-color: #f9f9f9;
     }
+    th {
+        position: sticky;
+        top: -1;
+        z-index: 1;
+        background-color: #e0e0e0;
+    }
+    th,
     td {
-        vertical-align: middle;
-        border: none;
+        border: 1px solid #ccc;
+        padding: 8px;
     }
-    td:nth-child(1) {
-        text-align: left;
+    tr:nth-child(even) {
+        background-color: #f9f9f9; /* light gray */
     }
-    td:nth-child(2) {
-        text-align: left;
+    tr:nth-child(odd) {
+        background-color: #ffffff;
     }
-    td:nth-child(3) {
-        text-align: right;
-        padding: 4px 8px;
+    .table-scroll {
+        max-height: calc(5 * 42px); /* Approx row height, adjust as needed */
+        overflow-y: auto;
+        border: 1px solid #ccc;
     }
-    .fold-btn { background: none; border: none; cursor: pointer; font-size: 1em;
-    .input-container { margin-bottom: 10px; }
-    .input-container input { font-size: 1em; padding: 4px; }
-    .input-container button { font-size: 1em; padding: 4px 8px; }
-}
-
-.aligned-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.aligned-table td:nth-child(1) {
-  text-align: left;
-}
-
-.aligned-table td:nth-child(2) {
-  text-align: right;
+    /* Ensure nested table fills width */
+    .table-scroll table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .table-scroll td:first-child {
+        width: 100%; /* allow it to expand */
+    }
+    .table-scroll td:last-child {
+        white-space: nowrap; /* prevent button text from wrapping */
+        width: 1%;
+    }
 }

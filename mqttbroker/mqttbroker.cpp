@@ -80,6 +80,7 @@
 //
 #include <cctype>
 #include <cstdlib>
+#include <iomanip>
 #include <list>
 #include <sstream>
 #include <string>
@@ -122,64 +123,12 @@ struct Node {
     std::map<std::string, Node> children;
 };
 
-// Insert a topic (a slash‑separated string) into the tree.
-static void insertTopic(Node& root, const std::string& topic) {
-    std::istringstream iss(topic);
-    std::string part;
-    Node* current = &root;
-    while (std::getline(iss, part, '/')) {
-        current = &current->children[part]; // Create node if it doesn't exist.
-    }
-}
-
-// Recursively render table rows as an HTML string.
-// Compresses chains with exactly one child (i.e. concatenates keys)
-// until a branch or leaf is reached.
-// For expandable nodes, child rows are wrapped in a <tbody> (hidden by default) with a unique id.
-static std::string renderRows(const std::string& clientId, const Node& node, const std::string& prefix, int level, int& groupCounter) {
-    std::ostringstream oss;
-    for (const auto& pair : node.children) {
-        std::string key = pair.first;
-        const Node& child = pair.second;
-        std::string fullPath = prefix.empty() ? key : prefix + "/" + key;
-        const Node* current = &child;
-        // Compress the chain while there is exactly one child.
-        while (current->children.size() == 1) {
-            auto it = current->children.begin();
-            fullPath += "/" + it->first;
-            current = &it->second;
-        }
-        bool expandable = !current->children.empty();
-        if (expandable) {
-            // Generate a unique group id for the child rows.
-            std::string groupId = "group" + std::to_string(groupCounter++);
-            oss << "<tr>";
-            // First column: fold button with onclick to toggle the group.
-            oss << "<td><button class=\"fold-btn\" onclick=\"toggleGroup('" << groupId << "', this)\">►</button></td>";
-            // Second column: topic text with left padding proportional to the level.
-            oss << "<td style=\"padding-left:" << (20 * level) << "px;\">" << fullPath << "</td>";
-            // Third column: empty for expandable nodes.
-            oss << "<td></td>";
-            oss << "</tr>\n";
-            // Render child rows inside a tbody that is hidden by default.
-            oss << "<tbody id=\"" << groupId << "\" style=\"display:none;\">";
-            oss << renderRows(clientId, *current, fullPath, level + 1, groupCounter);
-            oss << "</tbody>\n";
-        } else {
-            // Leaf node: output a single row.
-            oss << "<tr>";
-            // First column: placeholder (to align with fold buttons).
-            oss << "<td><span style=\"display:inline-block; width:1em;\"></span></td>";
-            // Second column: topic text with left padding.
-            oss << "<td style=\"padding-left:" << (20 * level) << "px;\">" << fullPath << "</td>";
-            // Third column: Unsubscribe button triggering a JavaScript function.
-            oss << "<td style=\"padding-right: 0px;\"><button style=\"padding: 6px 12px;\" onclick=\"unsubscribe('" << clientId << "', '"
-                << fullPath << "')\">Unsubscribe</button></td>";
-            oss << "</tr>\n";
-        }
-    }
-    return oss.str();
-}
+struct TopicNode {
+    std::string name;
+    std::string fullPath;
+    bool isWildcard = false;
+    std::map<std::string, TopicNode*> children{};
+};
 
 static std::string getOverviewPage(inja::Environment& environment, mqtt::mqttbroker::lib::MqttModel& mqttModel) {
     inja::json json;
@@ -199,16 +148,26 @@ static std::string getOverviewPage(inja::Environment& environment, mqtt::mqttbro
         const mqtt::mqttbroker::lib::Mqtt* mqtt = mqttModelEntry.getMqtt();
         const core::socket::stream::SocketConnection* socketConnection = mqtt->getMqttContext()->getSocketConnection();
 
-        const std::string windowId = "window" + std::to_string(reinterpret_cast<unsigned long long>(mqtt));
+        const std::string windowId1 = "window" + std::to_string(reinterpret_cast<unsigned long long>(mqtt));
+
+        std::ostringstream windowtIdoss("window");
+        for (char ch : mqtt->getClientId()) {
+            if (std::isalnum(static_cast<unsigned char>(ch))) {
+                windowtIdoss << ch;
+            } else {
+                windowtIdoss << std::hex << std::uppercase << std::setw(2) << std::setfill('0')
+                             << static_cast<int>(static_cast<unsigned char>(ch));
+            }
+        }
 
         jsonDataRows.push_back(
-            {href(mqtt->getClientId(), "/client?" + mqtt->getClientId(), windowId, 450, 900),
+            {href(mqtt->getClientId(), "/client?" + mqtt->getClientId(), windowtIdoss.str(), 450, 900),
              mqttModelEntry.onlineSince(),
              "<duration>" + mqttModelEntry.onlineDuration() + "</duration>",
              mqtt->getConnectionName(),
              socketConnection->getLocalAddress().toString(),
              socketConnection->getRemoteAddress().toString(),
-             "<button  style=\"padding: 6px 12px;\" onClick=\"disconnectClient('" + mqtt->getClientId() + "')\">Disconnect</button>"});
+             "<button class=\"red-btn\" onClick=\"disconnectClient('" + mqtt->getClientId() + "')\">Disconnect</button>"});
     }
 
     return environment.render_file("OverviewPage.html", json);
@@ -217,36 +176,39 @@ static std::string getOverviewPage(inja::Environment& environment, mqtt::mqttbro
 static std::string getDetailedPage(inja::Environment& environment, const mqtt::mqttbroker::lib::Mqtt* mqtt) {
     std::list<std::string> topicsList = mqtt->getSubscriptions();
 
-    Node root;
+    // Prepare JSON context
+    nlohmann::json data;
+
+    data["client_id"] = mqtt->getClientId();
+    data["topics"] = nlohmann::json::array();
     for (const auto& topic : topicsList) {
-        insertTopic(root, topic);
+        data["topics"].push_back(topic);
     }
 
-    int groupCounter = 1;
+    nlohmann::json js = {{"title", mqtt->getClientId()},
+                         {"header_row", {"Attribute", "Value"}},
+                         {"data_rows",
+                          inja::json::array({{"Client ID", mqtt->getClientId()},
+                                             {"Connection", mqtt->getConnectionName()},
+                                             {"Clean Session", mqtt->getCleanSession() ? "true" : "false"},
+                                             {"Connect Flags", std::to_string(mqtt->getConnectFlags())},
+                                             {"Username", mqtt->getUsername()},
+                                             {"Username Flag", mqtt->getUsernameFlag() ? "true" : "false"},
+                                             {"Password", mqtt->getPassword()},
+                                             {"Password Flag", mqtt->getPasswordFlag() ? "true" : "false"},
+                                             {"Keep Alive", std::to_string(mqtt->getKeepAlive())},
+                                             {"Protocol", mqtt->getProtocol()},
+                                             {"Protocol Level", std::to_string(mqtt->getLevel())},
+                                             {"Loop Prevention", !mqtt->getReflect() ? "true" : "false"},
+                                             {"Will Message", mqtt->getWillMessage()},
+                                             {"Will Topic", mqtt->getWillTopic()},
+                                             {"Will QoS", std::to_string(mqtt->getWillQoS())},
+                                             {"Will Flag", mqtt->getWillFlag() ? "true" : "false"},
+                                             {"Will Retain", mqtt->getWillRetain() ? "true" : "false"}})},
+                         {"client_id", mqtt->getClientId()}};
+    js.insert(data.begin(), data.end());
 
-    return environment.render_file("DetailPage.html",
-                                   {{"title", mqtt->getClientId()},
-                                    {"header_row", {"Attribute", "Value"}},
-                                    {"data_rows",
-                                     inja::json::array({{"Client ID", mqtt->getClientId()},
-                                                        {"Connection", mqtt->getConnectionName()},
-                                                        {"Clean Session", mqtt->getCleanSession() ? "true" : "false"},
-                                                        {"Connect Flags", std::to_string(mqtt->getConnectFlags())},
-                                                        {"Username", mqtt->getUsername()},
-                                                        {"Username Flag", mqtt->getUsernameFlag() ? "true" : "false"},
-                                                        {"Password", mqtt->getPassword()},
-                                                        {"Password Flag", mqtt->getPasswordFlag() ? "true" : "false"},
-                                                        {"Keep Alive", std::to_string(mqtt->getKeepAlive())},
-                                                        {"Protocol", mqtt->getProtocol()},
-                                                        {"Protocol Level", std::to_string(mqtt->getLevel())},
-                                                        {"Loop Prevention", !mqtt->getReflect() ? "true" : "false"},
-                                                        {"Will Message", mqtt->getWillMessage()},
-                                                        {"Will Topic", mqtt->getWillTopic()},
-                                                        {"Will QoS", std::to_string(mqtt->getWillQoS())},
-                                                        {"Will Flag", mqtt->getWillFlag() ? "true" : "false"},
-                                                        {"Will Retain", mqtt->getWillRetain() ? "true" : "false"}})},
-                                    {"table_rows", renderRows(mqtt->getClientId(), root, "", 0, groupCounter)},
-                                    {"client_id", mqtt->getClientId()}});
+    return environment.render_file("DetailPage.html", js);
 }
 
 static std::string urlDecode(const std::string& encoded) {

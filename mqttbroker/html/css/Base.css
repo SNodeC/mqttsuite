@@ -1,7 +1,8 @@
 * {
     font-family: Arial, sans-serif;
 }
-html, body {
+html,
+body {
     height: 100%;
     margin: 0;
     overflow: hidden;
@@ -21,4 +22,37 @@ footer {
     align-items: center;
     padding: 10px;
     box-sizing: border-box;
+}
+.red-btn {
+    padding: 4px 8px;
+    background-color: #ff6666;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+}
+.red-btn:hover {
+    background-color: #cc0000;
+}
+.blue-btn {
+    padding: 4px 8px;
+    background-color: #6699ff;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+}
+.blue-btn:hover {
+    background-color: #0033cc;
+}
+.green-btn {
+    padding: 4px 8px;
+    background-color: #66cc66;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+}
+.green-btn:hover {
+    background-color: #009900;
 }

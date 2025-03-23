@@ -5,7 +5,7 @@ main {
     padding-left: 10px;
     padding-right: 10px;
     padding-top: 20px;
-    padding-bottom: 20px;
+    padding-bottom: 2px;
     .tableFixHead {
         overflow: auto;
         height: 100%;
@@ -17,7 +17,7 @@ main {
             position: sticky;
             top: 0;
             z-index: 1;
-            background-color:#e0e0e0;
+            background-color: #e0e0e0;
         }
         tr:nth-child(even) {
             background-color: #f9f9f9;
@@ -25,9 +25,12 @@ main {
         tr:hover {
             background-color: #e0e0e0;
         }
-        th, td {
+        th,
+        td {
             padding: 12px;
-            box-shadow: inset 0px 0px 0px 1px #ccc, inset 0px 0px 0px 0px #ccc;
+            box-shadow:
+                inset 0px 0px 0px 1px #ccc,
+                inset 0px 0px 0px 0px #ccc;
         }
         td:nth-child(1),
         td:nth-child(2),
@@ -41,10 +44,22 @@ main {
         td:nth-child(7) {
             text-align: center;
         }
+        border: 1px solid #ccc;
     }
     .tableFixHead.fixed {
         table {
             table-layout: fixed;
         }
+    }
+    .disconnect-btn {
+        padding: 4px 8px;
+        background-color: #ff6666;
+        color: white;
+        border: none;
+        cursor: pointer;
+        border-radius: 4px;
+    }
+    .disconnect-btn:hover {
+        background-color: #cc0000;
     }
 }

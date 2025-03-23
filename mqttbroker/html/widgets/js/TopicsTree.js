@@ -9,6 +9,30 @@ function toggleGroup(id, btn) {
     }
 }
 
+function toggle(event, id) {
+    event.stopPropagation();
+    const children = document.querySelectorAll(`[data-parent='${id}']`);
+    if (!children.length) return;
+    const first = children[0];
+    const shouldShow = first.style.display === "none";
+    children.forEach(row => {
+        row.style.display = shouldShow ? "" : "none";
+        // If collapsing, also collapse all children recursively
+        if (!shouldShow) {
+            const subId = row.getAttribute("data-id");
+            const subChildren = document.querySelectorAll(`[data-parent='${subId}']`);
+            subChildren.forEach(r => r.style.display = "none");
+            const toggleSpan = row.querySelector(".fold-toggle");
+            if (toggleSpan) toggleSpan.textContent = "▶";
+        }
+    });
+    // Change the folding symbol
+    const toggleSpan = event.target.closest(".fold-toggle");
+    if (toggleSpan) {
+        toggleSpan.textContent = shouldShow ? "▼" : "▶";
+    }
+}
+
 function unsubscribe(clientId, topic) {
     fetch("/unsubscribe", {
         "method": "POST",
