@@ -176,41 +176,30 @@ static std::string getOverviewPage(inja::Environment& environment, mqtt::mqttbro
 }
 
 static std::string getDetailedPage(inja::Environment& environment, const mqtt::mqttbroker::lib::Mqtt* mqtt) {
-    std::list<std::string> topicsList = mqtt->getSubscriptions();
-
-    // Prepare JSON context
-    nlohmann::json data;
-
-    data["client_id"] = mqtt->getClientId();
-    data["topics"] = nlohmann::json::array();
-    for (const auto& topic : topicsList) {
-        data["topics"].push_back(topic);
-    }
-
-    nlohmann::json js = {{"title", mqtt->getClientId()},
-                         {"header_row", {"Attribute", "Value"}},
-                         {"data_rows",
-                          inja::json::array({{"Client ID", mqtt->getClientId()},
-                                             {"Connection", mqtt->getConnectionName()},
-                                             {"Clean Session", mqtt->getCleanSession() ? "true" : "false"},
-                                             {"Connect Flags", std::to_string(mqtt->getConnectFlags())},
-                                             {"Username", mqtt->getUsername()},
-                                             {"Username Flag", mqtt->getUsernameFlag() ? "true" : "false"},
-                                             {"Password", mqtt->getPassword()},
-                                             {"Password Flag", mqtt->getPasswordFlag() ? "true" : "false"},
-                                             {"Keep Alive", std::to_string(mqtt->getKeepAlive())},
-                                             {"Protocol", mqtt->getProtocol()},
-                                             {"Protocol Level", std::to_string(mqtt->getLevel())},
-                                             {"Loop Prevention", !mqtt->getReflect() ? "true" : "false"},
-                                             {"Will Message", mqtt->getWillMessage()},
-                                             {"Will Topic", mqtt->getWillTopic()},
-                                             {"Will QoS", std::to_string(mqtt->getWillQoS())},
-                                             {"Will Flag", mqtt->getWillFlag() ? "true" : "false"},
-                                             {"Will Retain", mqtt->getWillRetain() ? "true" : "false"}})},
-                         {"client_id", mqtt->getClientId()}};
-    js.insert(data.begin(), data.end());
-
-    return environment.render_file("DetailPage.html", js);
+    return environment.render_file("DetailPage.html",
+                                   {{"client_id", mqtt->getClientId()},
+                                    {"title", mqtt->getClientId()},
+                                    {"header_row", {"Attribute", "Value"}},
+                                    {"data_rows",
+                                     inja::json::array({{"Client ID", mqtt->getClientId()},
+                                                        {"Connection", mqtt->getConnectionName()},
+                                                        {"Clean Session", mqtt->getCleanSession() ? "true" : "false"},
+                                                        {"Connect Flags", std::to_string(mqtt->getConnectFlags())},
+                                                        {"Username", mqtt->getUsername()},
+                                                        {"Username Flag", mqtt->getUsernameFlag() ? "true" : "false"},
+                                                        {"Password", mqtt->getPassword()},
+                                                        {"Password Flag", mqtt->getPasswordFlag() ? "true" : "false"},
+                                                        {"Keep Alive", std::to_string(mqtt->getKeepAlive())},
+                                                        {"Protocol", mqtt->getProtocol()},
+                                                        {"Protocol Level", std::to_string(mqtt->getLevel())},
+                                                        {"Loop Prevention", !mqtt->getReflect() ? "true" : "false"},
+                                                        {"Will Message", mqtt->getWillMessage()},
+                                                        {"Will Topic", mqtt->getWillTopic()},
+                                                        {"Will QoS", std::to_string(mqtt->getWillQoS())},
+                                                        {"Will Flag", mqtt->getWillFlag() ? "true" : "false"},
+                                                        {"Will Retain", mqtt->getWillRetain() ? "true" : "false"}})},
+                                    {"client_id", mqtt->getClientId()},
+                                    {"topics", mqtt->getSubscriptions()}});
 }
 
 static std::string urlDecode(const std::string& encoded) {
