@@ -63,23 +63,23 @@ namespace mqtt::mqttbroker::lib {
         return mqttModel;
     }
 
-    void MqttModel::addClient(const std::string& connectionId, Mqtt* mqtt) {
-        modelMap[connectionId] = MqttModelEntry(mqtt);
+    void MqttModel::addClient(const std::string& clientId, Mqtt* mqtt) {
+        modelMap[clientId] = MqttModelEntry(mqtt);
     }
 
-    void MqttModel::delClient(const std::string& connectionId) {
-        modelMap.erase(connectionId);
+    void MqttModel::delClient(const std::string& clientIt) {
+        modelMap.erase(clientIt);
     }
 
     std::map<std::string, MqttModel::MqttModelEntry>& MqttModel::getClients() {
         return modelMap;
     }
 
-    const Mqtt* MqttModel::getMqtt(const std::string& connectionId) {
+    const Mqtt* MqttModel::getMqtt(const std::string& clientId) {
         const Mqtt* mqtt = nullptr;
 
-        if (modelMap.contains(connectionId)) {
-            mqtt = modelMap[connectionId].getMqtt();
+        if (modelMap.contains(clientId)) {
+            mqtt = modelMap[clientId].getMqtt();
         }
 
         return mqtt;

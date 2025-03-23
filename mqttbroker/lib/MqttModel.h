@@ -79,12 +79,12 @@ namespace mqtt::mqttbroker::lib {
     public:
         static MqttModel& instance();
 
-        void addClient(const std::string& connectionId, Mqtt* mqtt);
-        void delClient(const std::string& connectionId);
+        void addClient(const std::string& clientId, Mqtt* mqtt);
+        void delClient(const std::string& clientIt);
 
         std::map<std::string, MqttModelEntry>& getClients();
 
-        const Mqtt* getMqtt(const std::string& connectionId);
+        const Mqtt* getMqtt(const std::string& clientId);
 
         std::string onlineSince();
         std::string onlineDuration();

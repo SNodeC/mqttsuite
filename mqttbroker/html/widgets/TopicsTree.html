@@ -27,7 +27,7 @@
             <input type="text" id="subscribeInput" placeholder="Enter topic to subscribe" style="padding: 6px; flex: 1;">
             <input type="number" id="qosInput" min="0" max="2" value="0" style="width: 40px; padding: 6px;">
             <button
-                onclick="subscribe('{{ connection_name }}', document.getElementById('subscribeInput').value, parseInt(document.getElementById('qosInput').value))"
+                onclick="subscribe('{{ client_id }}', document.getElementById('subscribeInput').value, parseInt(document.getElementById('qosInput').value))"
                 style="padding: 6px 12px;">
                 Subscribe
             </button>

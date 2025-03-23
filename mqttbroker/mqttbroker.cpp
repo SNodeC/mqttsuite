@@ -136,8 +136,7 @@ static void insertTopic(Node& root, const std::string& topic) {
 // Compresses chains with exactly one child (i.e. concatenates keys)
 // until a branch or leaf is reached.
 // For expandable nodes, child rows are wrapped in a <tbody> (hidden by default) with a unique id.
-static std::string
-renderRows(const std::string& connectionName, const Node& node, const std::string& prefix, int level, int& groupCounter) {
+static std::string renderRows(const std::string& clientId, const Node& node, const std::string& prefix, int level, int& groupCounter) {
     std::ostringstream oss;
     for (const auto& pair : node.children) {
         std::string key = pair.first;
@@ -164,7 +163,7 @@ renderRows(const std::string& connectionName, const Node& node, const std::strin
             oss << "</tr>\n";
             // Render child rows inside a tbody that is hidden by default.
             oss << "<tbody id=\"" << groupId << "\" style=\"display:none;\">";
-            oss << renderRows(connectionName, *current, fullPath, level + 1, groupCounter);
+            oss << renderRows(clientId, *current, fullPath, level + 1, groupCounter);
             oss << "</tbody>\n";
         } else {
             // Leaf node: output a single row.
@@ -174,8 +173,8 @@ renderRows(const std::string& connectionName, const Node& node, const std::strin
             // Second column: topic text with left padding.
             oss << "<td style=\"padding-left:" << (20 * level) << "px;\">" << fullPath << "</td>";
             // Third column: Unsubscribe button triggering a JavaScript function.
-            oss << "<td style=\"padding-right: 0px;\"><button style=\"padding: 6px 12px;\" onclick=\"unsubscribe('" << connectionName
-                << "', '" << fullPath << "')\">Unsubscribe</button></td>";
+            oss << "<td style=\"padding-right: 0px;\"><button style=\"padding: 6px 12px;\" onclick=\"unsubscribe('" << clientId << "', '"
+                << fullPath << "')\">Unsubscribe</button></td>";
             oss << "</tr>\n";
         }
     }
@@ -202,14 +201,14 @@ static std::string getOverviewPage(inja::Environment& environment, mqtt::mqttbro
 
         const std::string windowId = "window" + std::to_string(reinterpret_cast<unsigned long long>(mqtt));
 
-        jsonDataRows.push_back({href(mqtt->getClientId(), "/client?" + mqtt->getConnectionName(), windowId, 450, 900),
-                                mqttModelEntry.onlineSince(),
-                                "<duration>" + mqttModelEntry.onlineDuration() + "</duration>",
-                                mqtt->getConnectionName(),
-                                socketConnection->getLocalAddress().toString(),
-                                socketConnection->getRemoteAddress().toString(),
-                                "<button  style=\"padding: 6px 12px;\" onClick=\"disconnectClient('" + mqtt->getConnectionName() +
-                                    "')\">Disconnect</button>"});
+        jsonDataRows.push_back(
+            {href(mqtt->getClientId(), "/client?" + mqtt->getClientId(), windowId, 450, 900),
+             mqttModelEntry.onlineSince(),
+             "<duration>" + mqttModelEntry.onlineDuration() + "</duration>",
+             mqtt->getConnectionName(),
+             socketConnection->getLocalAddress().toString(),
+             socketConnection->getRemoteAddress().toString(),
+             "<button  style=\"padding: 6px 12px;\" onClick=\"disconnectClient('" + mqtt->getClientId() + "')\">Disconnect</button>"});
     }
 
     return environment.render_file("OverviewPage.html", json);
@@ -246,8 +245,8 @@ static std::string getDetailedPage(inja::Environment& environment, const mqtt::m
                                                         {"Will QoS", std::to_string(mqtt->getWillQoS())},
                                                         {"Will Flag", mqtt->getWillFlag() ? "true" : "false"},
                                                         {"Will Retain", mqtt->getWillRetain() ? "true" : "false"}})},
-                                    {"table_rows", renderRows(mqtt->getConnectionName(), root, "", 0, groupCounter)},
-                                    {"connection_name", mqtt->getConnectionName()}});
+                                    {"table_rows", renderRows(mqtt->getClientId(), root, "", 0, groupCounter)},
+                                    {"client_id", mqtt->getClientId()}});
 }
 
 static std::string urlDecode(const std::string& encoded) {
@@ -294,8 +293,8 @@ static express::Router getRouter(inja::Environment& environment) {
                 std::string jsonString = json.dump(4);
                 VLOG(1) << "Application received JSON body\n" << jsonString;
 
-                std::string connectionName = json["connection_name"].get<std::string>();
-                const mqtt::mqttbroker::lib::Mqtt* mqtt = mqtt::mqttbroker::lib::MqttModel::instance().getMqtt(connectionName);
+                std::string clientId = json["client_id"].get<std::string>();
+                const mqtt::mqttbroker::lib::Mqtt* mqtt = mqtt::mqttbroker::lib::MqttModel::instance().getMqtt(clientId);
 
                 if (mqtt != nullptr) {
                     mqtt->getMqttContext()->getSocketConnection()->close();
@@ -317,10 +316,10 @@ static express::Router getRouter(inja::Environment& environment) {
                 std::string jsonString = json.dump(4);
                 VLOG(1) << "Application received JSON body\n" << jsonString;
 
-                std::string connectionName = json["connection_name"].get<std::string>();
+                std::string clientId = json["client_id"].get<std::string>();
                 std::string topic = json["topic"].get<std::string>();
 
-                const mqtt::mqttbroker::lib::Mqtt* mqtt = mqtt::mqttbroker::lib::MqttModel::instance().getMqtt(connectionName);
+                const mqtt::mqttbroker::lib::Mqtt* mqtt = mqtt::mqttbroker::lib::MqttModel::instance().getMqtt(clientId);
 
                 if (mqtt != nullptr) {
                     mqtt->unsubscribe(topic);
@@ -342,11 +341,11 @@ static express::Router getRouter(inja::Environment& environment) {
                 std::string jsonString = json.dump(4);
                 VLOG(1) << "Application received JSON body\n" << jsonString;
 
-                std::string connectionName = json["connection_name"].get<std::string>();
+                std::string clientId = json["client_id"].get<std::string>();
                 std::string topic = json["topic"].get<std::string>();
                 uint8_t qoS = json["qos"].get<uint8_t>();
 
-                const mqtt::mqttbroker::lib::Mqtt* mqtt = mqtt::mqttbroker::lib::MqttModel::instance().getMqtt(connectionName);
+                const mqtt::mqttbroker::lib::Mqtt* mqtt = mqtt::mqttbroker::lib::MqttModel::instance().getMqtt(clientId);
 
                 if (mqtt != nullptr) {
                     mqtt->subscribe(topic, qoS);

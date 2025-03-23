@@ -9,11 +9,11 @@ function toggleGroup(id, btn) {
     }
 }
 
-function unsubscribe(connectionName, topic) {
+function unsubscribe(clientId, topic) {
     fetch("/unsubscribe", {
         "method": "POST",
         "body": JSON.stringify({
-            "connection_name": connectionName,
+            "client_id": clientId,
             "topic": topic
         }),
         "headers": {
@@ -42,11 +42,11 @@ function unsubscribe(connectionName, topic) {
     })
 }
 
-function subscribe(connectionName, topic, qoS) {
+function subscribe(clientId, topic, qoS) {
     fetch("/subscribe", {
         "method": "POST",
         "body": JSON.stringify({
-            "connection_name": connectionName,
+            "client_id": clientId,
             "topic": topic,
             "qos": qoS
         }),
