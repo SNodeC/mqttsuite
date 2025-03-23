@@ -113,22 +113,24 @@ static std::string href(const std::string& text, const std::string& link) {
 }
 
 static std::string href(const std::string& text, const std::string& url, const std::string& windowId, uint16_t width, uint16_t height) {
-    return "<a href=\"#\" onClick=\"" + windowId + "=window.open('" + url + "', '" + windowId + "', 'width=" + std::to_string(width) +
-           ", height=" + std::to_string(height) +
-           ",location=no, menubar=no, status=no, toolbar=no'); return false;\" style=\"color:inherit;\">" + text + "</a>";
+    return "<a href=\"#\" onClick=\""
+           "let key = '" +
+           windowId +
+           "'; "
+           "if (!localStorage.getItem(key)) "
+           "  localStorage.setItem(key, key + '-' + Math.random().toString(36).substr(2, 6)); "
+           "let uniqueId = localStorage.getItem(key); "
+           "if (!window._openWindows) window._openWindows = {}; "
+           "if (!window._openWindows[uniqueId] || window._openWindows[uniqueId].closed) { "
+           "  window._openWindows[uniqueId] = window.open('" +
+           url + "', uniqueId, 'width=" + std::to_string(width) + ", height=" + std::to_string(height) +
+           ",location=no, menubar=no, status=no, toolbar=no'); "
+           "} else { "
+           "  window._openWindows[uniqueId].focus(); "
+           "} return false;\" "
+           "style=\"color:inherit;\">" +
+           text + "</a>";
 }
-
-// --- Tree structure for topics ---
-struct Node {
-    std::map<std::string, Node> children;
-};
-
-struct TopicNode {
-    std::string name;
-    std::string fullPath;
-    bool isWildcard = false;
-    std::map<std::string, TopicNode*> children{};
-};
 
 static std::string getOverviewPage(inja::Environment& environment, mqtt::mqttbroker::lib::MqttModel& mqttModel) {
     inja::json json;
