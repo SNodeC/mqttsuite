@@ -1,0 +1,47 @@
+/* Outer container */
+subscribe {
+    padding: 10px 10px 10px;
+
+    /* Table styles (assumes this is the only table in that div) */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        border: 1px solid #ccc;
+    }
+
+    /* Header cell styling */
+    table thead th {
+        background-color: #e0e0e0;
+        padding: 8px;
+        text-align: left;
+    }
+
+    /* table cell styling */
+    table tbody td {
+        padding: 10px;
+    }
+
+    /* Container for the form inside the table cell */
+    table tbody td > div {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    /* Text input styling */
+    table tbody td > div input[type="text"] {
+        padding: 6px;
+        flex: 1;
+    }
+
+    /* Number input styling */
+    table tbody td > div input[type="number"] {
+        width: 40px;
+        padding: 6px;
+    }
+
+    /* Button styling */
+    table tbody td > div button {
+        padding: 6px 12px;
+    }
+}

@@ -1,9 +1,10 @@
-function unsubscribe(clientId, topic) {
-    fetch("/unsubscribe", {
+function subscribe(clientId, topic, qoS) {
+    fetch("/subscribe", {
         "method": "POST",
         "body": JSON.stringify({
             "client_id": clientId,
-            "topic": topic
+            "topic": topic,
+            "qos": qoS
         }),
         "headers": {
             "Content-type": "application/json; charset=UTF-8"

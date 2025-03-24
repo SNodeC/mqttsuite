@@ -7,37 +7,22 @@
 </script>
 
 <topics_tree>
-    <div class="input-container" style="margin: 20px 10px;">
-        <h2 style="background-color: #e0e0e0; padding: 6px 12px; margin-bottom: 10px;">Subscribed Topics</h2>
-        <div class="table-scroll">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Topic</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for topic in topics %}
-                       <tr>
-                           <td>{{ topic }}</td>
-                           <td><button class="red-btn" onclick="unsubscribe('{{ client_id }}', '{{ topic }}')">Unsubscribe</button></td>
-                       </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-    <div class="input-container" style="margin: 20px 10px;">
-        <h2 style="background-color: #e0e0e0; padding: 6px 12px; margin-bottom: 10px;">Subscribe</h2>
-        <div style="display: flex; gap: 10px; align-items: center;">
-            <input type="text" id="subscribeInput" placeholder="Enter topic to subscribe" style="padding: 6px; flex: 1;">
-            <input type="number" id="qosInput" min="0" max="2" value="0" style="width: 40px; padding: 6px;">
-            <button class="blue-btn"
-                onclick="subscribe('{{ client_id }}', document.getElementById('subscribeInput').value, parseInt(document.getElementById('qosInput').value))"
-                style="padding: 6px 12px;">
-                Subscribe
-            </button>
-        </div>
+    <div class="table-scroll">
+        <table>
+            <thead>
+                <tr>
+                    <th style="text-align: left;">Subscribed Topic</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for topic in topics %}
+                   <tr>
+                       <td>{{ topic }}</td>
+                       <td><button class="red-btn" onclick="unsubscribe('{{ client_id }}', '{{ topic }}')">Unsubscribe</button></td>
+                   </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </topics_tree>
