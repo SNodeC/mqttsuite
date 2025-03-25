@@ -439,11 +439,11 @@ void startServer(const std::string& instanceName, SocketContextFactoryArgs&&... 
 
 template <typename HttpExpressServer>
 void startServer(const std::string& instanceName,
-                 inja::Environment& environment,
+                 const express::Router& router,
                  const std::function<void(typename HttpExpressServer::Config&)>& configurator = nullptr) {
     using SocketAddress = typename HttpExpressServer::SocketAddress;
 
-    const HttpExpressServer httpExpressServer(instanceName, getRouter(environment));
+    const HttpExpressServer httpExpressServer(instanceName, router);
 
     if (configurator != nullptr) {
         configurator(httpExpressServer.getConfig());
@@ -502,20 +502,21 @@ int main(int argc, char* argv[]) {
     });
 
     inja::Environment environment{utils::Config::getStringOptionValue("--html-dir") + "/"};
+    express::Router router = getRouter(environment);
 
-    startServer<express::legacy::in::WebApp>("in-http", environment, [](auto& config) {
+    startServer<express::legacy::in::WebApp>("in-http", router, [](auto& config) {
         config.setPort(8080);
         config.setRetry();
         config.setDisableNagleAlgorithm();
     });
 
-    startServer<express::tls::in::WebApp>("in-https", environment, [](auto& config) {
+    startServer<express::tls::in::WebApp>("in-https", router, [](auto& config) {
         config.setPort(8088);
         config.setRetry();
         config.setDisableNagleAlgorithm();
     });
 
-    startServer<express::legacy::in6::WebApp>("in6-http", environment, [](auto& config) {
+    startServer<express::legacy::in6::WebApp>("in6-http", router, [](auto& config) {
         config.setPort(8080);
         config.setRetry();
         config.setDisableNagleAlgorithm();
@@ -523,7 +524,7 @@ int main(int argc, char* argv[]) {
         config.setIPv6Only();
     });
 
-    startServer<express::tls::in6::WebApp>("in6-https", environment, [](auto& config) {
+    startServer<express::tls::in6::WebApp>("in6-https", router, [](auto& config) {
         config.setPort(8088);
         config.setRetry();
         config.setDisableNagleAlgorithm();
