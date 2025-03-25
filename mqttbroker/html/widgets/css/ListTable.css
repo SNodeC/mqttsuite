@@ -1,0 +1,32 @@
+list-table {
+    overflow: hidden;
+    flex: 1 1 auto;
+    padding: 10px;
+
+    .table {
+        overflow: auto;
+        border: 1px solid #ccc;
+        height: 100%;
+
+        td:nth-child(1),
+        td:nth-child(2),
+        td:nth-child(3),
+        td:nth-child(4) {
+            white-space: nowrap;
+        }
+        td:nth-child(3) {
+            text-align: right;
+        }
+        td:nth-child(7) {
+            text-align: center;
+        }
+    }
+    .table.fixed {
+        table {
+            table-layout: fixed;
+        }
+        tbody tr:last-child {
+            border: 0px solid #ccc
+        }
+    }
+}
