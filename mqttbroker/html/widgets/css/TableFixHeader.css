@@ -44,7 +44,8 @@ main {
         td:nth-child(7) {
             text-align: center;
         }
-        border: 1px solid #ccc;
+        border-bottom: 1px solid #ccc;
+        border-right: 1px solid #ccc;
     }
     .tableFixHead.fixed {
         table {

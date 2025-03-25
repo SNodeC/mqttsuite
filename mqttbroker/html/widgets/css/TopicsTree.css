@@ -28,7 +28,8 @@ topics_tree {
     .table-scroll {
         max-height: calc(5 * 42px); /* Approx row height, adjust as needed */
         overflow-y: auto;
-        border: 1px solid #ccc;
+        border-bottom: 1px solid #ccc;
+        border-right: 1px solid #ccc;
     }
     /* Ensure nested table fills width */
     .table-scroll td:first-child {
