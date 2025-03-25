@@ -1,14 +1,18 @@
 <table>
-    <tr>
+    <thead>
+        <tr>
 ## for element in header_row
-        <th>{{ element }}</th>
+            <th>{{ element }}</th>
 ## endfor
-    </tr>
+        </tr>
+    </thead>
+    <tbody>
 ## for data_row in data_rows
-    <tr>
+        <tr>
 ## for element in data_row
-        <td>{{ element }}</td>
+            <td>{{ element }}</td>
 ## endfor
-    </tr>
+        </tr>
 ## endfor
+    </tbody>
 </table>

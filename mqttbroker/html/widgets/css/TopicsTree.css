@@ -1,42 +1,50 @@
 topics_tree {
+    box-sizing: border-box;
     padding: 10px;
-    body {
-        padding: 10px;
-        font-family: sans-serif;
-    }
-    table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-    th {
-        position: sticky;
-        top: -1;
-        z-index: 1;
-        background-color: #e0e0e0;
-    }
-    th,
-    td {
-        border: 1px solid #ccc;
-        padding: 8px;
-    }
-    tr:nth-child(even) {
-        background-color: #f9f9f9; /* light gray */
-    }
-    tr:nth-child(odd) {
-        background-color: #ffffff;
-    }
+
     .table-scroll {
-        max-height: calc(5 * 42px); /* Approx row height, adjust as needed */
         overflow-y: auto;
-        border-bottom: 1px solid #ccc;
-        border-right: 1px solid #ccc;
-    }
-    /* Ensure nested table fills width */
-    .table-scroll td:first-child {
-        width: 100%; /* allow it to expand */
-    }
-    .table-scroll td:last-child {
-        white-space: nowrap; /* prevent button text from wrapping */
-        width: 1%;
+        max-height: calc(5 * 42px); /* Approx row height, adjust as needed */
+        border: 1px solid #ccc;
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        tr {
+            border-bottom: 1px solid #ccc;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9; /* light gray */
+        }
+        tr:nth-child(odd) {
+            background-color: #ffffff;
+        }
+        tr:last-child {
+            border: 0px solid #ccc
+        }
+        tr:hover {
+            background-color: #e0e0e0;
+        }
+        thead tr:last-child {
+            border: 1px solid #ccc;
+        }
+        th,
+        td {
+            padding: 12px;
+            border-right: 1px solid #ccc;
+        }
+        th {
+            position: sticky;
+            top: -1;
+            z-index: 1;
+            background-color: #e0e0e0;
+        }
+        td:first-child {
+            width: 100%; /* allow it to expand */
+        }
+        td:last-child {
+               white-space: nowrap; /* prevent button text from wrapping */
+               width: 1%;
+        }
     }
 }

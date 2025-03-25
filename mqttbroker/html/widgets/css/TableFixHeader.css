@@ -6,31 +6,42 @@ main {
     padding-right: 10px;
     padding-top: 20px;
     padding-bottom: 10px;
+
     .tableFixHead {
         overflow: auto;
         height: 100%;
+        border: 1px solid #ccc;
         table {
             width: 100%;
             border-collapse: collapse;
         }
-        th {
-            position: sticky;
-            top: 0;
-            z-index: 1;
-            background-color: #e0e0e0;
+        tr {
+            border-bottom: 1px solid #ccc;
         }
         tr:nth-child(even) {
-            background-color: #f9f9f9;
+            background-color: #f9f9f9; /* light gray */
+        }
+        tr:nth-child(odd) {
+            background-color: #ffffff;
         }
         tr:hover {
             background-color: #e0e0e0;
         }
+        thead tr:last-child {
+            border-bottom: 1px solid #ccc;
+        }
         th,
         td {
             padding: 12px;
-            box-shadow:
-                inset 0px 0px 0px 1px #ccc,
-                inset 0px 0px 0px 0px #ccc;
+            border-right: 1px solid #ccc;
+        }
+        th {
+            position: sticky;
+            top: -1;
+            z-index: 1;
+            background-color: #e0e0e0;
+        }
+        td {
         }
         td:nth-child(1),
         td:nth-child(2),
@@ -44,12 +55,13 @@ main {
         td:nth-child(7) {
             text-align: center;
         }
-        border-bottom: 1px solid #ccc;
-        border-right: 1px solid #ccc;
     }
     .tableFixHead.fixed {
         table {
             table-layout: fixed;
+        }
+        tbody tr:last-child {
+            border: 0px solid #ccc
         }
     }
     .disconnect-btn {
