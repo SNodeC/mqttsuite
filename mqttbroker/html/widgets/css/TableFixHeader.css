@@ -2,10 +2,7 @@ main {
     flex: 1 1 auto;
     overflow: hidden;
     box-sizing: border-box;
-    padding-left: 10px;
-    padding-right: 10px;
-    padding-top: 20px;
-    padding-bottom: 10px;
+    padding: 10px;
 
     .tableFixHead {
         overflow: auto;
@@ -37,7 +34,7 @@ main {
         }
         th {
             position: sticky;
-            top: -1;
+            top: 0;
             z-index: 1;
             background-color: #e0e0e0;
         }

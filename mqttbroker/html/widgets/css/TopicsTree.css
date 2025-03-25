@@ -3,7 +3,7 @@ topics_tree {
     padding: 10px;
 
     .table-scroll {
-        overflow-y: auto;
+        overflow: auto;
         max-height: calc(5 * 42px); /* Approx row height, adjust as needed */
         border: 1px solid #ccc;
         table {
@@ -35,7 +35,7 @@ topics_tree {
         }
         th {
             position: sticky;
-            top: -1;
+            top: 0;
             z-index: 1;
             background-color: #e0e0e0;
         }
