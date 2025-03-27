@@ -1,4 +1,4 @@
-<p align="center"><img src="./docs/assets/Logo/Logo-Full.png" style="width: 50%;" /></p>
+<p align="center"><img src="./docs/assets/Logo/Logo-New-Full.png" style="width: 50%;" /></p>
 
 The [*MQTTSuite*](https://snodec.github.io/mqttsuite-doc/html/index.html) project is a lightweight MQTT integration system and consist of three applications *MQTTBroker*, *MQTTIntegrator* and *MQTTBridge* powered by *[SNode.C](https://github.com/VolkerChristian/snode.c)*, a single threaded, single tasking framework for networking applications written entirely in C++. Due to it's little resource usage it is especially usable on resource limited systems.
 
