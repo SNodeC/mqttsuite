@@ -59,7 +59,7 @@ The [*MQTTSuite*](https://snodec.github.io/mqttsuite-doc/html/index.html) projec
             * [<strong>JSON</strong> Mapping](#json-mapping)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: runner, at: Thu Mar 27 15:08:09 UTC 2025 -->
+<!-- Added by: runner, at: Thu Mar 27 16:49:17 UTC 2025 -->
 
 <!--te-->
 
