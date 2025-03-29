@@ -48,8 +48,7 @@ if(DOXYGEN_FOUND)
 
     if(BUILD_DOCUMENTATION)
         get_filename_component(
-            SNODEC_DOC_ROOTDIR "${CMAKE_SOURCE_DIR}/../mqttsuite-doc/"
-            ABSOLUTE
+            SNODEC_DOC_ROOTDIR "${CMAKE_SOURCE_DIR}/../mqttsuite-doc/" ABSOLUTE
         )
 
         set(DOXYFILE_IN ${CMAKE_SOURCE_DIR}/docs/Doxygen.in)
