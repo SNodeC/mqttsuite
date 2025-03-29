@@ -48,7 +48,7 @@ if(DOXYGEN_FOUND)
 
     if(BUILD_DOCUMENTATION)
         get_filename_component(
-            SNODEC_DOC_ROOTDIR "${CMAKE_SOURCE_DIR}/../mqttbroker-doc/"
+            SNODEC_DOC_ROOTDIR "${CMAKE_SOURCE_DIR}/../mqttsuite-doc/"
             ABSOLUTE
         )
 
