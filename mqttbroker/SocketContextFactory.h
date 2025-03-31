@@ -42,18 +42,28 @@
 #ifndef APPS_MQTTBROKER_BROKER_SOCKETCONTEXTFACTORY_H
 #define APPS_MQTTBROKER_BROKER_SOCKETCONTEXTFACTORY_H
 
-#include <iot/mqtt/server/SharedSocketContextFactory.h> // IWYU pragma: export
+#include <core/socket/stream/SocketContextFactory.h> // IWYU pragma: export
+
+namespace iot::mqtt::server::broker {
+    class Broker;
+}
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
+
+#include <memory>
 
 #endif
 
 namespace mqtt::mqttbroker {
 
-    class SharedSocketContextFactory : public iot::mqtt::server::SharedSocketContextFactory {
+    class SocketContextFactory : public core::socket::stream::SocketContextFactory {
     public:
-        core::socket::stream::SocketContext* create(core::socket::stream::SocketConnection* socketConnection,
-                                                    std::shared_ptr<iot::mqtt::server::broker::Broker> broker) final;
+        explicit SocketContextFactory(const std::shared_ptr<iot::mqtt::server::broker::Broker> broker);
+
+        core::socket::stream::SocketContext* create(core::socket::stream::SocketConnection* socketConnectionr) final;
+
+    private:
+        const std::shared_ptr<iot::mqtt::server::broker::Broker> broker;
     };
 
 } // namespace mqtt::mqttbroker

@@ -73,8 +73,10 @@ namespace mqtt::mqttintegrator::websocket {
             subProtocol = new iot::mqtt::client::SubProtocol(
                 subProtocolContext,
                 getName(),
-                new mqtt::mqttintegrator::lib::Mqtt(
-                    subProtocolContext->getSocketConnection()->getConnectionName(), mappingJson["connection"], mappingJson["mapping"]));
+                new mqtt::mqttintegrator::lib::Mqtt(subProtocolContext->getSocketConnection()->getConnectionName(),
+                                                    mappingJson["connection"],
+                                                    mappingJson["mapping"],
+                                                    utils::Config::getStringOptionValue("--mqtt-session-store")));
         }
 
         return subProtocol;

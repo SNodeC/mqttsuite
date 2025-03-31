@@ -39,7 +39,7 @@
  * THE SOFTWARE.
  */
 
-#include "SharedSocketContextFactory.h"
+#include "SocketContextFactory.h"
 #include "lib/Mqtt.h"
 #include "lib/MqttModel.h"
 
@@ -67,6 +67,7 @@
 #include <express/middleware/JsonMiddleware.h>
 #include <express/tls/in/WebApp.h>
 #include <express/tls/in6/WebApp.h>
+#include <iot/mqtt/server/broker/Broker.h>
 #include <net/in/stream/legacy/SocketServer.h>
 #include <net/in/stream/tls/SocketServer.h>
 #include <net/un/stream/legacy/SocketServer.h>
@@ -461,45 +462,64 @@ int main(int argc, char* argv[]) {
 
     core::SNodeC::init(argc, argv);
 
-    setenv("MQTT_SESSION_STORE", utils::Config::getStringOptionValue("--mqtt-session-store").data(), 0);
+    std::shared_ptr<iot::mqtt::server::broker::Broker> broker =
+        iot::mqtt::server::broker::Broker::instance(SUBSCRIBTION_MAX_QOS, utils::Config::getStringOptionValue("--mqtt-session-store"));
 
-    startServer<net::in::stream::legacy::SocketServer, mqtt::mqttbroker::SharedSocketContextFactory>("in-mqtt", [](auto& config) {
-        config.setPort(1883);
-        config.setRetry();
-        config.setDisableNagleAlgorithm();
-    });
+    startServer<net::in::stream::legacy::SocketServer, mqtt::mqttbroker::SocketContextFactory>(
+        "in-mqtt",
+        [](auto& config) {
+            config.setPort(1883);
+            config.setRetry();
+            config.setDisableNagleAlgorithm();
+        },
+        broker);
 
-    startServer<net::in::stream::tls::SocketServer, mqtt::mqttbroker::SharedSocketContextFactory>("in-mqtts", [](auto& config) {
-        config.setPort(8883);
-        config.setRetry();
-        config.setDisableNagleAlgorithm();
-    });
+    startServer<net::in::stream::tls::SocketServer, mqtt::mqttbroker::SocketContextFactory>(
+        "in-mqtts",
+        [](auto& config) {
+            config.setPort(8883);
+            config.setRetry();
+            config.setDisableNagleAlgorithm();
+        },
+        broker);
 
-    startServer<net::in6::stream::legacy::SocketServer, mqtt::mqttbroker::SharedSocketContextFactory>("in6-mqtt", [](auto& config) {
-        config.setPort(1883);
-        config.setRetry();
-        config.setDisableNagleAlgorithm();
+    startServer<net::in6::stream::legacy::SocketServer, mqtt::mqttbroker::SocketContextFactory>(
+        "in6-mqtt",
+        [](auto& config) {
+            config.setPort(1883);
+            config.setRetry();
+            config.setDisableNagleAlgorithm();
 
-        config.setIPv6Only();
-    });
+            config.setIPv6Only();
+        },
+        broker);
 
-    startServer<net::in6::stream::tls::SocketServer, mqtt::mqttbroker::SharedSocketContextFactory>("in6-mqtts", [](auto& config) {
-        config.setPort(8883);
-        config.setRetry();
-        config.setDisableNagleAlgorithm();
+    startServer<net::in6::stream::tls::SocketServer, mqtt::mqttbroker::SocketContextFactory>(
+        "in6-mqtts",
+        [](auto& config) {
+            config.setPort(8883);
+            config.setRetry();
+            config.setDisableNagleAlgorithm();
 
-        config.setIPv6Only();
-    });
+            config.setIPv6Only();
+        },
+        broker);
 
-    startServer<net::un::stream::legacy::SocketServer, mqtt::mqttbroker::SharedSocketContextFactory>("un-mqtt", [](auto& config) {
-        config.setSunPath("/tmp/" + utils::Config::getApplicationName() + "-" + config.getInstanceName());
-        config.setRetry();
-    });
+    startServer<net::un::stream::legacy::SocketServer, mqtt::mqttbroker::SocketContextFactory>(
+        "un-mqtt",
+        [](auto& config) {
+            config.setSunPath("/tmp/" + utils::Config::getApplicationName() + "-" + config.getInstanceName());
+            config.setRetry();
+        },
+        broker);
 
-    startServer<net::un::stream::tls::SocketServer, mqtt::mqttbroker::SharedSocketContextFactory>("un-mqtts", [](auto& config) {
-        config.setSunPath("/tmp/" + utils::Config::getApplicationName() + "-" + config.getInstanceName());
-        config.setRetry();
-    });
+    startServer<net::un::stream::tls::SocketServer, mqtt::mqttbroker::SocketContextFactory>(
+        "un-mqtts",
+        [](auto& config) {
+            config.setSunPath("/tmp/" + utils::Config::getApplicationName() + "-" + config.getInstanceName());
+            config.setRetry();
+        },
+        broker);
 
     inja::Environment environment{utils::Config::getStringOptionValue("--html-dir") + "/"};
     express::Router router = getRouter(environment);

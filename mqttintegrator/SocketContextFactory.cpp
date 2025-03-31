@@ -58,6 +58,10 @@
 
 namespace mqtt::mqttintegrator {
 
+    SocketContextFactory::SocketContextFactory(const std::string& sessionStoreFileName)
+        : sessionStoreFileName(sessionStoreFileName) {
+    }
+
     core::socket::stream::SocketContext* SocketContextFactory::create(core::socket::stream::SocketConnection* socketConnection) {
         iot::mqtt::SocketContext* socketContext = nullptr;
 
@@ -65,10 +69,10 @@ namespace mqtt::mqttintegrator {
             mqtt::lib::JsonMappingReader::readMappingFromFile(utils::Config::getStringOptionValue("--mqtt-mapping-file"));
 
         if (mappingJson.contains("connection")) {
-            socketContext =
-                new iot::mqtt::SocketContext(socketConnection,
-                                             new mqtt::mqttintegrator::lib::Mqtt(
-                                                 socketConnection->getConnectionName(), mappingJson["connection"], mappingJson["mapping"]));
+            socketContext = new iot::mqtt::SocketContext(
+                socketConnection,
+                new mqtt::mqttintegrator::lib::Mqtt(
+                    socketConnection->getConnectionName(), mappingJson["connection"], mappingJson["mapping"], sessionStoreFileName));
         }
 
         return socketContext;

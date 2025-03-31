@@ -108,6 +108,7 @@ namespace mqtt::bridge::lib {
                                                 const nlohmann::json& connection = brokerConfigJson["connection"];
                                                 brokers.emplace(brokerConfigJson["instance_name"],
                                                                 Broker(bridge,
+                                                                       brokerConfigJson["session_store"],
                                                                        connection["client_id"],
                                                                        connection["keep_alive"],
                                                                        connection["clean_session"],

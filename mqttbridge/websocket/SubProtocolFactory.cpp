@@ -50,7 +50,6 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <cstdint>
-#include <cstdlib>
 #include <list>
 #include <log/Logger.h>
 
@@ -67,9 +66,8 @@ namespace mqtt::mqttbridge::websocket {
     iot::mqtt::client::SubProtocol* SubProtocolFactory::create(web::websocket::SubProtocolContext* subProtocolContext) {
         iot::mqtt::client::SubProtocol* subProtocol = nullptr;
 
-        const std::string& instanceName = subProtocolContext->getSocketConnection()->getInstanceName();
-
-        const mqtt::bridge::lib::Broker& broker = mqtt::bridge::lib::BridgeStore::instance().getBroker(instanceName);
+        const mqtt::bridge::lib::Broker& broker =
+            mqtt::bridge::lib::BridgeStore::instance().getBroker(subProtocolContext->getSocketConnection()->getInstanceName());
 
         VLOG(1) << "  Creating Broker instance '" << broker.getInstanceName() << "' of Bridge '" << broker.getBridge().getName() << "'";
         VLOG(1) << "    Bridge client id : " << broker.getClientId();
@@ -96,16 +94,5 @@ namespace mqtt::mqttbridge::websocket {
 } // namespace mqtt::mqttbridge::websocket
 
 extern "C" mqtt::mqttbridge::websocket::SubProtocolFactory* mqttClientSubProtocolFactory() {
-    mqtt::mqttbridge::websocket::SubProtocolFactory* subProtocolFactory = nullptr;
-
-    const char* bridgeConfigFileEnvPtr = std::getenv("BRIDGE_CONFIG");
-    const std::string& bridgeConfigFile = (bridgeConfigFileEnvPtr != nullptr) ? bridgeConfigFileEnvPtr : "";
-
-    const bool success = mqtt::bridge::lib::BridgeStore::instance().loadAndValidate(bridgeConfigFile);
-
-    if (success) {
-        subProtocolFactory = new mqtt::mqttbridge::websocket::SubProtocolFactory();
-    }
-
-    return subProtocolFactory;
+    return new mqtt::mqttbridge::websocket::SubProtocolFactory();
 }

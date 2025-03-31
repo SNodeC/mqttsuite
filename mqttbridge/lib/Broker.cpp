@@ -50,6 +50,7 @@
 namespace mqtt::bridge::lib {
 
     Broker::Broker(Bridge& bridge,
+                   const std::string& sessionStoreFileName,
                    std::string&& clientId,
                    uint16_t keepAlive,
                    bool cleanSession,
@@ -66,6 +67,7 @@ namespace mqtt::bridge::lib {
                    std::string&& transport,
                    std::list<iot::mqtt::Topic>&& topics)
         : bridge(bridge)
+        , sessionStoreFileName(sessionStoreFileName)
         , clientId(clientId)
         , keepAlive(keepAlive)
         , cleanSession(cleanSession)
@@ -85,6 +87,10 @@ namespace mqtt::bridge::lib {
 
     Bridge& Broker::getBridge() const {
         return bridge;
+    }
+
+    const std::string& Broker::getSessionStoreFileName() const {
+        return sessionStoreFileName;
     }
 
     const std::string& Broker::getClientId() const {

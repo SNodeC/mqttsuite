@@ -43,6 +43,7 @@
 #define APPS_MQTTBROKER_MQTTINTEGRATOR_SOCKETCONTEXTFACTORY_H
 
 #include <core/socket/stream/SocketContextFactory.h> // IWYU pragma: export
+#include <string>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
@@ -52,7 +53,12 @@ namespace mqtt::mqttintegrator {
 
     class SocketContextFactory : public core::socket::stream::SocketContextFactory {
     public:
+        SocketContextFactory(const std::string& sessionStoreFileName);
+
         core::socket::stream::SocketContext* create(core::socket::stream::SocketConnection* socketConnection) final;
+
+    private:
+        std::string sessionStoreFileName;
     };
 
 } // namespace mqtt::mqttintegrator

@@ -59,8 +59,8 @@ find_package(
                mqtt-server
 )
 
-set(MQTTBROKER_CPP mqttbroker.cpp SharedSocketContextFactory.cpp)
-set(MQTTBROKER_H SharedSocketContextFactory.h)
+set(MQTTBROKER_CPP mqttbroker.cpp SocketContextFactory.cpp)
+set(MQTTBROKER_H SocketContextFactory.h)
 
 set_property(
     SOURCE mqttbroker.cpp

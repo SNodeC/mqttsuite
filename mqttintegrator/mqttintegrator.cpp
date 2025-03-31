@@ -186,59 +186,77 @@ int main(int argc, char* argv[]) {
 
     core::SNodeC::init(argc, argv);
 
-    setenv("MQTT_SESSION_STORE", utils::Config::getStringOptionValue("--mqtt-session-store").data(), 0);
+    std::string sessionStoreFileName = utils::Config::getStringOptionValue("--mqtt-session-store");
 
-    startClient<net::in::stream::legacy::SocketClient, mqtt::mqttintegrator::SocketContextFactory>("in-mqtt", [](auto& config) {
-        config.Remote::setPort(1883);
+    startClient<net::in::stream::legacy::SocketClient, mqtt::mqttintegrator::SocketContextFactory>(
+        "in-mqtt",
+        [](auto& config) {
+            config.Remote::setPort(1883);
 
-        config.setRetry();
-        config.setRetryBase(1);
-        config.setReconnect();
-        config.setDisableNagleAlgorithm();
-    });
+            config.setRetry();
+            config.setRetryBase(1);
+            config.setReconnect();
+            config.setDisableNagleAlgorithm();
+        },
+        sessionStoreFileName);
 
-    startClient<net::in::stream::tls::SocketClient, mqtt::mqttintegrator::SocketContextFactory>("in-mqtts", [](auto& config) {
-        config.Remote::setPort(8883);
+    startClient<net::in::stream::tls::SocketClient, mqtt::mqttintegrator::SocketContextFactory>(
+        "in-mqtts",
+        [](auto& config) {
+            config.Remote::setPort(8883);
 
-        config.setRetry();
-        config.setRetryBase(1);
-        config.setReconnect();
-        config.setDisableNagleAlgorithm();
-    });
+            config.setRetry();
+            config.setRetryBase(1);
+            config.setReconnect();
+            config.setDisableNagleAlgorithm();
+        },
+        sessionStoreFileName);
 
-    startClient<net::in6::stream::legacy::SocketClient, mqtt::mqttintegrator::SocketContextFactory>("in6-mqtt", [](auto& config) {
-        config.Remote::setPort(1883);
+    startClient<net::in6::stream::legacy::SocketClient, mqtt::mqttintegrator::SocketContextFactory>(
+        "in6-mqtt",
+        [](auto& config) {
+            config.Remote::setPort(1883);
 
-        config.setRetry();
-        config.setRetryBase(1);
-        config.setReconnect();
-        config.setDisableNagleAlgorithm();
-    });
+            config.setRetry();
+            config.setRetryBase(1);
+            config.setReconnect();
+            config.setDisableNagleAlgorithm();
+        },
+        sessionStoreFileName);
 
-    startClient<net::in6::stream::tls::SocketClient, mqtt::mqttintegrator::SocketContextFactory>("in6-mqtts", [](auto& config) {
-        config.Remote::setPort(8883);
+    startClient<net::in6::stream::tls::SocketClient, mqtt::mqttintegrator::SocketContextFactory>(
+        "in6-mqtts",
+        [](auto& config) {
+            config.Remote::setPort(8883);
 
-        config.setRetry();
-        config.setRetryBase(1);
-        config.setReconnect();
-        config.setDisableNagleAlgorithm();
-    });
+            config.setRetry();
+            config.setRetryBase(1);
+            config.setReconnect();
+            config.setDisableNagleAlgorithm();
+        },
+        sessionStoreFileName);
 
-    startClient<net::un::stream::legacy::SocketClient, mqtt::mqttintegrator::SocketContextFactory>("un-mqtt", [](auto& config) {
-        config.Remote::setSunPath("/var/mqttbroker-un-mqtt");
+    startClient<net::un::stream::legacy::SocketClient, mqtt::mqttintegrator::SocketContextFactory>(
+        "un-mqtt",
+        [](auto& config) {
+            config.Remote::setSunPath("/var/mqttbroker-un-mqtt");
 
-        config.setRetry();
-        config.setRetryBase(1);
-        config.setReconnect();
-    });
+            config.setRetry();
+            config.setRetryBase(1);
+            config.setReconnect();
+        },
+        sessionStoreFileName);
 
-    startClient<net::un::stream::tls::SocketClient, mqtt::mqttintegrator::SocketContextFactory>("un-mqtts", [](auto& config) {
-        config.Remote::setSunPath("/var/mqttbroker-un-mqtts");
+    startClient<net::un::stream::tls::SocketClient, mqtt::mqttintegrator::SocketContextFactory>(
+        "un-mqtts",
+        [](auto& config) {
+            config.Remote::setSunPath("/var/mqttbroker-un-mqtts");
 
-        config.setRetry();
-        config.setRetryBase(1);
-        config.setReconnect();
-    });
+            config.setRetry();
+            config.setRetryBase(1);
+            config.setReconnect();
+        },
+        sessionStoreFileName);
 
     startClient<web::http::legacy::in::Client>("in-wsmqtt", [](auto& config) {
         config.Remote::setPort(8080);

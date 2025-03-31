@@ -39,7 +39,7 @@
  * THE SOFTWARE.
  */
 
-#include "SharedSocketContextFactory.h"
+#include "SocketContextFactory.h"
 
 #include "lib/JsonMappingReader.h"
 #include "mqttbroker/lib/Mqtt.h"
@@ -58,12 +58,15 @@
 
 namespace mqtt::mqttbroker {
 
-    core::socket::stream::SocketContext* SharedSocketContextFactory::create(core::socket::stream::SocketConnection* socketConnection,
-                                                                            std::shared_ptr<iot::mqtt::server::broker::Broker> broker) {
+    SocketContextFactory::SocketContextFactory(const std::shared_ptr<iot::mqtt::server::broker::Broker> broker)
+        : broker(broker) {
+    }
+
+    core::socket::stream::SocketContext* SocketContextFactory::create(core::socket::stream::SocketConnection* socketConnectionr) {
         return new iot::mqtt::SocketContext(
-            socketConnection,
+            socketConnectionr,
             new mqtt::mqttbroker::lib::Mqtt(
-                socketConnection->getConnectionName(),
+                socketConnectionr->getConnectionName(),
                 broker,
                 mqtt::lib::JsonMappingReader::readMappingFromFile(utils::Config::getStringOptionValue("--mqtt-mapping-file"))["mapping"]));
     }

@@ -49,6 +49,7 @@
           "$ref": "#/$defs/connection",
           "default": {
             "client_id": "",
+            "session_store": "",
             "keep_alive": 60,
             "clean_session": true,
             "will_topic": "",
@@ -59,6 +60,10 @@
             "password": "",
             "loop_prevention": false
           }
+        },
+        "session_store": {
+          "type": "string",
+          "default": ""
         },
         "instance_name": {
           "type": "string",

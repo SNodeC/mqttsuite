@@ -60,6 +60,7 @@ namespace mqtt::bridge::lib {
     class Broker {
     public:
         Broker(Bridge& bridge,
+               const std::string& sessionStoreFileName,
                std::string&& clientId,
                uint16_t keepAlive,
                bool cleanSession,
@@ -82,6 +83,8 @@ namespace mqtt::bridge::lib {
 
         Bridge& getBridge() const;
 
+        const std::string& getSessionStoreFileName() const;
+
         const std::string& getClientId() const;
         uint16_t getKeepAlive() const;
         bool getCleanSession() const;
@@ -101,6 +104,7 @@ namespace mqtt::bridge::lib {
 
     private:
         Bridge& bridge;
+        std::string sessionStoreFileName;
 
         std::string clientId;
         uint16_t keepAlive;
