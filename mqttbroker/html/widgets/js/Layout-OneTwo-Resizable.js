@@ -1,5 +1,5 @@
 const splitter = document.getElementById('splitter');
-const topDiv = document.getElementById('top');
+const topDiv = document.getElementById('drag');
 const container = document.getElementById('container');
 let isDragging = false;
 splitter.addEventListener('mousedown', function(e) {

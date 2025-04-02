@@ -13,41 +13,46 @@
     <body>
         <layout-12>
             <div id="container">
-{% include "widgets/Header.html" %}
-                <div id="top">
-{% include "widgets/TableFixHeader.html" %}
+                <div id="drag" style="padding: 10px; display: flex; height: 50%">
+                    <div id="top">
+                        {% include "widgets/TableFixHeader.html" %}
+                    </div>
                 </div>
                 <div id="splitter"></div>
                 <div id="bottom">
-                    <div id="bottom-left">
-                        <table>
-                            <thead>
-                                <tr>
+                    <div style="padding: 10px; display: flex; width: 50%;">
+                        <div id="bottom-left">
+                            <table>
+                                <thead>
+                                    <tr>
 ## for element in session_header_row
-                                    <th>{{ element }}</th>
+                                        <th>{{ element }}</th>
 ## endfor
-                                </tr>
-                            </thead>
-                            <tbody>
+                                    </tr>
+                                </thead>
+                                <tbody>
 ## for data_row in session_data_rows
-                                <tr>
+                                    <tr>
 ## for element in data_row
-                                    <td>{{ element }}</td>
+                                        <td>{{ element }}</td>
 ## endfor
-                                </tr>
+                                    </tr>
 ## endfor
-                           </tbody>
-                        </table>
+                               </tbody>
+                            </table>
+                        </div>
                     </div>
-                    <div id="bottom-right">
-                        Bottom Right
+                    <div style="padding: 10px; display: flex; width: 50%;">
+                        <div id="bottom-right">
+                            Bottom Right
+                        </div>
                     </div>
                 </div>
                 <script>
 {% include "widgets/js/Layout-OneTwo-Resizable.js" %}
                 </script>
-{% include "widgets/Footer.html" %}
             </div>
         </layou-12>
+{% include "widgets/Footer.html" %}
     </body>
 </html>

@@ -15,10 +15,10 @@ layout-12 {
         height: 100%;
     }
     #top {
-        margin: 10px;
         overflow-y: auto;
         border: 1px solid #ccc;
-        height: 50%;
+        height: 100%;
+        flex:1;
     }
     #bottom {
         display: flex;
@@ -29,10 +29,8 @@ layout-12 {
     #bottom-left,
     #bottom-right {
         display: flex;
-        width: 50%;
-        flex: auto;
+        width: 100%;
         overflow-y: auto;
-        margin: 10px;
         border: 1px solid #ccc;
     }
     #bottom-left {
