@@ -7,8 +7,10 @@
         <title>{{ title }}</title>
     </head>
     <body>
-        {% include "widgets/Header.html" %}
+<!--    <div  style=" min-height: 100%; display: flex;flex-direction: column;"> -->
         <layout-111>
+            <div id="container">
+{% include "widgets/Header.html" %}
                 <div id="top">
 {% include "widgets/TableFixHeaderFixed.html" %}
                 </div>
@@ -18,6 +20,7 @@
                 <div id="bottom">
 {% include "widgets/Subscribe.html" %}
                 </div>
+            </div>
         </layout-111>
     </body>
 </html>

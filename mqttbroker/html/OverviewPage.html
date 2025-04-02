@@ -1,21 +1,21 @@
 <html>
     <head>
         <style>
-            {% include "css/Base.css" %}
-            {% include "widgets/css/Layout-OneTwo-Resizable.css" %}
+{% include "css/Base.css" %}
+{% include "widgets/css/Layout-OneTwo-Resizable.css" %}
         </style>
         <script>
-            {% include "js/DisconnectClient.js" %}
-            {% include "js/UpdateDuration.js" %}
+{% include "js/DisconnectClient.js" %}
+{% include "js/UpdateDuration.js" %}
         </script>
         <title>{{ title }}</title>
     </head>
     <body>
-        {% include "widgets/Header.html" %}
         <layout-12>
             <div id="container">
+{% include "widgets/Header.html" %}
                 <div id="top">
-                    {% include "widgets/TableFixHeader.html" %}
+{% include "widgets/TableFixHeader.html" %}
                 </div>
                 <div id="splitter"></div>
                 <div id="bottom">
@@ -44,10 +44,10 @@
                     </div>
                 </div>
                 <script>
-                    {% include "widgets/js/Layout-OneTwo-Resizable.js" %}
+{% include "widgets/js/Layout-OneTwo-Resizable.js" %}
                 </script>
+{% include "widgets/Footer.html" %}
             </div>
         </layou-12>
-        {% include "widgets/Footer.html" %}
     </body>
 </html>
