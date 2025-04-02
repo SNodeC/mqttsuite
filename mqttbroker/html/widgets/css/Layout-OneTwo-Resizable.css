@@ -1,0 +1,47 @@
+layout-12 {
+    border: solid #ccc;
+    border-width: 1px;
+    height: 100%;
+
+    html,
+    body {
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+    }
+    #container {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+    #top {
+        margin: 10px;
+        overflow-y: auto;
+        border: 1px solid #ccc;
+        height: 50%;
+    }
+    #bottom {
+        display: flex;
+        flex: auto;
+        height: 0px;
+        overflow-y: hidden;
+    }
+    #bottom-left,
+    #bottom-right {
+        display: flex;
+        width: 50%;
+        flex: auto;
+        overflow-y: auto;
+        margin: 10px;
+        border: 1px solid #ccc;
+    }
+    #bottom-left {
+    }
+    #bottom-right {
+    }
+    #splitter {
+        height: 0px;
+        cursor: row-resize;
+        border: 1px solid #bbb;
+    }
+}

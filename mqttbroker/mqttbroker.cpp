@@ -82,6 +82,7 @@
 #include <cctype>
 #include <cstdlib>
 #include <iomanip>
+#include <iterator>
 #include <list>
 #include <sstream>
 #include <string>
@@ -133,7 +134,9 @@ static std::string href(const std::string& text, const std::string& url, const s
            text + "</a>";
 }
 
-static std::string getOverviewPage(inja::Environment& environment, mqtt::mqttbroker::lib::MqttModel& mqttModel) {
+static std::string getOverviewPage(std::shared_ptr<iot::mqtt::server::broker::Broker> broker,
+                                   mqtt::mqttbroker::lib::MqttModel& mqttModel,
+                                   inja::Environment environment) {
     inja::json json;
 
     json["title"] = "MQTTBroker | Active Clients";
@@ -145,26 +148,26 @@ static std::string getOverviewPage(inja::Environment& environment, mqtt::mqttbro
     json["since"] = mqttModel.onlineSince();
     json["duration"] = mqttModel.onlineDuration();
     json["data_rows"] = inja::json::array();
+    json["session_header_row"] = {"Topic", "Client ID", "QoS"};
+    json["session_data_rows"] = inja::json::array();
 
     inja::json& jsonDataRows = json["data_rows"];
     for (const auto& [connectionName, mqttModelEntry] : mqttModel.getClients()) {
         const mqtt::mqttbroker::lib::Mqtt* mqtt = mqttModelEntry.getMqtt();
         const core::socket::stream::SocketConnection* socketConnection = mqtt->getMqttContext()->getSocketConnection();
 
-        const std::string windowId1 = "window" + std::to_string(reinterpret_cast<unsigned long long>(mqtt));
-
-        std::ostringstream windowtIdoss("window");
+        std::ostringstream windowId("window");
         for (char ch : mqtt->getClientId()) {
             if (std::isalnum(static_cast<unsigned char>(ch))) {
-                windowtIdoss << ch;
+                windowId << ch;
             } else {
-                windowtIdoss << std::hex << std::uppercase << std::setw(2) << std::setfill('0')
-                             << static_cast<int>(static_cast<unsigned char>(ch));
+                windowId << std::hex << std::uppercase << std::setw(2) << std::setfill('0')
+                         << static_cast<int>(static_cast<unsigned char>(ch));
             }
         }
 
         jsonDataRows.push_back(
-            {href(mqtt->getClientId(), "/client?" + mqtt->getClientId(), windowtIdoss.str(), 450, 900),
+            {href(mqtt->getClientId(), "/client?" + mqtt->getClientId(), windowId.str(), 450, 900),
              mqttModelEntry.onlineSince(),
              "<duration>" + mqttModelEntry.onlineDuration() + "</duration>",
              mqtt->getConnectionName(),
@@ -173,10 +176,27 @@ static std::string getOverviewPage(inja::Environment& environment, mqtt::mqttbro
              "<button class=\"red-btn\" onClick=\"disconnectClient('" + mqtt->getClientId() + "')\">Disconnect</button>"});
     }
 
+
+    std::map<std::string, std::list<std::pair<std::string, uint8_t>>> subscribedTopics = broker->getSubscriptionTree();
+
+
+    inja::json& jsonSessionRows = json["session_data_rows"];
+
+    for (const auto& [topic, clients] : subscribedTopics) {
+        VLOG(0) << "Topic: " << topic;
+        jsonSessionRows.push_back({topic, "", ""});
+
+        for (const auto& client : clients) {
+            jsonSessionRows.push_back({"", client.first, std::to_string(static_cast<int>(client.second))});
+
+            VLOG(0) << "  Id: " << client.first << ", QoS: " << static_cast<int>(client.second);
+        }
+    }
+
     return environment.render_file("OverviewPage.html", json);
 }
 
-static std::string getDetailedPage(inja::Environment& environment, const mqtt::mqttbroker::lib::Mqtt* mqtt) {
+static std::string getDetailedPage(inja::Environment environment, const mqtt::mqttbroker::lib::Mqtt* mqtt) {
     return environment.render_file("DetailPage.html",
                                    {{"client_id", mqtt->getClientId()},
                                     {"title", mqtt->getClientId()},
@@ -236,7 +256,7 @@ static std::string urlDecode(const std::string& encoded) {
     return decoded;
 }
 
-static express::Router getRouter(inja::Environment& environment) {
+static express::Router getRouter(inja::Environment environment, std::shared_ptr<iot::mqtt::server::broker::Broker> broker) {
     const express::Router router;
 
     const express::Router& jsonRouter = express::middleware::JsonMiddleware();
@@ -317,12 +337,12 @@ static express::Router getRouter(inja::Environment& environment) {
 
     router.use(jsonRouter);
 
-    router.get("/clients", [&environment] APPLICATION(req, res) {
+    router.get("/clients", [environment, broker] APPLICATION(req, res) {
         std::string responseString;
         int responseStatus = 200;
 
         try {
-            responseString = getOverviewPage(environment, mqtt::mqttbroker::lib::MqttModel::instance());
+            responseString = getOverviewPage(broker, mqtt::mqttbroker::lib::MqttModel::instance(), environment);
         } catch (const inja::InjaError& error) {
             responseStatus = 500;
             responseString = "Internal Server Error\n";
@@ -333,7 +353,7 @@ static express::Router getRouter(inja::Environment& environment) {
         res->status(responseStatus).send(responseString);
     });
 
-    router.get("/client", [&environment] APPLICATION(req, res) {
+    router.get("/client", [environment] APPLICATION(req, res) {
         std::string responseString;
         int responseStatus = 200;
 
@@ -428,9 +448,7 @@ template <template <typename, typename...> typename SocketServer,
           typename Server = SocketServer<SocketContextFactory, SocketContextFactoryArgs&&...>,
           typename SocketAddress = typename Server::SocketAddress,
           typename = std::enable_if_t<not std::is_invocable_v<std::tuple_element_t<0, std::tuple<SocketContextFactoryArgs...>>,
-                                                              typename SocketServer<SocketContextFactory>::Config&>>
-
-          >
+                                                              typename SocketServer<SocketContextFactory>::Config&>>>
 void startServer(const std::string& instanceName, SocketContextFactoryArgs&&... socketContextFactoryArgs) {
     Server(instanceName, std::forward<SocketContextFactoryArgs>(socketContextFactoryArgs)...)
         .listen([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) {
@@ -522,7 +540,7 @@ int main(int argc, char* argv[]) {
         broker);
 
     inja::Environment environment{utils::Config::getStringOptionValue("--html-dir") + "/"};
-    express::Router router = getRouter(environment);
+    express::Router router = getRouter(environment, broker);
 
     startServer<express::legacy::in::WebApp>("in-http", router, [](auto& config) {
         config.setPort(8080);

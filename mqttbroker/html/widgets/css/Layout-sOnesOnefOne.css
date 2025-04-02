@@ -1,0 +1,44 @@
+layout-111 {
+    border: solid #ccc;
+    border-width: 1px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+
+    html,
+    body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    #container {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    #top {
+        flex: auto;
+        height: 0px;
+        overflow-y: auto;
+        margin: 10px;
+        border: 1px solid #ccc;
+    }
+
+    #middle {
+        flex: auto;
+        height: 0px;
+        max-height: calc(7 * 42px);
+        overflow-y: auto;
+        margin: 10px;
+        border: 1px solid #ccc;
+    }
+
+    #bottom {
+        flex: 0;
+        margin: 10px;
+        border: 1px solid #ccc;
+    }
+}

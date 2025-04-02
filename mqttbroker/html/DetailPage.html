@@ -1,14 +1,23 @@
 <html>
     <head>
         <style>
-            {% include "css/Base.css" %}
+{% include "css/Base.css" %}
+{% include "widgets/css/Layout-sOnesOnefOne.css" %}
         </style>
         <title>{{ title }}</title>
     </head>
     <body>
         {% include "widgets/Header.html" %}
-        {% include "widgets/TableFixHeaderFixed.html" %}
-        {% include "widgets/TopicsTree.html" %}
-        {% include "widgets/Subscribe.html" %}
+        <layout-111>
+                <div id="top">
+{% include "widgets/TableFixHeaderFixed.html" %}
+                </div>
+                <div id="middle">
+{% include "widgets/TopicsTree.html" %}
+                </div>
+                <div id="bottom">
+{% include "widgets/Subscribe.html" %}
+                </div>
+        </layout-111>
     </body>
 </html>

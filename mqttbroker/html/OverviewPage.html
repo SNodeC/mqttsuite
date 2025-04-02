@@ -2,6 +2,7 @@
     <head>
         <style>
             {% include "css/Base.css" %}
+            {% include "widgets/css/Layout-OneTwo-Resizable.css" %}
         </style>
         <script>
             {% include "js/DisconnectClient.js" %}
@@ -11,7 +12,42 @@
     </head>
     <body>
         {% include "widgets/Header.html" %}
-        {% include "widgets/TableFixHeader.html" %}
+        <layout-12>
+            <div id="container">
+                <div id="top">
+                    {% include "widgets/TableFixHeader.html" %}
+                </div>
+                <div id="splitter"></div>
+                <div id="bottom">
+                    <div id="bottom-left">
+                        <table>
+                            <thead>
+                                <tr>
+## for element in session_header_row
+                                    <th>{{ element }}</th>
+## endfor
+                                </tr>
+                            </thead>
+                            <tbody>
+## for data_row in session_data_rows
+                                <tr>
+## for element in data_row
+                                    <td>{{ element }}</td>
+## endfor
+                                </tr>
+## endfor
+                           </tbody>
+                        </table>
+                    </div>
+                    <div id="bottom-right">
+                        Bottom Right
+                    </div>
+                </div>
+                <script>
+                    {% include "widgets/js/Layout-OneTwo-Resizable.js" %}
+                </script>
+            </div>
+        </layou-12>
         {% include "widgets/Footer.html" %}
     </body>
 </html>

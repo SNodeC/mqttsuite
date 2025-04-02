@@ -1,10 +1,7 @@
 subscribe {
-    padding: 10px 10px 10px;
-
     /* Table styles (assumes this is the only table in that div) */
+    margin: 10px;
     table {
-        width: 100%;
-        border-collapse: collapse;
         border: 1px solid #ccc;
     }
 
