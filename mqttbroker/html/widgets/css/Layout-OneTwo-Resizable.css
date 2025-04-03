@@ -15,10 +15,10 @@ layout-12 {
         display: flex;
         flex-direction: column;
         height: 100%;
-        overflow-y: auto;
+        overflow: auto;
     }
     #top {
-        overflow-y: auto;
+        overflow: auto;
         border: 1px solid #ccc;
         height: 100%;
         flex:1;
@@ -27,13 +27,11 @@ layout-12 {
         display: flex;
         flex: auto;
         height: 0px;
-        overflow-y: hidden;
     }
     #bottom-left,
     #bottom-right {
-        display: flex;
         width: 100%;
-        overflow-y: auto;
+        overflow: auto;
         border: 1px solid #ccc;
     }
     #bottom-left {
@@ -41,8 +39,9 @@ layout-12 {
     #bottom-right {
     }
     #splitter {
-        height: 0px;
+        height: 2px;
         cursor: row-resize;
+        background-color: #ccc;
         border: 1px solid #ccc;
     }
 }
