@@ -29,7 +29,7 @@ layout-111 {
 
     #middle {
         height: fit-content;
-        max-height: calc(7 * 42px);
+        max-height: 30%;
         overflow-y: auto;
         margin: 10px;
         border: 1px solid #ccc;
