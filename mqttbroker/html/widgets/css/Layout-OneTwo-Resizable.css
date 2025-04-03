@@ -21,7 +21,6 @@ layout-12 {
         overflow: auto;
         border: 1px solid #ccc;
         height: 100%;
-        flex:1;
     }
     #bottom {
         display: flex;
