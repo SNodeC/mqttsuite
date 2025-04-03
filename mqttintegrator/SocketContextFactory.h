@@ -53,7 +53,7 @@ namespace mqtt::mqttintegrator {
 
     class SocketContextFactory : public core::socket::stream::SocketContextFactory {
     public:
-        SocketContextFactory(const std::string& sessionStoreFileName);
+        explicit SocketContextFactory(const std::string& sessionStoreFileName);
 
         core::socket::stream::SocketContext* create(core::socket::stream::SocketConnection* socketConnection) final;
 

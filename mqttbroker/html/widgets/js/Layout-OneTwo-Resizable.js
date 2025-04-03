@@ -11,10 +11,7 @@ document.addEventListener('mousemove', function(e) {
     e.preventDefault();
     if (!isDragging) return;
     const containerRect = container.getBoundingClientRect();
-//    const newHeight = e.clientY - containerRect.top - 22; // Double border+margin
     const newHeight = 100 *  (e.clientY  - containerRect.top - 22) / containerRect.height;
-//    const newHeight = 100 *  (e.clientY  - topDiv.top) / containerRect.height;
-    console.log("asdf " + newHeight);
     topDiv.style.height = `${newHeight}%`;
 });
 document.addEventListener('mouseup', function() {

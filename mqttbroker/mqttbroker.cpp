@@ -140,13 +140,13 @@ static std::string getOverviewPage(std::shared_ptr<iot::mqtt::server::broker::Br
     inja::json json;
 
     json["title"] = "MQTTBroker | Active Clients";
-    json["header_row"] = {"Client ID", "Online Since", "Duration", "Connection", "Local Address", "Remote Address", "Action"};
     json["voc"] = href("Volker Christian", "https://github.com/VolkerChristian/");
     json["broker"] = href("MQTTBroker", "https://github.com/SNodeC/mqttsuite/tree/master/mqttbroker");
     json["suite"] = href("MQTTSuite", "https://github.com/SNodeC/mqttsuite");
     json["snodec"] = "Powered by " + href("SNode.C", "https://github.com/SNodeC/snode.c");
     json["since"] = mqttModel.onlineSince();
     json["duration"] = mqttModel.onlineDuration();
+    json["header_row"] = {"Client ID", "Online Since", "Duration", "Connection", "Local Address", "Remote Address", "Action"};
     json["data_rows"] = inja::json::array();
     json["session_header_row"] = {"Topic", "Client ID", "QoS"};
     json["session_data_rows"] = inja::json::array();
@@ -176,9 +176,7 @@ static std::string getOverviewPage(std::shared_ptr<iot::mqtt::server::broker::Br
              "<button class=\"red-btn\" onClick=\"disconnectClient('" + mqtt->getClientId() + "')\">Disconnect</button>"});
     }
 
-
     std::map<std::string, std::list<std::pair<std::string, uint8_t>>> subscribedTopics = broker->getSubscriptionTree();
-
 
     inja::json& jsonSessionRows = json["session_data_rows"];
 
