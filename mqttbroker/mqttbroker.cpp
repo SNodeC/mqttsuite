@@ -177,19 +177,22 @@ static std::string getOverviewPage(std::shared_ptr<iot::mqtt::server::broker::Br
     }
 
     std::map<std::string, std::list<std::pair<std::string, uint8_t>>> subscribedTopics = broker->getSubscriptionTree();
-
-    inja::json& jsonSessionRows = json["session_data_rows"];
-
     for (const auto& [topic, clients] : subscribedTopics) {
-        VLOG(0) << "Topic: " << topic;
-        jsonSessionRows.push_back({topic, "", ""});
+        inja::json topicJson;
+        topicJson["key"] = topic;
 
         for (const auto& client : clients) {
-            jsonSessionRows.push_back({"", client.first, std::to_string(static_cast<int>(client.second))});
+            topicJson["values"].push_back(
+                {{"client_id", client.first}, {"topic", topic}, {"qos", std::to_string(static_cast<int>(client.second))}});
+        };
 
-            VLOG(0) << "  Id: " << client.first << ", QoS: " << static_cast<int>(client.second);
-        }
+        json["topics"].push_back(topicJson);
     }
+
+    VLOG(0) << json["topics"].dump(4);
+
+    // Load template from file
+    std::string template_file = "template.html"; // place your Inja HTML here
 
     return environment.render_file("OverviewPage.html", json);
 }
