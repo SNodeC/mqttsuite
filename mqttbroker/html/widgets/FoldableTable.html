@@ -1,64 +1,5 @@
 <style>
-  background-color: white;
-  padding: 16px;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  display: inline-block;
-  text-align: left;
-
-  body {
-    font-family: sans-serif;
-    padding: 20px;
-    background-color: #f6f6f6;
-  }
-
-  .key-row {
-    cursor: pointer;
-    font-weight: bold;
-    border: 0;
-  }
-
-  .key-row td {
-      padding: 0.2em 0 0 0;
-      border: 0;
-  }
-
-  .key-row .key-label::before {
-    content: '▶';
-    display: inline-block;
-    width: 1em;
-    transition: transform 0.2s ease;
-    margin-right: 5px;
-  }
-
-  .key-row.open .key-label::before {
-    content: '▼';
-  }
-
-  .value-row {
-    display: none;
-    background-color: #fefefe;
-    border: 0px;
-  }
-
-  .value-row td {
-      padding: 0.1em 0 0 0;
-      border: 0;
-  }
-
-  .unsubscribe-btn {
-    padding: 4px 10px;
-    font-size: 0.9em;
-    cursor: pointer;
-    background-color: #e74c3c;
-    color: white;
-    border: none;
-    border-radius: 4px;
-  }
-
-  .unsubscribe-btn:hover {
-    background-color: #c0392b;
-  }
+{% include "css/FoldableTable.css" %}
 </style>
 
 <script>
@@ -85,16 +26,5 @@
 </div>
 
 <script>
-// Expand/collapse logic
-document.querySelectorAll('.key-row').forEach(row => {
-  row.addEventListener('click', () => {
-    row.classList.toggle('open');
-    let next = row.nextElementSibling;
-    while (next && next.classList.contains('value-row')) {
-      next.style.display = row.classList.contains('open') ? 'table-row' : 'none';
-      next = next.nextElementSibling;
-    }
-  });
-});
-
+{% include "js/FoldableTable.js" %}
 </script>
