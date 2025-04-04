@@ -13,14 +13,14 @@
   }
 
   .key-row {
-    background-color: #f9f9f9;
     cursor: pointer;
     font-weight: bold;
-    border: 0px;
+    border: 0;
   }
 
   .key-row td {
       padding: 0.2em 0 0 0;
+      border: 0;
   }
 
   .key-row .key-label::before {
@@ -43,6 +43,7 @@
 
   .value-row td {
       padding: 0.1em 0 0 0;
+      border: 0;
   }
 
   .unsubscribe-btn {
@@ -64,23 +65,26 @@
 {% include "js/UnSubscribe.js" %}
 </script>
 
-<table>
-  <tbody>
+<div style="display: block; padding: 10px; border-right: 1px solid #ccc;">
+    <table>
+        <tbody>
 {% for topic in topics %}
-      <tr class="key-row"><td class="key-label" colspan="3">{{ topic.key }}</td></tr>
+            <tr class="key-row">
+                <td class="key-label" colspan="3">{{ topic.key }}</td>
+            </tr>
 {% for val in topic.values %}
-        <tr class="value-row">
-          <td style="padding-left: 2.5em;">{{ val.client_id }}</td>
-          <td>{{ val.qos }}</td>
-          <td style="width: 0px;"><button class="red-btn" onclick="unsubscribe('{{ val.client_id }}', '{{ val.topic }}')">Unsubscribe</button></td>
-        </tr>
-      {% endfor %}
-    {% endfor %}
-  </tbody>
-</table>
+            <tr class="value-row">
+                <td style="padding-left: 2.5em;">{{ val.client_id }}</td>
+                <td style="padding-left: 7px; padding-right: 7px;">{{ val.qos }}</td>
+                <td style="width: 0px;"><button class="red-btn" onclick="unsubscribe('{{ val.client_id }}', '{{ val.topic }}')">Unsubscribe</button></td>
+            </tr>
+{% endfor %}
+{% endfor %}
+        </tbody>
+    </table>
+</div>
 
 <script>
-
 // Expand/collapse logic
 document.querySelectorAll('.key-row').forEach(row => {
   row.addEventListener('click', () => {
