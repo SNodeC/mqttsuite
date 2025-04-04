@@ -192,9 +192,6 @@ static std::string getOverviewPage(std::shared_ptr<iot::mqtt::server::broker::Br
         topicsJson.push_back(topicJson);
     }
 
-    // Load template from file
-    std::string template_file = "template.html"; // place your Inja HTML here
-
     return environment.render_file("OverviewPage.html", json);
 }
 
