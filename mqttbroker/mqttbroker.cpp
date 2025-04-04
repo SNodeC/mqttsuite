@@ -150,6 +150,7 @@ static std::string getOverviewPage(std::shared_ptr<iot::mqtt::server::broker::Br
     json["data_rows"] = inja::json::array();
     json["session_header_row"] = {"Topic", "Client ID", "QoS"};
     json["session_data_rows"] = inja::json::array();
+    json["topics"] = inja::json::array();
 
     inja::json& jsonDataRows = json["data_rows"];
     for (const auto& [connectionName, mqttModelEntry] : mqttModel.getClients()) {
@@ -177,6 +178,8 @@ static std::string getOverviewPage(std::shared_ptr<iot::mqtt::server::broker::Br
     }
 
     std::map<std::string, std::list<std::pair<std::string, uint8_t>>> subscribedTopics = broker->getSubscriptionTree();
+
+    inja::json& topicsJson = json["topics"];
     for (const auto& [topic, clients] : subscribedTopics) {
         inja::json topicJson;
         topicJson["key"] = topic;
@@ -186,10 +189,8 @@ static std::string getOverviewPage(std::shared_ptr<iot::mqtt::server::broker::Br
                 {{"client_id", client.first}, {"topic", topic}, {"qos", std::to_string(static_cast<int>(client.second))}});
         };
 
-        json["topics"].push_back(topicJson);
+        topicsJson.push_back(topicJson);
     }
-
-    VLOG(0) << json["topics"].dump(4);
 
     // Load template from file
     std::string template_file = "template.html"; // place your Inja HTML here
@@ -347,8 +348,8 @@ static express::Router getRouter(inja::Environment environment, std::shared_ptr<
         } catch (const inja::InjaError& error) {
             responseStatus = 500;
             responseString = "Internal Server Error\n";
-            responseString +=
-                error.type + " " + error.message + " " + std::to_string(error.location.line) + std::to_string(error.location.column);
+            responseString += std::string(error.what()) + " " + error.type + " " + error.message + " " +
+                              std::to_string(error.location.line) + ":" + std::to_string(error.location.column);
         }
 
         res->status(responseStatus).send(responseString);
@@ -372,9 +373,9 @@ static express::Router getRouter(inja::Environment environment, std::shared_ptr<
                     responseString = getDetailedPage(environment, mqtt);
                 } catch (const inja::InjaError& error) {
                     responseStatus = 500;
-                    responseString = "Internal Server Error";
-                    responseString += error.type + " " + error.message + " " + std::to_string(error.location.line) +
-                                      std::to_string(error.location.column);
+                    responseString = "Internal Server Error\n";
+                    responseString += std::string(error.what()) + " " + error.type + " " + error.message + " " +
+                                      std::to_string(error.location.line) + ":" + std::to_string(error.location.column);
                 }
             } else {
                 responseStatus = 404;
