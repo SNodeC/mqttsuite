@@ -13,13 +13,17 @@
             <tr class="key-row">
                 <td class="key-label" colspan="3">{{ topic.key }}</td>
             </tr>
-{% for val in topic.values %}
+    {% for val in topic.values %}
             <tr class="value-row">
+        {% if exists("val.qos") %}
                 <td style="padding-left: 2.5em;">{{ val.client_id }}</td>
                 <td style="padding-left: 7px; padding-right: 7px;">{{ val.qos }}</td>
-                <td style="width: 0px;"><button class="red-btn" onclick="unsubscribe('{{ val.client_id }}', '{{ val.topic }}')">Unsubscribe</button></td>
+                <td style="width: 0px;"><button class="red-btn" onclick="unsubscribe('{{ val.client_id }}', '{{ val.topic }}')">Unsubscribe</button></td>      
+        {% else %}
+                <td style="padding-left: 2.5em;">{{ val }}</td>
             </tr>
-{% endfor %}
+        {% endif %}
+    {% endfor %}
 {% endfor %}
         </tbody>
     </table>

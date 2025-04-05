@@ -151,6 +151,7 @@ static std::string getOverviewPage(std::shared_ptr<iot::mqtt::server::broker::Br
     json["session_header_row"] = {"Topic", "Client ID", "QoS"};
     json["session_data_rows"] = inja::json::array();
     json["subscribed_topics"] = inja::json::array();
+    json["retained_topics"] = inja::json::array();
 
     inja::json& jsonDataRows = json["data_rows"];
     for (const auto& [connectionName, mqttModelEntry] : mqttModel.getClients()) {
@@ -191,6 +192,18 @@ static std::string getOverviewPage(std::shared_ptr<iot::mqtt::server::broker::Br
 
         topicsJson.push_back(topicJson);
     }
+
+    std::list<std::pair<std::string, std::string>> retainTree = broker->getRetainTree();
+
+    for (const auto& [topic, message] : retainTree) {
+        inja::json topicJson;
+        topicJson["key"] = topic;
+        topicJson["values"].push_back(message);
+
+        json["retained_topics"].push_back(topicJson);
+    }
+
+    VLOG(0) << "Dump: " << json["retained_topics"].dump(4);
 
     return environment.render_file("OverviewPage.html", json);
 }
@@ -264,7 +277,7 @@ static express::Router getRouter(inja::Environment environment, std::shared_ptr<
         req->getAttribute<nlohmann::json>(
             [&res](nlohmann::json& json) {
                 std::string jsonString = json.dump(4);
-                VLOG(1) << "Application received JSON body\n" << jsonString;
+                // VLOG(1) << "Application received JSON body\n" << jsonString;
 
                 std::string clientId = json["client_id"].get<std::string>();
                 const mqtt::mqttbroker::lib::Mqtt* mqtt = mqtt::mqttbroker::lib::MqttModel::instance().getMqtt(clientId);
@@ -287,7 +300,7 @@ static express::Router getRouter(inja::Environment environment, std::shared_ptr<
         req->getAttribute<nlohmann::json>(
             [&res](nlohmann::json& json) {
                 std::string jsonString = json.dump(4);
-                VLOG(1) << "Application received JSON body\n" << jsonString;
+                //                VLOG(1) << "Application received JSON body\n" << jsonString;
 
                 std::string clientId = json["client_id"].get<std::string>();
                 std::string topic = json["topic"].get<std::string>();
@@ -312,7 +325,7 @@ static express::Router getRouter(inja::Environment environment, std::shared_ptr<
         req->getAttribute<nlohmann::json>(
             [&res](nlohmann::json& json) {
                 std::string jsonString = json.dump(4);
-                VLOG(1) << "Application received JSON body\n" << jsonString;
+                // VLOG(1) << "Application received JSON body\n" << jsonString;
 
                 std::string clientId = json["client_id"].get<std::string>();
                 std::string topic = json["topic"].get<std::string>();
