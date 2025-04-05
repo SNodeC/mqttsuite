@@ -150,7 +150,7 @@ static std::string getOverviewPage(std::shared_ptr<iot::mqtt::server::broker::Br
     json["data_rows"] = inja::json::array();
     json["session_header_row"] = {"Topic", "Client ID", "QoS"};
     json["session_data_rows"] = inja::json::array();
-    json["topics"] = inja::json::array();
+    json["subscribed_topics"] = inja::json::array();
 
     inja::json& jsonDataRows = json["data_rows"];
     for (const auto& [connectionName, mqttModelEntry] : mqttModel.getClients()) {
@@ -179,7 +179,7 @@ static std::string getOverviewPage(std::shared_ptr<iot::mqtt::server::broker::Br
 
     std::map<std::string, std::list<std::pair<std::string, uint8_t>>> subscribedTopics = broker->getSubscriptionTree();
 
-    inja::json& topicsJson = json["topics"];
+    inja::json& topicsJson = json["subscribed_topics"];
     for (const auto& [topic, clients] : subscribedTopics) {
         inja::json topicJson;
         topicJson["key"] = topic;
