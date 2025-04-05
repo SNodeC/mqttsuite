@@ -24,14 +24,16 @@ layout-12 {
     }
     #bottom {
         display: flex;
-        flex: auto;
-        height: 0px;
+        flex: 1;
+        overflow: auto;
     }
     #bottom-left,
     #bottom-right {
-        width: 100%;
         overflow: auto;
         border: 1px solid #ccc;
+        padding: 10px;
+        display: flex;
+        width: 50%
     }
     #bottom-left {
     }
