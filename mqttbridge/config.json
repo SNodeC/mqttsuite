@@ -169,6 +169,23 @@
               "qos": 0
             }
           ]
+        },
+        {
+          "connection": {
+            "client_id": "TTN-Bridge-Shadow",
+            "session_store": "/home/voc/.shadow/ttn-bridge",
+            "loop_prevention": true
+          },
+          "instance_name": "ttn-shadow",
+          "protocol": "in",
+          "encryption": "legacy",
+          "transport": "stream",
+          "topics": [
+            {
+              "topic": "#",
+              "qos": 0
+            }
+          ]
         }
       ]
     },
@@ -203,23 +220,6 @@
           "topics": [
             {
               "topic": "#",
-              "qos": 0
-            }
-          ]
-        },
-        {
-          "connection": {
-            "client_id": "TTN-Bridge",
-            "session_store": "/home/voc/.local/ttn-bridge",
-            "loop_prevention": true
-          },
-          "instance_name": "ttn-local",
-          "protocol": "in",
-          "encryption": "legacy",
-          "transport": "websocket",
-          "topics": [
-            {
-              "topic": "v3/test-application-voc@ttn/devices/+/down/push",
               "qos": 0
             }
           ]
