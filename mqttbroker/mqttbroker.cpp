@@ -193,7 +193,7 @@ static std::string getOverviewPage(std::shared_ptr<iot::mqtt::server::broker::Br
         topicsJson.push_back(topicJson);
     }
 
-    std::list<std::pair<std::string, std::string>> retainTree = broker->getRetainTree();
+    std::list<std::pair<std::string, std::string>> retainTree = broker->getRetainedTree();
 
     for (const auto& [topic, message] : retainTree) {
         inja::json topicJson;

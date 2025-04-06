@@ -19,6 +19,7 @@ body {
 
 .key-row td {
     padding: 0.2em 0 0 0;
+    white-space: nowrap;
     border: 0;
 }
 
