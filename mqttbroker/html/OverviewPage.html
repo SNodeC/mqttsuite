@@ -18,6 +18,9 @@
 {% include "widgets/Header.html" %}
             </div>
             <div id="container">
+                <script>
+{% include "widgets/js/UnSubscribe.js" %}
+                </script>
                 <div id="drag" style="padding: 10px; height: 50%">
                     <div id="top">
 {% include "widgets/TableFixHeader.html" %}
@@ -25,6 +28,9 @@
                 </div>
                 <div id="splitter"></div>
                 <div id="bottom">
+                <style>
+{% include "widgets/css/FoldableTable.css" %}
+                </style>
                     <div id="bottom-left">
                         <div style="flex: auto; overflow: auto; border: 1px solid #ccc;">
                             <h2 style="margin: 0; padding: 12px; background-color: #e0e0e0;font-weight: bold; font-size: 1em; border-bottom: 1px solid #ccc; position: sticky; top: 0; z-index: 1; border-right: 1px solid #ccc;">
