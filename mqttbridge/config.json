@@ -173,13 +173,13 @@
         {
           "connection": {
             "client_id": "TTN-Bridge-Shadow",
-            "session_store": "/home/voc/.shadow/ttn-bridge",
             "loop_prevention": true
           },
           "instance_name": "ttn-shadow",
+          "session_store": "/home/voc/.local/shadow-ttn-bridge",
           "protocol": "in",
           "encryption": "legacy",
-          "transport": "stream",
+          "transport": "websocket",
           "topics": [
             {
               "topic": "#",

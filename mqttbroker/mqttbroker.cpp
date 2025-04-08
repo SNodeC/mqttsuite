@@ -203,8 +203,6 @@ static std::string getOverviewPage(std::shared_ptr<iot::mqtt::server::broker::Br
         json["retained_topics"].push_back(topicJson);
     }
 
-    VLOG(0) << "Dump: " << json["retained_topics"].dump(4);
-
     return environment.render_file("OverviewPage.html", json);
 }
 
