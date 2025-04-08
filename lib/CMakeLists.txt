@@ -89,8 +89,9 @@ add_custom_command(
 )
 
 add_library(
-    mqtt-mapping STATIC JsonMappingReader.cpp MqttMapper.cpp
-                        JsonMappingReader.h MqttMapper.h mapping-schema.json.h
+    mqtt-mapping STATIC
+    JsonMappingReader.cpp MqttMapper.cpp JsonMappingReader.h MqttMapper.h
+    mapping-schema.json.h inja.hpp
 )
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")

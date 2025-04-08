@@ -11,7 +11,7 @@ document.addEventListener('mousemove', function(e) {
     e.preventDefault();
     if (!isDragging) return;
     const containerRect = container.getBoundingClientRect();
-    const newHeight = 100 *  (e.clientY  - containerRect.top - 22) / containerRect.height;
+    const newHeight = 100 * (e.clientY - containerRect.top - 22) / containerRect.height;
     topDiv.style.height = `${newHeight}%`;
 });
 document.addEventListener('mouseup', function() {

@@ -148,8 +148,6 @@ static std::string getOverviewPage(std::shared_ptr<iot::mqtt::server::broker::Br
     json["duration"] = mqttModel.onlineDuration();
     json["header_row"] = {"Client ID", "Online Since", "Duration", "Connection", "Local Address", "Remote Address", "Action"};
     json["data_rows"] = inja::json::array();
-    json["session_header_row"] = {"Topic", "Client ID", "QoS"};
-    json["session_data_rows"] = inja::json::array();
     json["subscribed_topics"] = inja::json::array();
     json["retained_topics"] = inja::json::array();
 
