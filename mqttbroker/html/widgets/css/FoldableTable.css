@@ -1,20 +1,20 @@
 background-color: white;
 padding: 16px;
 border-radius: 8px;
-box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 display: inline-block;
 text-align: left;
 
 body {
-  font-family: sans-serif;
-  padding: 20px;
-  background-color: #f6f6f6;
+    font-family: sans-serif;
+    padding: 20px;
+    background-color: #f6f6f6;
 }
 
 .key-row {
-  cursor: pointer;
-  font-weight: bold;
-  border: 0;
+    cursor: pointer;
+    font-weight: bold;
+    border: 0;
 }
 
 .key-row td {
@@ -24,21 +24,21 @@ body {
 }
 
 .key-row .key-label::before {
-  content: '▶';
-  display: inline-block;
-  width: 1em;
-  transition: transform 0.2s ease;
-  margin-right: 5px;
+    content: "▶";
+    display: inline-block;
+    width: 1em;
+    transition: transform 0.2s ease;
+    margin-right: 5px;
 }
 
 .key-row.open .key-label::before {
-  content: '▼';
+    content: "▼";
 }
 
 .value-row {
-  display: none;
-  background-color: #fefefe;
-  border: 0px;
+    display: none;
+    background-color: #fefefe;
+    border: 0px;
 }
 
 .value-row td {
@@ -47,15 +47,15 @@ body {
 }
 
 .unsubscribe-btn {
-  padding: 4px 10px;
-  font-size: 0.9em;
-  cursor: pointer;
-  background-color: #e74c3c;
-  color: white;
-  border: none;
-  border-radius: 4px;
+    padding: 4px 10px;
+    font-size: 0.9em;
+    cursor: pointer;
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 4px;
 }
 
 .unsubscribe-btn:hover {
-  background-color: #c0392b;
+    background-color: #c0392b;
 }

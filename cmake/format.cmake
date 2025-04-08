@@ -44,3 +44,4 @@ add_custom_command(
 include(clang-format)
 include(cmake-format)
 include(js-format)
+include(css-format)
