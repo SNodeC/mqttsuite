@@ -403,13 +403,16 @@ static express::Router getRouter(inja::Environment environment, std::shared_ptr<
         }
     });
 
-    router.get("/", [] APPLICATION(req, res) {
-        if (req->headers.contains("upgrade")) {
-            upgrade(req, res);
-        } else {
-            res->redirect("/clients");
-        }
-    });
+    router
+        .get("/",
+             [] APPLICATION(req, res) {
+                 if (req->headers.contains("upgrade")) {
+                     upgrade(req, res);
+                 } else {
+                     res->redirect("/clients");
+                 }
+             })
+        .setStrictRouting();
 
     return router;
 }
