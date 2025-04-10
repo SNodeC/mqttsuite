@@ -395,13 +395,28 @@ static express::Router getRouter(inja::Environment environment, std::shared_ptr<
         res->status(responseStatus).send(responseString);
     });
 
-    router.get("/ws", [] APPLICATION(req, res) {
-        if (req->headers.contains("upgrade")) {
-            upgrade(req, res);
-        } else {
-            res->redirect("/clients");
-        }
-    });
+    router
+        .get("/ws",
+             [] APPLICATION(req, res) {
+                 if (req->headers.contains("upgrade")) {
+                     upgrade(req, res);
+                 } else {
+                     res->redirect("/clients");
+                 }
+             })
+        .setStrictRouting();
+
+    router
+        .get("/mqtt",
+             [] APPLICATION(req, res) {
+                 if (req->headers.contains("upgrade")) {
+                     upgrade(req, res);
+                 } else {
+                     res->redirect("/clients");
+                 }
+             })
+
+        .setStrictRouting();
 
     router
         .get("/",
