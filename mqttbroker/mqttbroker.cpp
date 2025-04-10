@@ -186,7 +186,7 @@ static std::string getOverviewPage(std::shared_ptr<iot::mqtt::server::broker::Br
         for (const auto& client : clients) {
             topicJson["values"].push_back(
                 {{"client_id", client.first}, {"topic", topic}, {"qos", std::to_string(static_cast<int>(client.second))}});
-        };
+        }
 
         topicsJson.push_back(topicJson);
     }
