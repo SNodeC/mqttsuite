@@ -1,6 +1,7 @@
 subscribe {
     /* Table styles (assumes this is the only table in that div) */
-    margin: 10px;
+    display: flex;
+
     table {
         border: 1px solid #ccc;
     }
@@ -8,7 +9,6 @@ subscribe {
     /* Header cell styling */
     table thead th {
         background-color: #e0e0e0;
-        padding: 8px;
         text-align: left;
     }
 
