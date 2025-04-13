@@ -269,12 +269,12 @@ static express::Router getRouter(inja::Environment environment, std::shared_ptr<
     const express::Router router;
 
     const express::Router& jsonRouter = express::middleware::JsonMiddleware();
+    jsonRouter.setStrictRouting();
 
     jsonRouter.post("/clients", [] APPLICATION(req, res) {
         req->getAttribute<nlohmann::json>(
             [&res](nlohmann::json& json) {
                 std::string jsonString = json.dump(4);
-                // VLOG(1) << "Application received JSON body\n" << jsonString;
 
                 std::string clientId = json["client_id"].get<std::string>();
                 const mqtt::mqttbroker::lib::Mqtt* mqtt = mqtt::mqttbroker::lib::MqttModel::instance().getMqtt(clientId);
@@ -297,7 +297,6 @@ static express::Router getRouter(inja::Environment environment, std::shared_ptr<
         req->getAttribute<nlohmann::json>(
             [&res](nlohmann::json& json) {
                 std::string jsonString = json.dump(4);
-                //                VLOG(1) << "Application received JSON body\n" << jsonString;
 
                 std::string clientId = json["client_id"].get<std::string>();
                 std::string topic = json["topic"].get<std::string>();
@@ -322,7 +321,6 @@ static express::Router getRouter(inja::Environment environment, std::shared_ptr<
         req->getAttribute<nlohmann::json>(
             [&res](nlohmann::json& json) {
                 std::string jsonString = json.dump(4);
-                // VLOG(1) << "Application received JSON body\n" << jsonString;
 
                 std::string clientId = json["client_id"].get<std::string>();
                 std::string topic = json["topic"].get<std::string>();
