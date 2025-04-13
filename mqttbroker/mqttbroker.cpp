@@ -79,6 +79,7 @@
 // IWYU pragma: no_include <nlohmann/json_fwd.hpp>
 // IWYU pragma: no_include <nlohmann/detail/json_ref.hpp>
 //
+#include <algorithm>
 #include <cctype>
 #include <cstdlib>
 #include <iomanip>
@@ -496,6 +497,13 @@ void startServer(const std::string& instanceName,
     httpExpressServer.listen([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) {
         reportState(instanceName, socketAddress, state);
     });
+
+    VLOG(1) << "Instance: " << instanceName;
+    for (std::string& route : httpExpressServer.getRoutes()) {
+        route.erase(std::remove(route.begin(), route.end(), '$'), route.end());
+
+        VLOG(1) << "  " << route;
+    }
 }
 
 int main(int argc, char* argv[]) {
