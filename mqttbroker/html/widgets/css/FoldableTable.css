@@ -1,28 +1,32 @@
-background-color: white;
-padding: 16px;
-border-radius: 8px;
-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-display: inline-block;
-text-align: left;
-
-body {
-    font-family: sans-serif;
-    padding: 20px;
-    background-color: #f6f6f6;
+/* Styles for the list-table element */
+list-table {
+    background-color: white;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    display: inline-block;
+    text-align: left;
+    width: -webkit-fill-available;
 }
 
+/* Global body styles */
+body {
+    font-family: sans-serif;
+}
+
+/* Key row styles */
 .key-row {
     cursor: pointer;
     font-weight: bold;
-    border: 0;
 }
-
+.key-row,
 .key-row td {
-    padding: 0.2em 0 0 0;
-    white-space: nowrap;
     border: 0;
 }
+.key-row td {
+    padding: 0.2em 0 0;
+    white-space: nowrap;
+}
 
+/* Key label indicator */
 .key-row .key-label::before {
     content: "▶";
     display: inline-block;
@@ -30,22 +34,24 @@ body {
     transition: transform 0.2s ease;
     margin-right: 5px;
 }
-
 .key-row.open .key-label::before {
     content: "▼";
 }
 
+/* Value row styles */
 .value-row {
     display: none;
     background-color: #fefefe;
-    border: 0px;
 }
-
+.value-row,
 .value-row td {
-    padding: 0.1em 0 0 0;
     border: 0;
 }
+.value-row td {
+    padding: 0.1em 0 0;
+}
 
+/* Unsubscribe button styles */
 .unsubscribe-btn {
     padding: 4px 10px;
     font-size: 0.9em;
@@ -55,7 +61,6 @@ body {
     border: none;
     border-radius: 4px;
 }
-
 .unsubscribe-btn:hover {
     background-color: #c0392b;
 }

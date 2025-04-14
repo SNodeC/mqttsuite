@@ -1,18 +1,23 @@
-<div style="display: block; padding: 10px; border-right: 1px solid #ccc;">
+<div style="display: block; border-right: 1px solid #ccc;">
     <table>
         <tbody>
+            <tr>
+                <th colspan="3" style="margin: 0; padding: 12px; background-color: #e0e0e0;font-weight: bold; font-size: 1em; border-bottom: 1px solid #ccc; position: sticky; top: 0; z-index: 1; border-right: 1px solid #ccc; text-align: left">
+                    {{ topics_header }}
+                </th>
+            </tr>
 {% for topic in topics %}
             <tr class="key-row">
-                <td class="key-label" colspan="3">{{ topic.key }}</td>
+                <td class="key-label" colspan="3" style="padding-left: 0.75em;">{{ topic.key }}</td>
             </tr>
     {% for val in topic.values %}
             <tr class="value-row">
         {% if existsIn(val, "qos") %}
-                <td style="padding-left: 2.5em;">{{ val.client_id }}</td>
+                <td style="padding-left: 2.75em;">{{ val.client_id }}</td>
                 <td style="padding-left: 7px; padding-right: 7px;">{{ val.qos }}</td>
                 <td style="width: 0px;"><button class="red-btn" onclick="unsubscribe('{{ val.client_id }}', '{{ val.topic }}')">Unsubscribe</button></td>      
         {% else %}
-                <td style="padding-left: 2.5em; overflow-wrap: anywhere;">{{ val }}</td>
+                <td style="padding-left: 2.75em; overflow-wrap: anywhere;">{{ val }}</td>
         {% endif %}
             </tr>
     {% endfor %}

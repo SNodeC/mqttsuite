@@ -1,47 +1,48 @@
 layout-12 {
-    border: solid #ccc;
-    border-width: 1px;
+    border: 1px solid #ccc;
     height: 100%;
     display: flex;
     flex-direction: column;
+}
 
-    html,
-    body {
-        height: 100%;
-        margin: 0;
-        overflow: hidden;
-    }
-    #container {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-        overflow: auto;
-    }
-    #top {
-        overflow: auto;
-        border: 1px solid #ccc;
-        height: 100%;
-    }
-    #bottom {
-        display: flex;
-        flex: 1;
-        overflow: auto;
-    }
-    #bottom-left,
-    #bottom-right {
-        overflow: auto;
-        padding: 10px;
-        display: flex;
-        width: 50%;
-    }
-    #bottom-left {
-    }
-    #bottom-right {
-    }
-    #splitter {
-        height: 2px;
-        cursor: row-resize;
-        background-color: #ccc;
-        border: 1px solid #ccc;
-    }
+html,
+body {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+}
+
+#container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: auto;
+}
+
+#top {
+    display: flex;
+    overflow: auto;
+    border: 1px solid #ccc;
+    height: 100%;
+}
+
+#bottom {
+    display: flex;
+    flex: 1;
+    overflow: auto;
+}
+
+#bottom-left,
+#bottom-right {
+    overflow: auto;
+    padding: 10px;
+    display: flex;
+    width: 50%;
+}
+
+#splitter {
+    height: 2px;
+    cursor: row-resize;
+    background-color: #ccc;
+    border: 1px solid #ccc;
 }
