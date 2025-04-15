@@ -68,6 +68,7 @@
 #include <express/tls/in/WebApp.h>
 #include <express/tls/in6/WebApp.h>
 #include <iot/mqtt/server/broker/Broker.h>
+#include <iot/mqtt/server/broker/RetainTree.h>
 #include <net/in/stream/legacy/SocketServer.h>
 #include <net/in/stream/tls/SocketServer.h>
 #include <net/un/stream/legacy/SocketServer.h>
@@ -192,7 +193,7 @@ static std::string getOverviewPage(std::shared_ptr<iot::mqtt::server::broker::Br
         topicsJson.push_back(topicJson);
     }
 
-    std::list<std::pair<std::string, std::string>> retainTree = broker->getRetainedTree();
+    std::list<std::pair<std::string, std::string>> retainTree = broker->getRetainedTree().getRetainedTree();
 
     for (const auto& [topic, message] : retainTree) {
         inja::json topicJson;
@@ -309,6 +310,25 @@ static express::Router getRouter(inja::Environment environment, std::shared_ptr<
                 } else {
                     res->status(404).send("MQTT client has never existed or already gone away: '" + clientId + "'");
                 }
+            },
+            [&res](const std::string& key) {
+                VLOG(1) << "Attribute type not found: " << key;
+
+                res->status(400).send("Attribute type not found: " + key);
+            });
+    });
+
+    jsonRouter.post("/release", [broker] APPLICATION(req, res) {
+        req->getAttribute<nlohmann::json>(
+            [&res, broker](nlohmann::json& json) {
+                std::string jsonString = json.dump(4);
+
+                std::string topic = json["topic"].get<std::string>();
+
+                //                broker->getRetainedTree().retain({"", topic, "", 0, false});
+                broker->getRetainedTree().release(topic);
+
+                res->send(jsonString);
             },
             [&res](const std::string& key) {
                 VLOG(1) << "Attribute type not found: " << key;

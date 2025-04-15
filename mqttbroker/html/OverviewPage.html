@@ -18,9 +18,6 @@
 {% include "widgets/Header.html" %}
             </div>
             <div id="container">
-                <script>
-{% include "widgets/js/UnSubscribe.js" %}
-                </script>
                 <div id="drag" style="padding: 10px; height: 50%">
                     <div id="top">
 {% include "widgets/TableFixHeader.html" %}
@@ -33,6 +30,9 @@
                     </style>
                     <div id="bottom-left">
                         <div style="flex: auto; overflow: auto; border: 1px solid #ccc;">
+                            <script>
+{% include "widgets/js/UnSubscribe.js" %}
+                            </script>
 {% set topics_header="Subscribed Topics" %}
 {% set topics=subscribed_topics %}
 {% include "widgets/FoldableTable.html" %}
@@ -40,6 +40,9 @@
                     </div>
                     <div id="bottom-right">
                         <div style="flex: auto; overflow: auto; border: 1px solid #ccc;">
+                        <script>
+{% include "widgets/js/Release.js" %}
+                        </script>
 {% set topics_header="Retained Messages" %}
 {% set topics=retained_topics %}
 {% include "widgets/FoldableTable.html" %}
