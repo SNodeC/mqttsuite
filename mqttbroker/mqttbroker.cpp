@@ -283,7 +283,7 @@ static express::Router getRouter(inja::Environment environment, std::shared_ptr<
                     mqtt->getMqttContext()->getSocketConnection()->close();
                     res->send(jsonString);
                 } else {
-                    res->status(404).send("MQTT client has already gone away: " + json["connection_name"].get<std::string>());
+                    res->status(404).send("MQTT client has never existed or already gone away: '" + clientId + "'");
                 }
             },
             [&res](const std::string& key) {
@@ -307,7 +307,7 @@ static express::Router getRouter(inja::Environment environment, std::shared_ptr<
                     mqtt->unsubscribe(topic);
                     res->send(jsonString);
                 } else {
-                    res->status(404).send("MQTT client has already gone away: " + json["connection_name"].get<std::string>());
+                    res->status(404).send("MQTT client has never existed or already gone away: '" + clientId + "'");
                 }
             },
             [&res](const std::string& key) {
@@ -332,7 +332,7 @@ static express::Router getRouter(inja::Environment environment, std::shared_ptr<
                     mqtt->subscribe(topic, qoS);
                     res->send(jsonString);
                 } else {
-                    res->status(404).send("MQTT client has already gone away: " + json["connection_name"].get<std::string>());
+                    res->status(404).send("MQTT client has never existed or already gone away: '" + clientId + "'");
                 }
             },
             [&res](const std::string& key) {
