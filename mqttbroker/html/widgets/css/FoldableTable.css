@@ -1,7 +1,6 @@
 /* Styles for the list-table element */
 list-table {
     background-color: white;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     display: inline-block;
     text-align: left;
     width: -webkit-fill-available;
@@ -24,9 +23,16 @@ body {
 .key-row td {
     padding: 0.2em 0 0;
     white-space: nowrap;
+    padding-left: 0.75em;
+    padding-right: 1em;
 }
 
 /* Key label indicator */
+.key-label {
+    padding-left: 0.75em;
+    padding-right: 1em;
+}
+
 .key-row .key-label::before {
     content: "▶";
     display: inline-block;
@@ -49,6 +55,8 @@ body {
 }
 .value-row td {
     padding: 0.1em 0 0;
+    padding-left: 2.75em;
+    padding-right: 1em;
 }
 
 /* Unsubscribe button styles */

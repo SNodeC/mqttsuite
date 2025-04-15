@@ -8,16 +8,17 @@
             </tr>
 {% for topic in topics %}
             <tr class="key-row">
-                <td class="key-label" colspan="3" style="padding-left: 0.75em; padding-right: 10px">{{ topic.key }}</td>
+                <td class="key-label" colspan="3">{{ topic.key }}</td>
             </tr>
     {% for val in topic.values %}
             <tr class="value-row">
         {% if existsIn(val, "qos") %}
-                <td style="padding-left: 2.75em;">{{ val.client_id }}</td>
-                <td style="padding-left: 7px; padding-right: 7px;">{{ val.qos }}</td>
-                <td style="width: 0px; padding-right: 10px"><button class="red-btn" onclick="unsubscribe('{{ val.client_id }}', '{{ val.topic }}')">Unsubscribe</button></td>
+                <td style="padding-left: 2.75em; white-space: nowrap">{{ val.client_id }}</td>
+                <td style="padding-left: 0; padding-right: 0;">{{ val.qos }}</td>
+                <td style="width: 0px; padding-right: 1em; padding-left: 0"><button class="red-btn" onclick="unsubscribe('{{ val.client_id }}', '{{ val.topic }}')">Unsubscribe</button></td>
         {% else %}
-                <td style="padding-left: 2.75em; padding-right: 10px; overflow-wrap: anywhere;">{{ val }}</td>
+                <td style="overflow-wrap: anywhere;">{{ val }}</td>
+                <td style="width: 0px; padding-right: 1em; padding-left: 0;"><button class="red-btn" onclick="unsubscribe('{ val.client_id }', '{ val.topic }')">Delete</button></td>
         {% endif %}
             </tr>
     {% endfor %}
