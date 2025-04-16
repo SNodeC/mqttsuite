@@ -14,8 +14,8 @@
             <tr class="value-row">
         {% if existsIn(val, "qos") %}
                 <td style="padding-left: 2.75em; width: 0px; padding-right: 1em;"><button class="red-btn" onclick="unsubscribe('{{ val.client_id }}', '{{ val.topic }}')">Unsubscribe</button></td>
-                <td style="white-space: nowrap">{{ val.client_id }}</td>
                 <td style="padding-left: 0; padding-right: 1em; width: 0">{{ val.qos }}</td>
+                <td style="white-space: nowrap">{{ val.client_id }}</td>
         {% else %}
                 <td style="width: 0; padding-right: 1em; padding-left: 2.75em; vertical-align: top;"><button class="red-btn" onclick="release('{{ topic.key }}')">Release</button></td>
                 <td style="overflow-wrap: anywhere;">{{ val }}</td>
