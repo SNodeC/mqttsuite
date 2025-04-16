@@ -68,7 +68,6 @@
 #include <express/tls/in/WebApp.h>
 #include <express/tls/in6/WebApp.h>
 #include <iot/mqtt/server/broker/Broker.h>
-#include <iot/mqtt/server/broker/RetainTree.h>
 #include <net/in/stream/legacy/SocketServer.h>
 #include <net/in/stream/tls/SocketServer.h>
 #include <net/un/stream/legacy/SocketServer.h>
@@ -193,7 +192,7 @@ static std::string getOverviewPage(std::shared_ptr<iot::mqtt::server::broker::Br
         topicsJson.push_back(topicJson);
     }
 
-    std::list<std::pair<std::string, std::string>> retainTree = broker->getRetainedTree().getRetainedTree();
+    std::list<std::pair<std::string, std::string>> retainTree = broker->getRetainTree();
 
     for (const auto& [topic, message] : retainTree) {
         inja::json topicJson;
@@ -325,8 +324,7 @@ static express::Router getRouter(inja::Environment environment, std::shared_ptr<
 
                 std::string topic = json["topic"].get<std::string>();
 
-                //                broker->getRetainedTree().retain({"", topic, "", 0, false});
-                broker->getRetainedTree().release(topic);
+                broker->release(topic);
 
                 res->send(jsonString);
             },
