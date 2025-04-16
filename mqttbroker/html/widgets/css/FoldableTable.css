@@ -6,7 +6,6 @@ body {
 /* Key row styles */
 .key-row {
     cursor: pointer;
-    font-weight: bold;
 }
 .key-row,
 .key-row td {
@@ -49,6 +48,7 @@ body {
 .value-row td {
     padding: 0.1em 0 0;
     padding-right: 1em;
+    color: dimgray;
 }
 
 /* Unsubscribe button styles */
