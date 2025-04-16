@@ -1,28 +1,26 @@
-<div style="display: block; border-right: 1px solid #ccc;">
-    <table>
-        <tbody>
-            <tr>
-                <th colspan="3" style="margin: 0; padding: 12px; background-color: #e0e0e0; font-weight: bold; font-size: 1em; border-bottom: 1px solid #ccc; position: sticky; top: 0; z-index: 1; border-right: 1px solid #ccc; text-align: left">
-                    {{ topics_header }}
-                </th>
-            </tr>
+<table style="border-right: 1px solid #ccc; border-bottom: 1px solid #ccc">
+    <tbody>
+        <tr>
+            <th colspan="3" style="margin: 0; padding: 12px; background-color: #e0e0e0; font-weight: bold; font-size: 1em; border-bottom: 1px solid #ccc; position: sticky; top: 0; z-index: 1; border-right: 1px solid #ccc; text-align: left">
+                {{ topics_header }}
+            </th>
+        </tr>
 {% for topic in topics %}
-            <tr class="key-row">
-                <td class="key-label" colspan="3">{{ topic.key }}</td>
-            </tr>
+        <tr class="key-row">
+            <td class="key-label" colspan="3">{{ topic.key }}</td>
+        </tr>
     {% for val in topic.values %}
-            <tr class="value-row">
+        <tr class="value-row">
         {% if existsIn(val, "qos") %}
-                <td style="padding-left: 2.75em; width: 0px; padding-right: 1em;"><button class="red-btn" onclick="unsubscribe('{{ val.client_id }}', '{{ val.topic }}')">Unsubscribe</button></td>
-                <td style="padding-left: 0; padding-right: 1em; width: 0">{{ val.qos }}</td>
-                <td style="white-space: nowrap">{{ val.client_id }}</td>
+            <td style="padding-left: 2.75em; width: 0px; padding-right: 1em;"><button class="red-btn" onclick="unsubscribe('{{ val.client_id }}', '{{ val.topic }}')">Unsubscribe</button></td>
+            <td style="padding-left: 0; padding-right: 1em; width: 0">{{ val.qos }}</td>
+            <td style="white-space: nowrap">{{ val.client_id }}</td>
         {% else %}
-                <td style="width: 0; padding-right: 1em; padding-left: 2.75em; vertical-align: top;"><button class="red-btn" onclick="release('{{ topic.key }}')">Release</button></td>
-                <td style="overflow-wrap: anywhere;">{{ val }}</td>
+            <td style="width: 0; padding-right: 1em; padding-left: 2.75em; vertical-align: top;"><button class="red-btn" onclick="release('{{ topic.key }}')">Release</button></td>
+            <td style="overflow-wrap: anywhere;">{{ val }}</td>
         {% endif %}
-            </tr>
+        </tr>
     {% endfor %}
 {% endfor %}
-        </tbody>
-    </table>
-</div>
+    </tbody>
+</table>

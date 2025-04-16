@@ -26,14 +26,15 @@ body {
 }
 
 .key-row .key-label::before {
-    content: "▶";
+    content: url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%3E%3Cpolyline%20points=%229%2018%2015%2012%209%206%22%20fill=%22none%22%20stroke=%22currentColor%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22/%3E%3C/svg%3E");
     display: inline-block;
     width: 1em;
+    vertical-align: middle;
     transition: transform 0.2s ease;
     margin-right: 5px;
 }
 .key-row.open .key-label::before {
-    content: "▼";
+    content: url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%3E%3Cpolyline%20points=%226%209%2012%2015%2018%209%22%20fill=%22none%22%20stroke=%22currentColor%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22/%3E%3C/svg%3E");
 }
 
 /* Value row styles */
