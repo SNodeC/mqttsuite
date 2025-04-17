@@ -179,27 +179,29 @@ static std::string getOverviewPage(std::shared_ptr<iot::mqtt::server::broker::Br
 
     std::map<std::string, std::list<std::pair<std::string, uint8_t>>> subscribedTopics = broker->getSubscriptionTree();
 
-    inja::json& topicsJson = json["subscribed_topics"];
+    inja::json& subscribedTopicsJson = json["subscribed_topics"];
     for (const auto& [topic, clients] : subscribedTopics) {
         inja::json topicJson;
-        topicJson["key"] = topic;
 
+        topicJson["key"] = topic;
         for (const auto& client : clients) {
             topicJson["values"].push_back(
                 {{"client_id", client.first}, {"topic", topic}, {"qos", std::to_string(static_cast<int>(client.second))}});
         }
 
-        topicsJson.push_back(topicJson);
+        subscribedTopicsJson.push_back(topicJson);
     }
 
     std::list<std::pair<std::string, std::string>> retainTree = broker->getRetainTree();
 
+    inja::json& retainedTopicsJson = json["retained_topics"];
     for (const auto& [topic, message] : retainTree) {
         inja::json topicJson;
+
         topicJson["key"] = topic;
         topicJson["values"].push_back(message);
 
-        json["retained_topics"].push_back(topicJson);
+        retainedTopicsJson.push_back(topicJson);
     }
 
     return environment.render_file("OverviewPage.html", json);
