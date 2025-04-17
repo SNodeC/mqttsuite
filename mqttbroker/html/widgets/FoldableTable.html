@@ -12,7 +12,7 @@
             <td style="white-space: nowrap">{{ val.client_id }}</td>
         {% else %}
             <td style="width: 0; padding-right: 1em; padding-left: 2.75em; vertical-align: top;"><button class="red-btn" onclick="release('{{ topic.key }}')">Release</button></td>
-            <td style="overflow-wrap: anywhere;">{{ val }}</td>
+            <td style="overflow-wrap: anywhere; font-size: smaller;">{{ val }}</td>
         {% endif %}
         </tr>
     {% endfor %}
