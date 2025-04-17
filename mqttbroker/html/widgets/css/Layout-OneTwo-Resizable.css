@@ -34,7 +34,7 @@ body {
 
 #bottom-left,
 #bottom-right {
-    overflow: auto;
+    overflow: hidden;
     padding: 10px;
     display: flex;
     flex-direction: column;

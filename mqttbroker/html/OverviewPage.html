@@ -29,11 +29,11 @@
 {% include "widgets/css/FoldableTable.css" %}
                     </style>
                     <div id="bottom-left">
-                        <div style="margin: 0;padding: 12px; background-color: #e0e0e0;font-weight: bold;font-size: 1em;/* border-bottom: 1px solid #ccc; */position: sticky;top: 0;z-index: 1;border-right: 1px solid #ccc;/* text-align: left; */">
+                        <div style="margin: 0;padding: 12px; background-color: #e0e0e0; font-weight: bold; font-size: 1em; position: sticky; top: 0; z-index: 1; border-right: 1px solid #ccc; overflow: inherit;">
                             Subscribed Topics
                         </div>
                         <div style="display: flex; flex: 1; flex-direction: column; overflow: auto;">
-                            <div style="overflow: auto; border: 1px solid #ccc;">
+                            <div style="overflow: auto; border: 1px solid #ccc; height: 100%;">
                                 <script>
 {% include "widgets/js/UnSubscribe.js" %}
                                 </script>
@@ -43,11 +43,11 @@
                         </div>
                     </div>
                     <div id="bottom-right">
-                        <div style="margin: 0;padding: 12px; background-color: #e0e0e0;font-weight: bold;font-size: 1em;/* border-bottom: 1px solid #ccc; */position: sticky;top: 0;z-index: 1;border-right: 1px solid #ccc;/* text-align: left; */">
+                        <div style="margin: 0;padding: 12px; background-color: #e0e0e0; font-weight: bold; font-size: 1em; position: sticky; top: 0; z-index: 1; border-right: 1px solid #ccc; overflow: inherit;">
                             Retained Topics
                         </div>
                         <div style="display: flex; flex-direction: column; flex: 1; overflow: auto;">
-                            <div style="overflow: auto; border: 1px solid #ccc;">
+                            <div style="overflow: auto; border: 1px solid #ccc; height: 100%;">
                                 <script>
 {% include "widgets/js/Release.js" %}
                                 </script>
