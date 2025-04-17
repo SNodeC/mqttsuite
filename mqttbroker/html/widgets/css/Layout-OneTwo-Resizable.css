@@ -42,8 +42,10 @@ body {
 }
 
 #splitter {
-    height: 2px;
+    height: 1px;
     cursor: row-resize;
     background-color: #ccc;
     border: 1px solid #ccc;
+    margin-left: 10px;
+    margin-right: 10px;
 }
