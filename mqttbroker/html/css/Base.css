@@ -6,8 +6,6 @@ body {
     height: 100%;
     margin: 0;
     overflow: hidden;
-    display: flex;
-    flex-direction: column;
     background-color: #f6f6f6;
     scrollbar-color: #888 #eee;
 }

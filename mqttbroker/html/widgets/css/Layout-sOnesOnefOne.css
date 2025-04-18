@@ -27,7 +27,6 @@ layout-111 {
     }
 
     #bottom {
-        flex: 0;
         margin: 10px;
         border: 1px solid #ccc;
     }

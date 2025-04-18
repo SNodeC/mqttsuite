@@ -5,14 +5,11 @@ layout-12 {
     flex-direction: column;
 
     #container {
-        display: flex;
-        flex-direction: column;
         overflow: auto;
         height: 100%;
     }
 
     #top {
-        display: flex;
         overflow: auto;
         border: 1px solid #ccc;
         height: 100%;
