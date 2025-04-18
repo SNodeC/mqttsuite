@@ -25,32 +25,11 @@
                 </div>
                 <div id="splitter"></div>
                 <div id="bottom">
-                    <style>
-{% include "widgets/css/FoldableTable.css" %}
-                    </style>
                     <div id="bottom-left">
-                        <div style="margin: 0; padding: 12px; background-color: #e0e0e0; font-weight: bold; font-size: 1em; position: sticky; top: 0; z-index: 1; border: 1px solid #ccc; overflow: inherit;">
-                            Subscribed Topics
-                        </div>
-                        <div style="display: flex; flex: 1; flex-direction: column; overflow: auto; border-right: 1px solid #ccc; border-left: 1px solid #ccc; border-bottom: 1px solid #ccc;">
-                            <script>
-{% include "widgets/js/UnSubscribe.js" %}
-                            </script>
-{% set topics=subscribed_topics %}
-{% include "widgets/FoldableTable.html" %}
-                        </div>
+{% include "widgets/SubscriptionList.html" %}
                     </div>
-                    <div id="bottom-right">
-                        <div style="margin: 0; padding: 12px; background-color: #e0e0e0; font-weight: bold; font-size: 1em; position: sticky; top: 0; z-index: 1; border: 1px solid #ccc; overflow: inherit;">
-                            Retained Topics
-                        </div>
-                        <div style="display: flex; flex: 1; flex-direction: column; overflow: auto; border-right: 1px solid #ccc; border-left: 1px solid #ccc; border-bottom: 1px solid #ccc;">
-                            <script>
-{% include "widgets/js/Release.js" %}
-                            </script>
-{% set topics=retained_topics %}
-{% include "widgets/FoldableTable.html" %}
-                        </div>
+                    <div id="bottom-right">   
+{% include "widgets/RetainedList.html" %}
                     </div>
                 </div>
                 <script>
