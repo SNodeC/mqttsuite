@@ -29,31 +29,27 @@
 {% include "widgets/css/FoldableTable.css" %}
                     </style>
                     <div id="bottom-left">
-                        <div style="margin: 0;padding: 12px; background-color: #e0e0e0; font-weight: bold; font-size: 1em; position: sticky; top: 0; z-index: 1; border-right: 1px solid #ccc; overflow: inherit;">
+                        <div style="margin: 0; padding: 12px; background-color: #e0e0e0; font-weight: bold; font-size: 1em; position: sticky; top: 0; z-index: 1; border: 1px solid #ccc; overflow: inherit;">
                             Subscribed Topics
                         </div>
-                        <div style="display: flex; flex: 1; flex-direction: column; overflow: auto;">
-                            <div style="overflow: auto; border: 1px solid #ccc; height: 100%;">
-                                <script>
+                        <div style="display: flex; flex: 1; flex-direction: column; overflow: auto; border-right: 1px solid #ccc; border-left: 1px solid #ccc; border-bottom: 1px solid #ccc;">
+                            <script>
 {% include "widgets/js/UnSubscribe.js" %}
-                                </script>
+                            </script>
 {% set topics=subscribed_topics %}
 {% include "widgets/FoldableTable.html" %}
-                            </div>
                         </div>
                     </div>
                     <div id="bottom-right">
-                        <div style="margin: 0;padding: 12px; background-color: #e0e0e0; font-weight: bold; font-size: 1em; position: sticky; top: 0; z-index: 1; border-right: 1px solid #ccc; overflow: inherit;">
+                        <div style="margin: 0; padding: 12px; background-color: #e0e0e0; font-weight: bold; font-size: 1em; position: sticky; top: 0; z-index: 1; border: 1px solid #ccc; overflow: inherit;">
                             Retained Topics
                         </div>
-                        <div style="display: flex; flex-direction: column; flex: 1; overflow: auto;">
-                            <div style="overflow: auto; border: 1px solid #ccc; height: 100%;">
-                                <script>
+                        <div style="display: flex; flex: 1; flex-direction: column; overflow: auto; border-right: 1px solid #ccc; border-left: 1px solid #ccc; border-bottom: 1px solid #ccc;">
+                            <script>
 {% include "widgets/js/Release.js" %}
-                                </script>
+                            </script>
 {% set topics=retained_topics %}
 {% include "widgets/FoldableTable.html" %}
-                            </div>
                         </div>
                     </div>
                 </div>
