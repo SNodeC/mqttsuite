@@ -3,49 +3,42 @@ layout-12 {
     height: 100%;
     display: flex;
     flex-direction: column;
-}
 
-html,
-body {
-    height: 100%;
-    margin: 0;
-    overflow: hidden;
-}
+    #container {
+        display: flex;
+        flex-direction: column;
+        overflow: auto;
+        height: 100%;
+    }
 
-#container {
-    display: flex;
-    flex-direction: column;
-    overflow: auto;
-    height: 100%;
-}
+    #top {
+        display: flex;
+        overflow: auto;
+        border: 1px solid #ccc;
+        height: 100%;
+    }
 
-#top {
-    display: flex;
-    overflow: auto;
-    border: 1px solid #ccc;
-    height: 100%;
-}
+    #bottom {
+        display: flex;
+        flex: 1;
+        overflow: auto;
+    }
 
-#bottom {
-    display: flex;
-    flex: 1;
-    overflow: auto;
-}
+    #bottom-left,
+    #bottom-right {
+        overflow: hidden;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        width: 50%;
+    }
 
-#bottom-left,
-#bottom-right {
-    overflow: hidden;
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    width: 50%;
-}
-
-#splitter {
-    height: 1px;
-    cursor: row-resize;
-    background-color: #ccc;
-    border: 1px solid #ccc;
-    margin-left: 10px;
-    margin-right: 10px;
+    #splitter {
+        height: 1px;
+        cursor: row-resize;
+        background-color: #ccc;
+        border: 1px solid #ccc;
+        margin-left: 10px;
+        margin-right: 10px;
+    }
 }

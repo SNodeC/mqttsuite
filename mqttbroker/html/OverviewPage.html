@@ -3,43 +3,43 @@
     <head>
         <meta name="viewport" content="width=device-width">
         <style>
-{% include "css/Base.css" %}
-{% include "widgets/css/Layout-OneTwo-Resizable.css" %}
+## include "css/Base.css"
+## include "widgets/css/Layout-OneTwo-Resizable.css"
         </style>
         <script>
-{% include "js/UpdateDuration.js" %}
+## include "js/UpdateDuration.js"
         </script>
         <title>{{ title }}</title>
     </head>
     <body>
         <layout-12>
             <div style="display: flex; flex-direction: column;">
-{% include "widgets/Header.html" %}
+## include "widgets/Header.html"
             </div>
             <div id="container">
                 <div id="drag" style="padding: 10px; height: 50%">
                     <div id="top">
-{% include "widgets/TableFixHeader.html" %}
+## include "widgets/TableFixHeader.html"
                         <script>
-{% include "js/DisconnectClient.js" %}
+## include "js/DisconnectClient.js"
                         </script>
                     </div>
                 </div>
                 <div id="splitter"></div>
                 <div id="bottom">
                     <div id="bottom-left">
-{% include "widgets/SubscriptionList.html" %}
+## include "widgets/SubscriptionList.html"
                     </div>
                     <div id="bottom-right">   
-{% include "widgets/RetainedList.html" %}
+## include "widgets/RetainedList.html"
                     </div>
                 </div>
                 <script>
-{% include "widgets/js/Layout-OneTwo-Resizable.js" %}
+## include "widgets/js/Layout-OneTwo-Resizable.js"
                 </script>
             </div>
             <div>
-{% include "widgets/Footer.html" %}
+## include "widgets/Footer.html"
             </div>
         </layou-12>
     </body>
