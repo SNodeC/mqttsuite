@@ -7,7 +7,6 @@
 {% include "widgets/css/Layout-OneTwo-Resizable.css" %}
         </style>
         <script>
-{% include "js/DisconnectClient.js" %}
 {% include "js/UpdateDuration.js" %}
         </script>
         <title>{{ title }}</title>
@@ -21,6 +20,9 @@
                 <div id="drag" style="padding: 10px; height: 50%">
                     <div id="top">
 {% include "widgets/TableFixHeader.html" %}
+                        <script>
+{% include "js/DisconnectClient.js" %}
+                        </script>
                     </div>
                 </div>
                 <div id="splitter"></div>
@@ -33,7 +35,6 @@
                     </div>
                 </div>
                 <script>
-{% include "widgets/js/FoldableTable.js" %}
 {% include "widgets/js/Layout-OneTwo-Resizable.js" %}
                 </script>
             </div>

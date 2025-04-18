@@ -1,3 +1,6 @@
+<style>
+{% include "css/FoldableTable.css" %}
+</style>
 <table style="border-right: 1px solid #ccc; border-bottom: 1px solid #ccc">
     <tbody>
 {% for topic in topics %}
@@ -17,5 +20,8 @@
         </tr>
     {% endfor %}
 {% endfor %}
+        <script>
+{% include "js/FoldableTable.js" %}
+        </script>
     </tbody>
 </table>
