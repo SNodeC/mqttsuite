@@ -86,6 +86,14 @@ target_link_libraries(
            fmt
 )
 
+file(GLOB_RECURSE WEB_ASSETS
+     "${CMAKE_CURRENT_SOURCE_DIR}/html/*.html"
+     "${CMAKE_CURRENT_SOURCE_DIR}/html/*.css"
+     "${CMAKE_CURRENT_SOURCE_DIR}/html/*.js"
+)
+
+target_sources(mqttbroker PRIVATE ${WEB_ASSETS})
+
 install(TARGETS mqttbroker RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 install(
