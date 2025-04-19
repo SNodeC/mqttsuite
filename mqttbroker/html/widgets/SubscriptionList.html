@@ -2,14 +2,15 @@
 ## include "css/SubscriptionList.css"
 </style>
 
+<script>
+## include "js/UnSubscribe.js"
+</script>
+
 <subscription-list>
     <div class="heading">
         Subscribed Topics
     </div>
     <div class="subscriptions">
-        <script>
-## include "js/UnSubscribe.js"
-        </script>
 ## set topics=subscribed_topics
 ## include "FoldableTable.html"
     </div>

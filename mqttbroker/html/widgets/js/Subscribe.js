@@ -1,5 +1,7 @@
 function subscribe(clientId, topic, qoS) {
-    showSpinner()
+    if (typeof showSpinner === 'function') {
+        showSpinner?.()
+    }
     fetch("/subscribe", {
         "method": "POST",
         "body": JSON.stringify({
@@ -35,5 +37,7 @@ function subscribe(clientId, topic, qoS) {
         console.error("There was a problem with the fetch operation:", error)
         alert(error)
     })
-    hideSpinner()
+    if (typeof hideSpinner === 'function') {
+        hideSpinner?.()
+    }
 }

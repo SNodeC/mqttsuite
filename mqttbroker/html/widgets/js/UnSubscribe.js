@@ -1,4 +1,7 @@
 function unsubscribe(clientId, topic) {
+    if (typeof showSpinner === 'function') {
+        showSpinner?.()
+    }
     fetch("/unsubscribe", {
         "method": "POST",
         "body": JSON.stringify({
@@ -33,4 +36,7 @@ function unsubscribe(clientId, topic) {
         console.error("There was a problem with the fetch operation:", error)
         alert(error)
     })
+    if (typeof hideSpinner === 'function') {
+        hideSpinner?.()
+    }
 }

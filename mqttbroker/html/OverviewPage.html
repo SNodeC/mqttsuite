@@ -12,6 +12,7 @@
         <title>{{ title }}</title>
     </head>
     <body>
+## include "widgets/Spinner.html"
         <layout-12>
             <div style="display: flex; flex-direction: column;">
 ## include "widgets/Header.html"
@@ -19,9 +20,6 @@
             <div id="container">
                 <div id="top">
 ## include "widgets/ConnectedClients.html"
-                    <script>
-## include "js/DisconnectClient.js"
-                    </script>
                 </div>
                 <div id="splitter"></div>
                 <div id="bottom">

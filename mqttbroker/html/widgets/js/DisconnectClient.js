@@ -1,4 +1,7 @@
 function disconnectClient(clientId) {
+    if (typeof showSpinner === 'function') {
+        showSpinner?.()
+    }
     fetch("/clients", {
         "method": "POST",
         "body": JSON.stringify({
@@ -28,4 +31,7 @@ function disconnectClient(clientId) {
         alert(error)
         window.location.reload()
     })
+    if (typeof hideSpinner === 'function') {
+        hideSpinner?.()
+    }
 }
