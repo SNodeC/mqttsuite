@@ -1,10 +1,16 @@
-<div style="margin: 0; padding: 12px; background-color: #e0e0e0; font-weight: bold; font-size: 1em; position: sticky; top: 0; z-index: 1; border: 1px solid #ccc; overflow: inherit;">
-    Retained Topics
-</div>
-<div style="height: 100%; overflow: auto; border-right: 1px solid #ccc; border-left: 1px solid #ccc; border-bottom: 1px solid #ccc;">
-    <script>
+<style>
+## include "css/RetainedList.css"
+</style>
+
+<retained-list>
+    <div style="margin: 0; padding: 12px; background-color: #e0e0e0; font-weight: bold; font-size: 1em; position: sticky; top: 0; z-index: 1; border: 1px solid #ccc; overflow: inherit;">
+        Retained Topics
+    </div>
+    <div style="height: 100%; overflow: auto; border-right: 1px solid #ccc; border-left: 1px solid #ccc; border-bottom: 1px solid #ccc;">
+        <script>
 ## include "js/Release.js"
-    </script>
+        </script>
 ## set topics=retained_topics
 ## include "FoldableTable.html"
-</div>
+    </div>
+</retained-list>

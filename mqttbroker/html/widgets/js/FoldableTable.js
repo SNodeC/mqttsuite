@@ -1,4 +1,3 @@
-// Expand/collapse logic
 document.currentScript.parentElement.querySelectorAll('.key-row').forEach(row => {
     row.addEventListener('click', () => {
         row.classList.toggle('open')
