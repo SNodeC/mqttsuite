@@ -17,10 +17,10 @@
             </thead>
             <tbody>
 ## for topic in topics
-                   <tr>
-                       <td>{{ topic }}</td>
-                       <td><button class="red-btn" onclick="unsubscribe('{{ client_id }}', '{{ topic }}')">Unsubscribe</button></td>
-                   </tr>
+                <tr>
+                    <td>{{ topic }}</td>
+                    <td><button class="red-btn" onclick="unsubscribe('{{ client_id }}', '{{ topic }}')">Unsubscribe</button></td>
+                </tr>
 ## endfor
             </tbody>
         </table>
