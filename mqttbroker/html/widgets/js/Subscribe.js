@@ -2,6 +2,9 @@ function subscribe(clientId, topic, qoS) {
     if (typeof showSpinner === 'function') {
         showSpinner?.()
     }
+    if (window.opener && !window.opener.closed && typeof window.opener.showSpinner === 'function') {
+        window.opener.showSpinner?.()
+    }
     fetch("/subscribe", {
         "method": "POST",
         "body": JSON.stringify({
@@ -32,12 +35,21 @@ function subscribe(clientId, topic, qoS) {
             window.opener.location.reload()
         } else {
             // alert('Parent window is closed or not available.')
+        }        
+        if (typeof hideSpinner === 'function') {
+            hideSpinner?.()
+        }
+        if (window.opener && !window.opener.closed && typeof window.opener.hideSpinner === 'function') {
+            window.opener.hideSpinner?.()
         }
     }).catch(error => {
         console.error("There was a problem with the fetch operation:", error)
         alert(error)
+        if (typeof hideSpinner === 'function') {
+            hideSpinner?.()
+        }
+        if (window.opener && !window.opener.closed && typeof window.opener.hideSpinner === 'function') {
+            window.opener.hideSpinner?.()
+        }
     })
-    if (typeof hideSpinner === 'function') {
-        hideSpinner?.()
-    }
 }

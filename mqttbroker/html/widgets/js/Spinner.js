@@ -8,5 +8,5 @@ function showSpinner() {
 function hideSpinner() {
     console.log("Hide Spinner")
     // No need to hide spinner as the page is reloaded anyway
-    // overlay.classList.remove('active')
+     overlay.classList.remove('active')
 }
