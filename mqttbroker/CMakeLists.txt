@@ -97,6 +97,10 @@ target_link_libraries(
 install(TARGETS mqttbroker RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 install(
-    FILES ${WEB_ASSETS}
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/html/
     DESTINATION ${CMAKE_INSTALL_PREFIX}/var/www/mqttsuite/mqttbroker
+    FILES_MATCHING
+    PATTERN "*.html"
+    PATTERN "*.css"
+    PATTERN "*.js"
 )
