@@ -71,6 +71,14 @@ set_property(
 
 add_executable(mqttbroker ${MQTTBROKER_CPP} ${MQTTBROKER_H})
 
+file(GLOB_RECURSE WEB_ASSETS
+     "${CMAKE_CURRENT_SOURCE_DIR}/html/*.html"
+     "${CMAKE_CURRENT_SOURCE_DIR}/html/*.css"
+     "${CMAKE_CURRENT_SOURCE_DIR}/html/*.js"
+)
+
+target_sources(mqttbroker PRIVATE ${WEB_ASSETS})
+
 target_link_libraries(
     mqttbroker
     PUBLIC snodec::net-in-stream-legacy
@@ -86,21 +94,9 @@ target_link_libraries(
            fmt
 )
 
-file(GLOB_RECURSE WEB_ASSETS
-     "${CMAKE_CURRENT_SOURCE_DIR}/html/*.html"
-     "${CMAKE_CURRENT_SOURCE_DIR}/html/*.css"
-     "${CMAKE_CURRENT_SOURCE_DIR}/html/*.js"
-)
-
-target_sources(mqttbroker PRIVATE ${WEB_ASSETS})
-
 install(TARGETS mqttbroker RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 install(
-    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/html/
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/var/www/mqttsuite/mqttbroker/
-    FILES_MATCHING
-    PATTERN "*.html"
-    PATTERN "*.css"
-    PATTERN "*.js"
+    FILES ${WEB_ASSETS}
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/var/www/mqttsuite/mqttbroker
 )
