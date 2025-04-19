@@ -17,27 +17,24 @@
 ## include "widgets/Header.html"
             </div>
             <div id="container">
-                <div id="drag">
-                    <div id="top">
+                <div id="top">
 ## include "widgets/TableFixHeader.html"
-                        <script>
+                    <script>
 ## include "js/DisconnectClient.js"
-                        </script>
-                    </div>
+                    </script>
                 </div>
-                <div id="splitter"></div>
-                <div id="bottom">
-                    <div id="bottom-left">
+            <div id="splitter"></div>
+            <div id="bottom">
+                <div id="bottom-left">
 ## include "widgets/SubscriptionList.html"
-                    </div>
-                    <div id="bottom-right">
-## include "widgets/RetainedList.html"
-                    </div>
                 </div>
-                <script>
-## include "widgets/js/Layout-OneTwo-Resizable.js"
-                </script>
+                <div id="bottom-right">
+## include "widgets/RetainedList.html"
+                </div>
             </div>
+            <script>
+## include "widgets/js/Layout-OneTwo-Resizable.js"
+            </script>
             <div>
 ## include "widgets/Footer.html"
             </div>

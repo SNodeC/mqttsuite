@@ -1,6 +1,5 @@
 list-table {
     text-align: left;
-    width: 100%;
     .table {
         td:nth-child(1),
         td:nth-child(2),
