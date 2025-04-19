@@ -179,9 +179,9 @@ template <template <typename, typename...> typename SocketClient,
           typename Client = SocketClient<SocketContextFactory, SocketContextFactoryArgs&&...>, // cppcheck-suppress syntaxError
           typename SocketAddress = typename Client::SocketAddress,
           typename = std::enable_if_t<std::is_base_of_v<core::socket::stream::SocketContextFactory, SocketContextFactory>>>
-void startClient(const std::string& instanceName,
-                 const std::function<void(typename Client::Config&)>& configurator,
-                 SocketContextFactoryArgs&&... socketContextFactoryArgs) {
+static void startClient(const std::string& instanceName,
+                        const std::function<void(typename Client::Config&)>& configurator,
+                        SocketContextFactoryArgs&&... socketContextFactoryArgs) {
     const Client client(instanceName, std::forward<SocketContextFactoryArgs>(socketContextFactoryArgs)...);
 
     configurator(client.getConfig());
@@ -198,7 +198,7 @@ template <template <typename, typename...> typename SocketClient,
           typename SocketAddress = typename Client::SocketAddress,
           typename = std::enable_if_t<not std::is_invocable_v<std::tuple_element_t<0, std::tuple<SocketContextFactoryArgs...>>,
                                                               typename SocketClient<SocketContextFactory>::Config&>>>
-void startClient(const std::string& instanceName, SocketContextFactoryArgs&&... socketContextFactoryArgs) {
+static void startClient(const std::string& instanceName, SocketContextFactoryArgs&&... socketContextFactoryArgs) {
     Client client(instanceName, std::forward<SocketContextFactoryArgs>(socketContextFactoryArgs)...);
 
     client.connect([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) {
@@ -207,7 +207,7 @@ void startClient(const std::string& instanceName, SocketContextFactoryArgs&&... 
 }
 
 template <typename HttpClient>
-void startClient(const std::string& name, const std::function<void(typename HttpClient::Config&)>& configurator) {
+static void startClient(const std::string& name, const std::function<void(typename HttpClient::Config&)>& configurator) {
     using SocketAddress = typename HttpClient::SocketAddress;
 
     const HttpClient httpClient(

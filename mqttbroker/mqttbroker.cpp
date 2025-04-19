@@ -475,9 +475,9 @@ template <template <typename, typename...> typename SocketServer,
           typename Server = SocketServer<SocketContextFactory, SocketContextFactoryArgs&&...>,
           typename SocketAddress = typename Server::SocketAddress,
           typename = std::enable_if_t<std::is_base_of_v<core::socket::stream::SocketContextFactory, SocketContextFactory>>>
-void startServer(const std::string& instanceName,
-                 const std::function<void(typename Server::Config&)>& configurator,
-                 SocketContextFactoryArgs&&... socketContextFactoryArgs) {
+static void startServer(const std::string& instanceName,
+                        const std::function<void(typename Server::Config&)>& configurator,
+                        SocketContextFactoryArgs&&... socketContextFactoryArgs) {
     const Server server(instanceName, std::forward<SocketContextFactoryArgs>(socketContextFactoryArgs)...);
 
     configurator(server.getConfig());
@@ -494,7 +494,7 @@ template <template <typename, typename...> typename SocketServer,
           typename SocketAddress = typename Server::SocketAddress,
           typename = std::enable_if_t<not std::is_invocable_v<std::tuple_element_t<0, std::tuple<SocketContextFactoryArgs...>>,
                                                               typename SocketServer<SocketContextFactory>::Config&>>>
-void startServer(const std::string& instanceName, SocketContextFactoryArgs&&... socketContextFactoryArgs) {
+static void startServer(const std::string& instanceName, SocketContextFactoryArgs&&... socketContextFactoryArgs) {
     Server(instanceName, std::forward<SocketContextFactoryArgs>(socketContextFactoryArgs)...)
         .listen([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) {
             reportState(instanceName, socketAddress, state);
@@ -502,9 +502,9 @@ void startServer(const std::string& instanceName, SocketContextFactoryArgs&&... 
 }
 
 template <typename HttpExpressServer>
-void startServer(const std::string& instanceName,
-                 const express::Router& router,
-                 const std::function<void(typename HttpExpressServer::Config&)>& configurator = nullptr) {
+static void startServer(const std::string& instanceName,
+                        const express::Router& router,
+                        const std::function<void(typename HttpExpressServer::Config&)>& configurator = nullptr) {
     using SocketAddress = typename HttpExpressServer::SocketAddress;
 
     const HttpExpressServer httpExpressServer(instanceName, router);
