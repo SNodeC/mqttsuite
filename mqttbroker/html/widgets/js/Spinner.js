@@ -10,3 +10,9 @@ function hideSpinner() {
     // No need to hide spinner as the page is reloaded anyway
      overlay.classList.remove('active')
 }
+
+window.addEventListener('load', function() {
+    if (typeof hideSpinner == 'function') {
+        hideSpinner?.()
+    }
+});

@@ -25,6 +25,9 @@ function subscribe(clientId, topic, qoS) {
         })
     }).then(result => {
         if (!result.ok) {
+            if (typeof hideSpinner === 'function') {
+                hideSpinner?.()
+            }
             throw new Error("Network response was not ok\n" + result.status + ": " + result.body)
         }
         return result.body
@@ -42,9 +45,6 @@ function subscribe(clientId, topic, qoS) {
     }).finally(() => {
         if (typeof hideSpinner === 'function') {
             hideSpinner?.()
-        }
-        if (window.opener && !window.opener.closed && typeof window.opener.hideSpinner === 'function') {
-            window.opener.hideSpinner?.()
         }
     })
 }
