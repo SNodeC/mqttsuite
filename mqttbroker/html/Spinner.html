@@ -3,19 +3,14 @@
     <head>
         <meta name="viewport" content="width=device-width">
     </head>
-<!--    <body onload="javascript:window.location='{{ location }}'"> -->
-    <body onload="javascript:setTimeout(function(){ window.location = '{{ location }}';}, 5000);">
+    <body onload="javascript:window.location='{{ location }}'">
 ## include "widgets/Spinner.html"
     </body>
     <script>
         if (typeof showSpinner === 'function') {
             showSpinner?.()
         }
-        window.addEventListener("beforeunload", (event) => {
-            console.log("I am the 1st one.");
-        });
         window.addEventListener("unload", (event) => {
-            console.log("I am the 3rd one.");
             if (typeof hideSpinner === 'function') {
                 hideSpinner?.()
             }
