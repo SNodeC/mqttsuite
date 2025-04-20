@@ -26,12 +26,10 @@ function disconnectClient(clientId) {
     }).then(body => {
         console.log("Data received:", body)
         window.location.reload()
-        if (typeof hideSpinner === 'function') {
-            hideSpinner?.()
-        }
     }).catch(error => {
         console.error("There was a problem with the fetch operation:", error)
         alert(error)
+    }).finally(() => {
         window.location.reload()
         if (typeof hideSpinner === 'function') {
             hideSpinner?.()

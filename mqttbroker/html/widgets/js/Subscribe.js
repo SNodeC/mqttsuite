@@ -35,16 +35,11 @@ function subscribe(clientId, topic, qoS) {
             window.opener.location.reload()
         } else {
             // alert('Parent window is closed or not available.')
-        }        
-        if (typeof hideSpinner === 'function') {
-            hideSpinner?.()
-        }
-        if (window.opener && !window.opener.closed && typeof window.opener.hideSpinner === 'function') {
-            window.opener.hideSpinner?.()
         }
     }).catch(error => {
         console.error("There was a problem with the fetch operation:", error)
         alert(error)
+    }).finally(() => {
         if (typeof hideSpinner === 'function') {
             hideSpinner?.()
         }
