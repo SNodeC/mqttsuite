@@ -4,16 +4,18 @@
         <meta name="viewport" content="width=device-width">
     </head>
     <body onload="javascript:window.location='{{ location }}'">
+<!--    <body onload="javascript:setTimeout(function(){ window.location = '{{ location }}';}, 5000);"> -->
 ## include "widgets/Spinner.html"
-    </body>
-    <script>
-        if (typeof showSpinner === 'function') {
-            showSpinner?.()
-        }
-        window.addEventListener("unload", (event) => {
-            if (typeof hideSpinner === 'function') {
-                hideSpinner?.()
+        <script>
+            if (typeof showSpinner === 'function') {
+                showSpinner?.()
             }
-        });
-    </script>
+            window.addEventListener("unload", (event) => {
+                if (typeof hideSpinner === 'function') {
+                  // hideSpinner?.()
+                }
+            });
+        </script>
+    </body>
 </html>
+
