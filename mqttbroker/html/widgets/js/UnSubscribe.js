@@ -45,6 +45,5 @@ function unsubscribe(clientId, topic) {
         if (window.opener && !window.opener.closed && typeof window.opener.hideSpinner === 'function') {
             window.opener.hideSpinner?.()
         }
-
     });
 }

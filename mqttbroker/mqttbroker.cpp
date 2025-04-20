@@ -234,6 +234,14 @@ static std::string getDetailedPage(inja::Environment environment, const mqtt::mq
                                     {"topics", mqtt->getSubscriptions()}});
 }
 
+static std::string getRedirectSpinnerPage(inja::Environment environment, const std::string& location) {
+    inja::json json;
+
+    json["location"] = location;
+
+    return environment.render_file("Spinner.html", json);
+}
+
 static std::string urlDecode(const std::string& encoded) {
     std::string decoded;
     size_t i = 0;
@@ -414,13 +422,30 @@ static express::Router getRouter(inja::Environment environment, std::shared_ptr<
         res->status(responseStatus).send(responseString);
     });
 
+    router.get("/spinner", [environment] APPLICATION(req, res) {
+        std::string responseString;
+        int responseStatus = 200;
+
+        if (req->queries.size() == 1) {
+            std::string responseString = getRedirectSpinnerPage(environment, req->queries.begin()->first);
+            VLOG(0) << "Response: " << responseString;
+
+            res->send(responseString);
+        } else {
+            responseStatus = 400;
+            responseString = "Bad Request: No Client requested";
+
+            res->status(responseStatus).send(responseString);
+        }
+    });
+
     router
         .get("/ws",
              [] APPLICATION(req, res) {
                  if (req->headers.contains("upgrade")) {
                      upgrade(req, res);
                  } else {
-                     res->redirect("/clients");
+                     res->redirect("/spinner?/clients");
                  }
              })
         .setStrictRouting();
@@ -431,7 +456,7 @@ static express::Router getRouter(inja::Environment environment, std::shared_ptr<
                  if (req->headers.contains("upgrade")) {
                      upgrade(req, res);
                  } else {
-                     res->redirect("/clients");
+                     res->redirect("/spinner?/clients");
                  }
              })
 
@@ -443,7 +468,7 @@ static express::Router getRouter(inja::Environment environment, std::shared_ptr<
                  if (req->headers.contains("upgrade")) {
                      upgrade(req, res);
                  } else {
-                     res->redirect("/clients");
+                     res->redirect("/spinner?/clients");
                  }
              })
         .setStrictRouting();
