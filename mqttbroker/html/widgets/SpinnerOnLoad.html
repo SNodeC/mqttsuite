@@ -1,0 +1,11 @@
+## include "Spinner.html"
+<script>
+    if (typeof showSpinner === 'function') {
+        showSpinner?.()
+    }
+    window.addEventListener('load', function() {
+        if (typeof hideSpinner == 'function') {
+             hideSpinner?.()
+        }
+    });
+</script>
