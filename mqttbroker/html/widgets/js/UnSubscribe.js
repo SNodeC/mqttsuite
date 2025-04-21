@@ -24,22 +24,20 @@ function unsubscribe(clientId, topic) {
         })
     }).then(result => {
         if (!result.ok) {
-            if (typeof hideSpinner === 'function') {
-                hideSpinner?.()
-            }
             throw new Error("Network response was not ok\n" + result.status + ": " + result.body)
         }
         return result.body
     }).then(body => {
         console.log("Data received:", body)
+    }).catch(error => {
+        console.error("There was a problem with the fetch operation:", error)
+        alert(error)
+    }).finally(() => {
         window.location.reload()
         if (window.opener && !window.opener.closed) {
             window.opener.location.reload()
         } else {
-            // alert('Parent window is closed or not available.')
+        // alert('Parent window is closed or not available.')
         }
-    }).catch(error => {
-        console.error("There was a problem with the fetch operation:", error)
-        alert(error)
     })
 }

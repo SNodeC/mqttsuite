@@ -25,14 +25,15 @@ function disconnectClient(clientId) {
         return result.body
     }).then(body => {
         console.log("Data received:", body)
-        window.location.reload()
     }).catch(error => {
         console.error("There was a problem with the fetch operation:", error)
         alert(error)
     }).finally(() => {
         window.location.reload()
-        if (typeof hideSpinner === 'function') {
-            hideSpinner?.()
+        if (window.opener && !window.opener.closed) {
+            window.opener.location.reload()
+        } else {
+            // alert('Parent window is closed or not available.')
         }
     })
 }
