@@ -1,19 +1,23 @@
 const overlay = document.getElementById('spinner-overlay')
 
 function showSpinner() {
-    if (!overlay.classList.contains('active')) {
+    var isActive = window.sessionStorage.getItem('isActive');
+    if (isActive === null || isActive !== 'active') {
+        console.log("Show Spinner")
+        isActive = 'active'
+        window.sessionStorage.setItem('isActive', isActive)
         overlay.classList.add('active')
     }
 }
 
 function hideSpinner() {
-    if (overlay.classList.contains('active')) {
+    var isActive = window.sessionStorage.getItem('isActive');
+    if (isActive === null || isActive === 'active') {
+        console.log("Hide Spinner")
+        isActive = 'inActive'
+        window.sessionStorage.setItem('isActive', isActive)
         overlay.classList.remove('active')
     }
 }
-
-window.addEventListener('load', function() {
-    hideSpinner()
-});
 
 showSpinner()
