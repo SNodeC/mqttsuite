@@ -12,7 +12,5 @@ function hideSpinner() {
 }
 
 window.addEventListener('load', function() {
-    if (typeof hideSpinner == 'function') {
-        hideSpinner?.()
-    }
+    hideSpinner()
 });
