@@ -1,7 +1,6 @@
 subscribed-topics {
     .table {
         border: 1px solid #ccc;
-
         td:first-child {
             width: 100%; /* allow it to expand */
         }
@@ -9,7 +8,6 @@ subscribed-topics {
             white-space: nowrap; /* prevent button text from wrapping */
             width: 1%;
         }
-
         tr:last-child {
             border: 0px solid #ccc;
         }

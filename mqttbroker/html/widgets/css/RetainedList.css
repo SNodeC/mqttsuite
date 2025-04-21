@@ -2,7 +2,6 @@ retained-list {
     display: flex;
     flex-direction: column;
     height: 100%;
-
     .heading {
         margin: 0;
         padding: 12px;
@@ -15,7 +14,6 @@ retained-list {
         border: 1px solid #ccc;
         overflow: inherit;
     }
-
     .retained-topics {
         height: 100%;
         overflow: auto;

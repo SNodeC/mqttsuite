@@ -2,7 +2,6 @@ subscription-list {
     display: flex;
     flex-direction: column;
     height: 100%;
-
     .heading {
         margin: 0;
         padding: 12px;
@@ -15,7 +14,6 @@ subscription-list {
         border: 1px solid #ccc;
         overflow: inherit;
     }
-
     .subscriptions {
         height: 100%;
         overflow: auto;

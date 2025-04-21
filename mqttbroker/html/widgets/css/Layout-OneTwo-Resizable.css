@@ -2,27 +2,23 @@ layout-12 {
     height: 100%;
     display: flex;
     flex-direction: column;
-
     #container {
         overflow: auto;
         height: 100%;
         display: flex;
         flex-direction: column;
     }
-
     #top {
         overflow: auto;
         border: 1px solid #ccc;
         margin: 10px;
         height: 50%;
     }
-
     #bottom {
         display: flex;
         flex: 1;
         overflow: auto;
     }
-
     #bottom-left,
     #bottom-right {
         overflow: hidden;
@@ -31,7 +27,6 @@ layout-12 {
         flex-direction: column;
         width: 50%;
     }
-
     #splitter {
         height: 1px;
         cursor: row-resize;

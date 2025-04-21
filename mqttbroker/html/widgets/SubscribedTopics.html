@@ -1,11 +1,9 @@
 <style>
-## include "css/SubscribedTopics.css"
+##  include "css/SubscribedTopics.css"
 </style>
-
 <script>
-## include "js/UnSubscribe.js"
+##  include "js/UnSubscribe.js"
 </script>
-
 <subscribed-topics>
     <div class="table">
         <table>
@@ -16,12 +14,12 @@
                 </tr>
             </thead>
             <tbody>
-## for topic in topics
+##  for topic in topics
                 <tr>
                     <td>{{ topic }}</td>
                     <td><button class="red-btn" onclick="unsubscribe('{{ client_id }}', '{{ topic }}')">Unsubscribe</button></td>
                 </tr>
-## endfor
+##  endfor
             </tbody>
         </table>
     </div>

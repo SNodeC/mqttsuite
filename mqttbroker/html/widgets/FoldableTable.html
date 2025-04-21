@@ -1,29 +1,28 @@
 <style>
-## include "css/FoldableTable.css"
+##  include "css/FoldableTable.css"
 </style>
-
 <foldable-table>
     <table style="border-right: 1px solid #ccc; border-bottom: 1px solid #ccc">
         <tbody>
-## for topic in topics
+##  for topic in topics
             <tr class="key-row">
                 <td class="key-label" colspan="3">{{ topic.key }}</td>
             </tr>
-## for val in topic.values
+##      for val in topic.values
             <tr class="value-row">
-## if existsIn(val, "qos")
+##          if existsIn(val, "qos")
                 <td style="padding-left: 2.75em; width: 0px; padding-right: 1em;"><button class="red-btn" onclick="unsubscribe('{{ val.client_id }}', '{{ val.topic }}')">Unsubscribe</button></td>
                 <td style="padding-left: 0; padding-right: 1em; width: 0">{{ val.qos }}</td>
                 <td style="white-space: nowrap">{{ val.client_id }}</td>
-## else
+##          else
                 <td style="width: 0; padding-right: 1em; padding-left: 2.75em; vertical-align: top;"><button class="red-btn" onclick="release('{{ topic.key }}')">Release</button></td>
                 <td style="overflow-wrap: anywhere; font-size: smaller;">{{ val }}</td>
-## endif
+##          endif
             </tr>
-## endfor
-## endfor
+##      endfor
+##  endfor
             <script>
-## include "js/FoldableTable.js"
+##  include "js/FoldableTable.js"
             </script>
         </tbody>
     </table>
