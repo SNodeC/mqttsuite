@@ -23,6 +23,11 @@ function release(topic) {
     }).then(body => {
         console.log("Data received:", body)
         window.location.reload()
+        if (window.opener && !window.opener.closed) {
+            window.opener.location.reload()
+        } else {
+            // alert('Parent window is closed or not available.')
+        }
     }).catch(error => {
         console.error("There was a problem with the fetch operation:", error)
         alert(error)
