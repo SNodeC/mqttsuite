@@ -35,7 +35,7 @@ foldable-table {
     .value-row td {
         padding: 0.1em 0 0;
         padding-right: 1em;
-        color: dimgray;
+        color: #525252;
     }
     .unsubscribe-btn {
         padding: 4px 10px;

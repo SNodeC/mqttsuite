@@ -268,12 +268,8 @@ int main(int argc, char* argv[]) {
 
     core::SNodeC::init(argc, argv);
 
-    VLOG(0) << "-------------------------------- " << bridgeDefinitionFile;
-
     if (mqtt::bridge::lib::BridgeStore::instance().loadAndValidate(bridgeDefinitionFile)) {
-        VLOG(0) << "-------------------------------- 2 " << bridgeDefinitionFile;
         for (const auto& [instanceName, broker] : mqtt::bridge::lib::BridgeStore::instance().getBrokers()) {
-            VLOG(0) << "-------------------------------- 3 " << bridgeDefinitionFile;
             VLOG(1) << "  Creating Broker instance '" << instanceName << "' of Bridge '" << broker.getBridge().getName() << "'";
             VLOG(1) << "    Broker client id: " << broker.getClientId();
             VLOG(1) << "    Transport: " << broker.getTransport();
