@@ -2,7 +2,7 @@ function disconnectClient(clientId) {
     if (typeof showSpinner === 'function') {
         showSpinner?.()
     }
-    fetch("/clients", {
+    fetch("/disconnect", {
         "method": "POST",
         "body": JSON.stringify({
             "client_id": clientId

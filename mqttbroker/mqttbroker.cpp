@@ -39,7 +39,7 @@
  * THE SOFTWARE.
  */
 
-#include "SocketContextFactory.h"
+#include "SocketContextFactory.h" // IWYU pragma: keep
 #include "lib/Mqtt.h"
 #include "lib/MqttModel.h"
 
@@ -87,10 +87,7 @@
 #include <list>
 #include <sstream>
 #include <string>
-#include <tuple>
-#include <type_traits>
 #include <utility>
-#include <variant>
 
 #endif
 
@@ -135,9 +132,9 @@ static std::string href(const std::string& text, const std::string& url, const s
            text + "</a>";
 }
 
-static std::string getOverviewPage(std::shared_ptr<iot::mqtt::server::broker::Broker> broker,
-                                   mqtt::mqttbroker::lib::MqttModel& mqttModel,
-                                   inja::Environment environment) {
+static std::string getOverviewPage(inja::Environment environment,
+                                   std::shared_ptr<iot::mqtt::server::broker::Broker> broker,
+                                   mqtt::mqttbroker::lib::MqttModel& mqttModel) {
     inja::json json;
 
     json["title"] = "MQTTBroker | Active Clients";
@@ -277,10 +274,14 @@ static express::Router getRouter(inja::Environment environment, std::shared_ptr<
     const express::Router& jsonRouter = express::middleware::JsonMiddleware();
     jsonRouter.setStrictRouting();
 
-    jsonRouter.post("/clients", [] APPLICATION(req, res) {
+    jsonRouter.post("/disconnect", [] APPLICATION(req, res) {
+        VLOG(1) << "POST /disconnect";
+
         req->getAttribute<nlohmann::json>(
             [&res](nlohmann::json& json) {
                 std::string jsonString = json.dump(4);
+
+                VLOG(1) << jsonString;
 
                 std::string clientId = json["client_id"].get<std::string>();
                 const mqtt::mqttbroker::lib::Mqtt* mqtt = mqtt::mqttbroker::lib::MqttModel::instance().getMqtt(clientId);
@@ -300,9 +301,13 @@ static express::Router getRouter(inja::Environment environment, std::shared_ptr<
     });
 
     jsonRouter.post("/unsubscribe", [] APPLICATION(req, res) {
+        VLOG(1) << "POST /unsubscribe";
+
         req->getAttribute<nlohmann::json>(
             [&res](nlohmann::json& json) {
                 std::string jsonString = json.dump(4);
+
+                VLOG(1) << jsonString;
 
                 std::string clientId = json["client_id"].get<std::string>();
                 std::string topic = json["topic"].get<std::string>();
@@ -324,9 +329,13 @@ static express::Router getRouter(inja::Environment environment, std::shared_ptr<
     });
 
     jsonRouter.post("/release", [broker] APPLICATION(req, res) {
+        VLOG(1) << "POST /release";
+
         req->getAttribute<nlohmann::json>(
             [&res, broker](nlohmann::json& json) {
                 std::string jsonString = json.dump(4);
+
+                VLOG(1) << jsonString;
 
                 std::string topic = json["topic"].get<std::string>();
 
@@ -342,9 +351,13 @@ static express::Router getRouter(inja::Environment environment, std::shared_ptr<
     });
 
     jsonRouter.post("/subscribe", [] APPLICATION(req, res) {
+        VLOG(1) << "POST /subscribe";
+
         req->getAttribute<nlohmann::json>(
             [&res](nlohmann::json& json) {
                 std::string jsonString = json.dump(4);
+
+                VLOG(1) << jsonString;
 
                 std::string clientId = json["client_id"].get<std::string>();
                 std::string topic = json["topic"].get<std::string>();
@@ -373,7 +386,7 @@ static express::Router getRouter(inja::Environment environment, std::shared_ptr<
         int responseStatus = 200;
 
         try {
-            responseString = getOverviewPage(broker, mqtt::mqttbroker::lib::MqttModel::instance(), environment);
+            responseString = getOverviewPage(environment, broker, mqtt::mqttbroker::lib::MqttModel::instance());
         } catch (const inja::InjaError& error) {
             responseStatus = 500;
             responseString = "Internal Server Error\n";
@@ -424,7 +437,6 @@ static express::Router getRouter(inja::Environment environment, std::shared_ptr<
 
         if (req->queries.size() == 1) {
             responseString = getRedirectSpinnerPage(environment, req->queries.begin()->first);
-            VLOG(0) << "Response: " << responseString;
         } else {
             responseStatus = 400;
             responseString = "Bad Request: No Client requested";
@@ -487,38 +499,6 @@ reportState(const std::string& instanceName, const core::socket::SocketAddress& 
     }
 }
 
-template <template <typename, typename...> typename SocketServer,
-          typename SocketContextFactory,
-          typename... SocketContextFactoryArgs,
-          typename Server = SocketServer<SocketContextFactory, SocketContextFactoryArgs&&...>,
-          typename SocketAddress = typename Server::SocketAddress,
-          typename = std::enable_if_t<std::is_base_of_v<core::socket::stream::SocketContextFactory, SocketContextFactory>>>
-void startServer(const std::string& instanceName,
-                 const std::function<void(typename Server::Config&)>& configurator,
-                 SocketContextFactoryArgs&&... socketContextFactoryArgs) {
-    const Server server(instanceName, std::forward<SocketContextFactoryArgs>(socketContextFactoryArgs)...);
-
-    configurator(server.getConfig());
-
-    server.listen([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) {
-        reportState(instanceName, socketAddress, state);
-    });
-}
-
-template <template <typename, typename...> typename SocketServer,
-          typename SocketContextFactory,
-          typename... SocketContextFactoryArgs,
-          typename Server = SocketServer<SocketContextFactory, SocketContextFactoryArgs&&...>,
-          typename SocketAddress = typename Server::SocketAddress,
-          typename = std::enable_if_t<not std::is_invocable_v<std::tuple_element_t<0, std::tuple<SocketContextFactoryArgs...>>,
-                                                              typename SocketServer<SocketContextFactory>::Config&>>>
-void startServer(const std::string& instanceName, SocketContextFactoryArgs&&... socketContextFactoryArgs) {
-    Server(instanceName, std::forward<SocketContextFactoryArgs>(socketContextFactoryArgs)...)
-        .listen([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) {
-            reportState(instanceName, socketAddress, state);
-        });
-}
-
 template <typename HttpExpressServer>
 void startServer(const std::string& instanceName,
                  const express::Router& router,
@@ -553,25 +533,31 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<iot::mqtt::server::broker::Broker> broker =
         iot::mqtt::server::broker::Broker::instance(SUBSCRIBTION_MAX_QOS, utils::Config::getStringOptionValue("--mqtt-session-store"));
 
-    startServer<net::in::stream::legacy::SocketServer, mqtt::mqttbroker::SocketContextFactory>(
+    net::in::stream::legacy::getServer<mqtt::mqttbroker::SocketContextFactory>(
         "in-mqtt",
         [](auto& config) {
             config.setPort(1883);
             config.setRetry();
             config.setDisableNagleAlgorithm();
         },
-        broker);
+        broker)
+        .listen([](const auto& socketAddress, core::socket::State state) {
+            reportState("in-mqtt", socketAddress, state);
+        });
 
-    startServer<net::in::stream::tls::SocketServer, mqtt::mqttbroker::SocketContextFactory>(
+    net::in::stream::tls::getServer<mqtt::mqttbroker::SocketContextFactory>(
         "in-mqtts",
         [](auto& config) {
             config.setPort(8883);
             config.setRetry();
             config.setDisableNagleAlgorithm();
         },
-        broker);
+        broker)
+        .listen([](const auto& socketAddress, core::socket::State state) {
+            reportState("in-mqtt", socketAddress, state);
+        });
 
-    startServer<net::in6::stream::legacy::SocketServer, mqtt::mqttbroker::SocketContextFactory>(
+    net::in6::stream::legacy::getServer<mqtt::mqttbroker::SocketContextFactory>(
         "in6-mqtt",
         [](auto& config) {
             config.setPort(1883);
@@ -580,9 +566,12 @@ int main(int argc, char* argv[]) {
 
             config.setIPv6Only();
         },
-        broker);
+        broker)
+        .listen([](const auto& socketAddress, core::socket::State state) {
+            reportState("in-mqtt", socketAddress, state);
+        });
 
-    startServer<net::in6::stream::tls::SocketServer, mqtt::mqttbroker::SocketContextFactory>(
+    net::in6::stream::tls::getServer<mqtt::mqttbroker::SocketContextFactory>(
         "in6-mqtts",
         [](auto& config) {
             config.setPort(8883);
@@ -591,23 +580,32 @@ int main(int argc, char* argv[]) {
 
             config.setIPv6Only();
         },
-        broker);
+        broker)
+        .listen([](const auto& socketAddress, core::socket::State state) {
+            reportState("in-mqtt", socketAddress, state);
+        });
 
-    startServer<net::un::stream::legacy::SocketServer, mqtt::mqttbroker::SocketContextFactory>(
+    net::un::stream::legacy::getServer<mqtt::mqttbroker::SocketContextFactory>(
         "un-mqtt",
         [](auto& config) {
             config.setSunPath("/tmp/" + utils::Config::getApplicationName() + "-" + config.getInstanceName());
             config.setRetry();
         },
-        broker);
+        broker)
+        .listen([](const auto& socketAddress, core::socket::State state) {
+            reportState("in-mqtt", socketAddress, state);
+        });
 
-    startServer<net::un::stream::tls::SocketServer, mqtt::mqttbroker::SocketContextFactory>(
+    net::un::stream::tls::getServer<mqtt::mqttbroker::SocketContextFactory>(
         "un-mqtts",
         [](auto& config) {
             config.setSunPath("/tmp/" + utils::Config::getApplicationName() + "-" + config.getInstanceName());
             config.setRetry();
         },
-        broker);
+        broker)
+        .listen([](const auto& socketAddress, core::socket::State state) {
+            reportState("in-mqtt", socketAddress, state);
+        });
 
     inja::Environment environment{utils::Config::getStringOptionValue("--html-dir") + "/"};
     express::Router router = getRouter(environment, broker);

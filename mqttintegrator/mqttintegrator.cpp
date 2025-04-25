@@ -39,7 +39,7 @@
  * THE SOFTWARE.
  */
 
-#include "SocketContextFactory.h"
+#include "SocketContextFactory.h" // IWYU pragma: keep
 
 #ifdef LINK_SUBPROTOCOL_STATIC
 
@@ -74,10 +74,6 @@
 #include <utils/Config.h>
 //
 #include <string>
-#include <tuple>
-#include <type_traits>
-#include <utility>
-#include <variant>
 
 #endif
 
@@ -97,39 +93,6 @@ reportState(const std::string& instanceName, const core::socket::SocketAddress& 
             VLOG(1) << instanceName << ": " << socketAddress.toString() << ": " << state.what();
             break;
     }
-}
-
-template <template <typename, typename...> typename SocketClient,
-          typename SocketContextFactory,
-          typename... SocketContextFactoryArgs,
-          typename Client = SocketClient<SocketContextFactory, SocketContextFactoryArgs&&...>, // cppcheck-suppress syntaxError
-          typename SocketAddress = typename Client::SocketAddress,
-          typename = std::enable_if_t<std::is_base_of_v<core::socket::stream::SocketContextFactory, SocketContextFactory>>>
-void startClient(const std::string& instanceName,
-                 const std::function<void(typename Client::Config&)>& configurator,
-                 SocketContextFactoryArgs&&... socketContextFactoryArgs) {
-    const Client client(instanceName, std::forward<SocketContextFactoryArgs>(socketContextFactoryArgs)...);
-
-    configurator(client.getConfig());
-
-    client.connect([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) {
-        reportState(instanceName, socketAddress, state);
-    });
-}
-
-template <template <typename, typename...> typename SocketClient,
-          typename SocketContextFactory,
-          typename... SocketContextFactoryArgs,
-          typename Client = SocketClient<SocketContextFactory, SocketContextFactoryArgs&&...>,
-          typename SocketAddress = typename Client::SocketAddress,
-          typename = std::enable_if_t<not std::is_invocable_v<std::tuple_element_t<0, std::tuple<SocketContextFactoryArgs...>>,
-                                                              typename SocketClient<SocketContextFactory>::Config&>>>
-void startClient(const std::string& instanceName, SocketContextFactoryArgs&&... socketContextFactoryArgs) {
-    const Client client(instanceName, std::forward<SocketContextFactoryArgs>(socketContextFactoryArgs)...);
-
-    client.connect([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) {
-        reportState(instanceName, socketAddress, state);
-    });
 }
 
 template <typename HttpClient>
@@ -187,7 +150,7 @@ int main(int argc, char* argv[]) {
 
     std::string sessionStoreFileName = utils::Config::getStringOptionValue("--mqtt-session-store");
 
-    startClient<net::in::stream::legacy::SocketClient, mqtt::mqttintegrator::SocketContextFactory>(
+    net::in::stream::legacy::getClient<mqtt::mqttintegrator::SocketContextFactory>(
         "in-mqtt",
         [](auto& config) {
             config.Remote::setPort(1883);
@@ -197,21 +160,27 @@ int main(int argc, char* argv[]) {
             config.setReconnect();
             config.setDisableNagleAlgorithm();
         },
-        sessionStoreFileName);
+        sessionStoreFileName)
+        .connect([](const auto& socketAddress, const core::socket::State& state) {
+            reportState("in-mqtt", socketAddress, state);
+        });
 
-    startClient<net::in::stream::tls::SocketClient, mqtt::mqttintegrator::SocketContextFactory>(
+    net::in::stream::tls::getClient<mqtt::mqttintegrator::SocketContextFactory>(
         "in-mqtts",
         [](auto& config) {
-            config.Remote::setPort(8883);
+            config.Remote::setPort(1883);
 
             config.setRetry();
             config.setRetryBase(1);
             config.setReconnect();
             config.setDisableNagleAlgorithm();
         },
-        sessionStoreFileName);
+        sessionStoreFileName)
+        .connect([](const auto& socketAddress, const core::socket::State& state) {
+            reportState("in-mqtts", socketAddress, state);
+        });
 
-    startClient<net::in6::stream::legacy::SocketClient, mqtt::mqttintegrator::SocketContextFactory>(
+    net::in6::stream::legacy::getClient<mqtt::mqttintegrator::SocketContextFactory>(
         "in6-mqtt",
         [](auto& config) {
             config.Remote::setPort(1883);
@@ -221,21 +190,27 @@ int main(int argc, char* argv[]) {
             config.setReconnect();
             config.setDisableNagleAlgorithm();
         },
-        sessionStoreFileName);
+        sessionStoreFileName)
+        .connect([](const auto& socketAddress, const core::socket::State& state) {
+            reportState("in6-mqtt", socketAddress, state);
+        });
 
-    startClient<net::in6::stream::tls::SocketClient, mqtt::mqttintegrator::SocketContextFactory>(
+    net::in6::stream::tls::getClient<mqtt::mqttintegrator::SocketContextFactory>(
         "in6-mqtts",
         [](auto& config) {
-            config.Remote::setPort(8883);
+            config.Remote::setPort(1883);
 
             config.setRetry();
             config.setRetryBase(1);
             config.setReconnect();
             config.setDisableNagleAlgorithm();
         },
-        sessionStoreFileName);
+        sessionStoreFileName)
+        .connect([](const auto& socketAddress, const core::socket::State& state) {
+            reportState("in6-mqtts", socketAddress, state);
+        });
 
-    startClient<net::un::stream::legacy::SocketClient, mqtt::mqttintegrator::SocketContextFactory>(
+    net::un::stream::legacy::getClient<mqtt::mqttintegrator::SocketContextFactory>(
         "un-mqtt",
         [](auto& config) {
             config.Remote::setSunPath("/var/mqttbroker-un-mqtt");
@@ -244,18 +219,24 @@ int main(int argc, char* argv[]) {
             config.setRetryBase(1);
             config.setReconnect();
         },
-        sessionStoreFileName);
+        sessionStoreFileName)
+        .connect([](const auto& socketAddress, const core::socket::State& state) {
+            reportState("un-mqtt", socketAddress, state);
+        });
 
-    startClient<net::un::stream::tls::SocketClient, mqtt::mqttintegrator::SocketContextFactory>(
+    net::un::stream::tls::getClient<mqtt::mqttintegrator::SocketContextFactory>(
         "un-mqtts",
         [](auto& config) {
-            config.Remote::setSunPath("/var/mqttbroker-un-mqtts");
+            config.Remote::setSunPath("/var/mqttbroker-un-mqtt");
 
             config.setRetry();
             config.setRetryBase(1);
             config.setReconnect();
         },
-        sessionStoreFileName);
+        sessionStoreFileName)
+        .connect([](const auto& socketAddress, const core::socket::State& state) {
+            reportState("un-mqtts", socketAddress, state);
+        });
 
     startClient<web::http::legacy::in::Client>("in-wsmqtt", [](auto& config) {
         config.Remote::setPort(8080);
