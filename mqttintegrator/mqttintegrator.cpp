@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
 
     std::string sessionStoreFileName = utils::Config::getStringOptionValue("--mqtt-session-store");
 
-    net::in::stream::legacy::getClient<mqtt::mqttintegrator::SocketContextFactory>(
+    net::in::stream::legacy::Client<mqtt::mqttintegrator::SocketContextFactory>(
         "in-mqtt",
         [](auto& config) {
             config.Remote::setPort(1883);
@@ -165,7 +165,7 @@ int main(int argc, char* argv[]) {
             reportState("in-mqtt", socketAddress, state);
         });
 
-    net::in::stream::tls::getClient<mqtt::mqttintegrator::SocketContextFactory>(
+    net::in::stream::tls::Client<mqtt::mqttintegrator::SocketContextFactory>(
         "in-mqtts",
         [](auto& config) {
             config.Remote::setPort(1883);
@@ -180,7 +180,7 @@ int main(int argc, char* argv[]) {
             reportState("in-mqtts", socketAddress, state);
         });
 
-    net::in6::stream::legacy::getClient<mqtt::mqttintegrator::SocketContextFactory>(
+    net::in6::stream::legacy::Client<mqtt::mqttintegrator::SocketContextFactory>(
         "in6-mqtt",
         [](auto& config) {
             config.Remote::setPort(1883);
@@ -195,7 +195,7 @@ int main(int argc, char* argv[]) {
             reportState("in6-mqtt", socketAddress, state);
         });
 
-    net::in6::stream::tls::getClient<mqtt::mqttintegrator::SocketContextFactory>(
+    net::in6::stream::tls::Client<mqtt::mqttintegrator::SocketContextFactory>(
         "in6-mqtts",
         [](auto& config) {
             config.Remote::setPort(1883);
@@ -210,7 +210,7 @@ int main(int argc, char* argv[]) {
             reportState("in6-mqtts", socketAddress, state);
         });
 
-    net::un::stream::legacy::getClient<mqtt::mqttintegrator::SocketContextFactory>(
+    net::un::stream::legacy::Client<mqtt::mqttintegrator::SocketContextFactory>(
         "un-mqtt",
         [](auto& config) {
             config.Remote::setSunPath("/var/mqttbroker-un-mqtt");
@@ -224,7 +224,7 @@ int main(int argc, char* argv[]) {
             reportState("un-mqtt", socketAddress, state);
         });
 
-    net::un::stream::tls::getClient<mqtt::mqttintegrator::SocketContextFactory>(
+    net::un::stream::tls::Client<mqtt::mqttintegrator::SocketContextFactory>(
         "un-mqtts",
         [](auto& config) {
             config.Remote::setSunPath("/var/mqttbroker-un-mqtt");

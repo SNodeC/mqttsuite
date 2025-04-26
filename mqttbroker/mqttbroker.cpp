@@ -533,7 +533,7 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<iot::mqtt::server::broker::Broker> broker =
         iot::mqtt::server::broker::Broker::instance(SUBSCRIBTION_MAX_QOS, utils::Config::getStringOptionValue("--mqtt-session-store"));
 
-    net::in::stream::legacy::getServer<mqtt::mqttbroker::SocketContextFactory>(
+    net::in::stream::legacy::Server<mqtt::mqttbroker::SocketContextFactory>(
         "in-mqtt",
         [](auto& config) {
             config.setPort(1883);
@@ -545,7 +545,7 @@ int main(int argc, char* argv[]) {
             reportState("in-mqtt", socketAddress, state);
         });
 
-    net::in::stream::tls::getServer<mqtt::mqttbroker::SocketContextFactory>(
+    net::in::stream::tls::Server<mqtt::mqttbroker::SocketContextFactory>(
         "in-mqtts",
         [](auto& config) {
             config.setPort(8883);
@@ -557,7 +557,7 @@ int main(int argc, char* argv[]) {
             reportState("in-mqtt", socketAddress, state);
         });
 
-    net::in6::stream::legacy::getServer<mqtt::mqttbroker::SocketContextFactory>(
+    net::in6::stream::legacy::Server<mqtt::mqttbroker::SocketContextFactory>(
         "in6-mqtt",
         [](auto& config) {
             config.setPort(1883);
@@ -571,7 +571,7 @@ int main(int argc, char* argv[]) {
             reportState("in-mqtt", socketAddress, state);
         });
 
-    net::in6::stream::tls::getServer<mqtt::mqttbroker::SocketContextFactory>(
+    net::in6::stream::tls::Server<mqtt::mqttbroker::SocketContextFactory>(
         "in6-mqtts",
         [](auto& config) {
             config.setPort(8883);
@@ -585,7 +585,7 @@ int main(int argc, char* argv[]) {
             reportState("in-mqtt", socketAddress, state);
         });
 
-    net::un::stream::legacy::getServer<mqtt::mqttbroker::SocketContextFactory>(
+    net::un::stream::legacy::Server<mqtt::mqttbroker::SocketContextFactory>(
         "un-mqtt",
         [](auto& config) {
             config.setSunPath("/tmp/" + utils::Config::getApplicationName() + "-" + config.getInstanceName());
@@ -596,7 +596,7 @@ int main(int argc, char* argv[]) {
             reportState("in-mqtt", socketAddress, state);
         });
 
-    net::un::stream::tls::getServer<mqtt::mqttbroker::SocketContextFactory>(
+    net::un::stream::tls::Server<mqtt::mqttbroker::SocketContextFactory>(
         "un-mqtts",
         [](auto& config) {
             config.setSunPath("/tmp/" + utils::Config::getApplicationName() + "-" + config.getInstanceName());

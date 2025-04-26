@@ -253,7 +253,7 @@ int main(int argc, char* argv[]) {
                 if (protocol == "in") {
                     if (encryption == "legacy") {
 #if defined(MQTTBRIDGE_IN_STREAM_LEGACY)
-                        net::in::stream::legacy::getClient<mqtt::bridge::SocketContextFactory>(
+                        net::in::stream::legacy::Client<mqtt::bridge::SocketContextFactory>(
                             instanceName,
                             [](auto& config) {
                                 config.setRetry();
@@ -271,7 +271,7 @@ int main(int argc, char* argv[]) {
 #endif // MQTTBRIDGE_IN_STREAM_LEGACY
                     } else if (encryption == "tls") {
 #if defined(MQTTBRIDGE_IN_STREAM_TLS)
-                        net::in::stream::tls::getClient<mqtt::bridge::SocketContextFactory>(
+                        net::in::stream::tls::Client<mqtt::bridge::SocketContextFactory>(
                             instanceName,
                             [](auto& config) {
                                 config.setRetry();
@@ -291,7 +291,7 @@ int main(int argc, char* argv[]) {
                 } else if (protocol == "in6") {
                     if (encryption == "legacy") {
 #if defined(MQTTBRIDGE_IN6_STREAM_LEGACY)
-                        net::in6::stream::legacy::getClient<mqtt::bridge::SocketContextFactory>(
+                        net::in6::stream::legacy::Client<mqtt::bridge::SocketContextFactory>(
                             instanceName,
                             [](auto& config) {
                                 config.setRetry();
@@ -309,7 +309,7 @@ int main(int argc, char* argv[]) {
 #endif // MQTTBRIDGE_IN6_STREAM_LEGACY
                     } else if (encryption == "tls") {
 #if defined(MQTTBRIDGE_IN6_STREAM_TLS)
-                        net::in6::stream::tls::getClient<mqtt::bridge::SocketContextFactory>(
+                        net::in6::stream::tls::Client<mqtt::bridge::SocketContextFactory>(
                             instanceName,
                             [](auto& config) {
                                 config.setRetry();
@@ -329,7 +329,7 @@ int main(int argc, char* argv[]) {
                 } else if (protocol == "l2") {
                     if (encryption == "legacy") {
 #if defined(MQTTBRIDGE_L2_STREAM_LEGACY)
-                        net::l2::stream::legacy::getClient<mqtt::bridge::SocketContextFactory>(
+                        net::l2::stream::legacy::Client<mqtt::bridge::SocketContextFactory>(
                             instanceName,
                             [](auto& config) {
                                 config.setRetry();
@@ -346,7 +346,7 @@ int main(int argc, char* argv[]) {
 #endif // MQTTBRIDGE_L2_STREAM_LEGACY
                     } else if (encryption == "tls") {
 #if defined(MQTTBRIDGE_L2_STREAM_TLS)
-                        net::l2::stream::tls::getClient<mqtt::bridge::SocketContextFactory>(
+                        net::l2::stream::tls::Client<mqtt::bridge::SocketContextFactory>(
                             instanceName,
                             [](auto& config) {
                                 config.setRetry();
@@ -365,7 +365,7 @@ int main(int argc, char* argv[]) {
                 } else if (protocol == "rc") {
                     if (encryption == "legacy") {
 #if defined(MQTTBRIDGE_RC_STREAM_LEGACY)
-                        net::rc::stream::legacy::getClient<mqtt::bridge::SocketContextFactory>(
+                        net::rc::stream::legacy::Client<mqtt::bridge::SocketContextFactory>(
                             instanceName,
                             [](auto& config) {
                                 config.setRetry();
@@ -382,7 +382,7 @@ int main(int argc, char* argv[]) {
 #endif // MQTTBRIDGE_RC_STREAM_LEGACY
                     } else if (encryption == "tls") {
 #if defined(MQTTBRIDGE_RC_STREAM_TLS)
-                        net::rc::stream::tls::getClient<mqtt::bridge::SocketContextFactory>(
+                        net::rc::stream::tls::Client<mqtt::bridge::SocketContextFactory>(
                             instanceName,
                             [](auto& config) {
                                 config.setRetry();
@@ -401,7 +401,7 @@ int main(int argc, char* argv[]) {
                 } else if (protocol == "un") {
                     if (encryption == "legacy") {
 #if defined(MQTTBRIDGE_UN_STREAM_LEGACY)
-                        net::un::stream::legacy::getClient<mqtt::bridge::SocketContextFactory>(
+                        net::un::stream::legacy::Client<mqtt::bridge::SocketContextFactory>(
                             instanceName,
                             [](auto& config) {
                                 config.setRetry();
@@ -418,7 +418,7 @@ int main(int argc, char* argv[]) {
 #endif // MQTTBRIDGE_UN_STREAM_LEGACY
                     } else if (encryption == "tls") {
 #if defined(MQTTBRIDGE_UN_STREAM_TLS)
-                        net::un::stream::tls::getClient<mqtt::bridge::SocketContextFactory>(
+                        net::un::stream::tls::Client<mqtt::bridge::SocketContextFactory>(
                             instanceName,
                             [](auto& config) {
                                 config.setRetry();
