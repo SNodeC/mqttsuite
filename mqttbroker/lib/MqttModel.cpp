@@ -41,8 +41,14 @@
 
 #include "MqttModel.h"
 
+#include "Mqtt.h"
+
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include <core/socket/stream/SocketConnection.h>
+#include <core/socket/stream/SocketContext.h>
+#include <iot/mqtt/MqttContext.h>
+//
 #include <ctime>
 #include <iomanip>
 #include <sstream>
@@ -94,16 +100,15 @@ namespace mqtt::mqttbroker::lib {
     }
 
     MqttModel::MqttModelEntry::MqttModelEntry(const Mqtt* mqtt)
-        : mqtt(mqtt)
-        , onlineSinceTimePoint(std::chrono::system_clock::now()) {
+        : mqtt(mqtt) {
     }
 
-    const std::string MqttModel::MqttModelEntry::onlineSince() const {
-        return MqttModel::timePointToString(onlineSinceTimePoint);
+    std::string MqttModel::MqttModelEntry::onlineSince() const {
+        return mqtt->getMqttContext()->getSocketConnection()->getSocketContext()->getOnlineSince();
     }
 
-    const std::string MqttModel::MqttModelEntry::onlineDuration() const {
-        return MqttModel::durationToString(onlineSinceTimePoint);
+    std::string MqttModel::MqttModelEntry::onlineDuration() const {
+        return mqtt->getMqttContext()->getSocketConnection()->getSocketContext()->getOnlineDuration();
     }
 
     const Mqtt* MqttModel::MqttModelEntry::getMqtt() const {

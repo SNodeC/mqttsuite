@@ -65,12 +65,11 @@ namespace mqtt::mqttbroker::lib {
 
             const Mqtt* getMqtt() const;
 
-            const std::string onlineSince() const;
-            const std::string onlineDuration() const;
+            std::string onlineSince() const;
+            std::string onlineDuration() const;
 
         private:
             const Mqtt* mqtt = nullptr;
-            std::chrono::time_point<std::chrono::system_clock> onlineSinceTimePoint;
         };
 
     private:
@@ -89,6 +88,7 @@ namespace mqtt::mqttbroker::lib {
         std::string onlineSince();
         std::string onlineDuration();
 
+    private:
         static std::string timePointToString(const std::chrono::time_point<std::chrono::system_clock>& timePoint);
         static std::string
         durationToString(const std::chrono::time_point<std::chrono::system_clock>& bevore,
