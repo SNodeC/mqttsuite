@@ -13,6 +13,7 @@ function parseDuration(durationStr) {
     var seconds = parseInt(timeParts[2], 10)
     return days * 86400 + hours * 3600 + minutes * 60 + seconds
 }
+
 function formatDuration(totalSeconds) {
     var days = Math.floor(totalSeconds / 86400)
     var remainder = totalSeconds % 86400
@@ -30,6 +31,7 @@ function formatDuration(totalSeconds) {
         return hh + ":" + mm + ":" + ss
     }
 }
+
 function updateClock() {
     document.querySelectorAll("duration").forEach(duration => {
         var totalSeconds = parseDuration(duration.textContent)

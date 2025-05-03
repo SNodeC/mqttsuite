@@ -71,8 +71,7 @@ set_property(
 
 add_executable(mqttbroker ${MQTTBROKER_CPP} ${MQTTBROKER_H})
 
-file(GLOB_RECURSE WEB_ASSETS
-     "${CMAKE_CURRENT_SOURCE_DIR}/html/*.html"
+file(GLOB_RECURSE WEB_ASSETS "${CMAKE_CURRENT_SOURCE_DIR}/html/*.html"
      "${CMAKE_CURRENT_SOURCE_DIR}/html/*.css"
      "${CMAKE_CURRENT_SOURCE_DIR}/html/*.js"
 )

@@ -10,7 +10,9 @@
     justify-content: center;
     visibility: hidden;
     opacity: 0;
-    transition: visibility 0s linear 0.2s, opacity 0.2s;
+    transition:
+        visibility 0s linear 0.2s,
+        opacity 0.2s;
 }
 #spinner-overlay.active {
     visibility: visible;

@@ -1,4 +1,5 @@
 const overlay = document.getElementById('spinner-overlay')
+
 function showSpinner() {
     var spinnerState = window.sessionStorage.getItem('spinnerState');
     if (spinnerState === null || spinnerState === 'inactive') {
@@ -7,6 +8,7 @@ function showSpinner() {
         overlay.classList.add('active')
     }
 }
+
 function hideSpinner() {
     var spinnerState = window.sessionStorage.getItem('spinnerState');
     if (spinnerState === null || spinnerState === 'active') {
