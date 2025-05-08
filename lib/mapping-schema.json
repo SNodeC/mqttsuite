@@ -110,7 +110,7 @@
               "properties": {
                 "name": {
                   "type": "string",
-                  "pattern": "^[^#+]+$",
+                  "pattern": "^(?:[^#+]{2,}|.)$",
                   "minLength": 1
                 },
                 "topic_level": {

@@ -238,6 +238,29 @@
             "mapping_template": "{{ double(float(message)) + recall_as_int(topic + \"currentValue\") }}{{ store(topic + \"currentValue\", message) }}"
           }
         }
+      },
+      {
+        "name": "v3",
+        "topic_level": {
+          "name": "test-application-voc@ttn",
+          "topic_level": {
+            "name": "devices",
+            "topic_level": {
+              "name": "+",
+              "topic_level": {
+                "name": "up",
+                "subscription": {
+                  "qos": 0,
+                  "json": {
+                    "mapped_topic": "ttn/voc-experiment-1-110",
+                    "mapping_template": "{{ message.uplink_message.decoded_payload }}",
+                    "retain": false
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     ]
   }

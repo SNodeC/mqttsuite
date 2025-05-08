@@ -251,7 +251,7 @@ namespace mqtt::lib {
             const std::string::size_type slashPosition = topic.find('/');
             const std::string topicLevelName = topic.substr(0, slashPosition);
 
-            if (topicLevel["name"] == topicLevelName) {
+            if (topicLevel["name"] == topicLevelName || topicLevel["name"] == "+" || topicLevel["name"] == "#") {
                 if (slashPosition == std::string::npos) {
                     foundTopicLevel = topicLevel;
                 } else if (topicLevel.contains("topic_level")) {
