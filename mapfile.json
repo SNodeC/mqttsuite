@@ -252,8 +252,8 @@
                 "subscription": {
                   "qos": 0,
                   "json": {
-                    "mapped_topic": "ttn/voc-experiment-1-110",
-                    "mapping_template": "{{ message.uplink_message.decoded_payload }}",
+                    "mapped_topic": "ttn/{{message.end_device_ids.device_id}}",
+                    "mapping_template": "{\"application\":\"{{message.end_device_ids.application_ids.application_id}}\",\"device\":\"{{message.end_device_ids.device_id}}\",\"data\":{{ message.uplink_message.decoded_payload }}}",
                     "retain": false
                   }
                 }
