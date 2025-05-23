@@ -151,6 +151,13 @@ int main(int argc, char* argv[]) {
     utils::Config::addHelp(pubApp);
     pubApp->configurable(false);
 
+    std::string clientId = "";
+    pubApp->add_option("--client-id", clientId, "MQTT Client-ID")
+        ->capture_default_str()
+        ->group(pubApp->get_formatter()->get_label("Nonpersistent Options"))
+        ->type_name("[string]")
+        ->configurable(false);
+
     std::string topic = "<REQUIRED>";
     pubApp->needs(pubApp->add_option("--topic", topic, "Topic to publish to")
                       ->capture_default_str()

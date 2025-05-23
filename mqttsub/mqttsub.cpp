@@ -150,6 +150,13 @@ int main(int argc, char* argv[]) {
     utils::Config::addHelp(subApp);
     subApp->configurable(false);
 
+    std::string clientId = "";
+    subApp->add_option("--client-id", clientId, "MQTT Client-ID")
+        ->capture_default_str()
+        ->group(subApp->get_formatter()->get_label("Nonpersistent Options"))
+        ->type_name("[string]")
+        ->configurable(false);
+
     std::string topic = "#";
     subApp->needs(subApp->add_option("--topic", topic, "Topic listen to")
                       ->capture_default_str()

@@ -43,7 +43,6 @@
 
 #include "lib/Mqtt.h"
 
-#include <core/socket/stream/SocketConnection.h>
 #include <iot/mqtt/SocketContext.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -61,13 +60,13 @@ namespace mqtt::mqttpub {
     }
 
     core::socket::stream::SocketContext* SocketContextFactory::create(core::socket::stream::SocketConnection* socketConnection) {
-        std::string topic = pubApp->get_option("--topic")->as<std::string>();
-        std::string message = pubApp->get_option("--message")->as<std::string>();
-        uint8_t qoS = pubApp->get_option("--qos")->as<uint8_t>();
-        bool retain = pubApp->get_option("--retain")->as<bool>();
+        const std::string clientId = pubApp->get_option("--client-id")->as<std::string>();
+        const std::string topic = pubApp->get_option("--topic")->as<std::string>();
+        const std::string message = pubApp->get_option("--message")->as<std::string>();
+        const uint8_t qoS = pubApp->get_option("--qos")->as<uint8_t>();
+        const bool retain = pubApp->get_option("--retain")->as<bool>();
 
-        return new iot::mqtt::SocketContext(
-            socketConnection, new mqtt::mqttpub::lib::Mqtt(socketConnection->getConnectionName(), topic, message, qoS, retain));
+        return new iot::mqtt::SocketContext(socketConnection, new mqtt::mqttpub::lib::Mqtt(clientId, topic, message, qoS, retain));
     }
 
 } // namespace mqtt::mqttpub

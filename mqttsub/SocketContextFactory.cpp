@@ -43,7 +43,6 @@
 
 #include "lib/Mqtt.h"
 
-#include <core/socket/stream/SocketConnection.h>
 #include <iot/mqtt/SocketContext.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -61,11 +60,11 @@ namespace mqtt::mqttsub {
     }
 
     core::socket::stream::SocketContext* SocketContextFactory::create(core::socket::stream::SocketConnection* socketConnection) {
-        std::string topic = subApp->get_option("--topic")->as<std::string>();
-        uint8_t qoS = subApp->get_option("--qos")->as<uint8_t>();
+        const std::string clientId = subApp->get_option("--client-id")->as<std::string>();
+        const std::string topic = subApp->get_option("--topic")->as<std::string>();
+        const uint8_t qoS = subApp->get_option("--qos")->as<uint8_t>();
 
-        return new iot::mqtt::SocketContext(socketConnection,
-                                            new mqtt::mqttsub::lib::Mqtt(socketConnection->getConnectionName(), topic, qoS));
+        return new iot::mqtt::SocketContext(socketConnection, new mqtt::mqttsub::lib::Mqtt(clientId, topic, qoS));
     }
 
 } // namespace mqtt::mqttsub
