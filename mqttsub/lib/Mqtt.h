@@ -51,15 +51,13 @@
 
 #endif
 
-namespace mqtt::mqttpub::lib {
+namespace mqtt::mqttsub::lib {
 
     class Mqtt : public iot::mqtt::client::Mqtt {
     public:
         explicit Mqtt(const std::string& clientId,
                       const std::string& topic,
-                      const std::string& message,
                       uint8_t qoS,
-                      bool retain,
                       uint16_t keepAlive = 60,
                       bool cleanSession = true,
                       const std::string& willTopic = "",
@@ -76,14 +74,12 @@ namespace mqtt::mqttpub::lib {
         void onConnected() final;
         [[nodiscard]] bool onSignal(int signum) final;
 
+        void onPublish(const iot::mqtt::packets::Publish& publish) final;
+
         void onConnack(const iot::mqtt::packets::Connack& connack) final;
-        void onPuback(const iot::mqtt::packets::Puback& puback) final;
-        void onPubcomp(const iot::mqtt::packets::Pubcomp& pubcomp) final;
 
         std::string topic;
-        std::string message;
         uint8_t qoS;
-        bool retain;
 
         uint16_t keepAlive;
         bool cleanSession;
@@ -95,6 +91,6 @@ namespace mqtt::mqttpub::lib {
         std::string password;
     };
 
-} // namespace mqtt::mqttpub::lib
+} // namespace mqtt::mqttsub::lib
 
 #endif // APPS_MQTTBROKER_MQTTPUB_SOCKETCONTEXT_H

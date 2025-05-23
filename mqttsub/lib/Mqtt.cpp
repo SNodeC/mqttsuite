@@ -41,23 +41,24 @@
 
 #include "Mqtt.h"
 
+#include <iot/mqtt/Topic.h>
 #include <iot/mqtt/packets/Connack.h>
+#include <iot/mqtt/packets/Publish.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <cstring>
+#include <list>
 #include <log/Logger.h>
 #include <utils/system/signal.h>
 
 #endif
 
-namespace mqtt::mqttpub::lib {
+namespace mqtt::mqttsub::lib {
 
     Mqtt::Mqtt(const std::string& clientId,
                const std::string& topic,
-               const std::string& message,
                uint8_t qoS,
-               bool retain,
                uint16_t keepAlive,
                bool cleanSession,
                const std::string& willTopic,
@@ -69,9 +70,7 @@ namespace mqtt::mqttpub::lib {
                const std::string& sessionStoreFileName)
         : iot::mqtt::client::Mqtt("connectionName", clientId, sessionStoreFileName)
         , topic(topic)
-        , message(message)
         , qoS(qoS)
-        , retain(retain)
         , keepAlive(keepAlive)
         , cleanSession(cleanSession)
         , willTopic(willTopic)
@@ -108,26 +107,14 @@ namespace mqtt::mqttpub::lib {
 
     void Mqtt::onConnack(const iot::mqtt::packets::Connack& connack) {
         if (connack.getReturnCode() == 0 && !connack.getSessionPresent()) {
-            sendPublish(topic, message, qoS, retain);
-
-            if (qoS == 0) {
-                sendDisconnect();
-            }
+            sendSubscribe({{topic, qoS}});
         } else {
             sendDisconnect();
         }
     }
 
-    void Mqtt::onPuback([[maybe_unused]] const iot::mqtt::packets::Puback& puback) {
-        if (qoS == 1) {
-            sendDisconnect();
-        }
+    void Mqtt::onPublish(const iot::mqtt::packets::Publish& publish) {
+        VLOG(0) << "MQTT Publish: " << publish.getTopic() << " | " << publish.getMessage();
     }
 
-    void Mqtt::onPubcomp([[maybe_unused]] const iot::mqtt::packets::Pubcomp& pubcomp) {
-        if (qoS == 2) {
-            sendDisconnect();
-        }
-    }
-
-} // namespace mqtt::mqttpub::lib
+} // namespace mqtt::mqttsub::lib

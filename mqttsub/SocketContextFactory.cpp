@@ -39,62 +39,33 @@
  * THE SOFTWARE.
  */
 
-#ifndef APPS_MQTTBROKER_MQTTPUB_SOCKETCONTEXT_H
-#define APPS_MQTTBROKER_MQTTPUB_SOCKETCONTEXT_H
+#include "SocketContextFactory.h"
 
-#include <iot/mqtt/client/Mqtt.h>
+#include "lib/Mqtt.h"
+
+#include <core/socket/stream/SocketConnection.h>
+#include <iot/mqtt/SocketContext.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <cstdint>
 #include <string>
+#include <utils/CLI11.hpp>
 
 #endif
 
-namespace mqtt::mqttpub::lib {
+namespace mqtt::mqttsub {
 
-    class Mqtt : public iot::mqtt::client::Mqtt {
-    public:
-        explicit Mqtt(const std::string& clientId,
-                      const std::string& topic,
-                      const std::string& message,
-                      uint8_t qoS,
-                      bool retain,
-                      uint16_t keepAlive = 60,
-                      bool cleanSession = true,
-                      const std::string& willTopic = "",
-                      const std::string& willMessage = "",
-                      uint8_t willQoS = 0,
-                      bool willRetain = false,
-                      const std::string& username = "",
-                      const std::string& password = "",
-                      const std::string& sessionStoreFileName = "");
+    SocketContextFactory::SocketContextFactory(const CLI::App* subApp)
+        : subApp(subApp) {
+    }
 
-    private:
-        using Super = iot::mqtt::client::Mqtt;
+    core::socket::stream::SocketContext* SocketContextFactory::create(core::socket::stream::SocketConnection* socketConnection) {
+        std::string topic = subApp->get_option("--topic")->as<std::string>();
+        uint8_t qoS = subApp->get_option("--qos")->as<uint8_t>();
 
-        void onConnected() final;
-        [[nodiscard]] bool onSignal(int signum) final;
+        return new iot::mqtt::SocketContext(socketConnection,
+                                            new mqtt::mqttsub::lib::Mqtt(socketConnection->getConnectionName(), topic, qoS));
+    }
 
-        void onConnack(const iot::mqtt::packets::Connack& connack) final;
-        void onPuback(const iot::mqtt::packets::Puback& puback) final;
-        void onPubcomp(const iot::mqtt::packets::Pubcomp& pubcomp) final;
-
-        std::string topic;
-        std::string message;
-        uint8_t qoS;
-        bool retain;
-
-        uint16_t keepAlive;
-        bool cleanSession;
-        std::string willTopic;
-        std::string willMessage;
-        uint8_t willQoS;
-        bool willRetain;
-        std::string username;
-        std::string password;
-    };
-
-} // namespace mqtt::mqttpub::lib
-
-#endif // APPS_MQTTBROKER_MQTTPUB_SOCKETCONTEXT_H
+} // namespace mqtt::mqttsub
