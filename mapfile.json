@@ -261,6 +261,39 @@
             }
           }
         }
+      },
+      {
+        "name": "zigbee2mqtt",
+        "topic_level": [{
+          "name" : "Philips-T-01",
+          "topic_level": [{
+            "name": "action",
+            "subscription": {
+              "qos": 0,
+              "static": [{
+                "mapped_topic": "zigbee2mqtt/Philips-CA-All/set",
+                "message_mapping": [
+                  {
+                    "message": "on_press",
+                    "mapped_message": "{ \"state\": \"ON\" }"
+                  },
+                  {
+                    "message": "up_press",
+                    "mapped_message": "{ \"brightness_step_onoff\": 50, \"transition\": 1 }"
+                  },
+                  {
+                    "message": "down_press",
+                    "mapped_message": "{ \"brightness_step_onoff\": -50, \"transition\": 1 }"
+                  },
+                  {
+                    "message": "off_press",
+                    "mapped_message": "{ \"state\": \"OFF\" }"
+                  }
+                ]
+              }]
+            }
+          }]
+        }]
       }
     ]
   }
