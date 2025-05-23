@@ -293,6 +293,15 @@
               }]
             }
           }]
+        },{
+          "name" : "Philips-M-01",
+          "subscription": {
+            "qos": 0,
+            "json": [{
+              "mapped_topic": "zigbee2mqtt/Philips-CA-All/set",
+              "mapping_template": "{ \"state\": {% if message.occupancy == true %}\"ON\"{% endif %} }"
+            }]
+          }
         }]
       }
     ]
