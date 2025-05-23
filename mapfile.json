@@ -272,24 +272,19 @@
               "qos": 0,
               "static": [{
                 "mapped_topic": "zigbee2mqtt/Philips-CA-All/set",
-                "message_mapping": [
-                  {
-                    "message": "on_press",
-                    "mapped_message": "{ \"state\": \"ON\" }"
-                  },
-                  {
-                    "message": "up_press",
-                    "mapped_message": "{ \"brightness_step_onoff\": 50, \"transition\": 1 }"
-                  },
-                  {
-                    "message": "down_press",
-                    "mapped_message": "{ \"brightness_step_onoff\": -50, \"transition\": 1 }"
-                  },
-                  {
-                    "message": "off_press",
-                    "mapped_message": "{ \"state\": \"OFF\" }"
-                  }
-                ]
+                "message_mapping": [{
+                  "message": "on_press",
+                  "mapped_message": "{ \"state\": \"ON\" }"
+                },{
+                  "message": "up_press",
+                  "mapped_message": "{ \"brightness_step_onoff\": 50, \"transition\": 1 }"
+                },{
+                  "message": "down_press",
+                  "mapped_message": "{ \"brightness_step_onoff\": -50, \"transition\": 1 }"
+                },{
+                  "message": "off_press",
+                  "mapped_message": "{ \"state\": \"OFF\" }"
+                }]
               }]
             }
           }]
@@ -299,7 +294,8 @@
             "qos": 0,
             "json": [{
               "mapped_topic": "zigbee2mqtt/Philips-CA-All/set",
-              "mapping_template": "{ \"state\": {% if message.occupancy == true %}\"ON\"{% endif %} }"
+              "mapping_template": "{% if message.occupancy == true %}{ \"state\": \"ON\" }{% endif %}",
+              "suppressions": [ "" ]
             }]
           }
         }]
