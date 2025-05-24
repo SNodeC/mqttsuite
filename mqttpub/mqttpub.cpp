@@ -145,7 +145,7 @@ int main(int argc, char* argv[]) {
     web::websocket::client::SubProtocolFactorySelector::link("mqtt", mqttClientSubProtocolFactory);
 #endif
 
-    CLI::App* pubApp = utils::Config::addInstance("pub", "Configuration for Application mqttpub", "MQTT-Publish");
+    CLI::App* pubApp = utils::Config::addInstance("pub", "Configuration for application mqttpub", "Application");
     utils::Config::required(pubApp);
     utils::Config::addStandardFlags(pubApp);
     utils::Config::addHelp(pubApp);
@@ -155,22 +155,22 @@ int main(int argc, char* argv[]) {
     pubApp->add_option("--client-id", clientId, "MQTT Client-ID")
         ->capture_default_str()
         ->group(pubApp->get_formatter()->get_label("Nonpersistent Options"))
-        ->type_name("[string]")
+        ->type_name("string")
         ->configurable(false);
 
-    std::string topic = "<REQUIRED>";
+    std::string topic = "";
     pubApp->needs(pubApp->add_option("--topic", topic, "Topic to publish to")
                       ->capture_default_str()
                       ->group(pubApp->get_formatter()->get_label("Nonpersistent Options"))
-                      ->type_name("[string]")
+                      ->type_name("string")
                       ->required()
                       ->configurable(false));
 
-    std::string message = "<REQUIRED>";
+    std::string message = "";
     pubApp->needs(pubApp->add_option("--message", message, "Message to publish")
                       ->capture_default_str()
                       ->group(pubApp->get_formatter()->get_label("Nonpersistent Options"))
-                      ->type_name("[string]")
+                      ->type_name("string")
                       ->required()
                       ->configurable(false));
 
@@ -178,16 +178,17 @@ int main(int argc, char* argv[]) {
     pubApp->add_option("--qos", qoS, "Quality of service")
         ->capture_default_str()
         ->group(pubApp->get_formatter()->get_label("Nonpersistent Options"))
-        ->type_name("[uint8_t]")
+        ->type_name("uint8_t")
         ->default_val(0)
         ->configurable(false);
 
     bool retain = false;
-    pubApp->add_option("--retain", retain, "Retain message")
+    pubApp->add_flag("--retain{true},-r{true}", retain, "Retain message")
         ->capture_default_str()
         ->group(pubApp->get_formatter()->get_label("Nonpersistent Options"))
-        ->type_name("[bool]")
-        ->default_val(false)
+        ->type_name("bool")
+        ->check(CLI::IsMember({"true", "false"}))
+        ->default_str("false")
         ->configurable(false);
 
     core::SNodeC::init(argc, argv);
