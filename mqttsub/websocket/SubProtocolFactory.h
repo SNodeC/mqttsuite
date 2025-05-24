@@ -39,8 +39,8 @@
  * THE SOFTWARE.
  */
 
-#ifndef APPS_MQTTBROKER_MQTTPUB_WEBSOCKET_SUBPROTOCOLFACTORY_H
-#define APPS_MQTTBROKER_MQTTPUB_WEBSOCKET_SUBPROTOCOLFACTORY_H
+#ifndef APPS_MQTTBROKER_MQTTSUB_WEBSOCKET_SUBPROTOCOLFACTORY_H
+#define APPS_MQTTBROKER_MQTTSUB_WEBSOCKET_SUBPROTOCOLFACTORY_H
 
 #include <iot/mqtt/client/SubProtocol.h>
 #include <web/websocket/SubProtocolFactory.h>
@@ -49,7 +49,7 @@
 
 #endif
 
-namespace mqtt::mqttpub::websocket {
+namespace mqtt::mqttsub::websocket {
 
     class SubProtocolFactory : public web::websocket::SubProtocolFactory<iot::mqtt::client::SubProtocol> {
     public:
@@ -59,8 +59,8 @@ namespace mqtt::mqttpub::websocket {
         iot::mqtt::client::SubProtocol* create(web::websocket::SubProtocolContext* subProtocolContext) override;
     };
 
-} // namespace mqtt::mqttpub::websocket
+} // namespace mqtt::mqttsub::websocket
 
-extern "C" mqtt::mqttpub::websocket::SubProtocolFactory* mqttClientSubProtocolFactory();
+extern "C" mqtt::mqttsub::websocket::SubProtocolFactory* mqttClientSubProtocolFactory();
 
-#endif // APPS_MQTTBROKER_MQTTPUB_WEBSOCKET_SUBPROTOCOLFACTORY_H
+#endif // APPS_MQTTBROKER_MQTTSUB_WEBSOCKET_SUBPROTOCOLFACTORY_H

@@ -41,16 +41,12 @@
 
 #include "SubProtocolFactory.h"
 
-#include "lib/JsonMappingReader.h"
 #include "lib/Mqtt.h"
-
-#include <core/socket/stream/SocketConnection.h>
-#include <web/websocket/SubProtocolContext.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <map>
-#include <nlohmann/json.hpp>
+#include <cstdint>
+#include <utils/CLI11.hpp>
 #include <utils/Config.h>
 
 #endif
@@ -66,16 +62,16 @@ namespace mqtt::mqttpub::websocket {
     iot::mqtt::client::SubProtocol* SubProtocolFactory::create(web::websocket::SubProtocolContext* subProtocolContext) {
         iot::mqtt::client::SubProtocol* subProtocol = nullptr;
 
-        nlohmann::json& mappingJson =
-            mqtt::lib::JsonMappingReader::readMappingFromFile(utils::Config::getStringOptionValue("--mqtt-mapping-file"));
+        const CLI::App* pubApp = utils::Config::getInstance("pub");
+        if (pubApp != nullptr) {
+            const std::string clientId = pubApp->get_option("--client-id")->as<std::string>();
+            const std::string topic = pubApp->get_option("--topic")->as<std::string>();
+            const std::string message = pubApp->get_option("--message")->as<std::string>();
+            const uint8_t qoS = pubApp->get_option("--qos")->as<uint8_t>();
+            const bool retain = pubApp->get_option("--retain")->as<bool>();
 
-        if (mappingJson.contains("connection")) {
             subProtocol = new iot::mqtt::client::SubProtocol(
-                subProtocolContext,
-                getName(),
-                new mqtt::mqttpub::lib::Mqtt(subProtocolContext->getSocketConnection()->getConnectionName(),
-                                                    mappingJson["connection"],
-                                                    mappingJson["mapping"]));
+                subProtocolContext, getName(), new mqtt::mqttpub::lib::Mqtt(clientId, topic, message, qoS, retain));
         }
 
         return subProtocol;

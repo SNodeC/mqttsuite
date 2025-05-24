@@ -41,21 +41,17 @@
 
 #include "SubProtocolFactory.h"
 
-#include "lib/JsonMappingReader.h"
 #include "lib/Mqtt.h"
-
-#include <core/socket/stream/SocketConnection.h>
-#include <web/websocket/SubProtocolContext.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <map>
-#include <nlohmann/json.hpp>
+#include <cstdint>
+#include <utils/CLI11.hpp>
 #include <utils/Config.h>
 
 #endif
 
-namespace mqtt::mqttpub::websocket {
+namespace mqtt::mqttsub::websocket {
 
 #define NAME "mqtt"
 
@@ -66,23 +62,24 @@ namespace mqtt::mqttpub::websocket {
     iot::mqtt::client::SubProtocol* SubProtocolFactory::create(web::websocket::SubProtocolContext* subProtocolContext) {
         iot::mqtt::client::SubProtocol* subProtocol = nullptr;
 
-        nlohmann::json& mappingJson =
-            mqtt::lib::JsonMappingReader::readMappingFromFile(utils::Config::getStringOptionValue("--mqtt-mapping-file"));
+        const CLI::App* subApp = utils::Config::getInstance("sub");
 
-        if (mappingJson.contains("connection")) {
+        if (subApp != nullptr) {
+            const std::string clientId = subApp->get_option("--client-id")->as<std::string>();
+            const std::string topic = subApp->get_option("--topic")->as<std::string>();
+            const uint8_t qoS = subApp->get_option("--qos")->as<uint8_t>();
+            const uint16_t keepAlive = subApp->get_option("--keep-alive")->as<uint16_t>();
+            const bool cleanSession = subApp->get_option("--clean-session")->as<bool>();
+
             subProtocol = new iot::mqtt::client::SubProtocol(
-                subProtocolContext,
-                getName(),
-                new mqtt::mqttpub::lib::Mqtt(subProtocolContext->getSocketConnection()->getConnectionName(),
-                                                    mappingJson["connection"],
-                                                    mappingJson["mapping"]));
+                subProtocolContext, getName(), new mqtt::mqttsub::lib::Mqtt(clientId, topic, qoS, keepAlive, cleanSession));
         }
 
         return subProtocol;
     }
 
-} // namespace mqtt::mqttpub::websocket
+} // namespace mqtt::mqttsub::websocket
 
-extern "C" mqtt::mqttpub::websocket::SubProtocolFactory* mqttClientSubProtocolFactory() {
-    return new mqtt::mqttpub::websocket::SubProtocolFactory();
+extern "C" mqtt::mqttsub::websocket::SubProtocolFactory* mqttClientSubProtocolFactory() {
+    return new mqtt::mqttsub::websocket::SubProtocolFactory();
 }

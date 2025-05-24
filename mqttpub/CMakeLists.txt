@@ -43,7 +43,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 add_subdirectory(lib)
-#add_subdirectory(websocket)
+add_subdirectory(websocket)
 
 find_package(nlohmann_json 3.7.0 REQUIRED)
 find_package(

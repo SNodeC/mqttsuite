@@ -47,27 +47,25 @@ find_package(
     REQUIRED
 )
 
-set(MQTTPUBSUBPROTOCOL_CPP SubProtocolFactory.cpp)
-set(MQTTPUBSUBPROTOCOL_H SubProtocolFactory.h)
+set(MQTTSUBSUBPROTOCOL_CPP SubProtocolFactory.cpp)
+set(MQTTSUBSUBPROTOCOL_H SubProtocolFactory.h)
 
 add_library(
-    websocket-mqtt-pub SHARED ${MQTTPUBSUBPROTOCOL_CPP}
-                              ${MQTTPUBSUBPROTOCOL_H}
+    websocket-mqtt-sub SHARED ${MQTTSUBSUBPROTOCOL_CPP} ${MQTTSUBSUBPROTOCOL_H}
 )
 
 target_link_libraries(
-    websocket-mqtt-pub PUBLIC snodec::mqtt-client-websocket mqtt-pub
-                                 nlohmann_json::nlohmann_json
+    websocket-mqtt-sub PUBLIC snodec::mqtt-client-websocket mqtt-sub
+                              nlohmann_json::nlohmann_json
 )
 
 set_target_properties(
-    websocket-mqtt-pub
-    PROPERTIES OUTPUT_NAME "snodec-websocket-mqtt-pub"
+    websocket-mqtt-sub
+    PROPERTIES OUTPUT_NAME "snodec-websocket-mqtt-client"
                VERSION ${MQTTSuite_VERSION}
                SOVERSION ${SNODEC_SOVERSION}
 )
 
-install(
-    TARGETS websocket-mqtt-pub
-    LIBRARY DESTINATION ${WEBSOCKET_SUBPROTOCOL_INSTALL_LIBDIR}/mqttsub/
+install(TARGETS websocket-mqtt-sub
+        LIBRARY DESTINATION ${WEBSOCKET_SUBPROTOCOL_INSTALL_LIBDIR}/mqttsub/
 )
