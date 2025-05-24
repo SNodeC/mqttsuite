@@ -63,8 +63,10 @@ namespace mqtt::mqttsub {
         const std::string clientId = subApp->get_option("--client-id")->as<std::string>();
         const std::string topic = subApp->get_option("--topic")->as<std::string>();
         const uint8_t qoS = subApp->get_option("--qos")->as<uint8_t>();
+        const uint16_t keepAlive = subApp->get_option("--keep-alive")->as<uint16_t>();
+        const bool cleanSession = subApp->get_option("--clean-session")->as<bool>();
 
-        return new iot::mqtt::SocketContext(socketConnection, new mqtt::mqttsub::lib::Mqtt(clientId, topic, qoS));
+        return new iot::mqtt::SocketContext(socketConnection, new mqtt::mqttsub::lib::Mqtt(clientId, topic, qoS, keepAlive, cleanSession));
     }
 
 } // namespace mqtt::mqttsub

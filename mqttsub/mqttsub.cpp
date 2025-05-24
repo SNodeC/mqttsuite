@@ -145,7 +145,7 @@ int main(int argc, char* argv[]) {
     web::websocket::client::SubProtocolFactorySelector::link("mqtt", mqttClientSubProtocolFactory);
 #endif
 
-    CLI::App* subApp = utils::Config::addInstance("sub", "Configuration for Application mqttsub", "MQTT-Subscribe");
+    CLI::App* subApp = utils::Config::addInstance("sub", "Configuration for application mqttsub", "Application");
     utils::Config::addStandardFlags(subApp);
     utils::Config::addHelp(subApp);
     subApp->configurable(false);
@@ -161,7 +161,7 @@ int main(int argc, char* argv[]) {
     subApp->needs(subApp->add_option("--topic", topic, "Topic listen to")
                       ->capture_default_str()
                       ->group(subApp->get_formatter()->get_label("Nonpersistent Options"))
-                      ->type_name("[string]")
+                      ->type_name("string")
                       ->configurable(false)
                       ->default_str("#"));
 
@@ -169,8 +169,25 @@ int main(int argc, char* argv[]) {
     subApp->add_option("--qos", qoS, "Quality of service")
         ->capture_default_str()
         ->group(subApp->get_formatter()->get_label("Nonpersistent Options"))
-        ->type_name("[uint8_t]")
+        ->type_name("uint8_t")
         ->default_val(0)
+        ->configurable(false);
+
+    uint16_t keepAlive = 60;
+    subApp->add_option("--keep-alive", keepAlive, "Quality of service")
+        ->capture_default_str()
+        ->group(subApp->get_formatter()->get_label("Nonpersistent Options"))
+        ->type_name("uint8_t")
+        ->default_val(60)
+        ->configurable(false);
+
+    bool cleanSession = true;
+    subApp->add_flag("--clean-session{true},-c{true}", cleanSession, "Clean session")
+        ->capture_default_str()
+        ->group(subApp->get_formatter()->get_label("Nonpersistent Options"))
+        ->type_name("bool")
+        ->default_str("true")
+        ->check(CLI::IsMember({"true", "false"}))
         ->configurable(false);
 
     core::SNodeC::init(argc, argv);
