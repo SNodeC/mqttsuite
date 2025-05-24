@@ -106,7 +106,7 @@ namespace mqtt::mqttsub::lib {
     }
 
     void Mqtt::onConnack(const iot::mqtt::packets::Connack& connack) {
-        if (connack.getReturnCode() == 0 && !connack.getSessionPresent()) {
+        if (connack.getReturnCode() == 0) {
             sendSubscribe({{topic, qoS}});
         } else {
             sendDisconnect();

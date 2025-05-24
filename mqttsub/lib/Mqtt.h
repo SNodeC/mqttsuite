@@ -39,8 +39,8 @@
  * THE SOFTWARE.
  */
 
-#ifndef APPS_MQTTBROKER_MQTTPUB_SOCKETCONTEXT_H
-#define APPS_MQTTBROKER_MQTTPUB_SOCKETCONTEXT_H
+#ifndef APPS_MQTTBROKER_MQTTSUB_SOCKETCONTEXT_H
+#define APPS_MQTTBROKER_MQTTSUB_SOCKETCONTEXT_H
 
 #include <iot/mqtt/client/Mqtt.h>
 
@@ -93,4 +93,4 @@ namespace mqtt::mqttsub::lib {
 
 } // namespace mqtt::mqttsub::lib
 
-#endif // APPS_MQTTBROKER_MQTTPUB_SOCKETCONTEXT_H
+#endif // APPS_MQTTBROKER_MQTTSUB_SOCKETCONTEXT_H
