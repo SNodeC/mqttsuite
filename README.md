@@ -173,7 +173,7 @@ After installing all dependencies MQTTSuite can be cloned from github, compiled 
 ```sh
 mkdir mqttsuite
 cd mqttsuite
-git clone https://github.com/SNodeC/mqttsuite.git
+git clone --recurse-submodules https://github.com/SNodeC/mqttsuite.git
 mkdir build
 cd build
 cmake ../mqttsuite
