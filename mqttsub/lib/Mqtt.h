@@ -47,6 +47,7 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <cstdint>
+#include <list>
 #include <string>
 
 #endif
@@ -56,7 +57,7 @@ namespace mqtt::mqttsub::lib {
     class Mqtt : public iot::mqtt::client::Mqtt {
     public:
         explicit Mqtt(const std::string& clientId,
-                      const std::string& topic,
+                      const std::list<std::string>& topics,
                       uint8_t qoS,
                       uint16_t keepAlive = 60,
                       bool cleanSession = true,
@@ -78,7 +79,9 @@ namespace mqtt::mqttsub::lib {
 
         void onConnack(const iot::mqtt::packets::Connack& connack) final;
 
-        std::string topic;
+        void onSuback(const iot::mqtt::packets::Suback& suback) final;
+
+        std::list<std::string> topics;
         uint8_t qoS;
 
         uint16_t keepAlive;

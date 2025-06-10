@@ -48,6 +48,7 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <cstdint>
+#include <list>
 #include <string>
 #include <utils/CLI11.hpp>
 
@@ -61,12 +62,12 @@ namespace mqtt::mqttsub {
 
     core::socket::stream::SocketContext* SocketContextFactory::create(core::socket::stream::SocketConnection* socketConnection) {
         const std::string clientId = subApp->get_option("--client-id")->as<std::string>();
-        const std::string topic = subApp->get_option("--topic")->as<std::string>();
+        const std::list<std::string> topics = subApp->get_option("--topic")->as<std::list<std::string>>();
         const uint8_t qoS = subApp->get_option("--qos")->as<uint8_t>();
         const uint16_t keepAlive = subApp->get_option("--keep-alive")->as<uint16_t>();
         const bool cleanSession = subApp->get_option("--clean-session")->as<bool>();
 
-        return new iot::mqtt::SocketContext(socketConnection, new mqtt::mqttsub::lib::Mqtt(clientId, topic, qoS, keepAlive, cleanSession));
+        return new iot::mqtt::SocketContext(socketConnection, new mqtt::mqttsub::lib::Mqtt(clientId, topics, qoS, keepAlive, cleanSession));
     }
 
 } // namespace mqtt::mqttsub

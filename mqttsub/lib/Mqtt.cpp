@@ -44,20 +44,180 @@
 #include <iot/mqtt/Topic.h>
 #include <iot/mqtt/packets/Connack.h>
 #include <iot/mqtt/packets/Publish.h>
+#include <iot/mqtt/packets/Suback.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include <algorithm>
 #include <cstring>
+#include <iterator>
 #include <list>
 #include <log/Logger.h>
+#include <map>
+#include <nlohmann/json_fwd.hpp>
+#include <sstream>
+#include <string>
+#include <string_view>
+#include <sys/ioctl.h>
+#include <tuple>
+#include <unistd.h>
 #include <utils/system/signal.h>
+#include <vector>
 
 #endif
+
+// include the single‐header JSON library:
+// https://github.com/nlohmann/json/releases
+#include <nlohmann/json.hpp>
+using json = nlohmann::json;
+
+// get current terminal width, fallback to 80
+static int getTerminalWidth() {
+    int termWidth = 80;
+
+    struct winsize w;
+    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == 0 && w.ws_col > 0) {
+        termWidth = w.ws_col;
+    }
+
+    return termWidth;
+}
+
+// split one paragraph of text into lines of at most `width` characters
+static std::vector<std::string> wrapParagraph(const std::string& text, std::size_t width) {
+    std::istringstream words(text);
+    std::string word, line;
+    std::vector<std::string> lines;
+    while (words >> word) {
+        if (line.empty()) {
+            line = word;
+        } else if (line.size() + 1 + word.size() <= width) {
+            line += ' ' + word;
+        } else {
+            lines.push_back(line);
+            line = word;
+        }
+    }
+
+    if (!line.empty()) {
+        lines.push_back(line);
+    }
+
+    return lines;
+}
+
+///
+/// Formats:
+///   prefix ┬ headLine
+///             ├ <first message line>
+///             │ <middle lines>
+///             └ <last message line>
+///
+/// If `message` parses as JSON, we pretty‐print it (indent=2).
+/// Otherwise we wrap it to the terminal width.
+///
+/// Returns the whole formatted string (with trailing newline on each line).
+///
+std::vector<std::string> static myformat(const std::string& prefix,
+                                         const std::string& headLine,
+                                         const std::string& message,
+                                         std::size_t initialPrefixLength = 0) {
+    // how many spaces before the box‐drawing char on subsequent lines?
+    const size_t prefixLen = prefix.size();
+    const size_t indentCount = prefixLen + 1; // +1 for the space before ┬, +33 for easylogging++ prefix format
+    const std::string indent(indentCount, ' ');
+
+    std::vector<std::string> lines;
+
+    const int termWidth = getTerminalWidth();
+
+    size_t avail = (termWidth > int(indentCount + 2)) ? static_cast<std::size_t>(termWidth) - (indentCount + 2) : 20u;
+
+    auto wrapped = wrapParagraph(prefix + " ┬ " + headLine, avail - (prefix.length() + 2));
+
+    if (wrapped.empty()) {
+        wrapped.push_back("");
+    }
+
+    //    lines.insert(lines.end(), wrapped.begin(), wrapped.end());
+
+    bool first = true;
+    for (const auto& line : wrapped) {
+        lines.emplace_back((first ? "" : indent + "│ ") + line);
+        first = false;
+    }
+
+    // try parsing as JSON
+    try {
+        auto j = json::parse(message);
+        // pretty‐print with 2-space indent
+        std::string pretty = j.dump(2);
+        // split into lines
+        std::istringstream prettyIStringStream(pretty);
+
+        for (auto [line, lineNumnber] = std::tuple{std::string(""), 0}; std::getline(prettyIStringStream, line); lineNumnber++) {
+            if (lineNumnber == 0 && !prettyIStringStream.eof()) {
+                lines.push_back(indent + "├ " + line);
+            } else if (prettyIStringStream.eof()) {
+                lines.push_back(indent + "└ " + line);
+            } else {
+                lines.push_back(indent + "│ " + line);
+            }
+        }
+    } catch (json::parse_error&) {
+        // not JSON → wrap text
+
+        // break original message on hard newlines and wrap each paragraph
+        std::istringstream messageIStringStream(message);
+        std::vector<std::string> allLines;
+        for (std::string line; std::getline(messageIStringStream, line);) {
+            wrapped = wrapParagraph(line, avail - initialPrefixLength);
+
+            if (wrapped.empty()) {
+                wrapped.push_back("");
+            }
+
+            allLines.insert(allLines.end(), wrapped.begin(), wrapped.end());
+        }
+
+        if (!allLines.empty() && allLines.back().empty()) {
+            allLines.pop_back();
+        }
+
+        // emit with ├, │ and └
+        for (std::size_t lineNumber = 0; lineNumber < allLines.size(); ++lineNumber) {
+            if (lineNumber == 0 && lineNumber + 1 != allLines.size()) {
+                lines.push_back(indent + "├ " + allLines[lineNumber]);
+            } else if (lineNumber + 1 == allLines.size()) {
+                lines.push_back(indent + "└ " + allLines[lineNumber]);
+            } else {
+                lines.push_back(indent + "│ " + allLines[lineNumber]);
+            }
+        }
+    }
+
+    return lines;
+}
+
+// 2025-05-28 17:46:11 0000000014358
+static const std::string formatAsLogString(const std::string& prefix, const std::string& headLine, const std::string& message) {
+    std::ostringstream formatAsLogStringStream;
+
+    for (const std::string& line : myformat(prefix, headLine, message, 34)) {
+        formatAsLogStringStream << (formatAsLogStringStream.view().empty() ? "" : "                                  ") << line << "\n";
+    }
+
+    std::string formatStr = formatAsLogStringStream.str();
+
+    formatStr.pop_back();
+
+    return formatStr;
+}
 
 namespace mqtt::mqttsub::lib {
 
     Mqtt::Mqtt(const std::string& clientId,
-               const std::string& topic,
+               const std::list<std::string>& topics,
                uint8_t qoS,
                uint16_t keepAlive,
                bool cleanSession,
@@ -69,7 +229,7 @@ namespace mqtt::mqttsub::lib {
                const std::string& password,
                const std::string& sessionStoreFileName)
         : iot::mqtt::client::Mqtt("connectionName", clientId, sessionStoreFileName)
-        , topic(topic)
+        , topics(topics)
         , qoS(qoS)
         , keepAlive(keepAlive)
         , cleanSession(cleanSession)
@@ -106,15 +266,37 @@ namespace mqtt::mqttsub::lib {
     }
 
     void Mqtt::onConnack(const iot::mqtt::packets::Connack& connack) {
+        VLOG(0) << "MQTT Subscribe";
         if (connack.getReturnCode() == 0) {
-            sendSubscribe({{topic, qoS}});
+            std::list<iot::mqtt::Topic> topicList;
+            std::transform(topics.begin(),
+                           topics.end(),
+                           std::back_inserter(topicList),
+                           [qoS = this->qoS](const std::string& topic) -> iot::mqtt::Topic {
+                               VLOG(0) << "  t: " << static_cast<int>(qoS) << " | " << topic;
+                               return iot::mqtt::Topic(topic, qoS);
+                           });
+            sendSubscribe(topicList);
         } else {
             sendDisconnect();
         }
     }
 
+    void Mqtt::onSuback(const iot::mqtt::packets::Suback& suback) {
+        VLOG(1) << "MQTT Suback";
+
+        for (auto returnCode : suback.getReturnCodes()) {
+            VLOG(0) << "  r: " << static_cast<int>(returnCode);
+        }
+    }
+
     void Mqtt::onPublish(const iot::mqtt::packets::Publish& publish) {
-        VLOG(0) << "MQTT Publish: " << publish.getTopic() << " | " << publish.getMessage();
+        std::string prefix = "MQTT Publish";
+        std::string headLine = publish.getTopic() + " │ QoS: " + std::to_string(static_cast<uint16_t>(publish.getQoS())) +
+                               " │ Retain: " + (publish.getRetain() != 0 ? "true" : "false") +
+                               " │ Dup: " + (publish.getDup() != 0 ? "true" : "false");
+
+        VLOG(0) << formatAsLogString(prefix, headLine, publish.getMessage());
     }
 
 } // namespace mqtt::mqttsub::lib

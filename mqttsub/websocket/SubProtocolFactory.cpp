@@ -46,6 +46,7 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <cstdint>
+#include <list>
 #include <utils/CLI11.hpp>
 #include <utils/Config.h>
 
@@ -66,13 +67,13 @@ namespace mqtt::mqttsub::websocket {
 
         if (subApp != nullptr) {
             const std::string clientId = subApp->get_option("--client-id")->as<std::string>();
-            const std::string topic = subApp->get_option("--topic")->as<std::string>();
+            const std::list<std::string> topics = subApp->get_option("--topic")->as<std::list<std::string>>();
             const uint8_t qoS = subApp->get_option("--qos")->as<uint8_t>();
             const uint16_t keepAlive = subApp->get_option("--keep-alive")->as<uint16_t>();
             const bool cleanSession = subApp->get_option("--clean-session")->as<bool>();
 
             subProtocol = new iot::mqtt::client::SubProtocol(
-                subProtocolContext, getName(), new mqtt::mqttsub::lib::Mqtt(clientId, topic, qoS, keepAlive, cleanSession));
+                subProtocolContext, getName(), new mqtt::mqttsub::lib::Mqtt(clientId, topics, qoS, keepAlive, cleanSession));
         }
 
         return subProtocol;

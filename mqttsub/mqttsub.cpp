@@ -75,6 +75,7 @@
 //
 #include <utils/CLI11.hpp>
 //
+#include <list>
 #include <string>
 
 #endif
@@ -157,13 +158,14 @@ int main(int argc, char* argv[]) {
         ->type_name("[string]")
         ->configurable(false);
 
-    std::string topic = "#";
+    std::list<std::string> topic = {"#"};
     subApp->needs(subApp->add_option("--topic", topic, "Topic listen to")
                       ->capture_default_str()
                       ->group(subApp->get_formatter()->get_label("Nonpersistent Options"))
                       ->type_name("string")
                       ->configurable(false)
-                      ->default_str("#"));
+                      ->default_str("#")
+                      ->take_all());
 
     uint8_t qoS = 0;
     subApp->add_option("--qos", qoS, "Quality of service")
