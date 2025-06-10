@@ -266,7 +266,7 @@ int main(int argc, char* argv[]) {
     net::un::stream::tls::Client<mqtt::mqttsub::SocketContextFactory>(
         "un-mqtts",
         [](auto& config) {
-            config.Remote::setSunPath("/var/mqttbroker-un-mqtt");
+            config.Remote::setSunPath("/var/mqttbroker-un-mqtts");
 
             config.setRetry();
             config.setRetryBase(1);

@@ -75,6 +75,7 @@
 //
 #include <utils/CLI11.hpp>
 //
+#include <list>
 #include <string>
 
 #endif
@@ -145,45 +146,91 @@ int main(int argc, char* argv[]) {
     web::websocket::client::SubProtocolFactorySelector::link("mqtt", mqttClientSubProtocolFactory);
 #endif
 
+    CLI::App* subApp = utils::Config::addInstance("sub", "Configuration for application mqttsub", "Application");
+    utils::Config::addStandardFlags(subApp);
+    utils::Config::addHelp(subApp);
+    subApp->configurable(false);
+
+    std::string subClientId = "";
+    subApp->add_option("--client-id", subClientId, "MQTT Client-ID")
+        ->capture_default_str()
+        ->group(subApp->get_formatter()->get_label("Nonpersistent Options"))
+        ->type_name("[string]")
+        ->configurable(false);
+
+    std::list<std::string> subTopics{};
+    subApp->needs(subApp->add_option("--topic", subTopics, "Topic listen to")
+                      ->capture_default_str()
+                      ->group(subApp->get_formatter()->get_label("Nonpersistent Options"))
+                      ->type_name("string")
+                      ->required()
+                      ->configurable(false)
+                      ->take_all());
+
+    uint8_t subQoS = 0;
+    subApp->add_option("--qos", subQoS, "Quality of service")
+        ->capture_default_str()
+        ->group(subApp->get_formatter()->get_label("Nonpersistent Options"))
+        ->type_name("uint8_t")
+        ->default_val(0)
+        ->configurable(false);
+
+    uint16_t subKeepAlive = 60;
+    subApp->add_option("--keep-alive", subKeepAlive, "Quality of service")
+        ->capture_default_str()
+        ->group(subApp->get_formatter()->get_label("Nonpersistent Options"))
+        ->type_name("uint8_t")
+        ->default_val(60)
+        ->configurable(false);
+
+    bool subCleanSession = true;
+    subApp->add_flag("--clean-session{true},-c{true}", subCleanSession, "Clean session")
+        ->capture_default_str()
+        ->group(subApp->get_formatter()->get_label("Nonpersistent Options"))
+        ->type_name("bool")
+        ->default_str("true")
+        ->check(CLI::IsMember({"true", "false"}))
+        ->configurable(false);
+
     CLI::App* pubApp = utils::Config::addInstance("pub", "Configuration for application mqttpub", "Application");
-    utils::Config::required(pubApp);
+    //    utils::Config::required(pubApp);
     utils::Config::addStandardFlags(pubApp);
     utils::Config::addHelp(pubApp);
     pubApp->configurable(false);
 
-    std::string clientId = "";
-    pubApp->add_option("--client-id", clientId, "MQTT Client-ID")
+    std::string pubClientId = "";
+    pubApp->add_option("--client-id", pubClientId, "MQTT Client-ID")
         ->capture_default_str()
         ->group(pubApp->get_formatter()->get_label("Nonpersistent Options"))
         ->type_name("string")
         ->configurable(false);
 
-    std::string topic = "";
-    pubApp->needs(pubApp->add_option("--topic", topic, "Topic to publish to")
+    std::string pubTopic = "";
+    pubApp->needs(pubApp->add_option("--topic", pubTopic, "Topic to publish to")
                       ->capture_default_str()
                       ->group(pubApp->get_formatter()->get_label("Nonpersistent Options"))
                       ->type_name("string")
                       ->required()
                       ->configurable(false));
 
-    std::string message = "";
-    pubApp->needs(pubApp->add_option("--message", message, "Message to publish")
+    std::string pubMessage = "";
+    pubApp->needs(pubApp->add_option("--message", pubMessage, "Message to publish")
                       ->capture_default_str()
                       ->group(pubApp->get_formatter()->get_label("Nonpersistent Options"))
                       ->type_name("string")
                       ->required()
                       ->configurable(false));
 
-    uint8_t qoS = 0;
-    pubApp->add_option("--qos", qoS, "Quality of service")
+    uint8_t pubQoS = 0;
+    pubApp->add_option("--qos", pubQoS, "Quality of service")
         ->capture_default_str()
         ->group(pubApp->get_formatter()->get_label("Nonpersistent Options"))
         ->type_name("uint8_t")
         ->default_val(0)
         ->configurable(false);
 
-    bool retain = false;
-    pubApp->add_flag("--retain{true},-r{true}", retain, "Retain message")
+    bool pubRetain = false;
+    pubApp->add_flag("--retain{true},-r{true}", pubRetain, "Retain message")
         ->capture_default_str()
         ->group(pubApp->get_formatter()->get_label("Nonpersistent Options"))
         ->type_name("bool")
@@ -191,9 +238,11 @@ int main(int argc, char* argv[]) {
         ->default_str("false")
         ->configurable(false);
 
+    utils::Config::app->require_subcommand(1, 0);
+
     core::SNodeC::init(argc, argv);
 
-    net::in::stream::legacy::Client<mqtt::mqttpub::SocketContextFactory>(
+    net::in::stream::legacy::Client<mqtt::mqtt::SocketContextFactory>(
         "in-mqtt",
         [](auto& config) {
             config.Remote::setPort(1883);
@@ -202,12 +251,13 @@ int main(int argc, char* argv[]) {
             config.setRetryBase(1);
             config.setDisableNagleAlgorithm();
         },
+        subApp,
         pubApp)
         .connect([](const auto& socketAddress, const core::socket::State& state) {
             reportState("in-mqtt", socketAddress, state);
         });
 
-    net::in::stream::tls::Client<mqtt::mqttpub::SocketContextFactory>(
+    net::in::stream::tls::Client<mqtt::mqtt::SocketContextFactory>(
         "in-mqtts",
         [](auto& config) {
             config.Remote::setPort(1883);
@@ -216,12 +266,13 @@ int main(int argc, char* argv[]) {
             config.setRetryBase(1);
             config.setDisableNagleAlgorithm();
         },
+        subApp,
         pubApp)
         .connect([](const auto& socketAddress, const core::socket::State& state) {
             reportState("in-mqtts", socketAddress, state);
         });
 
-    net::in6::stream::legacy::Client<mqtt::mqttpub::SocketContextFactory>(
+    net::in6::stream::legacy::Client<mqtt::mqtt::SocketContextFactory>(
         "in6-mqtt",
         [](auto& config) {
             config.Remote::setPort(1883);
@@ -230,12 +281,13 @@ int main(int argc, char* argv[]) {
             config.setRetryBase(1);
             config.setDisableNagleAlgorithm();
         },
+        subApp,
         pubApp)
         .connect([](const auto& socketAddress, const core::socket::State& state) {
             reportState("in6-mqtt", socketAddress, state);
         });
 
-    net::in6::stream::tls::Client<mqtt::mqttpub::SocketContextFactory>(
+    net::in6::stream::tls::Client<mqtt::mqtt::SocketContextFactory>(
         "in6-mqtts",
         [](auto& config) {
             config.Remote::setPort(1883);
@@ -244,12 +296,13 @@ int main(int argc, char* argv[]) {
             config.setRetryBase(1);
             config.setDisableNagleAlgorithm();
         },
+        subApp,
         pubApp)
         .connect([](const auto& socketAddress, const core::socket::State& state) {
             reportState("in6-mqtts", socketAddress, state);
         });
 
-    net::un::stream::legacy::Client<mqtt::mqttpub::SocketContextFactory>(
+    net::un::stream::legacy::Client<mqtt::mqtt::SocketContextFactory>(
         "un-mqtt",
         [](auto& config) {
             config.Remote::setSunPath("/var/mqttbroker-un-mqtt");
@@ -257,12 +310,13 @@ int main(int argc, char* argv[]) {
             config.setRetry();
             config.setRetryBase(1);
         },
+        subApp,
         pubApp)
         .connect([](const auto& socketAddress, const core::socket::State& state) {
             reportState("un-mqtt", socketAddress, state);
         });
 
-    net::un::stream::tls::Client<mqtt::mqttpub::SocketContextFactory>(
+    net::un::stream::tls::Client<mqtt::mqtt::SocketContextFactory>(
         "un-mqtts",
         [](auto& config) {
             config.Remote::setSunPath("/var/mqttbroker-un-mqtts");
@@ -270,6 +324,7 @@ int main(int argc, char* argv[]) {
             config.setRetry();
             config.setRetryBase(1);
         },
+        subApp,
         pubApp)
         .connect([](const auto& socketAddress, const core::socket::State& state) {
             reportState("un-mqtts", socketAddress, state);
