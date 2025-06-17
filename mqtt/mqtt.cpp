@@ -146,64 +146,106 @@ int main(int argc, char* argv[]) {
     web::websocket::client::SubProtocolFactorySelector::link("mqtt", mqttClientSubProtocolFactory);
 #endif
 
+    CLI::App* sessionApp = utils::Config::addInstance("session", "MQTT session behavior", "Application");
+    utils::Config::addStandardFlags(sessionApp);
+    utils::Config::addHelp(sessionApp);
+    sessionApp->configurable(false);
+
+    std::string clientId;
+    CLI::Option* clientIdOpt = sessionApp->add_option("--client-id", clientId, "MQTT Client-ID")
+                                   ->capture_default_str()
+                                   ->group(sessionApp->get_formatter()->get_label("Nonpersistent Options"))
+                                   ->type_name("[string]")
+                                   ->configurable(false);
+
+    uint8_t qoS = 0;
+    sessionApp->add_option("--qos", qoS, "Quality of service")
+        ->capture_default_str()
+        ->group(sessionApp->get_formatter()->get_label("Nonpersistent Options"))
+        ->type_name("[uint8_t]")
+        ->default_val(0)
+        ->configurable(false);
+
+    bool retainSession = true;
+    sessionApp->add_flag("--retain-session{true},-r{true}", retainSession, "Clean session")
+        ->capture_default_str()
+        ->group(sessionApp->get_formatter()->get_label("Nonpersistent Options"))
+        ->type_name("[bool]")
+        ->default_str("false")
+        ->check(CLI::IsMember({"true", "false"}))
+        ->configurable(false)
+        ->needs(clientIdOpt);
+
+    uint16_t keepAlive = 60;
+    sessionApp->add_option("--keep-alive", keepAlive, "Quality of service")
+        ->capture_default_str()
+        ->group(sessionApp->get_formatter()->get_label("Nonpersistent Options"))
+        ->type_name("[uint8_t]")
+        ->default_val(60)
+        ->configurable(false);
+
+    std::string willTopic;
+    sessionApp->add_option("--will-topic", willTopic, "MQTT will topic")
+        ->capture_default_str()
+        ->group(sessionApp->get_formatter()->get_label("Nonpersistent Options"))
+        ->type_name("[string]")
+        ->configurable(false);
+
+    std::string willMessage;
+    sessionApp->add_option("--will-message", willMessage, "MQTT will message")
+        ->capture_default_str()
+        ->group(sessionApp->get_formatter()->get_label("Nonpersistent Options"))
+        ->type_name("[string]")
+        ->configurable(false);
+
+    uint8_t willQoS = 0;
+    sessionApp->add_option("--will-qos", willQoS, "MQTT will quality of service")
+        ->capture_default_str()
+        ->group(sessionApp->get_formatter()->get_label("Nonpersistent Options"))
+        ->type_name("[uint8_t]")
+        ->default_val(0)
+        ->configurable(false);
+
+    bool willRetain = 0;
+    sessionApp->add_flag("--will-retain{true}", willRetain, "MQTT will message retain")
+        ->capture_default_str()
+        ->group(sessionApp->get_formatter()->get_label("Nonpersistent Options"))
+        ->type_name("[bool]")
+        ->default_str("false")
+        ->configurable(false);
+
+    std::string username;
+    sessionApp->add_option("--username", username, "MQTT username")
+        ->capture_default_str()
+        ->group(sessionApp->get_formatter()->get_label("Nonpersistent Options"))
+        ->type_name("[string]")
+        ->configurable(false);
+
+    std::string password;
+    sessionApp->add_option("--password", password, "MQTT password")
+        ->capture_default_str()
+        ->group(sessionApp->get_formatter()->get_label("Nonpersistent Options"))
+        ->type_name("[string]")
+        ->configurable(false);
+
     CLI::App* subApp = utils::Config::addInstance("sub", "Configuration for application mqttsub", "Application");
     utils::Config::addStandardFlags(subApp);
     utils::Config::addHelp(subApp);
     subApp->configurable(false);
 
-    std::string subClientId = "";
-    subApp->add_option("--client-id", subClientId, "MQTT Client-ID")
-        ->capture_default_str()
-        ->group(subApp->get_formatter()->get_label("Nonpersistent Options"))
-        ->type_name("[string]")
-        ->configurable(false);
-
     std::list<std::string> subTopics{};
-    subApp->needs(subApp->add_option("--topic", subTopics, "Topic listen to")
-                      ->capture_default_str()
-                      ->group(subApp->get_formatter()->get_label("Nonpersistent Options"))
-                      ->type_name("string")
-                      ->required()
-                      ->configurable(false)
-                      ->take_all());
-
-    uint8_t subQoS = 0;
-    subApp->add_option("--qos", subQoS, "Quality of service")
+    subApp->add_option("--topic", subTopics, "Topic listen to")
         ->capture_default_str()
         ->group(subApp->get_formatter()->get_label("Nonpersistent Options"))
-        ->type_name("uint8_t")
-        ->default_val(0)
-        ->configurable(false);
-
-    uint16_t subKeepAlive = 60;
-    subApp->add_option("--keep-alive", subKeepAlive, "Quality of service")
-        ->capture_default_str()
-        ->group(subApp->get_formatter()->get_label("Nonpersistent Options"))
-        ->type_name("uint8_t")
-        ->default_val(60)
-        ->configurable(false);
-
-    bool subCleanSession = true;
-    subApp->add_flag("--clean-session{true},-c{true}", subCleanSession, "Clean session")
-        ->capture_default_str()
-        ->group(subApp->get_formatter()->get_label("Nonpersistent Options"))
-        ->type_name("bool")
-        ->default_str("true")
-        ->check(CLI::IsMember({"true", "false"}))
-        ->configurable(false);
+        ->type_name("string")
+        ->configurable(false)
+        ->take_all();
 
     CLI::App* pubApp = utils::Config::addInstance("pub", "Configuration for application mqttpub", "Application");
     //    utils::Config::required(pubApp);
     utils::Config::addStandardFlags(pubApp);
     utils::Config::addHelp(pubApp);
     pubApp->configurable(false);
-
-    std::string pubClientId = "";
-    pubApp->add_option("--client-id", pubClientId, "MQTT Client-ID")
-        ->capture_default_str()
-        ->group(pubApp->get_formatter()->get_label("Nonpersistent Options"))
-        ->type_name("string")
-        ->configurable(false);
 
     std::string pubTopic = "";
     pubApp->needs(pubApp->add_option("--topic", pubTopic, "Topic to publish to")
@@ -221,19 +263,11 @@ int main(int argc, char* argv[]) {
                       ->required()
                       ->configurable(false));
 
-    uint8_t pubQoS = 0;
-    pubApp->add_option("--qos", pubQoS, "Quality of service")
-        ->capture_default_str()
-        ->group(pubApp->get_formatter()->get_label("Nonpersistent Options"))
-        ->type_name("uint8_t")
-        ->default_val(0)
-        ->configurable(false);
-
     bool pubRetain = false;
     pubApp->add_flag("--retain{true},-r{true}", pubRetain, "Retain message")
         ->capture_default_str()
         ->group(pubApp->get_formatter()->get_label("Nonpersistent Options"))
-        ->type_name("bool")
+        ->type_name("[bool]")
         ->check(CLI::IsMember({"true", "false"}))
         ->default_str("false")
         ->configurable(false);
@@ -251,6 +285,7 @@ int main(int argc, char* argv[]) {
             config.setRetryBase(1);
             config.setDisableNagleAlgorithm();
         },
+        sessionApp,
         subApp,
         pubApp)
         .connect([](const auto& socketAddress, const core::socket::State& state) {
@@ -266,6 +301,7 @@ int main(int argc, char* argv[]) {
             config.setRetryBase(1);
             config.setDisableNagleAlgorithm();
         },
+        sessionApp,
         subApp,
         pubApp)
         .connect([](const auto& socketAddress, const core::socket::State& state) {
@@ -281,6 +317,7 @@ int main(int argc, char* argv[]) {
             config.setRetryBase(1);
             config.setDisableNagleAlgorithm();
         },
+        sessionApp,
         subApp,
         pubApp)
         .connect([](const auto& socketAddress, const core::socket::State& state) {
@@ -296,6 +333,7 @@ int main(int argc, char* argv[]) {
             config.setRetryBase(1);
             config.setDisableNagleAlgorithm();
         },
+        sessionApp,
         subApp,
         pubApp)
         .connect([](const auto& socketAddress, const core::socket::State& state) {
@@ -310,6 +348,7 @@ int main(int argc, char* argv[]) {
             config.setRetry();
             config.setRetryBase(1);
         },
+        sessionApp,
         subApp,
         pubApp)
         .connect([](const auto& socketAddress, const core::socket::State& state) {
@@ -324,6 +363,7 @@ int main(int argc, char* argv[]) {
             config.setRetry();
             config.setRetryBase(1);
         },
+        sessionApp,
         subApp,
         pubApp)
         .connect([](const auto& socketAddress, const core::socket::State& state) {

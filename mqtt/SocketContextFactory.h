@@ -56,11 +56,12 @@ namespace mqtt::mqtt {
 
     class SocketContextFactory : public core::socket::stream::SocketContextFactory {
     public:
-        explicit SocketContextFactory(const CLI::App* subApp, const CLI::App* pubApp);
+        explicit SocketContextFactory(const CLI::App* sessionApp, const CLI::App* subApp, const CLI::App* pubApp);
 
         core::socket::stream::SocketContext* create(core::socket::stream::SocketConnection* socketConnection) final;
 
     private:
+        const CLI::App* sessionApp;
         const CLI::App* subApp;
         const CLI::App* pubApp;
     };

@@ -217,39 +217,34 @@ static const std::string formatAsLogString(const std::string& prefix, const std:
 namespace mqtt::mqtt::lib {
 
     Mqtt::Mqtt(const std::string& clientId,
-               const std::list<std::string>& topics,
                uint8_t qoS,
                uint16_t keepAlive,
                bool cleanSession,
-               [[maybe_unused]] const std::string& clientId1,
-               const std::string& topic,
-               const std::string& message,
-               uint8_t qoS1,
-               bool retain,
-               bool cleanSession1,
                const std::string& willTopic,
                const std::string& willMessage,
                uint8_t willQoS,
                bool willRetain,
                const std::string& username,
                const std::string& password,
+               const std::list<std::string>& subTopics,
+               const std::string& pubTopic,
+               const std::string& pubMessage,
+               bool pubRetain,
                const std::string& sessionStoreFileName)
         : iot::mqtt::client::Mqtt("connectionName", clientId, sessionStoreFileName)
-        , topics(topics)
         , qoS(qoS)
         , keepAlive(keepAlive)
         , cleanSession(cleanSession)
-        , topic(topic)
-        , message(message)
-        , qoS1(qoS1)
-        , retain(retain)
-        , cleanSession1(cleanSession1)
         , willTopic(willTopic)
         , willMessage(willMessage)
         , willQoS(willQoS)
         , willRetain(willRetain)
         , username(username)
-        , password(password) {
+        , password(password)
+        , subTopics(subTopics)
+        , pubTopic(pubTopic)
+        , pubMessage(pubMessage)
+        , pubRetain(pubRetain) {
         VLOG(1) << "Keep Alive: " << keepAlive;
         VLOG(1) << "Client Id: " << clientId;
         VLOG(1) << "Clean Session: " << cleanSession;
@@ -277,25 +272,28 @@ namespace mqtt::mqtt::lib {
     }
 
     void Mqtt::onConnack(const iot::mqtt::packets::Connack& connack) {
-        VLOG(0) << "MQTT Subscribe";
         if (connack.getReturnCode() == 0) {
-            if (!topics.empty()) {
+            if (!subTopics.empty()) {
+                VLOG(0) << "MQTT Subscribe";
+
                 std::list<iot::mqtt::Topic> topicList;
-                std::transform(topics.begin(),
-                               topics.end(),
+                std::transform(subTopics.begin(),
+                               subTopics.end(),
                                std::back_inserter(topicList),
                                [qoS = this->qoS](const std::string& topic) -> iot::mqtt::Topic {
                                    VLOG(0) << "  t: " << static_cast<int>(qoS) << " | " << topic;
                                    return iot::mqtt::Topic(topic, qoS);
                                });
                 sendSubscribe(topicList);
-
-                subscribed = true;
             }
 
-            sendPublish(topic, message, qoS, retain);
+            if (!pubTopic.empty()) {
+                VLOG(0) << "MQTT Publish";
 
-            if (qoS == 0 && !subscribed) {
+                sendPublish(pubTopic, pubMessage, qoS, pubRetain);
+            }
+
+            if ((qoS == 0 || pubTopic.empty()) && subTopics.empty() && cleanSession) {
                 sendDisconnect();
             }
         } else {
@@ -321,13 +319,13 @@ namespace mqtt::mqtt::lib {
     }
 
     void Mqtt::onPuback([[maybe_unused]] const iot::mqtt::packets::Puback& puback) {
-        if (qoS == 1 && !subscribed) {
+        if (subTopics.empty()) {
             sendDisconnect();
         }
     }
 
     void Mqtt::onPubcomp([[maybe_unused]] const iot::mqtt::packets::Pubcomp& pubcomp) {
-        if (qoS == 2 && !subscribed) {
+        if (subTopics.empty()) {
             sendDisconnect();
         }
     }

@@ -57,22 +57,19 @@ namespace mqtt::mqtt::lib {
     class Mqtt : public iot::mqtt::client::Mqtt {
     public:
         explicit Mqtt(const std::string& clientId,
-                      const std::list<std::string>& topics,
-                      uint8_t qoS = 0,
-                      uint16_t keepAlive = 60,
-                      bool cleanSession = true,
-                      const std::string& clientId1 = "",
-                      const std::string& topic = "",
-                      const std::string& message = "",
-                      uint8_t qoS1 = 0,
-                      bool retain = false,
-                      bool cleanSession1 = true,
-                      const std::string& willTopic = "",
-                      const std::string& willMessage = "",
-                      uint8_t willQoS = 0,
-                      bool willRetain = false,
-                      const std::string& username = "",
-                      const std::string& password = "",
+                      uint8_t qoS,
+                      uint16_t keepAlive,
+                      bool cleanSession,
+                      const std::string& willTopic,
+                      const std::string& willMessage,
+                      uint8_t willQoS,
+                      bool willRetain,
+                      const std::string& username,
+                      const std::string& password,
+                      const std::list<std::string>& subTopics,
+                      const std::string& pubTopic,
+                      const std::string& pubMessage,
+                      bool pubRetain = false,
                       const std::string& sessionStoreFileName = "");
 
     private:
@@ -87,26 +84,21 @@ namespace mqtt::mqtt::lib {
         void onPuback(const iot::mqtt::packets::Puback& puback) final;
         void onPubcomp(const iot::mqtt::packets::Pubcomp& pubcomp) final;
 
-        std::list<std::string> topics;
-        uint8_t qoS;
+        const uint8_t qoS;
+        const uint16_t keepAlive;
+        const bool cleanSession;
 
-        uint16_t keepAlive;
-        bool cleanSession;
+        const std::string willTopic;
+        const std::string willMessage;
+        const uint8_t willQoS;
+        const bool willRetain;
+        const std::string username;
+        const std::string password;
 
-        std::string topic;
-        std::string message;
-        uint8_t qoS1;
-        bool retain;
-        bool cleanSession1;
-
-        std::string willTopic;
-        std::string willMessage;
-        uint8_t willQoS;
-        bool willRetain;
-        std::string username;
-        std::string password;
-
-        bool subscribed = false;
+        const std::list<std::string> subTopics;
+        const std::string pubTopic;
+        const std::string pubMessage;
+        const bool pubRetain;
     };
 
 } // namespace mqtt::mqtt::lib

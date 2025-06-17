@@ -56,31 +56,48 @@
 
 namespace mqtt::mqtt {
 
-    SocketContextFactory::SocketContextFactory(const CLI::App* subApp, const CLI::App* pubApp)
-        : subApp(subApp)
+    SocketContextFactory::SocketContextFactory(const CLI::App* sessionApp, const CLI::App* subApp, const CLI::App* pubApp)
+        : sessionApp(sessionApp)
+        , subApp(subApp)
         , pubApp(pubApp) {
     }
 
     core::socket::stream::SocketContext* SocketContextFactory::create(core::socket::stream::SocketConnection* socketConnection) {
-        const std::string clientId = subApp->get_option("--client-id")->as<std::string>();
-        std::list<std::string> topics = subApp->get_option("--topic")->as<std::list<std::string>>();
-        const uint8_t qoS = subApp->get_option("--qos")->as<uint8_t>();
-        const uint16_t keepAlive = subApp->get_option("--keep-alive")->as<uint16_t>();
-        const bool cleanSession = subApp->get_option("--clean-session")->as<bool>();
+        const std::string clientId = sessionApp->get_option("--client-id")->as<std::string>();
+        const uint8_t qoS = sessionApp->get_option("--qos")->as<uint8_t>();
+        const bool cleanSession = !sessionApp->get_option("--retain-session")->as<bool>();
+        const uint16_t keepAlive = sessionApp->get_option("--keep-alive")->as<uint16_t>();
+        const std::string willTopic = sessionApp->get_option("--will-topic")->as<std::string>();
+        const std::string willMessage = sessionApp->get_option("--will-message")->as<std::string>();
+        const uint8_t willQoS = sessionApp->get_option("--will-qos")->as<uint8_t>();
+        const bool willRetain = sessionApp->get_option("--will-retain")->as<bool>();
+        const std::string username = sessionApp->get_option("--username")->as<std::string>();
+        const std::string password = sessionApp->get_option("--password")->as<std::string>();
 
-        if (subApp->count() == 0) {
-            topics = std::list<std::string>();
+        std::list<std::string> subTopics;
+        if (subApp->get_option("--topic")->count() > 0) {
+            subTopics = subApp->get_option("--topic")->as<std::list<std::string>>();
         }
 
-        const std::string clientId1 = pubApp->get_option("--client-id")->as<std::string>();
-        const std::string topic = pubApp->get_option("--topic")->as<std::string>();
-        const std::string message = pubApp->get_option("--message")->as<std::string>();
-        const uint8_t qoS1 = pubApp->get_option("--qos")->as<uint8_t>();
-        const bool retain = pubApp->get_option("--retain")->as<bool>();
+        const std::string pubTopic = pubApp->get_option("--topic")->as<std::string>();
+        const std::string pubMessage = pubApp->get_option("--message")->as<std::string>();
+        const bool pubRetain = pubApp->get_option("--retain")->as<bool>();
 
-        return new iot::mqtt::SocketContext(
-            socketConnection,
-            new ::mqtt::mqtt::lib::Mqtt(clientId, topics, qoS, keepAlive, cleanSession, clientId1, topic, message, qoS1, retain));
+        return new iot::mqtt::SocketContext(socketConnection,
+                                            new ::mqtt::mqtt::lib::Mqtt(clientId,
+                                                                        qoS,
+                                                                        keepAlive,
+                                                                        cleanSession,
+                                                                        willTopic,
+                                                                        willMessage,
+                                                                        willQoS,
+                                                                        willRetain,
+                                                                        username,
+                                                                        password,
+                                                                        subTopics,
+                                                                        pubTopic,
+                                                                        pubMessage,
+                                                                        pubRetain));
     }
 
 } // namespace mqtt::mqtt
