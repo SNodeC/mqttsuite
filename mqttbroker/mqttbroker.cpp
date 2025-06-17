@@ -554,7 +554,7 @@ int main(int argc, char* argv[]) {
         },
         broker)
         .listen([](const auto& socketAddress, core::socket::State state) {
-            reportState("in-mqtt", socketAddress, state);
+            reportState("in-mqtts", socketAddress, state);
         });
 
     net::in6::stream::legacy::Server<mqtt::mqttbroker::SocketContextFactory>(
@@ -568,7 +568,7 @@ int main(int argc, char* argv[]) {
         },
         broker)
         .listen([](const auto& socketAddress, core::socket::State state) {
-            reportState("in-mqtt", socketAddress, state);
+            reportState("in6-mqtt", socketAddress, state);
         });
 
     net::in6::stream::tls::Server<mqtt::mqttbroker::SocketContextFactory>(
@@ -582,7 +582,7 @@ int main(int argc, char* argv[]) {
         },
         broker)
         .listen([](const auto& socketAddress, core::socket::State state) {
-            reportState("in-mqtt", socketAddress, state);
+            reportState("in6-mqtts", socketAddress, state);
         });
 
     net::un::stream::legacy::Server<mqtt::mqttbroker::SocketContextFactory>(
@@ -593,7 +593,7 @@ int main(int argc, char* argv[]) {
         },
         broker)
         .listen([](const auto& socketAddress, core::socket::State state) {
-            reportState("in-mqtt", socketAddress, state);
+            reportState("un-mqtt", socketAddress, state);
         });
 
     net::un::stream::tls::Server<mqtt::mqttbroker::SocketContextFactory>(
@@ -604,7 +604,7 @@ int main(int argc, char* argv[]) {
         },
         broker)
         .listen([](const auto& socketAddress, core::socket::State state) {
-            reportState("in-mqtt", socketAddress, state);
+            reportState("un-mqtts", socketAddress, state);
         });
 
     inja::Environment environment{utils::Config::getStringOptionValue("--html-dir") + "/"};
