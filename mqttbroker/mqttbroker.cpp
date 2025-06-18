@@ -268,7 +268,7 @@ static std::string urlDecode(const std::string& encoded) {
     return decoded;
 }
 
-static express::Router getRouter(inja::Environment environment, std::shared_ptr<iot::mqtt::server::broker::Broker> broker) {
+static express::Router getRouter(const inja::Environment& environment, std::shared_ptr<iot::mqtt::server::broker::Broker> broker) {
     const express::Router router;
 
     const express::Router& jsonRouter = express::middleware::JsonMiddleware();
