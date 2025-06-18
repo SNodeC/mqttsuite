@@ -43,6 +43,9 @@
 
 #include "lib/Mqtt.h"
 
+#include <core/socket/stream/SocketConnection.h>
+#include <web/websocket/SubProtocolContext.h>
+
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <cstdint>
@@ -73,7 +76,10 @@ namespace mqtt::mqttsub::websocket {
             const bool cleanSession = subApp->get_option("--clean-session")->as<bool>();
 
             subProtocol = new iot::mqtt::client::SubProtocol(
-                subProtocolContext, getName(), new mqtt::mqttsub::lib::Mqtt(clientId, topics, qoS, keepAlive, cleanSession));
+                subProtocolContext,
+                getName(),
+                new mqtt::mqttsub::lib::Mqtt(
+                    subProtocolContext->getSocketConnection()->getConnectionName(), clientId, topics, qoS, keepAlive, cleanSession));
         }
 
         return subProtocol;

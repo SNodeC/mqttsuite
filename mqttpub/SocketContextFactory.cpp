@@ -43,6 +43,7 @@
 
 #include "lib/Mqtt.h"
 
+#include <core/socket/stream/SocketConnection.h>
 #include <iot/mqtt/SocketContext.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -66,7 +67,8 @@ namespace mqtt::mqttpub {
         const uint8_t qoS = pubApp->get_option("--qos")->as<uint8_t>();
         const bool retain = pubApp->get_option("--retain")->as<bool>();
 
-        return new iot::mqtt::SocketContext(socketConnection, new mqtt::mqttpub::lib::Mqtt(clientId, topic, message, qoS, retain));
+        return new iot::mqtt::SocketContext(
+            socketConnection, new mqtt::mqttpub::lib::Mqtt(socketConnection->getConnectionName(), clientId, topic, message, qoS, retain));
     }
 
 } // namespace mqtt::mqttpub

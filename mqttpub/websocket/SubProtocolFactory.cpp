@@ -43,6 +43,9 @@
 
 #include "lib/Mqtt.h"
 
+#include <core/socket/stream/SocketConnection.h>
+#include <web/websocket/SubProtocolContext.h>
+
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <cstdint>
@@ -71,7 +74,10 @@ namespace mqtt::mqttpub::websocket {
             const bool retain = pubApp->get_option("--retain")->as<bool>();
 
             subProtocol = new iot::mqtt::client::SubProtocol(
-                subProtocolContext, getName(), new mqtt::mqttpub::lib::Mqtt(clientId, topic, message, qoS, retain));
+                subProtocolContext,
+                getName(),
+                new mqtt::mqttpub::lib::Mqtt(
+                    subProtocolContext->getSocketConnection()->getConnectionName(), clientId, topic, message, qoS, retain));
         }
 
         return subProtocol;

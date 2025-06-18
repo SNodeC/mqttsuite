@@ -43,6 +43,7 @@
 
 #include "lib/Mqtt.h"
 
+#include <core/socket/stream/SocketConnection.h>
 #include <iot/mqtt/SocketContext.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -74,17 +75,16 @@ namespace mqtt::mqtt {
         const std::string username = sessionApp->get_option("--username")->as<std::string>();
         const std::string password = sessionApp->get_option("--password")->as<std::string>();
 
-        std::list<std::string> subTopics;
-        if (subApp->get_option("--topic")->count() > 0) {
-            subTopics = subApp->get_option("--topic")->as<std::list<std::string>>();
-        }
+        const std::list<std::string> subTopics =
+            subApp->count() > 0 ? subApp->get_option("--topic")->as<std::list<std::string>>() : std::list<std::string>{};
 
-        const std::string pubTopic = pubApp->get_option("--topic")->as<std::string>();
+        const std::string pubTopic = pubApp->count() > 0 ? pubApp->get_option("--topic")->as<std::string>() : "";
         const std::string pubMessage = pubApp->get_option("--message")->as<std::string>();
         const bool pubRetain = pubApp->get_option("--retain")->as<bool>();
 
         return new iot::mqtt::SocketContext(socketConnection,
-                                            new ::mqtt::mqtt::lib::Mqtt(clientId,
+                                            new ::mqtt::mqtt::lib::Mqtt(socketConnection->getConnectionName(),
+                                                                        clientId,
                                                                         qoS,
                                                                         keepAlive,
                                                                         cleanSession,

@@ -43,6 +43,9 @@
 
 #include "lib/Mqtt.h"
 
+#include <core/socket/stream/SocketConnection.h>
+#include <web/websocket/SubProtocolContext.h>
+
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <cstdint>
@@ -62,6 +65,8 @@ namespace mqtt::mqtt::websocket {
 
     iot::mqtt::client::SubProtocol* SubProtocolFactory::create(web::websocket::SubProtocolContext* subProtocolContext) {
         const CLI::App* sessionApp = utils::Config::getInstance("session");
+        const CLI::App* subApp = utils::Config::getInstance("sub");
+        const CLI::App* pubApp = utils::Config::getInstance("pub");
 
         const std::string clientId = sessionApp->get_option("--client-id")->as<std::string>();
         const uint8_t qoS = sessionApp->get_option("--qos")->as<uint8_t>();
@@ -74,35 +79,33 @@ namespace mqtt::mqtt::websocket {
         const std::string username = sessionApp->get_option("--username")->as<std::string>();
         const std::string password = sessionApp->get_option("--password")->as<std::string>();
 
-        const CLI::App* subApp = utils::Config::getInstance("sub");
-        std::list<std::string> subTopics;
-        if (subApp->get_option("--topic")->count() > 0) {
-            subTopics = subApp->get_option("--topic")->as<std::list<std::string>>();
-        }
+        const std::list<std::string> subTopics =
+            subApp->count() > 0 ? subApp->get_option("--topic")->as<std::list<std::string>>() : std::list<std::string>{};
 
-        const CLI::App* pubApp = utils::Config::getInstance("pub");
-        std::string pubTopic = pubApp->get_option("--topic")->as<std::string>();
-        std::string pubMessage = pubApp->get_option("--message")->as<std::string>();
-        bool pubRetain = pubApp->get_option("--retain")->as<bool>();
+        const std::string pubTopic = pubApp->count() > 0 ? pubApp->get_option("--topic")->as<std::string>() : "";
+        const std::string pubMessage = pubApp->get_option("--message")->as<std::string>();
+        const bool pubRetain = pubApp->get_option("--retain")->as<bool>();
 
         iot::mqtt::client::SubProtocol* subProtocol = nullptr;
         if (subApp->count() > 0 || pubApp->count() > 0) {
-            subProtocol = new iot::mqtt::client::SubProtocol(subProtocolContext,
-                                                             getName(),
-                                                             new ::mqtt::mqtt::lib::Mqtt(clientId,
-                                                                                         qoS,
-                                                                                         keepAlive,
-                                                                                         cleanSession,
-                                                                                         willTopic,
-                                                                                         willMessage,
-                                                                                         willQoS,
-                                                                                         willRetain,
-                                                                                         username,
-                                                                                         password,
-                                                                                         subTopics,
-                                                                                         pubTopic,
-                                                                                         pubMessage,
-                                                                                         pubRetain));
+            subProtocol = new iot::mqtt::client::SubProtocol(
+                subProtocolContext,
+                getName(),
+                new ::mqtt::mqtt::lib::Mqtt(subProtocolContext->getSocketConnection()->getConnectionName(),
+                                            clientId,
+                                            qoS,
+                                            keepAlive,
+                                            cleanSession,
+                                            willTopic,
+                                            willMessage,
+                                            willQoS,
+                                            willRetain,
+                                            username,
+                                            password,
+                                            subTopics,
+                                            pubTopic,
+                                            pubMessage,
+                                            pubRetain));
         }
 
         return subProtocol;

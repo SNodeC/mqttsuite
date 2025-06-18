@@ -216,7 +216,8 @@ static const std::string formatAsLogString(const std::string& prefix, const std:
 
 namespace mqtt::mqttsub::lib {
 
-    Mqtt::Mqtt(const std::string& clientId,
+    Mqtt::Mqtt(const std::string& connectionName,
+               const std::string& clientId,
                const std::list<std::string>& topics,
                uint8_t qoS,
                uint16_t keepAlive,
@@ -228,7 +229,7 @@ namespace mqtt::mqttsub::lib {
                const std::string& username,
                const std::string& password,
                const std::string& sessionStoreFileName)
-        : iot::mqtt::client::Mqtt("connectionName", clientId, sessionStoreFileName)
+        : iot::mqtt::client::Mqtt(connectionName, clientId, sessionStoreFileName)
         , topics(topics)
         , qoS(qoS)
         , keepAlive(keepAlive)

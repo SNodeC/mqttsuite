@@ -53,7 +53,8 @@
 
 namespace mqtt::mqttpub::lib {
 
-    Mqtt::Mqtt(const std::string& clientId,
+    Mqtt::Mqtt(const std::string& connectionName,
+               const std::string& clientId,
                const std::string& topic,
                const std::string& message,
                uint8_t qoS,
@@ -67,7 +68,7 @@ namespace mqtt::mqttpub::lib {
                const std::string& username,
                const std::string& password,
                const std::string& sessionStoreFileName)
-        : iot::mqtt::client::Mqtt("connectionName", clientId, sessionStoreFileName)
+        : iot::mqtt::client::Mqtt(connectionName, clientId, sessionStoreFileName)
         , topic(topic)
         , message(message)
         , qoS(qoS)

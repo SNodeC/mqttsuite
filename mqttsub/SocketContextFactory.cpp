@@ -43,6 +43,7 @@
 
 #include "lib/Mqtt.h"
 
+#include <core/socket/stream/SocketConnection.h>
 #include <iot/mqtt/SocketContext.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -67,7 +68,9 @@ namespace mqtt::mqttsub {
         const uint16_t keepAlive = subApp->get_option("--keep-alive")->as<uint16_t>();
         const bool cleanSession = subApp->get_option("--clean-session")->as<bool>();
 
-        return new iot::mqtt::SocketContext(socketConnection, new mqtt::mqttsub::lib::Mqtt(clientId, topics, qoS, keepAlive, cleanSession));
+        return new iot::mqtt::SocketContext(
+            socketConnection,
+            new mqtt::mqttsub::lib::Mqtt(socketConnection->getConnectionName(), clientId, topics, qoS, keepAlive, cleanSession));
     }
 
 } // namespace mqtt::mqttsub

@@ -56,7 +56,8 @@ namespace mqtt::mqtt::lib {
 
     class Mqtt : public iot::mqtt::client::Mqtt {
     public:
-        explicit Mqtt(const std::string& clientId,
+        explicit Mqtt(const std::string& connectionName,
+                      const std::string& clientId,
                       uint8_t qoS,
                       uint16_t keepAlive,
                       bool cleanSession,
