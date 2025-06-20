@@ -146,6 +146,9 @@ int main(int argc, char* argv[]) {
     web::websocket::client::SubProtocolFactorySelector::link("mqtt", mqttClientSubProtocolFactory);
 #endif
 
+    utils::Config::app->get_formatter()->label("SUBCOMMAND", "APPLICATION | CONNECTION | INSTANCE");
+    utils::Config::app->get_formatter()->label("SUBCOMMANDS", "APPLICATION | CONNECTION | INSTANCES");
+
     CLI::App* sessionApp = utils::Config::addInstance("session", "MQTT session behavior", "Connection");
     sessionApp->configurable(false);
     utils::Config::addStandardFlags(sessionApp);
