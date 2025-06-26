@@ -531,7 +531,7 @@ int main(int argc, char* argv[]) {
     core::SNodeC::init(argc, argv);
 
     std::shared_ptr<iot::mqtt::server::broker::Broker> broker =
-        iot::mqtt::server::broker::Broker::instance(SUBSCRIBTION_MAX_QOS, utils::Config::getStringOptionValue("--mqtt-session-store"));
+        iot::mqtt::server::broker::Broker::instance(SUBSCRIPTION_MAX_QOS, utils::Config::getStringOptionValue("--mqtt-session-store"));
 
     net::in::stream::legacy::Server<mqtt::mqttbroker::SocketContextFactory>(
         "in-mqtt",

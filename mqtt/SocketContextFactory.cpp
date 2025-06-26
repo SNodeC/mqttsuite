@@ -82,22 +82,28 @@ namespace mqtt::mqtt {
         const std::string pubMessage = pubApp->get_option("--message")->as<std::string>();
         const bool pubRetain = pubApp->get_option("--retain")->as<bool>();
 
-        return new iot::mqtt::SocketContext(socketConnection,
-                                            new ::mqtt::mqtt::lib::Mqtt(socketConnection->getConnectionName(),
-                                                                        clientId,
-                                                                        qoS,
-                                                                        keepAlive,
-                                                                        cleanSession,
-                                                                        willTopic,
-                                                                        willMessage,
-                                                                        willQoS,
-                                                                        willRetain,
-                                                                        username,
-                                                                        password,
-                                                                        subTopics,
-                                                                        pubTopic,
-                                                                        pubMessage,
-                                                                        pubRetain));
+        core::socket::stream::SocketContext* socketContext = nullptr;
+
+        if (subApp->count() > 0 || pubApp->count() > 0) {
+            socketContext = new iot::mqtt::SocketContext(socketConnection,
+                                                         new ::mqtt::mqtt::lib::Mqtt(socketConnection->getConnectionName(),
+                                                                                     clientId,
+                                                                                     qoS,
+                                                                                     keepAlive,
+                                                                                     cleanSession,
+                                                                                     willTopic,
+                                                                                     willMessage,
+                                                                                     willQoS,
+                                                                                     willRetain,
+                                                                                     username,
+                                                                                     password,
+                                                                                     subTopics,
+                                                                                     pubTopic,
+                                                                                     pubMessage,
+                                                                                     pubRetain));
+        }
+
+        return socketContext;
     }
 
 } // namespace mqtt::mqtt

@@ -75,7 +75,6 @@
 //
 #include <utils/CLI11.hpp>
 //
-#include <list>
 #include <string>
 
 #endif
@@ -149,25 +148,21 @@ int main(int argc, char* argv[]) {
     utils::Config::app->get_formatter()->label("SUBCOMMAND", "APPLICATION | CONNECTION | INSTANCE");
     utils::Config::app->get_formatter()->label("SUBCOMMANDS", "APPLICATION | CONNECTION | INSTANCES");
 
-    CLI::App* sessionApp = utils::Config::addInstance("session", "MQTT session behavior", "Connection");
-    sessionApp->configurable(false);
+    CLI::App* sessionApp = utils::Config::addInstance("session", "MQTT session behavior", "Connection")->configurable(false);
     utils::Config::addStandardFlags(sessionApp);
     utils::Config::addHelp(sessionApp);
 
-    std::string clientId;
-    CLI::Option* clientIdOpt = sessionApp->add_option("--client-id", clientId, "MQTT Client-ID")
+    CLI::Option* clientIdOpt = sessionApp->add_option("--client-id", "MQTT Client-ID")
                                    ->group(sessionApp->get_formatter()->get_label("Persistent Options"))
                                    ->type_name("[string]");
 
-    uint8_t qoS = 0;
-    sessionApp->add_option("--qos", qoS, "Quality of service")
+    sessionApp->add_option("--qos", "Quality of service")
         ->group(sessionApp->get_formatter()->get_label("Persistent Options"))
         ->type_name("[uint8_t]")
         ->default_val(0)
         ->configurable();
 
-    bool retainSession = false;
-    sessionApp->add_flag("--retain-session{true},-r{true}", retainSession, "Clean session")
+    sessionApp->add_flag("--retain-session{true},-r{true}", "Clean session")
         ->group(sessionApp->get_formatter()->get_label("Persistent Options"))
         ->type_name("[bool]")
         ->default_str("false")
@@ -175,86 +170,74 @@ int main(int argc, char* argv[]) {
         ->configurable()
         ->needs(clientIdOpt);
 
-    uint16_t keepAlive = 60;
-    sessionApp->add_option("--keep-alive", keepAlive, "Quality of service")
+    sessionApp->add_option("--keep-alive", "Quality of service")
         ->group(sessionApp->get_formatter()->get_label("Persistent Options"))
         ->type_name("[uint8_t]")
-        ->capture_default_str()
+        ->default_val(60)
         ->configurable();
 
-    std::string willTopic;
-    sessionApp->add_option("--will-topic", willTopic, "MQTT will topic")
+    sessionApp->add_option("--will-topic", "MQTT will topic")
         ->group(sessionApp->get_formatter()->get_label("Persistent Options"))
         ->type_name("[string]")
         ->configurable();
 
-    std::string willMessage;
-    sessionApp->add_option("--will-message", willMessage, "MQTT will message")
+    sessionApp->add_option("--will-message", "MQTT will message")
         ->group(sessionApp->get_formatter()->get_label("Persistent Options"))
         ->type_name("[string]")
         ->configurable();
 
-    uint8_t willQoS = 0;
-    sessionApp->add_option("--will-qos", willQoS, "MQTT will quality of service")
+    sessionApp->add_option("--will-qos", "MQTT will quality of service")
         ->group(sessionApp->get_formatter()->get_label("Persistent Options"))
         ->type_name("[uint8_t]")
         ->default_val(0)
         ->configurable();
 
-    bool willRetain = false;
-    sessionApp->add_flag("--will-retain{true}", willRetain, "MQTT will message retain")
+    sessionApp->add_flag("--will-retain{true}", "MQTT will message retain")
         ->group(sessionApp->get_formatter()->get_label("Persistent Options"))
         ->default_str("false")
         ->type_name("[bool]")
         ->check(CLI::IsMember({"true", "false"}))
         ->configurable();
 
-    std::string username;
-    sessionApp->add_option("--username", username, "MQTT username")
+    sessionApp->add_option("--username", "MQTT username")
         ->group(sessionApp->get_formatter()->get_label("Persistent Options"))
         ->type_name("[string]")
         ->configurable();
 
-    std::string password;
-    sessionApp->add_option("--password", password, "MQTT password")
+    sessionApp->add_option("--password", "MQTT password")
         ->group(sessionApp->get_formatter()->get_label("Persistent Options"))
         ->type_name("[string]")
         ->configurable();
 
-    CLI::App* subApp = utils::Config::addInstance("sub", "Configuration for application mqttsub", "Applications");
-    subApp->configurable(false);
+    CLI::App* subApp = utils::Config::addInstance("sub", "Configuration for application mqttsub", "Applications")->configurable(false);
     utils::Config::addStandardFlags(subApp);
     utils::Config::addHelp(subApp);
 
-    std::list<std::string> subTopics;
-    subApp->add_option("--topic", subTopics, "List of topics listening to")
+    subApp->add_option("--topic", "List of topics listening to")
         ->group(subApp->get_formatter()->get_label("Persistent Options"))
         ->default_str("#")
         ->type_name("[string list]")
         ->take_all()
+        ->allow_extra_args()
         ->configurable();
 
-    CLI::App* pubApp = utils::Config::addInstance("pub", "Configuration for application mqttpub", "Applications");
-    pubApp->configurable(false);
+    CLI::App* pubApp = utils::Config::addInstance("pub", "Configuration for application mqttpub", "Applications")->configurable(false);
     utils::Config::addStandardFlags(pubApp);
     utils::Config::addHelp(pubApp);
 
-    std::string pubTopic = "";
-    pubApp->needs(pubApp->add_option("--topic", pubTopic, "Topic to publish to")
+    pubApp->needs(pubApp->add_option("--topic", "Topic to publish to")
                       ->group(pubApp->get_formatter()->get_label("Persistent Options"))
                       ->type_name("[string]")
                       ->required()
                       ->configurable());
 
-    std::string pubMessage = "";
-    pubApp->needs(pubApp->add_option("--message", pubMessage, "Message to publish")
+    pubApp->needs(pubApp->add_option("--message", "Message to publish")
                       ->group(pubApp->get_formatter()->get_label("Persistent Options"))
                       ->type_name("[string]")
                       ->required()
                       ->configurable());
 
-    bool pubRetain = false;
-    pubApp->add_flag("--retain{true},-r{true}", pubRetain, "Retain message")
+    pubApp->add_flag("--retain{true},-r{true}", "Retain message")
         ->group(pubApp->get_formatter()->get_label("Persistent Options"))
         ->default_str("false")
         ->type_name("[bool]")
@@ -289,6 +272,7 @@ int main(int argc, char* argv[]) {
             config.setRetry();
             config.setRetryBase(1);
             config.setDisableNagleAlgorithm();
+            config.setDisabled();
         },
         sessionApp,
         subApp,
@@ -305,6 +289,7 @@ int main(int argc, char* argv[]) {
             config.setRetry();
             config.setRetryBase(1);
             config.setDisableNagleAlgorithm();
+            config.setDisabled();
         },
         sessionApp,
         subApp,
@@ -321,6 +306,7 @@ int main(int argc, char* argv[]) {
             config.setRetry();
             config.setRetryBase(1);
             config.setDisableNagleAlgorithm();
+            config.setDisabled();
         },
         sessionApp,
         subApp,
@@ -336,6 +322,7 @@ int main(int argc, char* argv[]) {
 
             config.setRetry();
             config.setRetryBase(1);
+            config.setDisabled();
         },
         sessionApp,
         subApp,
@@ -351,6 +338,7 @@ int main(int argc, char* argv[]) {
 
             config.setRetry();
             config.setRetryBase(1);
+            config.setDisabled();
         },
         sessionApp,
         subApp,
@@ -365,6 +353,7 @@ int main(int argc, char* argv[]) {
         config.setRetry();
         config.setRetryBase(1);
         config.setDisableNagleAlgorithm();
+        config.setDisabled();
     });
 
     startClient<web::http::tls::in::Client>("in-wsmqtts", [](auto& config) {
@@ -373,6 +362,7 @@ int main(int argc, char* argv[]) {
         config.setRetry();
         config.setRetryBase(1);
         config.setDisableNagleAlgorithm();
+        config.setDisabled();
     });
 
     startClient<web::http::legacy::in6::Client>("in6-wsmqtt", [](auto& config) {
@@ -381,6 +371,7 @@ int main(int argc, char* argv[]) {
         config.setRetry();
         config.setRetryBase(1);
         config.setDisableNagleAlgorithm();
+        config.setDisabled();
     });
 
     startClient<web::http::tls::in6::Client>("in6-wsmqtts", [](auto& config) {
@@ -389,6 +380,7 @@ int main(int argc, char* argv[]) {
         config.setRetry();
         config.setRetryBase(1);
         config.setDisableNagleAlgorithm();
+        config.setDisabled();
     });
 
     int returnStatus = core::SNodeC::start();

@@ -69,7 +69,7 @@ namespace mqtt::mqttbroker::websocket {
             getName(),
             new mqtt::mqttbroker::lib::Mqtt(
                 subProtocolContext->getSocketConnection()->getConnectionName(),
-                iot::mqtt::server::broker::Broker::instance(SUBSCRIBTION_MAX_QOS,
+                iot::mqtt::server::broker::Broker::instance(SUBSCRIPTION_MAX_QOS,
                                                             utils::Config::getStringOptionValue("--mqtt-session-store")),
                 mqtt::lib::JsonMappingReader::readMappingFromFile(utils::Config::getStringOptionValue("--mqtt-mapping-file"))["mapping"]));
     }
