@@ -253,6 +253,7 @@ int main(int argc, char* argv[]) {
         [](auto& config) {
             config.Remote::setPort(1883);
 
+            config.setReconnect();
             config.setRetry();
             config.setRetryBase(1);
             config.setDisableNagleAlgorithm();
@@ -269,6 +270,7 @@ int main(int argc, char* argv[]) {
         [](auto& config) {
             config.Remote::setPort(1883);
 
+            config.setReconnect();
             config.setRetry();
             config.setRetryBase(1);
             config.setDisableNagleAlgorithm();
@@ -286,6 +288,7 @@ int main(int argc, char* argv[]) {
         [](auto& config) {
             config.Remote::setPort(1883);
 
+            config.setReconnect();
             config.setRetry();
             config.setRetryBase(1);
             config.setDisableNagleAlgorithm();
@@ -303,6 +306,7 @@ int main(int argc, char* argv[]) {
         [](auto& config) {
             config.Remote::setPort(1883);
 
+            config.setReconnect();
             config.setRetry();
             config.setRetryBase(1);
             config.setDisableNagleAlgorithm();
@@ -320,6 +324,7 @@ int main(int argc, char* argv[]) {
         [](auto& config) {
             config.Remote::setSunPath("/var/mqttbroker-un-mqtt");
 
+            config.setReconnect();
             config.setRetry();
             config.setRetryBase(1);
             config.setDisabled();
@@ -336,6 +341,7 @@ int main(int argc, char* argv[]) {
         [](auto& config) {
             config.Remote::setSunPath("/var/mqttbroker-un-mqtts");
 
+            config.setReconnect();
             config.setRetry();
             config.setRetryBase(1);
             config.setDisabled();
@@ -350,6 +356,7 @@ int main(int argc, char* argv[]) {
     startClient<web::http::legacy::in::Client>("in-wsmqtt", [](auto& config) {
         config.Remote::setPort(8080);
 
+        config.setReconnect();
         config.setRetry();
         config.setRetryBase(1);
         config.setDisableNagleAlgorithm();
@@ -359,6 +366,7 @@ int main(int argc, char* argv[]) {
     startClient<web::http::tls::in::Client>("in-wsmqtts", [](auto& config) {
         config.Remote::setPort(8088);
 
+        config.setReconnect();
         config.setRetry();
         config.setRetryBase(1);
         config.setDisableNagleAlgorithm();
@@ -368,6 +376,7 @@ int main(int argc, char* argv[]) {
     startClient<web::http::legacy::in6::Client>("in6-wsmqtt", [](auto& config) {
         config.Remote::setPort(8080);
 
+        config.setReconnect();
         config.setRetry();
         config.setRetryBase(1);
         config.setDisableNagleAlgorithm();
@@ -377,6 +386,7 @@ int main(int argc, char* argv[]) {
     startClient<web::http::tls::in6::Client>("in6-wsmqtts", [](auto& config) {
         config.Remote::setPort(8088);
 
+        config.setReconnect();
         config.setRetry();
         config.setRetryBase(1);
         config.setDisableNagleAlgorithm();
