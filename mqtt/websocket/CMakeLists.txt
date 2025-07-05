@@ -56,7 +56,7 @@ add_library(
 
 target_link_libraries(
     websocket-mqtt PUBLIC snodec::mqtt-client-websocket mqtt-cli
-                              nlohmann_json::nlohmann_json
+                          nlohmann_json::nlohmann_json
 )
 
 set_target_properties(
