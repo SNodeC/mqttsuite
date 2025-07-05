@@ -182,8 +182,23 @@ static std::string getOverviewPage(inja::Environment environment,
 
         topicJson["key"] = topic;
         for (const auto& client : clients) {
-            topicJson["values"].push_back(
-                {{"client_id", client.first}, {"topic", topic}, {"qos", std::to_string(static_cast<int>(client.second))}});
+            std::ostringstream windowId("window");
+            for (char ch : client.first) {
+                if (std::isalnum(static_cast<unsigned char>(ch))) {
+                    windowId << ch;
+                } else {
+                    windowId << std::hex << std::uppercase << std::setw(2) << std::setfill('0')
+                             << static_cast<int>(static_cast<unsigned char>(ch));
+                }
+            }
+
+            VLOG(0) << "HREF: " << href(client.first, "/client?" + client.first, windowId.str(), 450, 900);
+            VLOG(0) << "Plain: " << client.first;
+
+            topicJson["values"].push_back({{"client_id", client.first},
+                                           {"link", href(client.first, "/client?" + client.first, windowId.str(), 450, 900)},
+                                           {"topic", topic},
+                                           {"qos", std::to_string(static_cast<int>(client.second))}});
         }
 
         subscribedTopicsJson.push_back(topicJson);
