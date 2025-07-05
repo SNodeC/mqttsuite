@@ -96,7 +96,7 @@ reportState(const std::string& instanceName, const core::socket::SocketAddress& 
 }
 
 template <typename HttpClient>
-void startClient(const std::string& name, const std::function<void(typename HttpClient::Config&)>& configurator) {
+void startClient(const std::string& name, const std::function<void(typename HttpClient::Config&)>& configurator = nullptr) {
     using SocketAddress = typename HttpClient::SocketAddress;
 
     const HttpClient httpClient(
@@ -127,7 +127,9 @@ void startClient(const std::string& name, const std::function<void(typename Http
             VLOG(1) << "Session ended";
         });
 
-    configurator(httpClient.getConfig());
+    if (configurator != nullptr) {
+        configurator(httpClient.getConfig());
+    }
 
     httpClient.connect([name](const SocketAddress& socketAddress, const core::socket::State& state) {
         reportState(name, socketAddress, state);
