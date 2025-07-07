@@ -192,9 +192,6 @@ static std::string getOverviewPage(inja::Environment environment,
                 }
             }
 
-            VLOG(0) << "HREF: " << href(client.first, "/client?" + client.first, windowId.str(), 450, 900);
-            VLOG(0) << "Plain: " << client.first;
-
             topicJson["values"].push_back({{"client_id", client.first},
                                            {"link", href(client.first, "/client?" + client.first, windowId.str(), 450, 900)},
                                            {"topic", topic},
@@ -525,6 +522,7 @@ void startServer(const std::string& instanceName,
     if (configurator != nullptr) {
         configurator(httpExpressServer.getConfig());
     }
+
     httpExpressServer.listen([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) {
         reportState(instanceName, socketAddress, state);
     });
@@ -625,7 +623,7 @@ int main(int argc, char* argv[]) {
     inja::Environment environment{utils::Config::getStringOptionValue("--html-dir") + "/"};
     express::Router router = getRouter(environment, broker);
 
-    startServer<express::legacy::in::WebApp>("in-http", router, [](auto& config) {
+    express::legacy::in::Server("in-http", router, reportState, [](auto& config) {
         config.setPort(8080);
         config.setRetry();
         config.setDisableNagleAlgorithm();

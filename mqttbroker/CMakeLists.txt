@@ -49,8 +49,7 @@ find_package(nlohmann_json 3.7.0 REQUIRED)
 find_package(fmt REQUIRED)
 find_package(
     snodec 1.0.0 REQUIRED
-    COMPONENTS net-in-stream-legacy
-               net-in-stream-tls
+    COMPONENTS net-in-stream-tls
                net-in6-stream-legacy
                net-in6-stream-tls
                net-un-stream-legacy
@@ -80,8 +79,7 @@ target_sources(mqttbroker PRIVATE ${WEB_ASSETS})
 
 target_link_libraries(
     mqttbroker
-    PUBLIC snodec::net-in-stream-legacy
-           snodec::net-in-stream-tls
+    PUBLIC snodec::net-in-stream-tls
            snodec::net-in6-stream-legacy
            snodec::net-in6-stream-tls
            snodec::net-un-stream-legacy
