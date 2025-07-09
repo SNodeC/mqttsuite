@@ -54,7 +54,12 @@ find_package(
                net-in6-stream-tls
                net-un-stream-legacy
                net-un-stream-tls
-               http-server-express
+               http-server-express-legacy-in
+               http-server-express-legacy-in6
+               http-server-express-legacy-un
+               http-server-express-tls-in
+               http-server-express-tls-in6
+               http-server-express-tls-un
                mqtt-server
 )
 
@@ -84,7 +89,12 @@ target_link_libraries(
            snodec::net-in6-stream-tls
            snodec::net-un-stream-legacy
            snodec::net-un-stream-tls
-           snodec::http-server-express
+           snodec::http-server-express-legacy-in
+           snodec::http-server-express-legacy-in6
+           snodec::http-server-express-legacy-un
+           snodec::http-server-express-tls-in
+           snodec::http-server-express-tls-in6
+           snodec::http-server-express-tls-un
            snodec::mqtt-server
            mqtt-mapping
            mqtt-broker
