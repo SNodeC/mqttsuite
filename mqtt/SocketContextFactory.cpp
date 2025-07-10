@@ -45,6 +45,7 @@
 
 #include <core/socket/stream/SocketConnection.h>
 #include <iot/mqtt/SocketContext.h>
+#include <log/Logger.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
@@ -101,6 +102,8 @@ namespace mqtt::mqtt {
                                                                                      pubTopic,
                                                                                      pubMessage,
                                                                                      pubRetain));
+        } else {
+            VLOG(0) << "[" << Color::Code::FG_RED << "Error" << Color::Code::FG_DEFAULT << "] One of 'sub' or 'pub' is required";
         }
 
         return socketContext;

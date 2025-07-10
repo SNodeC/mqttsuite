@@ -44,6 +44,7 @@
 #include "lib/Mqtt.h"
 
 #include <core/socket/stream/SocketConnection.h>
+#include <log/Logger.h>
 #include <web/websocket/SubProtocolContext.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -106,6 +107,8 @@ namespace mqtt::mqtt::websocket {
                                             pubTopic,
                                             pubMessage,
                                             pubRetain));
+        } else {
+            VLOG(0) << "[" << Color::Code::FG_RED << "Error" << Color::Code::FG_DEFAULT << "] One of 'sub' or 'pub' is required";
         }
 
         return subProtocol;

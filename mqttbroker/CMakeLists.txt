@@ -49,13 +49,17 @@ find_package(nlohmann_json 3.7.0 REQUIRED)
 find_package(fmt REQUIRED)
 find_package(
     snodec 1.0.0 REQUIRED
-    COMPONENTS net-in-stream-legacy
-               net-in-stream-tls
+    COMPONENTS net-in-stream-tls
                net-in6-stream-legacy
                net-in6-stream-tls
                net-un-stream-legacy
                net-un-stream-tls
-               http-server-express
+               http-server-express-legacy-in
+               http-server-express-legacy-in6
+               http-server-express-legacy-un
+               http-server-express-tls-in
+               http-server-express-tls-in6
+               http-server-express-tls-un
                mqtt-server
 )
 
@@ -80,13 +84,17 @@ target_sources(mqttbroker PRIVATE ${WEB_ASSETS})
 
 target_link_libraries(
     mqttbroker
-    PUBLIC snodec::net-in-stream-legacy
-           snodec::net-in-stream-tls
+    PUBLIC snodec::net-in-stream-tls
            snodec::net-in6-stream-legacy
            snodec::net-in6-stream-tls
            snodec::net-un-stream-legacy
            snodec::net-un-stream-tls
-           snodec::http-server-express
+           snodec::http-server-express-legacy-in
+           snodec::http-server-express-legacy-in6
+           snodec::http-server-express-legacy-un
+           snodec::http-server-express-tls-in
+           snodec::http-server-express-tls-in6
+           snodec::http-server-express-tls-un
            snodec::mqtt-server
            mqtt-mapping
            mqtt-broker

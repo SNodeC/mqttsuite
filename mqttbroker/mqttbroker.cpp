@@ -62,16 +62,22 @@
 #include <iot/mqtt/MqttContext.h>
 #include <utils/Config.h>
 //
-#include <express/legacy/in/WebApp.h>
-#include <express/legacy/in6/WebApp.h>
-#include <express/middleware/JsonMiddleware.h>
-#include <express/tls/in/WebApp.h>
-#include <express/tls/in6/WebApp.h>
-#include <iot/mqtt/server/broker/Broker.h>
+#include <express/legacy/in/Server.h>
+#include <express/legacy/in6/Server.h>
+#include <express/legacy/un/Server.h>
+#include <express/tls/in/Server.h>
+#include <express/tls/in6/Server.h>
+#include <express/tls/un/Server.h>
+//
 #include <net/in/stream/legacy/SocketServer.h>
 #include <net/in/stream/tls/SocketServer.h>
+#include <net/in6/stream/legacy/SocketServer.h>
+#include <net/in6/stream/tls/SocketServer.h>
 #include <net/un/stream/legacy/SocketServer.h>
 #include <net/un/stream/tls/SocketServer.h>
+//
+#include <express/middleware/JsonMiddleware.h>
+#include <iot/mqtt/server/broker/Broker.h>
 //
 #include <log/Logger.h>
 //
@@ -79,7 +85,6 @@
 // IWYU pragma: no_include <nlohmann/json_fwd.hpp>
 // IWYU pragma: no_include <nlohmann/detail/json_ref.hpp>
 //
-#include <algorithm>
 #include <cctype>
 #include <cstdlib>
 #include <iomanip>
@@ -191,9 +196,6 @@ static std::string getOverviewPage(inja::Environment environment,
                              << static_cast<int>(static_cast<unsigned char>(ch));
                 }
             }
-
-            VLOG(0) << "HREF: " << href(client.first, "/client?" + client.first, windowId.str(), 450, 900);
-            VLOG(0) << "Plain: " << client.first;
 
             topicJson["values"].push_back({{"client_id", client.first},
                                            {"link", href(client.first, "/client?" + client.first, windowId.str(), 450, 900)},
@@ -514,29 +516,6 @@ reportState(const std::string& instanceName, const core::socket::SocketAddress& 
     }
 }
 
-template <typename HttpExpressServer>
-void startServer(const std::string& instanceName,
-                 const express::Router& router,
-                 const std::function<void(typename HttpExpressServer::Config&)>& configurator = nullptr) {
-    using SocketAddress = typename HttpExpressServer::SocketAddress;
-
-    const HttpExpressServer httpExpressServer(instanceName, router);
-
-    if (configurator != nullptr) {
-        configurator(httpExpressServer.getConfig());
-    }
-    httpExpressServer.listen([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) {
-        reportState(instanceName, socketAddress, state);
-    });
-
-    VLOG(1) << "Instance: " << instanceName;
-    for (std::string& route : httpExpressServer.getRoutes()) {
-        route.erase(std::remove(route.begin(), route.end(), '$'), route.end());
-
-        VLOG(1) << "  " << route;
-    }
-}
-
 int main(int argc, char* argv[]) {
     utils::Config::addStringOption("--mqtt-mapping-file", "MQTT mapping file (json format) for integration", "[path]", "");
     utils::Config::addStringOption("--mqtt-session-store", "Path to file for the persistent session store", "[path]", "");
@@ -625,19 +604,19 @@ int main(int argc, char* argv[]) {
     inja::Environment environment{utils::Config::getStringOptionValue("--html-dir") + "/"};
     express::Router router = getRouter(environment, broker);
 
-    startServer<express::legacy::in::WebApp>("in-http", router, [](auto& config) {
+    express::legacy::in::Server("in-http", router, reportState, [](auto& config) {
         config.setPort(8080);
         config.setRetry();
         config.setDisableNagleAlgorithm();
     });
 
-    startServer<express::tls::in::WebApp>("in-https", router, [](auto& config) {
+    express::tls::in::Server("in-https", router, reportState, [](auto& config) {
         config.setPort(8088);
         config.setRetry();
         config.setDisableNagleAlgorithm();
     });
 
-    startServer<express::legacy::in6::WebApp>("in6-http", router, [](auto& config) {
+    express::legacy::in6::Server("in6-http", router, reportState, [](auto& config) {
         config.setPort(8080);
         config.setRetry();
         config.setDisableNagleAlgorithm();
@@ -645,12 +624,20 @@ int main(int argc, char* argv[]) {
         config.setIPv6Only();
     });
 
-    startServer<express::tls::in6::WebApp>("in6-https", router, [](auto& config) {
+    express::tls::in6::Server("in6-https", router, reportState, [](auto& config) {
         config.setPort(8088);
         config.setRetry();
         config.setDisableNagleAlgorithm();
 
         config.setIPv6Only();
+    });
+
+    express::legacy::un::Server("un-http", router, reportState, [](auto& config) {
+        config.setSunPath("/tmp/" + utils::Config::getApplicationName() + "-" + config.getInstanceName());
+    });
+
+    express::tls::un::Server("un-https", router, reportState, [](auto& config) {
+        config.setSunPath("/tmp/" + utils::Config::getApplicationName() + "-" + config.getInstanceName());
     });
 
     return core::SNodeC::start();
