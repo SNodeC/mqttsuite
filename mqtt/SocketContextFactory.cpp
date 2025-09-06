@@ -46,6 +46,7 @@
 #include <core/socket/stream/SocketConnection.h>
 #include <iot/mqtt/SocketContext.h>
 #include <log/Logger.h>
+#include <net/config/ConfigInstance.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
@@ -65,6 +66,9 @@ namespace mqtt::mqtt {
     }
 
     core::socket::stream::SocketContext* SocketContextFactory::create(core::socket::stream::SocketConnection* socketConnection) {
+        sessionApp =
+            socketConnection->getConfig()->gotSection("session") ? socketConnection->getConfig()->getSection("session") : sessionApp;
+
         const std::string clientId = sessionApp->get_option("--client-id")->as<std::string>();
         const uint8_t qoS = sessionApp->get_option("--qos")->as<uint8_t>();
         const bool cleanSession = !sessionApp->get_option("--retain-session")->as<bool>();
@@ -76,9 +80,11 @@ namespace mqtt::mqtt {
         const std::string username = sessionApp->get_option("--username")->as<std::string>();
         const std::string password = sessionApp->get_option("--password")->as<std::string>();
 
+        subApp = socketConnection->getConfig()->gotSection("sub") ? socketConnection->getConfig()->getSection("sub") : subApp;
         const std::list<std::string> subTopics =
             subApp->count() > 0 ? subApp->get_option("--topic")->as<std::list<std::string>>() : std::list<std::string>{};
 
+        pubApp = socketConnection->getConfig()->gotSection("pub") ? socketConnection->getConfig()->getSection("pub") : pubApp;
         const std::string pubTopic = pubApp->count() > 0 ? pubApp->get_option("--topic")->as<std::string>() : "";
         const std::string pubMessage = pubApp->get_option("--message")->as<std::string>();
         const bool pubRetain = pubApp->get_option("--retain")->as<bool>();
@@ -103,7 +109,8 @@ namespace mqtt::mqtt {
                                                                                      pubMessage,
                                                                                      pubRetain));
         } else {
-            VLOG(0) << "[" << Color::Code::FG_RED << "Error" << Color::Code::FG_DEFAULT << "] One of 'sub' or 'pub' is required";
+            VLOG(0) << "[" << Color::Code::FG_RED << "Error" << Color::Code::FG_DEFAULT << "] " << socketConnection->getConnectionName()
+                    << ": one of 'sub' or 'pub' is required";
         }
 
         return socketContext;

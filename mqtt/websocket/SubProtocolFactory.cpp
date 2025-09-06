@@ -45,6 +45,7 @@
 
 #include <core/socket/stream/SocketConnection.h>
 #include <log/Logger.h>
+#include <net/config/ConfigInstance.h>
 #include <web/websocket/SubProtocolContext.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -65,9 +66,15 @@ namespace mqtt::mqtt::websocket {
     }
 
     iot::mqtt::client::SubProtocol* SubProtocolFactory::create(web::websocket::SubProtocolContext* subProtocolContext) {
-        const CLI::App* sessionApp = utils::Config::getInstance("session");
-        const CLI::App* subApp = utils::Config::getInstance("sub");
-        const CLI::App* pubApp = utils::Config::getInstance("pub");
+        const CLI::App* sessionApp = subProtocolContext->getSocketConnection()->getConfig()->gotSection("session")
+                                         ? subProtocolContext->getSocketConnection()->getConfig()->getSection("session")
+                                         : utils::Config::getInstance("session");
+        const CLI::App* subApp = subProtocolContext->getSocketConnection()->getConfig()->gotSection("sub")
+                                     ? subProtocolContext->getSocketConnection()->getConfig()->getSection("sub")
+                                     : utils::Config::getInstance("sub");
+        const CLI::App* pubApp = subProtocolContext->getSocketConnection()->getConfig()->gotSection("pub")
+                                     ? subProtocolContext->getSocketConnection()->getConfig()->getSection("pub")
+                                     : utils::Config::getInstance("pub");
 
         const std::string clientId = sessionApp->get_option("--client-id")->as<std::string>();
         const uint8_t qoS = sessionApp->get_option("--qos")->as<uint8_t>();
@@ -108,7 +115,8 @@ namespace mqtt::mqtt::websocket {
                                             pubMessage,
                                             pubRetain));
         } else {
-            VLOG(0) << "[" << Color::Code::FG_RED << "Error" << Color::Code::FG_DEFAULT << "] One of 'sub' or 'pub' is required";
+            VLOG(0) << "[" << Color::Code::FG_RED << "Error" << Color::Code::FG_DEFAULT << "] "
+                    << subProtocolContext->getSocketConnection()->getConnectionName() << ": one of 'sub' or 'pub' is required";
         }
 
         return subProtocol;

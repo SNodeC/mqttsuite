@@ -136,21 +136,10 @@ void startClient(const std::string& name, const std::function<void(typename Http
     });
 }
 
-int main(int argc, char* argv[]) {
-#if defined(LINK_WEBSOCKET_STATIC) || defined(LINK_SUBPROTOCOL_STATIC)
-    web::websocket::client::SocketContextUpgradeFactory::link();
-#endif
-
-#ifdef LINK_SUBPROTOCOL_STATIC
-    web::websocket::client::SubProtocolFactorySelector::link("mqtt", mqttClientSubProtocolFactory);
-#endif
-
-    utils::Config::app->get_formatter()->label("SUBCOMMAND", "APPLICATION | CONNECTION | INSTANCE");
-    utils::Config::app->get_formatter()->label("SUBCOMMANDS", "APPLICATION | CONNECTION | INSTANCES");
-
-    CLI::App* sessionApp = utils::Config::addInstance("session", "MQTT session behavior", "Connection")->configurable(false);
-    utils::Config::addStandardFlags(sessionApp);
-    utils::Config::addHelp(sessionApp);
+static void createConfig(CLI::App* sessionApp, CLI::App* subApp, CLI::App* pubApp) {
+    sessionApp->configurable(false);
+    subApp->configurable(false);
+    pubApp->configurable(false);
 
     CLI::Option* clientIdOpt = sessionApp->add_option("--client-id", "MQTT Client-ID")
                                    ->group(sessionApp->get_formatter()->get_label("Persistent Options"))
@@ -209,11 +198,7 @@ int main(int argc, char* argv[]) {
         ->type_name("[string]")
         ->configurable();
 
-    CLI::App* subApp = utils::Config::addInstance("sub", "Configuration for application mqttsub", "Applications")->configurable(false);
-    utils::Config::addStandardFlags(subApp);
-    utils::Config::addHelp(subApp);
-
-    subApp->add_option("--topic", "List of topics listening to")
+    subApp->add_option("--topic", "List of topics subscribing to")
         ->group(subApp->get_formatter()->get_label("Persistent Options"))
         ->default_str("#")
         ->type_name("[string list]")
@@ -221,11 +206,7 @@ int main(int argc, char* argv[]) {
         ->allow_extra_args()
         ->configurable();
 
-    CLI::App* pubApp = utils::Config::addInstance("pub", "Configuration for application mqttpub", "Applications")->configurable(false);
-    utils::Config::addStandardFlags(pubApp);
-    utils::Config::addHelp(pubApp);
-
-    pubApp->needs(pubApp->add_option("--topic", "Topic to publish to")
+    pubApp->needs(pubApp->add_option("--topic", "Topic publishing to")
                       ->group(pubApp->get_formatter()->get_label("Persistent Options"))
                       ->type_name("[string]")
                       ->required()
@@ -243,10 +224,35 @@ int main(int argc, char* argv[]) {
         ->type_name("[bool]")
         ->check(CLI::IsMember({"true", "false"}))
         ->configurable();
+}
+
+static void createConfig(net::config::ConfigInstance& config) {
+    createConfig(config.addSection("session", "MQTT session behavior", "Connection"),
+                 config.addSection("sub", "Configuration for application mqttsub", "Applications"),
+                 config.addSection("pub", "Configuration for application mqttpub", "Applications"));
+}
+
+int main(int argc, char* argv[]) {
+    core::SNodeC::init(argc, argv);
+
+#if defined(LINK_WEBSOCKET_STATIC) || defined(LINK_SUBPROTOCOL_STATIC)
+    web::websocket::client::SocketContextUpgradeFactory::link();
+#endif
+
+#ifdef LINK_SUBPROTOCOL_STATIC
+    web::websocket::client::SubProtocolFactorySelector::link("mqtt", mqttClientSubProtocolFactory);
+#endif
+
+    utils::Config::app->get_formatter()->label("SUBCOMMAND", "APPLICATION | CONNECTION | INSTANCE");
+    utils::Config::app->get_formatter()->label("SUBCOMMANDS", "APPLICATION | CONNECTION | INSTANCES");
+
+    CLI::App* sessionApp = utils::Config::addInstance("session", "MQTT session behavior", "Connection");
+    CLI::App* subApp = utils::Config::addInstance("sub", "Configuration for application mqttsub", "Applications");
+    CLI::App* pubApp = utils::Config::addInstance("pub", "Configuration for application mqttpub", "Applications");
+
+    createConfig(sessionApp, subApp, pubApp);
 
     // Start of application
-
-    core::SNodeC::init(argc, argv);
 
     net::in::stream::legacy::Client<mqtt::mqtt::SocketContextFactory>(
         "in-mqtt",
@@ -257,6 +263,8 @@ int main(int argc, char* argv[]) {
             config.setRetry();
             config.setRetryBase(1);
             config.setDisableNagleAlgorithm();
+
+            createConfig(config);
         },
         sessionApp,
         subApp,
@@ -275,6 +283,8 @@ int main(int argc, char* argv[]) {
             config.setRetryBase(1);
             config.setDisableNagleAlgorithm();
             config.setDisabled();
+
+            createConfig(config);
         },
         sessionApp,
         subApp,
@@ -293,6 +303,8 @@ int main(int argc, char* argv[]) {
             config.setRetryBase(1);
             config.setDisableNagleAlgorithm();
             config.setDisabled();
+
+            createConfig(config);
         },
         sessionApp,
         subApp,
@@ -311,6 +323,8 @@ int main(int argc, char* argv[]) {
             config.setRetryBase(1);
             config.setDisableNagleAlgorithm();
             config.setDisabled();
+
+            createConfig(config);
         },
         sessionApp,
         subApp,
@@ -328,6 +342,8 @@ int main(int argc, char* argv[]) {
             config.setRetry();
             config.setRetryBase(1);
             config.setDisabled();
+
+            createConfig(config);
         },
         sessionApp,
         subApp,
@@ -345,6 +361,8 @@ int main(int argc, char* argv[]) {
             config.setRetry();
             config.setRetryBase(1);
             config.setDisabled();
+
+            createConfig(config);
         },
         sessionApp,
         subApp,
@@ -361,6 +379,8 @@ int main(int argc, char* argv[]) {
         config.setRetryBase(1);
         config.setDisableNagleAlgorithm();
         config.setDisabled();
+
+        createConfig(config);
     });
 
     startClient<web::http::tls::in::Client>("in-wsmqtts", [](auto& config) {
@@ -371,6 +391,8 @@ int main(int argc, char* argv[]) {
         config.setRetryBase(1);
         config.setDisableNagleAlgorithm();
         config.setDisabled();
+
+        createConfig(config);
     });
 
     startClient<web::http::legacy::in6::Client>("in6-wsmqtt", [](auto& config) {
@@ -381,6 +403,8 @@ int main(int argc, char* argv[]) {
         config.setRetryBase(1);
         config.setDisableNagleAlgorithm();
         config.setDisabled();
+
+        createConfig(config);
     });
 
     startClient<web::http::tls::in6::Client>("in6-wsmqtts", [](auto& config) {
@@ -391,17 +415,9 @@ int main(int argc, char* argv[]) {
         config.setRetryBase(1);
         config.setDisableNagleAlgorithm();
         config.setDisabled();
+
+        createConfig(config);
     });
 
-    int returnStatus = core::SNodeC::start();
-
-    if (returnStatus == 0) {
-        if (!utils::Config::app->got_subcommand("sub") && !utils::Config::app->got_subcommand("pub")) {
-            VLOG(0) << "[" << Color::Code::FG_RED << "Error" << Color::Code::FG_DEFAULT << "] One of 'sub' or 'pub' is required";
-        }
-    } else {
-        VLOG(9) << "Return status: " << returnStatus;
-    }
-
-    return returnStatus;
+    return core::SNodeC::start();
 }
