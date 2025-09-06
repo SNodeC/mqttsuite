@@ -56,6 +56,7 @@
 #include <map>
 #include <nlohmann/json_fwd.hpp>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <sys/ioctl.h>
@@ -218,7 +219,7 @@ namespace mqtt::mqtt::lib {
 
     Mqtt::Mqtt(const std::string& connectionName,
                const std::string& clientId,
-               uint8_t qoS,
+               uint8_t qoSDefault,
                uint16_t keepAlive,
                bool cleanSession,
                const std::string& willTopic,
@@ -233,7 +234,7 @@ namespace mqtt::mqtt::lib {
                bool pubRetain,
                const std::string& sessionStoreFileName)
         : iot::mqtt::client::Mqtt(connectionName, clientId, sessionStoreFileName)
-        , qoS(qoS)
+        , qoSDefault(qoSDefault)
         , keepAlive(keepAlive)
         , cleanSession(cleanSession)
         , willTopic(willTopic)
@@ -272,29 +273,81 @@ namespace mqtt::mqtt::lib {
         return Super::onSignal(signum);
     }
 
+    static uint8_t getQos(std::string qoSString) {
+        unsigned long qoS = std::stoul(qoSString);
+
+        if (qoS > 2) {
+            throw std::out_of_range("qos " + qoSString + " not in range [0..2]");
+        }
+
+        return static_cast<uint8_t>(qoS);
+    }
+
     void Mqtt::onConnack(const iot::mqtt::packets::Connack& connack) {
+        bool sendDisconnectFlag = true;
+
         if (connack.getReturnCode() == 0) {
             if (!subTopics.empty()) {
                 VLOG(0) << "MQTT Subscribe";
 
-                std::list<iot::mqtt::Topic> topicList;
-                std::transform(subTopics.begin(),
-                               subTopics.end(),
-                               std::back_inserter(topicList),
-                               [qoS = this->qoS](const std::string& topic) -> iot::mqtt::Topic {
-                                   VLOG(0) << "  t: " << static_cast<int>(qoS) << " | " << topic;
-                                   return iot::mqtt::Topic(topic, qoS);
-                               });
-                sendSubscribe(topicList);
+                try {
+                    std::list<iot::mqtt::Topic> topicList;
+                    std::transform(subTopics.begin(),
+                                   subTopics.end(),
+                                   std::back_inserter(topicList),
+                                   [qoSDefault = this->qoSDefault](const std::string& compositTopic) -> iot::mqtt::Topic {
+                                       std::size_t pos = compositTopic.rfind("##");
+
+                                       const std::string topic = compositTopic.substr(0, pos);
+                                       uint8_t qoS = qoSDefault;
+
+                                       if (pos != std::string::npos) {
+                                           try {
+                                               qoS = getQos(compositTopic.substr(pos + 2));
+                                           } catch (const std::logic_error& error) {
+                                               VLOG(0) << "[" << Color::Code::FG_RED << "Error" << Color::Code::FG_DEFAULT
+                                                       << "] Malformed composit topic: " << compositTopic << "\n"
+                                                       << error.what();
+                                               throw;
+                                           }
+                                       }
+                                       VLOG(0) << "  t: " << static_cast<int>(qoS) << " | " << topic;
+                                       return iot::mqtt::Topic(topic, qoS);
+                                   });
+                    sendSubscribe(topicList);
+
+                    sendDisconnectFlag = false;
+                } catch (const std::logic_error&) {
+                }
             }
 
             if (!pubTopic.empty()) {
                 VLOG(0) << "MQTT Publish";
 
-                sendPublish(pubTopic, pubMessage, qoS, pubRetain);
-            }
+                std::size_t pos = pubTopic.rfind("##");
 
-            if ((qoS == 0 || pubTopic.empty()) && subTopics.empty() && cleanSession) {
+                const std::string topic = pubTopic.substr(0, pos);
+
+                uint8_t qoS = qoSDefault;
+
+                try {
+                    if (pos != std::string::npos) {
+                        try {
+                            qoS = getQos(pubTopic.substr(pos + 2));
+                        } catch (const std::logic_error& error) {
+                            VLOG(0) << "[" << Color::Code::FG_RED << "Error" << Color::Code::FG_DEFAULT
+                                    << "] Malformed composit topic: " << pubTopic << "\n"
+                                    << error.what();
+                            throw;
+                        }
+                    }
+                    sendPublish(topic, pubMessage, qoS, pubRetain);
+
+                    sendDisconnectFlag = qoS > 0 ? false : sendDisconnectFlag;
+                } catch (const std::logic_error&) {
+                }
+            }
+            if (sendDisconnectFlag) {
                 sendDisconnect();
             }
         } else {

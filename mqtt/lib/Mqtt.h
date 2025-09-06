@@ -58,7 +58,7 @@ namespace mqtt::mqtt::lib {
     public:
         explicit Mqtt(const std::string& connectionName,
                       const std::string& clientId,
-                      uint8_t qoS,
+                      uint8_t qoSDefault,
                       uint16_t keepAlive,
                       bool cleanSession,
                       const std::string& willTopic,
@@ -85,7 +85,7 @@ namespace mqtt::mqtt::lib {
         void onPuback(const iot::mqtt::packets::Puback& puback) final;
         void onPubcomp(const iot::mqtt::packets::Pubcomp& pubcomp) final;
 
-        const uint8_t qoS;
+        const uint8_t qoSDefault;
         const uint16_t keepAlive;
         const bool cleanSession;
 

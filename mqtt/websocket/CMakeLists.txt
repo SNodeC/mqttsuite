@@ -43,7 +43,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(nlohmann_json 3.7.0 REQUIRED)
 find_package(
     snodec
-    COMPONENTS mqtt-client-websocket
+    COMPONENTS net mqtt-client-websocket
     REQUIRED
 )
 
@@ -55,7 +55,7 @@ add_library(
 )
 
 target_link_libraries(
-    websocket-mqtt PUBLIC snodec::mqtt-client-websocket mqtt-cli
+    websocket-mqtt PUBLIC snodec::net snodec::mqtt-client-websocket mqtt-cli
                           nlohmann_json::nlohmann_json
 )
 
