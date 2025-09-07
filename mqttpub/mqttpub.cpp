@@ -147,8 +147,6 @@ int main(int argc, char* argv[]) {
 
     CLI::App* pubApp = utils::Config::addInstance("pub", "Configuration for application mqttpub", "Application");
     utils::Config::required(pubApp);
-    utils::Config::addStandardFlags(pubApp);
-    utils::Config::addHelp(pubApp);
     pubApp->configurable(false);
 
     std::string clientId = "";

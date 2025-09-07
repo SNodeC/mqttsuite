@@ -147,8 +147,6 @@ int main(int argc, char* argv[]) {
 #endif
 
     CLI::App* subApp = utils::Config::addInstance("sub", "Configuration for application mqttsub", "Application");
-    utils::Config::addStandardFlags(subApp);
-    utils::Config::addHelp(subApp);
     subApp->configurable(false);
 
     std::string clientId = "";
