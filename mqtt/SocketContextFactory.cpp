@@ -59,12 +59,6 @@
 
 namespace mqtt::mqtt {
 
-    SocketContextFactory::SocketContextFactory(const CLI::App* sessionApp, const CLI::App* subApp, const CLI::App* pubApp)
-        : sessionApp(sessionApp)
-        , subApp(subApp)
-        , pubApp(pubApp) {
-    }
-
     core::socket::stream::SocketContext* SocketContextFactory::create(core::socket::stream::SocketConnection* socketConnection) {
         const CLI::App* sessionApp = socketConnection->getConfig()->getSection("session", true, true);
         const CLI::App* subApp = socketConnection->getConfig()->getSection("sub", true, true);
@@ -72,7 +66,7 @@ namespace mqtt::mqtt {
 
         core::socket::stream::SocketContext* socketContext = nullptr;
 
-        if (subApp->count() > 0 || pubApp->count() > 0) {
+        if (subApp != nullptr || pubApp != nullptr) {
             socketContext = new iot::mqtt::SocketContext(
                 socketConnection,
                 new ::mqtt::mqtt::lib::Mqtt(socketConnection->getConnectionName(),

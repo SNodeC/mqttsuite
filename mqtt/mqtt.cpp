@@ -246,126 +246,86 @@ int main(int argc, char* argv[]) {
     utils::Config::app->get_formatter()->label("SUBCOMMAND", "APPLICATION | CONNECTION | INSTANCE");
     utils::Config::app->get_formatter()->label("SUBCOMMANDS", "APPLICATION | CONNECTION | INSTANCES");
 
-    CLI::App* sessionApp = utils::Config::addInstance("session", "MQTT session behavior", "Connection");
-    CLI::App* subApp = utils::Config::addInstance("sub", "Configuration for application mqttsub", "Applications");
-    CLI::App* pubApp = utils::Config::addInstance("pub", "Configuration for application mqttpub", "Applications");
-
-    createConfig(sessionApp, subApp, pubApp);
+    createConfig(utils::Config::addInstance("session", "MQTT session behavior", "Connection"),
+                 utils::Config::addInstance("sub", "Configuration for application mqttsub", "Applications"),
+                 utils::Config::addInstance("pub", "Configuration for application mqttpub", "Applications"));
 
     // Start of application
 
-    VLOG(0) << "----------------: " << sessionApp->count();
+    net::in::stream::legacy::Client<mqtt::mqtt::SocketContextFactory>("in-mqtt", [](auto& config) {
+        config.Remote::setPort(1883);
 
-    net::in::stream::legacy::Client<mqtt::mqtt::SocketContextFactory>(
-        "in-mqtt",
-        [](auto& config) {
-            config.Remote::setPort(1883);
+        config.setRetry();
+        config.setRetryBase(1);
+        config.setDisableNagleAlgorithm();
 
-            config.setRetry();
-            config.setRetryBase(1);
-            config.setDisableNagleAlgorithm();
+        createConfig(config);
+    }).connect([](const auto& socketAddress, const core::socket::State& state) {
+        reportState("in-mqtt", socketAddress, state);
+    });
 
-            createConfig(config);
-        },
-        sessionApp,
-        subApp,
-        pubApp)
-        .connect([](const auto& socketAddress, const core::socket::State& state) {
-            reportState("in-mqtt", socketAddress, state);
-        });
+    net::in::stream::tls::Client<mqtt::mqtt::SocketContextFactory>("in-mqtts", [](auto& config) {
+        config.Remote::setPort(1883);
 
-    net::in::stream::tls::Client<mqtt::mqtt::SocketContextFactory>(
-        "in-mqtts",
-        [](auto& config) {
-            config.Remote::setPort(1883);
+        config.setRetry();
+        config.setRetryBase(1);
+        config.setDisableNagleAlgorithm();
+        config.setDisabled();
 
-            config.setRetry();
-            config.setRetryBase(1);
-            config.setDisableNagleAlgorithm();
-            config.setDisabled();
+        createConfig(config);
+    }).connect([](const auto& socketAddress, const core::socket::State& state) {
+        reportState("in-mqtts", socketAddress, state);
+    });
 
-            createConfig(config);
-        },
-        sessionApp,
-        subApp,
-        pubApp)
-        .connect([](const auto& socketAddress, const core::socket::State& state) {
-            reportState("in-mqtts", socketAddress, state);
-        });
+    net::in6::stream::legacy::Client<mqtt::mqtt::SocketContextFactory>("in6-mqtt", [](auto& config) {
+        config.Remote::setPort(1883);
 
-    net::in6::stream::legacy::Client<mqtt::mqtt::SocketContextFactory>(
-        "in6-mqtt",
-        [](auto& config) {
-            config.Remote::setPort(1883);
+        config.setRetry();
+        config.setRetryBase(1);
+        config.setDisableNagleAlgorithm();
+        config.setDisabled();
 
-            config.setRetry();
-            config.setRetryBase(1);
-            config.setDisableNagleAlgorithm();
-            config.setDisabled();
+        createConfig(config);
+    }).connect([](const auto& socketAddress, const core::socket::State& state) {
+        reportState("in6-mqtt", socketAddress, state);
+    });
 
-            createConfig(config);
-        },
-        sessionApp,
-        subApp,
-        pubApp)
-        .connect([](const auto& socketAddress, const core::socket::State& state) {
-            reportState("in6-mqtt", socketAddress, state);
-        });
+    net::in6::stream::tls::Client<mqtt::mqtt::SocketContextFactory>("in6-mqtts", [](auto& config) {
+        config.Remote::setPort(1883);
 
-    net::in6::stream::tls::Client<mqtt::mqtt::SocketContextFactory>(
-        "in6-mqtts",
-        [](auto& config) {
-            config.Remote::setPort(1883);
+        config.setRetry();
+        config.setRetryBase(1);
+        config.setDisableNagleAlgorithm();
+        config.setDisabled();
 
-            config.setRetry();
-            config.setRetryBase(1);
-            config.setDisableNagleAlgorithm();
-            config.setDisabled();
+        createConfig(config);
+    }).connect([](const auto& socketAddress, const core::socket::State& state) {
+        reportState("in6-mqtts", socketAddress, state);
+    });
 
-            createConfig(config);
-        },
-        sessionApp,
-        subApp,
-        pubApp)
-        .connect([](const auto& socketAddress, const core::socket::State& state) {
-            reportState("in6-mqtts", socketAddress, state);
-        });
+    net::un::stream::legacy::Client<mqtt::mqtt::SocketContextFactory>("un-mqtt", [](auto& config) {
+        config.Remote::setSunPath("/var/mqttbroker-un-mqtt");
 
-    net::un::stream::legacy::Client<mqtt::mqtt::SocketContextFactory>(
-        "un-mqtt",
-        [](auto& config) {
-            config.Remote::setSunPath("/var/mqttbroker-un-mqtt");
+        config.setRetry();
+        config.setRetryBase(1);
+        config.setDisabled();
 
-            config.setRetry();
-            config.setRetryBase(1);
-            config.setDisabled();
+        createConfig(config);
+    }).connect([](const auto& socketAddress, const core::socket::State& state) {
+        reportState("un-mqtt", socketAddress, state);
+    });
 
-            createConfig(config);
-        },
-        sessionApp,
-        subApp,
-        pubApp)
-        .connect([](const auto& socketAddress, const core::socket::State& state) {
-            reportState("un-mqtt", socketAddress, state);
-        });
+    net::un::stream::tls::Client<mqtt::mqtt::SocketContextFactory>("un-mqtts", [](auto& config) {
+        config.Remote::setSunPath("/var/mqttbroker-un-mqtts");
 
-    net::un::stream::tls::Client<mqtt::mqtt::SocketContextFactory>(
-        "un-mqtts",
-        [](auto& config) {
-            config.Remote::setSunPath("/var/mqttbroker-un-mqtts");
+        config.setRetry();
+        config.setRetryBase(1);
+        config.setDisabled();
 
-            config.setRetry();
-            config.setRetryBase(1);
-            config.setDisabled();
-
-            createConfig(config);
-        },
-        sessionApp,
-        subApp,
-        pubApp)
-        .connect([](const auto& socketAddress, const core::socket::State& state) {
-            reportState("un-mqtts", socketAddress, state);
-        });
+        createConfig(config);
+    }).connect([](const auto& socketAddress, const core::socket::State& state) {
+        reportState("un-mqtts", socketAddress, state);
+    });
 
     startClient<web::http::legacy::in::Client>("in-wsmqtt", [](auto& config) {
         config.Remote::setPort(8080);
