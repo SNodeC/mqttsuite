@@ -181,7 +181,7 @@ void startClient(const std::string& name, const std::function<void(typename Http
             req->set("Sec-WebSocket-Protocol", "mqtt");
             req->upgrade(
                 "/ws",
-                "upgradeprotocol, websocket",
+                "websocket",
                 [connectionName](const std::shared_ptr<web::http::client::Request>& req, bool success) {
                     VLOG(1) << connectionName << ": Initiating upgrade " << (success ? "success" : "failed");
 
@@ -215,13 +215,13 @@ void startClient(const std::string& name, const std::function<void(typename Http
                             VLOG(1) << connectionName << ": Upgrade success";
                             VLOG(1) << "      Protocol(s) requested: " << req->header("upgrade");
                             VLOG(1) << "                   selected: " << name;
-                            VLOG(1) << "   Subprotocol(s) resuested: " << req->getHeaders().at("Sec-WebSocket-Protocol");
+                            VLOG(1) << "   Subprotocol(s) requested: " << req->getHeaders().at("Sec-WebSocket-Protocol");
                             VLOG(1) << "                   selected: " << res->headers["Sec-WebSocket-Protocol"];
                         } else {
                             VLOG(1) << connectionName << ": Upgrade failed";
                             VLOG(1) << "      Protocol(s) requested: " << req->header("upgrade");
                             VLOG(1) << "                   selected: " << name;
-                            VLOG(1) << "   Subprotocol(s) resuested: " << req->getHeaders().at("Sec-WebSocket-Protocol");
+                            VLOG(1) << "   Subprotocol(s) requested: " << req->getHeaders().at("Sec-WebSocket-Protocol");
                             VLOG(1) << "                   selected: " << res->headers["Sec-WebSocket-Protocol"];
                         }
                     });
