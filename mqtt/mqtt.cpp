@@ -104,26 +104,57 @@ void startClient(const std::string& name, const std::function<void(typename Http
     const HttpClient httpClient(
         name,
         [](const std::shared_ptr<web::http::client::Request>& req) {
+            const std::string connectionName = req->getSocketContext()->getSocketConnection()->getConnectionName();
+
             req->set("Sec-WebSocket-Protocol", "mqtt");
 
-            if (!req->upgrade(
-                    "/ws",
-                    "websocket",
-                    [](const std::shared_ptr<web::http::client::Request>& req, const std::shared_ptr<web::http::client::Response>& res) {
-                        req->upgrade(res, [subProtocolsRequested = req->header("Upgrade")](const std::string& name) {
-                            if (!name.empty()) {
-                                VLOG(1) << "Successful upgrade to '" << name << "' requested: " << subProtocolsRequested;
-                            } else {
-                                VLOG(1) << "Can not upgrade to any of '" << subProtocolsRequested << "'";
-                            }
-                        });
-                    },
-                    [](const std::shared_ptr<web::http::client::Request>& req, const std::string& reason) {
-                        VLOG(1) << "Upgrade to subprotocols '" << req->header("Upgrade")
-                                << "' failed with response parse error: " << reason;
-                    })) {
-                VLOG(1) << "Initiating upgrade to any of 'upgradeprotocol, websocket' failed";
-            }
+            req->upgrade(
+                "/ws",
+                "upgradeprotocol, websocket",
+                [connectionName](const std::shared_ptr<web::http::client::Request>& req, bool success) {
+                    VLOG(1) << connectionName << ": Initiating upgrade " << (success ? "success" : "failed");
+
+                    VLOG(1) << connectionName << ": GET " << req->url << " HTTP/1.1";
+                    VLOG(1) << "  Headers:";
+                    for (const auto& [field, value] : req->getHeaders()) {
+                        VLOG(2) << "    " << field + " = " + value;
+                    }
+                },
+                [connectionName](const std::shared_ptr<web::http::client::Request>& req,
+                                 const std::shared_ptr<web::http::client::Response>& res) {
+                    VLOG(1) << connectionName << ": Response to upgrade";
+
+                    VLOG(1) << connectionName << ": " << res->httpVersion << " " << res->statusCode << " " << res->reason;
+
+                    VLOG(1) << "  Headers:";
+                    for (const auto& [field, value] : res->headers) {
+                        VLOG(1) << "    " << field + " = " + value;
+                    }
+
+                    VLOG(1) << "  Cookies:";
+                    for (const auto& [name, cookie] : res->cookies) {
+                        VLOG(1) << "    " + name + " = " + cookie.getValue();
+                        for (const auto& [option, value] : cookie.getOptions()) {
+                            VLOG(1) << "      " + option + " = " + value;
+                        }
+                    }
+
+                    req->upgrade(res, [req, res, connectionName](const std::string& name) {
+                        if (!name.empty()) {
+                            VLOG(1) << connectionName << ": Upgrade success";
+                            VLOG(1) << "      Protocol(s) requested: " << req->header("upgrade");
+                            VLOG(1) << "                   selected: " << name;
+                            VLOG(1) << "   Subprotocol(s) resuested: " << req->getHeaders().at("Sec-WebSocket-Protocol");
+                            VLOG(1) << "                   selected: " << res->headers["Sec-WebSocket-Protocol"];
+                        } else {
+                            VLOG(1) << connectionName << ": Upgrade failed";
+                            VLOG(1) << "      Protocol(s) requested: " << req->header("upgrade");
+                            VLOG(1) << "                   selected: " << name;
+                            VLOG(1) << "   Subprotocol(s) resuested: " << req->getHeaders().at("Sec-WebSocket-Protocol");
+                            VLOG(1) << "                   selected: " << res->headers["Sec-WebSocket-Protocol"];
+                        }
+                    });
+                });
         },
         []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req) {
             VLOG(1) << "Session ended";

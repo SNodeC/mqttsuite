@@ -97,17 +97,39 @@
 #endif
 
 static void upgrade APPLICATION(req, res) {
+    const std::string connectionName = res->getSocketContext()->getSocketConnection()->getConnectionName();
+
+    VLOG(1) << connectionName << ": HTTP GET " << req->originalUrl << " HTTP/" << req->httpMajor << "." << req->httpMinor;
+    VLOG(2) << "                 OriginalUri: " << req->originalUrl;
+    VLOG(2) << "                         Uri: " << req->url;
+    VLOG(2) << "                  Connection: " << req->get("connection");
+    VLOG(2) << "                        Host: " << req->get("host");
+    VLOG(2) << "                      Origin: " << req->get("origin");
+    VLOG(2) << "      Sec-WebSocket-Protocol: " << req->get("sec-websocket-protocol");
+    VLOG(2) << "   sec-web-socket-extensions: " << req->get("sec-websocket-extensions");
+    VLOG(2) << "           sec-websocket-key: " << req->get("sec-websocket-key");
+    VLOG(2) << "       sec-websocket-version: " << req->get("sec-websocket-version");
+    VLOG(2) << "                     upgrade: " << req->get("upgrade");
+    VLOG(2) << "                  user-agent: " << req->get("user-agent");
+
     if (req->get("sec-websocket-protocol").find("mqtt") != std::string::npos) {
-        res->upgrade(req, [req, res](const std::string& name) {
+        res->upgrade(req, [req, res, connectionName](const std::string& name) {
             if (!name.empty()) {
-                VLOG(1) << "Successful upgrade to '" << name << "'  requested: " << req->get("upgrade");
+                VLOG(1) << connectionName << ": Successful upgrade:";
+                VLOG(1) << connectionName << ":   Requested: " << req->get("upgrade");
+                VLOG(1) << connectionName << ":    Selected: " << name;
+
+                res->end();
             } else {
-                VLOG(1) << "Can not upgrade to any of '" << req->get("upgrade") << "'";
+                VLOG(1) << connectionName << ": Can not upgrade to any of '" << req->get("upgrade") << "'";
+
+                res->sendStatus(404);
             }
-            res->end();
         });
     } else {
-        VLOG(1) << "Not supporting any of: " << req->get("sec-websocket-protocol");
+        VLOG(1) << connectionName << ": Unsupported subprotocol(s):";
+        VLOG(1) << "   Requested: " << req->get("upgrade");
+        VLOG(1) << "    Expected: mqtt";
 
         res->sendStatus(404);
     }
@@ -286,8 +308,6 @@ static std::string urlDecode(const std::string& encoded) {
 }
 
 static express::Router getRouter(const inja::Environment& environment, std::shared_ptr<iot::mqtt::server::broker::Broker> broker) {
-    const express::Router router;
-
     const express::Router& jsonRouter = express::middleware::JsonMiddleware();
     jsonRouter.setStrictRouting();
 
@@ -395,6 +415,7 @@ static express::Router getRouter(const inja::Environment& environment, std::shar
                 res->status(400).send("Attribute type not found: " + key);
             });
     });
+    const express::Router router;
 
     router.use(jsonRouter);
 
