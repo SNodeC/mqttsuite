@@ -53,7 +53,6 @@
 #include <cstdint>
 #include <list>
 #include <utils/CLI11.hpp>
-#include <utils/Config.h>
 
 #endif
 
@@ -66,54 +65,32 @@ namespace mqtt::mqtt::websocket {
     }
 
     iot::mqtt::client::SubProtocol* SubProtocolFactory::create(web::websocket::SubProtocolContext* subProtocolContext) {
-        const CLI::App* sessionApp = subProtocolContext->getSocketConnection()->getConfig()->gotSection("session")
-                                         ? subProtocolContext->getSocketConnection()->getConfig()->getSection("session")
-                                         : utils::Config::getInstance("session");
-        const CLI::App* subApp = subProtocolContext->getSocketConnection()->getConfig()->gotSection("sub")
-                                     ? subProtocolContext->getSocketConnection()->getConfig()->getSection("sub")
-                                     : utils::Config::getInstance("sub");
-        const CLI::App* pubApp = subProtocolContext->getSocketConnection()->getConfig()->gotSection("pub")
-                                     ? subProtocolContext->getSocketConnection()->getConfig()->getSection("pub")
-                                     : utils::Config::getInstance("pub");
-
-        const std::string clientId = sessionApp->get_option("--client-id")->as<std::string>();
-        const uint8_t qoS = sessionApp->get_option("--qos")->as<uint8_t>();
-        const bool cleanSession = !sessionApp->get_option("--retain-session")->as<bool>();
-        const uint16_t keepAlive = sessionApp->get_option("--keep-alive")->as<uint16_t>();
-        const std::string willTopic = sessionApp->get_option("--will-topic")->as<std::string>();
-        const std::string willMessage = sessionApp->get_option("--will-message")->as<std::string>();
-        const uint8_t willQoS = sessionApp->get_option("--will-qos")->as<uint8_t>();
-        const bool willRetain = sessionApp->get_option("--will-retain")->as<bool>();
-        const std::string username = sessionApp->get_option("--username")->as<std::string>();
-        const std::string password = sessionApp->get_option("--password")->as<std::string>();
-
-        const std::list<std::string> subTopics =
-            subApp->count() > 0 ? subApp->get_option("--topic")->as<std::list<std::string>>() : std::list<std::string>{};
-
-        const std::string pubTopic = pubApp->count() > 0 ? pubApp->get_option("--topic")->as<std::string>() : "";
-        const std::string pubMessage = pubApp->get_option("--message")->as<std::string>();
-        const bool pubRetain = pubApp->get_option("--retain")->as<bool>();
+        const CLI::App* sessionApp = subProtocolContext->getSocketConnection()->getConfig()->getSection("session", true, true);
+        const CLI::App* subApp = subProtocolContext->getSocketConnection()->getConfig()->getSection("sub", true, true);
+        const CLI::App* pubApp = subProtocolContext->getSocketConnection()->getConfig()->getSection("pub", true, true);
 
         iot::mqtt::client::SubProtocol* subProtocol = nullptr;
-        if (subApp->count() > 0 || pubApp->count() > 0) {
+
+        if (subApp != nullptr || pubApp != nullptr) {
             subProtocol = new iot::mqtt::client::SubProtocol(
                 subProtocolContext,
                 getName(),
                 new ::mqtt::mqtt::lib::Mqtt(subProtocolContext->getSocketConnection()->getConnectionName(),
-                                            clientId,
-                                            qoS,
-                                            keepAlive,
-                                            cleanSession,
-                                            willTopic,
-                                            willMessage,
-                                            willQoS,
-                                            willRetain,
-                                            username,
-                                            password,
-                                            subTopics,
-                                            pubTopic,
-                                            pubMessage,
-                                            pubRetain));
+                                            sessionApp != nullptr ? sessionApp->get_option("--client-id")->as<std::string>() : "",
+                                            sessionApp != nullptr ? sessionApp->get_option("--qos")->as<uint8_t>() : 0,
+                                            sessionApp != nullptr ? sessionApp->get_option("--keep-alive")->as<uint16_t>() : 60,
+                                            sessionApp != nullptr ? !sessionApp->get_option("--retain-session")->as<bool>() : true,
+                                            sessionApp != nullptr ? sessionApp->get_option("--will-topic")->as<std::string>() : "",
+                                            sessionApp != nullptr ? sessionApp->get_option("--will-message")->as<std::string>() : "",
+                                            sessionApp != nullptr ? sessionApp->get_option("--will-qos")->as<uint8_t>() : 0,
+                                            sessionApp != nullptr ? sessionApp->get_option("--will-retain")->as<bool>() : false,
+                                            sessionApp != nullptr ? sessionApp->get_option("--username")->as<std::string>() : "",
+                                            sessionApp != nullptr ? sessionApp->get_option("--password")->as<std::string>() : "",
+                                            subApp != nullptr ? subApp->get_option("--topic")->as<std::list<std::string>>()
+                                                              : std::list<std::string>(),
+                                            pubApp != nullptr ? pubApp->get_option("--topic")->as<std::string>() : "",
+                                            pubApp != nullptr ? pubApp->get_option("--message")->as<std::string>() : "",
+                                            pubApp != nullptr ? pubApp->get_option("--retain")->as<bool>() : false));
         } else {
             VLOG(0) << "[" << Color::Code::FG_RED << "Error" << Color::Code::FG_DEFAULT << "] "
                     << subProtocolContext->getSocketConnection()->getConnectionName() << ": one of 'sub' or 'pub' is required";

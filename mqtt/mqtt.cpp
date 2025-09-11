@@ -254,6 +254,8 @@ int main(int argc, char* argv[]) {
 
     // Start of application
 
+    VLOG(0) << "----------------: " << sessionApp->count();
+
     net::in::stream::legacy::Client<mqtt::mqtt::SocketContextFactory>(
         "in-mqtt",
         [](auto& config) {
