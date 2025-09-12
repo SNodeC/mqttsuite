@@ -75,6 +75,7 @@
 #include <net/in6/stream/tls/SocketServer.h>
 #include <net/un/stream/legacy/SocketServer.h>
 #include <net/un/stream/tls/SocketServer.h>
+#include <web/http/http_utils.h>
 //
 #include <express/middleware/JsonMiddleware.h>
 #include <iot/mqtt/server/broker/Broker.h>
@@ -99,25 +100,21 @@
 static void upgrade APPLICATION(req, res) {
     const std::string connectionName = res->getSocketContext()->getSocketConnection()->getConnectionName();
 
-    VLOG(1) << connectionName << ": HTTP GET " << req->originalUrl << " HTTP/" << req->httpMajor << "." << req->httpMinor;
-    VLOG(2) << "                 OriginalUri: " << req->originalUrl;
-    VLOG(2) << "                         Uri: " << req->url;
-    VLOG(2) << "                  Connection: " << req->get("connection");
-    VLOG(2) << "                        Host: " << req->get("host");
-    VLOG(2) << "                      Origin: " << req->get("origin");
-    VLOG(2) << "      Sec-WebSocket-Protocol: " << req->get("sec-websocket-protocol");
-    VLOG(2) << "   sec-web-socket-extensions: " << req->get("sec-websocket-extensions");
-    VLOG(2) << "           sec-websocket-key: " << req->get("sec-websocket-key");
-    VLOG(2) << "       sec-websocket-version: " << req->get("sec-websocket-version");
-    VLOG(2) << "                     upgrade: " << req->get("upgrade");
-    VLOG(2) << "                  user-agent: " << req->get("user-agent");
+    VLOG(2) << connectionName << " HTTP: Upgrade request:\n"
+            << httputils::toString(req->method,
+                                   req->url,
+                                   "HTTP/" + std::to_string(req->httpMajor) + "." + std::to_string(req->httpMinor),
+                                   req->queries,
+                                   req->headers,
+                                   req->cookies,
+                                   std::vector<char>());
 
     if (req->get("sec-websocket-protocol").find("mqtt") != std::string::npos) {
         res->upgrade(req, [req, res, connectionName](const std::string& name) {
             if (!name.empty()) {
                 VLOG(1) << connectionName << ": Successful upgrade:";
-                VLOG(1) << connectionName << ":   Requested: " << req->get("upgrade");
                 VLOG(1) << connectionName << ":    Selected: " << name;
+                VLOG(1) << connectionName << ":   Requested: " << req->get("sec-websocket-protocol");
 
                 res->end();
             } else {
@@ -128,8 +125,8 @@ static void upgrade APPLICATION(req, res) {
         });
     } else {
         VLOG(1) << connectionName << ": Unsupported subprotocol(s):";
-        VLOG(1) << "   Requested: " << req->get("upgrade");
         VLOG(1) << "    Expected: mqtt";
+        VLOG(1) << "   Requested: " << req->get("sec-websocket-protocol");
 
         res->sendStatus(404);
     }
