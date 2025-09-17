@@ -198,9 +198,9 @@ static void createConfig(CLI::App* sessionApp, CLI::App* subApp, CLI::App* pubAp
                       ->add_option_function<std::string>(
                           "--topic",
                           [subApp](const std::string& value) {
-                              VLOG(0) << "--------- Value topic: '" << value << "'";
                               if (value == "") {
                                   subApp->get_option("--topic")->required(false)->clear();
+                                  subApp->get_option("--topic")->default_str("<REQUIRED>");
                                   subApp->remove_needs(subApp->get_option("--topic"));
                               }
                           },
@@ -216,12 +216,14 @@ static void createConfig(CLI::App* sessionApp, CLI::App* subApp, CLI::App* pubAp
                       ->add_option_function<std::string>(
                           "--topic",
                           [pubApp](const std::string& value) {
-                              VLOG(0) << "--------- Value topic: '" << value << "'";
                               if (value == "") {
-                                  pubApp->get_option("--topic")->clear();
-
                                   pubApp->get_option("--topic")->required(false)->clear();
+                                  pubApp->get_option("--topic")->default_str("<REQUIRED>");
                                   pubApp->remove_needs(pubApp->get_option("--topic"));
+
+                                  pubApp->get_option("--message")->required(false)->clear();
+                                  pubApp->get_option("--message")->default_str("<REQUIRED>");
+                                  pubApp->remove_needs(pubApp->get_option("--message"));
                               }
                           },
                           "Topic publishing to")
@@ -234,11 +236,13 @@ static void createConfig(CLI::App* sessionApp, CLI::App* subApp, CLI::App* pubAp
                       ->add_option_function<std::string>(
                           "--message",
                           [pubApp](const std::string& value) {
-                              VLOG(0) << "--------- Value message: '" << value << "'";
                               if (value == "") {
-                                  pubApp->get_option("--message")->clear();
+                                  pubApp->get_option("--topic")->required(false)->clear();
+                                  pubApp->get_option("--topic")->default_str("<REQUIRED>");
+                                  pubApp->remove_needs(pubApp->get_option("--topic"));
 
                                   pubApp->get_option("--message")->required(false)->clear();
+                                  pubApp->get_option("--message")->default_str("<REQUIRED>");
                                   pubApp->remove_needs(pubApp->get_option("--message"));
                               }
                           },
@@ -262,21 +266,23 @@ static void createConfig(net::config::ConfigInstance& config) {
                  config.addSection("pub", "Configuration for application mqttpub", "Applications"));
 
     config.get()->final_callback([config = &config]() {
-        if (!config->getDisabled()) {
-            VLOG(0) << "################# 1";
+        if (!config->getDisabled() && utils::Config::showConfigTriggerApp == nullptr &&
+            utils::Config::app->get_option("--write-config")->count() == 0) {
             CLI::App* pubApp = config->getSection("pub", true, true);
             CLI::App* subApp = config->getSection("sub", true, true);
-            VLOG(0) << "################# 2";
 
-            if (utils::Config::showConfigTriggerApp == nullptr && utils::Config::app->get_option("--write-config")->count() == 0 &&
-                (pubApp == nullptr || (*pubApp)["--topic"]->count() == 0 || (*pubApp)["--message"]->count() == 0) &&
+            if ((pubApp == nullptr || (*pubApp)["--topic"]->count() == 0 || (*pubApp)["--message"]->count() == 0) &&
                 (subApp == nullptr || (*subApp)["--topic"]->count() == 0)) {
-                throw CLI::BootstrapError(config->getInstanceName() + " requires one of the applications 'sub' or 'pub'");
+                throw CLI::RequiresError(config->get()->get_parent()->get_name() + ":" + config->getInstanceName() +
+                                             " requires one of the applications 'sub' or 'pub'",
+                                         CLI::ExitCodes::RequiresError);
             }
+
             if (pubApp != nullptr) {
                 VLOG(0) << "[" << Color::Code::FG_LIGHT_GREEN << "Error" << Color::Code::FG_DEFAULT << "] " << "Bootstrap of "
                         << config->getInstanceName() << ":boot";
             }
+
             if (subApp != nullptr) {
                 VLOG(0) << "[" << Color::Code::FG_LIGHT_GREEN << "Success" << Color::Code::FG_DEFAULT << "] " << "Bootstrap of "
                         << config->getInstanceName() << ":sub";
