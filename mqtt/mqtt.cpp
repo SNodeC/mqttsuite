@@ -72,6 +72,7 @@
 //
 #include <log/Logger.h>
 #include <utils/Config.h>
+#include <utils/Exceptions.h>
 //
 #include <utils/CLI11.hpp>
 //
@@ -193,21 +194,55 @@ static void createConfig(CLI::App* sessionApp, CLI::App* subApp, CLI::App* pubAp
         ->type_name("[string]")
         ->configurable();
 
-    subApp->add_option("--topic", "List of topics subscribing to")
-        ->group(subApp->get_formatter()->get_label("Persistent Options"))
-        ->default_str("#")
-        ->type_name("[string list]")
-        ->take_all()
-        ->allow_extra_args()
-        ->configurable();
+    subApp->needs(subApp
+                      ->add_option_function<std::string>(
+                          "--topic",
+                          [subApp](const std::string& value) {
+                              VLOG(0) << "--------- Value topic: '" << value << "'";
+                              if (value == "") {
+                                  subApp->get_option("--topic")->required(false)->clear();
+                                  subApp->remove_needs(subApp->get_option("--topic"));
+                              }
+                          },
+                          "List of topics subscribing to")
+                      ->group(subApp->get_formatter()->get_label("Persistent Options"))
+                      ->type_name("[string list]")
+                      ->take_all()
+                      ->required()
+                      ->allow_extra_args()
+                      ->configurable());
 
-    pubApp->needs(pubApp->add_option("--topic", "Topic publishing to")
+    pubApp->needs(pubApp
+                      ->add_option_function<std::string>(
+                          "--topic",
+                          [pubApp](const std::string& value) {
+                              VLOG(0) << "--------- Value topic: '" << value << "'";
+                              if (value == "") {
+                                  pubApp->get_option("--topic")->clear();
+
+                                  pubApp->get_option("--topic")->required(false)->clear();
+                                  pubApp->remove_needs(pubApp->get_option("--topic"));
+                              }
+                          },
+                          "Topic publishing to")
                       ->group(pubApp->get_formatter()->get_label("Persistent Options"))
                       ->type_name("[string]")
                       ->required()
                       ->configurable());
 
-    pubApp->needs(pubApp->add_option("--message", "Message to publish")
+    pubApp->needs(pubApp
+                      ->add_option_function<std::string>(
+                          "--message",
+                          [pubApp](const std::string& value) {
+                              VLOG(0) << "--------- Value message: '" << value << "'";
+                              if (value == "") {
+                                  pubApp->get_option("--message")->clear();
+
+                                  pubApp->get_option("--message")->required(false)->clear();
+                                  pubApp->remove_needs(pubApp->get_option("--message"));
+                              }
+                          },
+                          "Message to publish")
                       ->group(pubApp->get_formatter()->get_label("Persistent Options"))
                       ->type_name("[string]")
                       ->required()
@@ -225,6 +260,29 @@ static void createConfig(net::config::ConfigInstance& config) {
     createConfig(config.addSection("session", "MQTT session behavior", "Connection"),
                  config.addSection("sub", "Configuration for application mqttsub", "Applications"),
                  config.addSection("pub", "Configuration for application mqttpub", "Applications"));
+
+    config.get()->final_callback([config = &config]() {
+        if (!config->getDisabled()) {
+            VLOG(0) << "################# 1";
+            CLI::App* pubApp = config->getSection("pub", true, true);
+            CLI::App* subApp = config->getSection("sub", true, true);
+            VLOG(0) << "################# 2";
+
+            if (utils::Config::showConfigTriggerApp == nullptr && utils::Config::app->get_option("--write-config")->count() == 0 &&
+                (pubApp == nullptr || (*pubApp)["--topic"]->count() == 0 || (*pubApp)["--message"]->count() == 0) &&
+                (subApp == nullptr || (*subApp)["--topic"]->count() == 0)) {
+                throw CLI::BootstrapError(config->getInstanceName() + " requires one of the applications 'sub' or 'pub'");
+            }
+            if (pubApp != nullptr) {
+                VLOG(0) << "[" << Color::Code::FG_LIGHT_GREEN << "Error" << Color::Code::FG_DEFAULT << "] " << "Bootstrap of "
+                        << config->getInstanceName() << ":boot";
+            }
+            if (subApp != nullptr) {
+                VLOG(0) << "[" << Color::Code::FG_LIGHT_GREEN << "Success" << Color::Code::FG_DEFAULT << "] " << "Bootstrap of "
+                        << config->getInstanceName() << ":sub";
+            }
+        }
+    });
 }
 
 int main(int argc, char* argv[]) {
