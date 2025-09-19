@@ -265,7 +265,7 @@ static void createConfig(net::config::ConfigInstance& config) {
                  config.addSection("sub", "Configuration for application mqttsub", "Applications"),
                  config.addSection("pub", "Configuration for application mqttpub", "Applications"));
 
-    config.get()->final_callback([config = &config]() {
+    config.get()->require_callback([config = &config]() {
         if (!config->getDisabled() && utils::Config::showConfigTriggerApp == nullptr &&
             utils::Config::app->get_option("--write-config")->count() == 0) {
             CLI::App* pubApp = config->getSection("pub", true, true);
