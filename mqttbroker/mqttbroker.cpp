@@ -306,7 +306,6 @@ static std::string urlDecode(const std::string& encoded) {
 
 static express::Router getRouter(const inja::Environment& environment, std::shared_ptr<iot::mqtt::server::broker::Broker> broker) {
     const express::Router& jsonRouter = express::middleware::JsonMiddleware();
-    jsonRouter.setStrictRouting();
 
     jsonRouter.post("/disconnect", [] APPLICATION(req, res) {
         VLOG(1) << "POST /disconnect";
@@ -479,39 +478,29 @@ static express::Router getRouter(const inja::Environment& environment, std::shar
         res->status(responseStatus).send(responseString);
     });
 
-    router
-        .get("/ws",
-             [] APPLICATION(req, res) {
-                 if (req->headers.contains("upgrade")) {
-                     upgrade(req, res);
-                 } else {
-                     res->redirect("/spinner?/clients");
-                 }
-             })
-        .setStrictRouting();
+    router.get("/ws", [] APPLICATION(req, res) {
+        if (req->headers.contains("upgrade")) {
+            upgrade(req, res);
+        } else {
+            res->redirect("/spinner?/clients");
+        }
+    });
 
-    router
-        .get("/mqtt",
-             [] APPLICATION(req, res) {
-                 if (req->headers.contains("upgrade")) {
-                     upgrade(req, res);
-                 } else {
-                     res->redirect("/spinner?/clients");
-                 }
-             })
+    router.get("/mqtt", [] APPLICATION(req, res) {
+        if (req->headers.contains("upgrade")) {
+            upgrade(req, res);
+        } else {
+            res->redirect("/spinner?/clients");
+        }
+    });
 
-        .setStrictRouting();
-
-    router
-        .get("/",
-             [] APPLICATION(req, res) {
-                 if (req->headers.contains("upgrade")) {
-                     upgrade(req, res);
-                 } else {
-                     res->redirect("/spinner?/clients");
-                 }
-             })
-        .setStrictRouting();
+    router.get("/", [] APPLICATION(req, res) {
+        if (req->headers.contains("upgrade")) {
+            upgrade(req, res);
+        } else {
+            res->redirect("/spinner?/clients");
+        }
+    });
 
     return router;
 }
