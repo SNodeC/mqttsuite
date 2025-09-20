@@ -72,7 +72,6 @@
 //
 #include <log/Logger.h>
 #include <utils/Config.h>
-#include <utils/Exceptions.h>
 //
 #include <utils/CLI11.hpp>
 //
@@ -274,7 +273,7 @@ static void createConfig(net::config::ConfigInstance& config) {
             if ((pubApp == nullptr || (*pubApp)["--topic"]->count() == 0 || (*pubApp)["--message"]->count() == 0) &&
                 (subApp == nullptr || (*subApp)["--topic"]->count() == 0)) {
                 throw CLI::RequiresError(config->get()->get_parent()->get_name() + ":" + config->getInstanceName() +
-                                             " requires one of the applications 'sub' or 'pub'",
+                                             " requires at least one of {sub | pub}",
                                          CLI::ExitCodes::RequiresError);
             }
 
@@ -289,6 +288,8 @@ static void createConfig(net::config::ConfigInstance& config) {
             }
         }
     });
+
+    std::vector<std::string> a = {"asdf", "asf"};
 }
 
 int main(int argc, char* argv[]) {
