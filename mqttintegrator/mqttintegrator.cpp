@@ -109,13 +109,16 @@ void startClient(const std::string& name, const std::function<void(typename Http
             req->upgrade(
                 "/ws",
                 "websocket",
-                [connectionName](const std::shared_ptr<web::http::client::Request>& req, bool success) {
-                    VLOG(1) << connectionName << ": HTTP Upgrade (http -> " << req->header("upgrade") << "|"
-                            << req->header("Sec-WebSocket-Protocol") << ") start " << (success ? "success" : "failed");
+                [connectionName](bool success) {
+                    VLOG(1) << connectionName << ": HTTP Upgrade (http -> websocket||"
+                            << "mqtt" << ") start " << (success ? "success" : "failed");
                 },
                 []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req,
                    [[maybe_unused]] const std::shared_ptr<web::http::client::Response>& res,
                    [[maybe_unused]] bool success) {
+                },
+                [connectionName](const std::shared_ptr<web::http::client::Request>&, const std::string& message) {
+                    VLOG(1) << connectionName << ": Request parse error: " << message;
                 });
         },
         []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req) {

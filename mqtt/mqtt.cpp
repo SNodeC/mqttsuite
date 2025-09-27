@@ -111,13 +111,16 @@ void startClient(const std::string& name, const std::function<void(typename Http
             req->upgrade(
                 "/ws",
                 "websocket",
-                [connectionName](const std::shared_ptr<web::http::client::Request>& req, bool success) {
-                    VLOG(1) << connectionName << ": HTTP Upgrade (http -> " << req->header("upgrade") << "|"
-                            << req->header("Sec-WebSocket-Protocol") << ") start " << (success ? "success" : "failed");
+                [connectionName](bool success) {
+                    VLOG(1) << connectionName << ": HTTP Upgrade (http -> websocket||"
+                            << "mqtt" << ") start " << (success ? "success" : "failed");
                 },
                 []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req,
                    [[maybe_unused]] const std::shared_ptr<web::http::client::Response>& res,
                    [[maybe_unused]] bool success) {
+                },
+                [connectionName]([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req, const std::string& message) {
+                    VLOG(1) << connectionName << ": Request parse error: " << message;
                 });
         },
         []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req) {
@@ -278,8 +281,8 @@ static void createConfig(net::config::ConfigInstance& config) {
             }
 
             if (pubApp != nullptr) {
-                VLOG(0) << "[" << Color::Code::FG_LIGHT_GREEN << "Error" << Color::Code::FG_DEFAULT << "] " << "Bootstrap of "
-                        << config->getInstanceName() << ":boot";
+                VLOG(0) << "[" << Color::Code::FG_LIGHT_GREEN << "Success" << Color::Code::FG_DEFAULT << "] " << "Bootstrap of "
+                        << config->getInstanceName() << ":pub";
             }
 
             if (subApp != nullptr) {
