@@ -18,7 +18,7 @@
     ],
     "topic_level": [
       {
-        "name": "test01",
+        "name": "rfid",
         "topic_level": [
           {
             "name": "button1",
@@ -47,7 +47,7 @@
                   }
                 },
                 {
-                  "mapped_topic": "test02/strip1/rgb/set",
+                  "mapped_topic": "chain/strip1/rgb/set",
                   "message_mapping": {
                     "message": "pressed",
                     "mapped_message": "front red"
@@ -61,7 +61,7 @@
                   }
                 },
                 {
-                  "mapped_topic": "test02/strip1/brightness/set",
+                  "mapped_topic": "chain/strip1/brightness/set",
                   "message_mapping": {
                     "message": "released",
                     "mapped_message": "0"
@@ -75,7 +75,7 @@
             "subscription": {
               "type": "new rfid reader",
               "value": {
-                "mapped_topic": "test02/strip1/rgb/set",
+                "mapped_topic": "chain/strip1/rgb/set",
                 "mapping_template": "front {{ message }}"
               }
             },
@@ -99,7 +99,7 @@
                     ]
                   },
                   {
-                    "mapped_topic": "test02/strip1/brightness/set",
+                    "mapped_topic": "chain/strip1/brightness/set",
                     "mapping_template": "{% if message == \"none\" %}0{% endif %}",
                     "suppressions": [
                       ""
@@ -129,7 +129,7 @@
             "subscription": {
               "qos": 0,
               "json": {
-                "mapped_topic": "test02/onboard/set",
+                "mapped_topic": "chain/onboard/set",
                 "mapping_template": "{% if message.state == \"on\" %}on{% else if message.state == \"off\" %}off{% endif %}",
                 "retain": false
               }
