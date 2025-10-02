@@ -106,6 +106,7 @@ static void upgrade APPLICATION(req, res) {
                                    "HTTP/" + std::to_string(req->httpMajor) + "." + std::to_string(req->httpMinor),
                                    req->queries,
                                    req->headers,
+                                   req->trailer,
                                    req->cookies,
                                    std::vector<char>());
 
