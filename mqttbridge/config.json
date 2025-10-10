@@ -5,169 +5,129 @@
       "brokers": [
         {
           "connection": {
-            "keep_alive": 60,
             "client_id": "MQTT-Bridge",
-            "clean_session": true,
-            "will_topic": "will/topic",
-            "will_message": "Last Will",
-            "will_qos": 0,
-            "will_retain": false,
             "username": "Username",
             "password": "Password",
             "loop_prevention": true
           },
-          "instance_name": "in-mqtt-1",
-          "session_store": "/home/voc/.local/mqtt-bridge-in-mqtt-1",
-          "protocol": "in",
-          "encryption": "legacy",
-          "transport": "stream",
+          "network": {
+            "instance_name": "in-mqtt-1",
+            "protocol": "in",
+            "in": { "address": "localhost", "port": 1883 },
+            "encryption": "legacy",
+            "transport": "stream"
+          },
           "topics": [
-            {
-              "topic": "#",
-              "qos": 0
-            }
+            { "topic": "#", "qos": 0 }
           ]
         },
         {
           "connection": {
-            "keep_alive": 60,
             "client_id": "MQTT-Bridge",
-            "clean_session": true,
-            "will_topic": "will/topic",
-            "will_message": "Last Will",
-            "will_qos": 0,
-            "will_retain": false,
             "username": "Username",
             "password": "Password",
             "loop_prevention": true
           },
-          "instance_name": "in-mqtt-2",
-          "protocol": "in",
-          "encryption": "legacy",
+          "network": {
+            "instance_name": "in-mqtt-2",
+            "protocol": "in",
+            "in": { "address": "localhost", "port": 1883 },
+            "encryption": "legacy",
+            "transport": "stream"
+          },
           "topics": [
-            {
-              "topic": "#",
-              "qos": 0
-            }
+            { "topic": "#", "qos": 0 }
           ]
         },
         {
           "connection": {
-            "keep_alive": 60,
             "client_id": "MQTT-Bridge",
-            "clean_session": true,
-            "will_topic": "will/topic",
-            "will_message": "Last Will",
-            "will_qos": 0,
-            "will_retain": false,
             "username": "Username",
             "password": "Password",
             "loop_prevention": true
           },
-          "instance_name": "in-mqtt-3",
-          "protocol": "in",
+          "network": {
+            "instance_name": "in-mqtt-3",
+            "protocol": "in",
+            "in": { "address": "localhost", "port": 1883 },
+            "encryption": "legacy",
+            "transport": "stream"
+          },
           "topics": [
-            {
-              "topic": "topic/subtopic",
-              "qos": 2
-            },
-            {
-              "topic": "topic1"
-            }
+            { "topic": "topic/subtopic", "qos": 2 },
+            { "topic": "topic1", "qos": 0 }
           ]
         },
         {
           "connection": {
-            "keep_alive": 60,
             "client_id": "MQTT-Bridge",
-            "clean_session": true,
-            "will_topic": "will/topic",
-            "will_message": "Last Will",
-            "will_qos": 0,
-            "will_retain": false,
             "username": "Username",
             "password": "Password",
             "loop_prevention": true
           },
-          "instance_name": "in-mqtt-4",
+          "network": {
+            "instance_name": "in-mqtt-4",
+            "protocol": "in",
+            "in": { "address": "localhost", "port": 1883 },
+            "encryption": "legacy",
+            "transport": "stream"
+          },
           "topics": [
-            {
-              "topic": "#",
-              "qos": 0
-            }
+            { "topic": "#", "qos": 0 }
           ]
         },
         {
           "connection": {
-            "keep_alive": 60,
             "client_id": "MQTT-Bridge",
-            "clean_session": true,
-            "will_topic": "will/topic",
-            "will_message": "Last Will",
-            "will_qos": 0,
-            "will_retain": false,
             "username": "Username",
             "password": "Password",
             "loop_prevention": true
           },
-          "instance_name": "in-wsmqtt-1",
-          "session_store": "/home/voc/.local/mqtt-bridge-in-wsmqtt-1",
-          "protocol": "in",
-          "encryption": "legacy",
-          "transport": "websocket",
+          "network": {
+            "instance_name": "in-wsmqtt-1",
+            "protocol": "in",
+            "in": { "address": "localhost", "port": 80 },
+            "encryption": "legacy",
+            "transport": "websocket"
+          },
           "topics": [
-            {
-              "topic": "#",
-              "qos": 0
-            }
+            { "topic": "#", "qos": 0 }
           ]
         },
         {
           "connection": {
-            "keep_alive": 60,
             "client_id": "MQTT-Bridge",
-            "clean_session": true,
-            "will_topic": "will/topic",
-            "will_message": "Last Will",
-            "will_qos": 0,
-            "will_retain": false,
             "username": "Username",
             "password": "Password",
             "loop_prevention": true
           },
-          "instance_name": "in-wsmqtt-2",
-          "protocol": "in",
-          "encryption": "legacy",
-          "transport": "websocket",
+          "network": {
+            "instance_name": "in-wsmqtt-2",
+            "protocol": "in",
+            "in": { "address": "localhost", "port": 80 },
+            "encryption": "legacy",
+            "transport": "websocket"
+          },
           "topics": [
-            {
-              "topic": "#",
-              "qos": 0
-            }
+            { "topic": "#", "qos": 0 }
           ]
         },
         {
           "connection": {
-            "keep_alive": 60,
             "client_id": "MQTT-Bridge",
-            "clean_session": true,
-            "will_topic": "will/topic",
-            "will_message": "Last Will",
-            "will_qos": 0,
-            "will_retain": false,
             "username": "Username",
             "password": "Password",
             "loop_prevention": true
           },
-          "instance_name": "in-wsmqtts",
-          "protocol": "in",
-          "encryption": "tls",
-          "transport": "websocket",
+          "network": {
+            "instance_name": "in-wsmqtts",
+            "protocol": "in",
+            "in": { "address": "localhost", "port": 443 },
+            "encryption": "tls",
+            "transport": "websocket"
+          },
           "topics": [
-            {
-              "topic": "#",
-              "qos": 0
-            }
+            { "topic": "#", "qos": 0 }
           ]
         },
         {
@@ -175,16 +135,15 @@
             "client_id": "TTN-Bridge-Shadow",
             "loop_prevention": true
           },
-          "instance_name": "ttn-shadow",
-          "session_store": "/home/voc/.local/shadow-ttn-bridge",
-          "protocol": "in",
-          "encryption": "legacy",
-          "transport": "websocket",
+          "network": {
+            "instance_name": "ttn-shadow",
+            "protocol": "in",
+            "in": { "address": "localhost", "port": 80 },
+            "encryption": "legacy",
+            "transport": "websocket"
+          },
           "topics": [
-            {
-              "topic": "#",
-              "qos": 0
-            }
+            { "topic": "#", "qos": 0 }
           ]
         }
       ]
@@ -197,15 +156,15 @@
             "username": "test-application-voc@ttn",
             "password": "NNSXS.SOX5JC3PDMP6Q6K6HVWQCXLNQ2JULTKWO3X6KDI.XLHSEVV2RZTL7YWLOP3F6TOXUOGAZA33UPIKSDZ6SRJ2YIM3OXBA"
           },
-          "instance_name": "ttn-remote",
-          "protocol": "in",
-          "encryption": "legacy",
-          "transport": "stream",
+          "network": {
+            "instance_name": "ttn-remote",
+            "protocol": "in",
+            "in": { "address": "localhost", "port": 1883 },
+            "encryption": "legacy",
+            "transport": "stream"
+          },
           "topics": [
-            {
-              "topic": "#",
-              "qos": 0
-            }
+            { "topic": "#", "qos": 0 }
           ]
         },
         {
@@ -213,15 +172,15 @@
             "username": "test-application-voc@ttn",
             "password": "NNSXS.SOX5JC3PDMP6Q6K6HVWQCXLNQ2JULTKWO3X6KDI.XLHSEVV2RZTL7YWLOP3F6TOXUOGAZA33UPIKSDZ6SRJ2YIM3OXBA"
           },
-          "instance_name": "ttns-remote",
-          "protocol": "in",
-          "encryption": "tls",
-          "transport": "stream",
+          "network": {
+            "instance_name": "ttns-remote",
+            "protocol": "in",
+            "in": { "address": "localhost", "port": 8883 },
+            "encryption": "tls",
+            "transport": "stream"
+          },
           "topics": [
-            {
-              "topic": "#",
-              "qos": 0
-            }
+            { "topic": "#", "qos": 0 }
           ]
         }
       ]

@@ -8,10 +8,16 @@
             "username": "test-application-voc@ttn",
             "password": "NNSXS.SOX5JC3PDMP6Q6K6HVWQCXLNQ2JULTKWO3X6KDI.XLHSEVV2RZTL7YWLOP3F6TOXUOGAZA33UPIKSDZ6SRJ2YIM3OXBA"
           },
-          "instance_name": "ttn-remote",
-          "protocol": "in",
-          "encryption": "legacy",
-          "transport": "stream",
+          "network" : {
+            "instance_name": "ttn-remote",
+            "protocol": "in",
+            "in" : {
+              "address" : "localhost",
+              "port" : 1883
+            },
+            "encryption": "legacy",
+            "transport": "stream"
+          },
           "topics": [
             {
               "topic": "#",
@@ -24,10 +30,16 @@
             "username": "test-application-voc@ttn",
             "password": "NNSXS.SOX5JC3PDMP6Q6K6HVWQCXLNQ2JULTKWO3X6KDI.XLHSEVV2RZTL7YWLOP3F6TOXUOGAZA33UPIKSDZ6SRJ2YIM3OXBA"
           },
-          "instance_name": "ttns-remote",
-          "protocol": "in",
-          "encryption": "tls",
-          "transport": "stream",
+          "network" : {
+            "instance_name": "ttns-remote",
+            "protocol": "in6",
+            "in6" : {
+              "address" : "remotehost",
+              "port" : 8080
+            },
+            "encryption": "tls",
+            "transport": "stream"
+          },
           "topics": [
             {
               "topic": "#",
@@ -40,10 +52,16 @@
             "client_id": "TTN-Bridge",
             "loop_prevention": true
           },
-          "instance_name": "ttn-local",
-          "protocol": "in",
-          "encryption": "legacy",
-          "transport": "websocket",
+          "network" : {
+            "instance_name": "ttn-local",
+            "protocol": "in",
+            "in" : {
+              "address" : "localhost",
+              "port" : 8080
+            },
+            "encryption": "legacy",
+            "transport": "websocket"
+          },
           "topics": [
             {
               "topic": "v3/test-application-voc@ttn/devices/+/down/push",

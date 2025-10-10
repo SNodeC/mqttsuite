@@ -1,18 +1,19 @@
 {
-  "$id": "https://www.vchrist.at/mqttbridge/schemas/bridges",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/mqttbridge.schema.json",
+  "title": "MQTT Bridge Configuration",
   "type": "object",
   "required": [
     "bridges"
   ],
+  "additionalProperties": false,
   "properties": {
     "bridges": {
       "type": "array",
+      "minItems": 1,
       "items": {
         "$ref": "#/$defs/bridge"
-      },
-      "required": [
-        "bridge"
-      ]
+      }
     }
   },
   "$defs": {
@@ -22,29 +23,31 @@
         "name",
         "brokers"
       ],
+      "additionalProperties": false,
       "properties": {
         "name": {
-          "type": "string",
-          "minLenght": 1
+          "type": "string"
         },
         "brokers": {
-          "$ref": "#/$defs/brokers"
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/broker"
+          }
         }
       }
-    },
-    "brokers": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/broker"
-      },
-      "minItems": 2
     },
     "broker": {
       "type": "object",
       "required": [
-        "instance_name"
+        "network"
       ],
+      "additionalProperties": false,
       "properties": {
+        "session_store": {
+          "type": "string",
+          "default": ""
+        },
         "connection": {
           "$ref": "#/$defs/connection",
           "default": {
@@ -61,39 +64,25 @@
             "loop_prevention": false
           }
         },
-        "session_store": {
-          "type": "string",
-          "default": ""
-        },
-        "instance_name": {
-          "type": "string",
-          "minLenght": 1
-        },
-        "protocol": {
-          "$ref": "#/$defs/protocol",
-          "default": "in"
-        },
-        "encryption": {
-          "$ref": "#/$defs/encryption",
-          "default": "legacy"
-        },
-        "transport": {
-          "$ref": "#/$defs/transport",
-          "default": "stream"
+        "network": {
+          "$ref": "#/$defs/network"
         },
         "topics": {
-          "$ref": "#/$defs/topics",
-          "default": [
-            {
-              "topic": "#",
-              "qos": 0
-            }
-          ]
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/topic"
+          },
+          "default": {
+            "topic": "#",
+            "qos": 0
+          }
         }
       }
     },
     "connection": {
       "type": "object",
+      "additionalProperties": false,
       "properties": {
         "client_id": {
           "type": "string",
@@ -139,48 +128,356 @@
         }
       }
     },
-    "protocol": {
-      "type": "string",
-      "enum": [
-        "in",
-        "in6",
-        "l2",
-        "rc",
-        "un"
-      ]
-    },
-    "encryption": {
-      "type": "string",
-      "enum": [
-        "legacy",
-        "tls"
-      ]
-    },
-    "transport": {
-      "type": "string",
-      "enum": [
-        "stream",
-        "websocket"
-      ]
-    },
-    "topics": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/topic"
-      }
-    },
     "topic": {
       "type": "object",
+      "required": [
+        "topic",
+        "qos"
+      ],
+      "additionalProperties": false,
       "properties": {
         "topic": {
           "type": "string",
-          "default": ""
+          "default": "#"
         },
         "qos": {
           "type": "integer",
-          "minimum": 0,
-          "maximum": 2,
+          "enum": [
+            0,
+            1,
+            2
+          ],
           "default": 0
+        }
+      }
+    },
+    "network": {
+      "type": "object",
+      "required": [
+        "instance_name",
+        "protocol",
+        "encryption",
+        "transport"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "instance_name": {
+          "type": "string"
+        },
+        "protocol": {
+          "type": "string",
+          "enum": [
+            "in",
+            "in6",
+            "rc",
+            "l2",
+            "un"
+          ]
+        },
+        "in": {
+          "$ref": "#/$defs/net_in"
+        },
+        "in6": {
+          "$ref": "#/$defs/net_in6"
+        },
+        "rc": {
+          "$ref": "#/$defs/net_rc"
+        },
+        "l2": {
+          "$ref": "#/$defs/net_l2"
+        },
+        "un": {
+          "$ref": "#/$defs/net_un"
+        },
+        "encryption": {
+          "type": "string",
+          "enum": [
+            "none",
+            "legacy",
+            "tls"
+          ]
+        },
+        "transport": {
+          "type": "string",
+          "enum": [
+            "stream",
+            "websocket"
+          ]
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "protocol": {
+              "const": "in"
+            }
+          },
+          "required": [
+            "in"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "in6"
+                ]
+              },
+              {
+                "required": [
+                  "rc"
+                ]
+              },
+              {
+                "required": [
+                  "l2"
+                ]
+              },
+              {
+                "required": [
+                  "un"
+                ]
+              }
+            ]
+          },
+          "title": "IPv4 Input"
+        },
+        {
+          "properties": {
+            "protocol": {
+              "const": "in6"
+            }
+          },
+          "required": [
+            "in6"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "in"
+                ]
+              },
+              {
+                "required": [
+                  "rc"
+                ]
+              },
+              {
+                "required": [
+                  "l2"
+                ]
+              },
+              {
+                "required": [
+                  "un"
+                ]
+              }
+            ]
+          },
+          "title": "IPv6 Input"
+        },
+        {
+          "properties": {
+            "protocol": {
+              "const": "rc"
+            }
+          },
+          "required": [
+            "rc"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "in"
+                ]
+              },
+              {
+                "required": [
+                  "in6"
+                ]
+              },
+              {
+                "required": [
+                  "l2"
+                ]
+              },
+              {
+                "required": [
+                  "un"
+                ]
+              }
+            ]
+          },
+          "title": "Bluetooth RFCOMM"
+        },
+        {
+          "properties": {
+            "protocol": {
+              "const": "l2"
+            }
+          },
+          "required": [
+            "l2"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "in"
+                ]
+              },
+              {
+                "required": [
+                  "in6"
+                ]
+              },
+              {
+                "required": [
+                  "rc"
+                ]
+              },
+              {
+                "required": [
+                  "un"
+                ]
+              }
+            ]
+          },
+          "title": "Bluetooth L2CAP"
+        },
+        {
+          "properties": {
+            "protocol": {
+              "const": "un"
+            }
+          },
+          "required": [
+            "un"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "in"
+                ]
+              },
+              {
+                "required": [
+                  "in6"
+                ]
+              },
+              {
+                "required": [
+                  "rc"
+                ]
+              },
+              {
+                "required": [
+                  "l2"
+                ]
+              }
+            ]
+          },
+          "title": "Unix Domain Socket"
+        }
+      ]
+    },
+    "net_in": {
+      "type": "object",
+      "required": [
+        "address",
+        "port"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "address": {
+          "type": "string"
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        }
+      }
+    },
+    "net_in6": {
+      "type": "object",
+      "required": [
+        "address",
+        "port"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "address": {
+          "type": "string"
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        }
+      }
+    },
+    "net_rc": {
+      "type": "object",
+      "required": [
+        "address"
+      ],
+      "additionalProperties": false,
+      "description": "RFCOMM/serial over Bluetooth",
+      "properties": {
+        "address": {
+          "type": "string",
+          "pattern": "^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$",
+          "examples": [
+            "00:1A:7D:DA:71:13"
+          ]
+        },
+        "channel": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 30
+        }
+      }
+    },
+    "net_l2": {
+      "type": "object",
+      "required": [
+        "address"
+      ],
+      "additionalProperties": false,
+      "description": "L2CAP over Bluetooth",
+      "properties": {
+        "address": {
+          "type": "string",
+          "pattern": "^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$",
+          "examples": [
+            "AA:BB:CC:DD:EE:FF"
+          ]
+        },
+        "psm": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        }
+      }
+    },
+    "net_un": {
+      "type": "object",
+      "required": [
+        "address"
+      ],
+      "additionalProperties": false,
+      "description": "Unix domain socket (concrete path, not abstract)",
+      "properties": {
+        "address": {
+          "type": "string",
+          "pattern": "^/(?:[^\\0])+$",
+          "maxLength": 107,
+          "examples": [
+            "/var/run/mqttbridge.sock"
+          ]
         }
       }
     }
