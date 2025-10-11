@@ -175,7 +175,7 @@ void startClient(const std::string& name, const std::function<void(typename Http
 
     const HttpClient httpClient(
         name,
-        [](const std::shared_ptr<web::http::client::Request>& req) {
+        [](const std::shared_ptr<web::http::client::MasterRequest>& req) {
             const std::string connectionName = req->getSocketContext()->getSocketConnection()->getConnectionName();
 
             req->set("Sec-WebSocket-Protocol", "mqtt");
