@@ -48,21 +48,8 @@
           "type": "string",
           "default": ""
         },
-        "connection": {
-          "$ref": "#/$defs/connection",
-          "default": {
-            "client_id": "",
-            "session_store": "",
-            "keep_alive": 60,
-            "clean_session": true,
-            "will_topic": "",
-            "will_message": "",
-            "will_qos": 0,
-            "will_retain": false,
-            "username": "",
-            "password": "",
-            "loop_prevention": false
-          }
+        "mqtt": {
+          "$ref": "#/$defs/mqtt"
         },
         "network": {
           "$ref": "#/$defs/network"
@@ -80,7 +67,7 @@
         }
       }
     },
-    "connection": {
+    "mqtt": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -126,6 +113,19 @@
           "type": "boolean",
           "default": false
         }
+      },
+      "default": {
+        "client_id": "",
+        "session_store": "",
+        "keep_alive": 60,
+        "clean_session": true,
+        "will_topic": "",
+        "will_message": "",
+        "will_qos": 0,
+        "will_retain": false,
+        "username": "",
+        "password": "",
+        "loop_prevention": false
       }
     },
     "topic": {
@@ -192,7 +192,6 @@
         "encryption": {
           "type": "string",
           "enum": [
-            "none",
             "legacy",
             "tls"
           ]
@@ -239,7 +238,7 @@
               }
             ]
           },
-          "title": "IPv4 Input"
+          "title": "IPv4 Socket"
         },
         {
           "properties": {
@@ -274,7 +273,7 @@
               }
             ]
           },
-          "title": "IPv6 Input"
+          "title": "IPv6 Socket"
         },
         {
           "properties": {
@@ -309,7 +308,7 @@
               }
             ]
           },
-          "title": "Bluetooth RFCOMM"
+          "title": "Bluetooth RFCOMM Socket"
         },
         {
           "properties": {
@@ -344,7 +343,7 @@
               }
             ]
           },
-          "title": "Bluetooth L2CAP"
+          "title": "Bluetooth L2CAP Socket"
         },
         {
           "properties": {
@@ -386,12 +385,13 @@
     "net_in": {
       "type": "object",
       "required": [
-        "address",
+        "host",
         "port"
       ],
       "additionalProperties": false,
+      "description": "IPv4 socket (concrete host and port)",
       "properties": {
-        "address": {
+        "host": {
           "type": "string"
         },
         "port": {
@@ -404,12 +404,13 @@
     "net_in6": {
       "type": "object",
       "required": [
-        "address",
+        "host",
         "port"
       ],
       "additionalProperties": false,
+      "description": "IPv6 socket (concrete host and port)",
       "properties": {
-        "address": {
+        "host": {
           "type": "string"
         },
         "port": {
@@ -422,12 +423,13 @@
     "net_rc": {
       "type": "object",
       "required": [
-        "address"
+        "host",
+        "channel"
       ],
       "additionalProperties": false,
-      "description": "RFCOMM/serial over Bluetooth",
+      "description": "RFCOMM/serial over Bluetooth (concrete address and channel)",
       "properties": {
-        "address": {
+        "host": {
           "type": "string",
           "pattern": "^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$",
           "examples": [
@@ -444,12 +446,13 @@
     "net_l2": {
       "type": "object",
       "required": [
-        "address"
+        "host",
+        "psm"
       ],
       "additionalProperties": false,
-      "description": "L2CAP over Bluetooth",
+      "description": "L2CAP over Bluetooth (concrete address and psm)",
       "properties": {
-        "address": {
+        "host": {
           "type": "string",
           "pattern": "^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$",
           "examples": [
@@ -466,12 +469,12 @@
     "net_un": {
       "type": "object",
       "required": [
-        "address"
+        "path"
       ],
       "additionalProperties": false,
-      "description": "Unix domain socket (concrete path, not abstract)",
+      "description": "Unix domain socket (concrete path)",
       "properties": {
-        "address": {
+        "path": {
           "type": "string",
           "pattern": "^/(?:[^\\0])+$",
           "maxLength": 107,

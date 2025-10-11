@@ -65,6 +65,7 @@ namespace mqtt::bridge::lib {
                    std::string&& protocol,
                    std::string&& encryption,
                    std::string&& transport,
+                   const nlohmann::json& address,
                    std::list<iot::mqtt::Topic>&& topics)
         : bridge(bridge)
         , sessionStoreFileName(sessionStoreFileName)
@@ -82,6 +83,7 @@ namespace mqtt::bridge::lib {
         , protocol(std::move(protocol))
         , encryption(std::move(encryption))
         , transport(std::move(transport))
+        , address(address)
         , topics(std::move(topics)) {
     }
 
@@ -151,6 +153,10 @@ namespace mqtt::bridge::lib {
 
     const std::list<iot::mqtt::Topic>& Broker::getTopics() const {
         return topics;
+    }
+
+    const nlohmann::json& Broker::getAddress() const {
+        return address;
     }
 
 } // namespace mqtt::bridge::lib

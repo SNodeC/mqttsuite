@@ -51,7 +51,10 @@ namespace mqtt::bridge::lib {
 #include <cstdint>
 #include <iot/mqtt/Topic.h> // IWYU pragma: export
 #include <list>
+#include <nlohmann/json.hpp>
 #include <string>
+
+// IWYU pragma: no_include <nlohmann/json_fwd.hpp>
 
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
@@ -75,6 +78,7 @@ namespace mqtt::bridge::lib {
                std::string&& protocol,
                std::string&& encryption,
                std::string&& transport,
+               const nlohmann::json& address,
                std::list<iot::mqtt::Topic>&& topics);
 
         Broker(const Broker&) = delete;
@@ -101,6 +105,7 @@ namespace mqtt::bridge::lib {
         const std::string& getEncryption() const;
         const std::string& getTransport() const;
         const std::list<iot::mqtt::Topic>& getTopics() const;
+        const nlohmann::json& getAddress() const;
 
     private:
         Bridge& bridge;
@@ -121,6 +126,7 @@ namespace mqtt::bridge::lib {
         std::string protocol;
         std::string encryption;
         std::string transport;
+        nlohmann::json address;
         std::list<iot::mqtt::Topic> topics;
     };
 

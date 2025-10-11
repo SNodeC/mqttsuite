@@ -147,6 +147,7 @@
 #endif
 
 #include <list>
+#include <nlohmann/json.hpp>
 #include <string>
 
 #endif
@@ -252,11 +253,14 @@ int main(int argc, char* argv[]) {
 #if defined(MQTTBRIDGE_IN_STREAM_LEGACY)
                         net::in::stream::legacy::Client<mqtt::bridge::SocketContextFactory>(
                             instanceName,
-                            [](auto& config) {
+                            [&broker](auto& config) {
                                 config.setRetry();
                                 config.setRetryBase(1);
                                 config.setReconnect();
                                 config.setDisableNagleAlgorithm();
+
+                                config.Remote::setHost(broker.getAddress()["host"]);
+                                config.Remote::setPort(broker.getAddress()["port"]);
                             },
                             broker)
                             .connect([instanceName](const auto& socketAddress, const core::socket::State& state) {
@@ -270,11 +274,14 @@ int main(int argc, char* argv[]) {
 #if defined(MQTTBRIDGE_IN_STREAM_TLS)
                         net::in::stream::tls::Client<mqtt::bridge::SocketContextFactory>(
                             instanceName,
-                            [](auto& config) {
+                            [&broker](auto& config) {
                                 config.setRetry();
                                 config.setRetryBase(1);
                                 config.setReconnect();
                                 config.setDisableNagleAlgorithm();
+
+                                config.Remote::setHost(broker.getAddress()["host"]);
+                                config.Remote::setPort(broker.getAddress()["port"]);
                             },
                             broker)
                             .connect([instanceName](const auto& socketAddress, const core::socket::State& state) {
@@ -290,11 +297,14 @@ int main(int argc, char* argv[]) {
 #if defined(MQTTBRIDGE_IN6_STREAM_LEGACY)
                         net::in6::stream::legacy::Client<mqtt::bridge::SocketContextFactory>(
                             instanceName,
-                            [](auto& config) {
+                            [&broker](auto& config) {
                                 config.setRetry();
                                 config.setRetryBase(1);
                                 config.setReconnect();
                                 config.setDisableNagleAlgorithm();
+
+                                config.Remote::setHost(broker.getAddress()["host"]);
+                                config.Remote::setPort(broker.getAddress()["port"]);
                             },
                             broker)
                             .connect([instanceName](const auto& socketAddress, const core::socket::State& state) {
@@ -308,11 +318,14 @@ int main(int argc, char* argv[]) {
 #if defined(MQTTBRIDGE_IN6_STREAM_TLS)
                         net::in6::stream::tls::Client<mqtt::bridge::SocketContextFactory>(
                             instanceName,
-                            [](auto& config) {
+                            [&broker](auto& config) {
                                 config.setRetry();
                                 config.setRetryBase(1);
                                 config.setReconnect();
                                 config.setDisableNagleAlgorithm();
+
+                                config.Remote::setHost(broker.getAddress()["host"]);
+                                config.Remote::setPort(broker.getAddress()["port"]);
                             },
                             broker)
                             .connect([instanceName](const auto& socketAddress, const core::socket::State& state) {
@@ -328,10 +341,13 @@ int main(int argc, char* argv[]) {
 #if defined(MQTTBRIDGE_L2_STREAM_LEGACY)
                         net::l2::stream::legacy::Client<mqtt::bridge::SocketContextFactory>(
                             instanceName,
-                            [](auto& config) {
+                            [&broker](auto& config) {
                                 config.setRetry();
                                 config.setRetryBase(1);
                                 config.setReconnect();
+
+                                config.Remote::setBtAddress(broker.getAddress()["host"]);
+                                config.Remote::setPsm(broker.getAddress()["psm"]);
                             },
                             broker)
                             .connect([instanceName](const auto& socketAddress, const core::socket::State& state) {
@@ -345,10 +361,13 @@ int main(int argc, char* argv[]) {
 #if defined(MQTTBRIDGE_L2_STREAM_TLS)
                         net::l2::stream::tls::Client<mqtt::bridge::SocketContextFactory>(
                             instanceName,
-                            [](auto& config) {
+                            [&broker](auto& config) {
                                 config.setRetry();
                                 config.setRetryBase(1);
                                 config.setReconnect();
+
+                                config.Remote::setBtAddress(broker.getAddress()["host"]);
+                                config.Remote::setPsm(broker.getAddress()["psm"]);
                             },
                             broker)
                             .connect([instanceName](const auto& socketAddress, const core::socket::State& state) {
@@ -364,10 +383,13 @@ int main(int argc, char* argv[]) {
 #if defined(MQTTBRIDGE_RC_STREAM_LEGACY)
                         net::rc::stream::legacy::Client<mqtt::bridge::SocketContextFactory>(
                             instanceName,
-                            [](auto& config) {
+                            [&broker](auto& config) {
                                 config.setRetry();
                                 config.setRetryBase(1);
                                 config.setReconnect();
+
+                                config.Remote::setBtAddress(broker.getAddress()["host"]);
+                                config.Remote::setChannel(broker.getAddress()["channel"]);
                             },
                             broker)
                             .connect([instanceName](const auto& socketAddress, const core::socket::State& state) {
@@ -381,10 +403,13 @@ int main(int argc, char* argv[]) {
 #if defined(MQTTBRIDGE_RC_STREAM_TLS)
                         net::rc::stream::tls::Client<mqtt::bridge::SocketContextFactory>(
                             instanceName,
-                            [](auto& config) {
+                            [&broker](auto& config) {
                                 config.setRetry();
                                 config.setRetryBase(1);
                                 config.setReconnect();
+
+                                config.Remote::setBtAddress(broker.getAddress()["host"]);
+                                config.Remote::setChannel(broker.getAddress()["channel"]);
                             },
                             broker)
                             .connect([instanceName](const auto& socketAddress, const core::socket::State& state) {
@@ -400,10 +425,12 @@ int main(int argc, char* argv[]) {
 #if defined(MQTTBRIDGE_UN_STREAM_LEGACY)
                         net::un::stream::legacy::Client<mqtt::bridge::SocketContextFactory>(
                             instanceName,
-                            [](auto& config) {
+                            [&broker](auto& config) {
                                 config.setRetry();
                                 config.setRetryBase(1);
                                 config.setReconnect();
+
+                                config.Remote::setSunPath(broker.getAddress()["host"]);
                             },
                             broker)
                             .connect([instanceName](const auto& socketAddress, const core::socket::State& state) {
@@ -417,10 +444,12 @@ int main(int argc, char* argv[]) {
 #if defined(MQTTBRIDGE_UN_STREAM_TLS)
                         net::un::stream::tls::Client<mqtt::bridge::SocketContextFactory>(
                             instanceName,
-                            [](auto& config) {
+                            [&broker](auto& config) {
                                 config.setRetry();
                                 config.setRetryBase(1);
                                 config.setReconnect();
+
+                                config.Remote::setSunPath(broker.getAddress()["host"]);
                             },
                             broker)
                             .connect([instanceName](const auto& socketAddress, const core::socket::State& state) {
@@ -436,13 +465,16 @@ int main(int argc, char* argv[]) {
                 if (protocol == "in") {
                     if (encryption == "legacy") {
 #if defined(MQTTBRIDGE_IN_WEBSOCKET_LEGACY)
-                        startClient<web::http::legacy::in::Client>(broker.getInstanceName(), [](auto& config) {
+                        startClient<web::http::legacy::in::Client>(broker.getInstanceName(), [&broker](auto& config) {
                             config.Remote::setPort(8080);
 
                             config.setRetry();
                             config.setRetryBase(1);
                             config.setReconnect();
                             config.setDisableNagleAlgorithm();
+
+                            config.Remote::setHost(broker.getAddress()["host"]);
+                            config.Remote::setPort(broker.getAddress()["port"]);
                         });
 #else  // MQTTBRIDGE_IN_WEBSOCKET_LEGACY
                         VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
@@ -450,13 +482,16 @@ int main(int argc, char* argv[]) {
 #endif // MQTTBRIDGE_IN_WEBSOCKET_LEGACY
                     } else if (encryption == "tls") {
 #if defined(MQTTBRIDGE_IN_WEBSOCKET_TLS)
-                        startClient<web::http::tls::in::Client>(broker.getInstanceName(), [](auto& config) {
+                        startClient<web::http::tls::in::Client>(broker.getInstanceName(), [&broker](auto& config) {
                             config.Remote::setPort(8088);
 
                             config.setRetry();
                             config.setRetryBase(1);
                             config.setReconnect();
                             config.setDisableNagleAlgorithm();
+
+                            config.Remote::setHost(broker.getAddress()["host"]);
+                            config.Remote::setPort(broker.getAddress()["port"]);
                         });
 #else  // MQTTBRIDGE_IN_WEBSOCKET_TLS
                         VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
@@ -466,13 +501,16 @@ int main(int argc, char* argv[]) {
                 } else if (protocol == "in6") {
                     if (encryption == "legacy") {
 #if defined(MQTTBRIDGE_IN6_WEBSOCKET_LEGACY)
-                        startClient<web::http::legacy::in6::Client>(broker.getInstanceName(), [](auto& config) {
+                        startClient<web::http::legacy::in6::Client>(broker.getInstanceName(), [&broker](auto& config) {
                             config.Remote::setPort(8080);
 
                             config.setRetry();
                             config.setRetryBase(1);
                             config.setReconnect();
                             config.setDisableNagleAlgorithm();
+
+                            config.Remote::setHost(broker.getAddress()["host"]);
+                            config.Remote::setPort(broker.getAddress()["port"]);
                         });
 #else  // MQTTBRIDGE_IN6_WEBSOCKET_LEGACY
                         VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
@@ -480,13 +518,16 @@ int main(int argc, char* argv[]) {
 #endif // MQTTBRIDGE_IN6_WEBSOCKET_LEGACY
                     } else if (encryption == "tls") {
 #if defined(MQTTBRIDGE_IN6_WEBSOCKET_TLS)
-                        startClient<web::http::tls::in6::Client>(broker.getInstanceName(), [](auto& config) {
+                        startClient<web::http::tls::in6::Client>(broker.getInstanceName(), [&broker](auto& config) {
                             config.Remote::setPort(8088);
 
                             config.setRetry();
                             config.setRetryBase(1);
                             config.setReconnect();
                             config.setDisableNagleAlgorithm();
+
+                            config.Remote::setHost(broker.getAddress()["host"]);
+                            config.Remote::setPort(broker.getAddress()["port"]);
                         });
 #else  // MQTTBRIDGE_IN6_WEBSOCKET_TLS
                         VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption

@@ -45,6 +45,7 @@
 
 #include "nlohmann/json-schema.hpp"
 
+#include <cmath>
 #include <exception>
 #include <fstream>
 #include <list>
@@ -105,24 +106,27 @@ namespace mqtt::bridge::lib {
                                                                         topicJson["qos"]);
                                                 }
 
-                                                const nlohmann::json& connection = brokerConfigJson["connection"];
-                                                brokers.emplace(brokerConfigJson["instance_name"],
+                                                const nlohmann::json& mqtt = brokerConfigJson["mqtt"];
+                                                const nlohmann::json& network = brokerConfigJson["network"];
+
+                                                brokers.emplace(network["instance_name"],
                                                                 Broker(bridge,
                                                                        brokerConfigJson["session_store"],
-                                                                       connection["client_id"],
-                                                                       connection["keep_alive"],
-                                                                       connection["clean_session"],
-                                                                       connection["will_topic"],
-                                                                       connection["will_message"],
-                                                                       connection["will_qos"],
-                                                                       connection["will_retain"],
-                                                                       connection["username"],
-                                                                       connection["password"],
-                                                                       connection["loop_prevention"],
-                                                                       brokerConfigJson["instance_name"],
-                                                                       brokerConfigJson["protocol"],
-                                                                       brokerConfigJson["encryption"],
-                                                                       brokerConfigJson["transport"],
+                                                                       mqtt["client_id"],
+                                                                       mqtt["keep_alive"],
+                                                                       mqtt["clean_session"],
+                                                                       mqtt["will_topic"],
+                                                                       mqtt["will_message"],
+                                                                       mqtt["will_qos"],
+                                                                       mqtt["will_retain"],
+                                                                       mqtt["username"],
+                                                                       mqtt["password"],
+                                                                       mqtt["loop_prevention"],
+                                                                       network["instance_name"],
+                                                                       network["protocol"],
+                                                                       network["encryption"],
+                                                                       network["transport"],
+                                                                       network[network["protocol"]],
                                                                        std::move(topics)));
                                             }
                                         }

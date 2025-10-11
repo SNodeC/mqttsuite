@@ -4,69 +4,60 @@
       "name": "TTN IoT",
       "brokers": [
         {
-          "connection": {
-            "username": "test-application-voc@ttn",
-            "password": "NNSXS.SOX5JC3PDMP6Q6K6HVWQCXLNQ2JULTKWO3X6KDI.XLHSEVV2RZTL7YWLOP3F6TOXUOGAZA33UPIKSDZ6SRJ2YIM3OXBA"
-          },
           "network" : {
             "instance_name": "ttn-remote",
             "protocol": "in",
             "in" : {
-              "address" : "localhost",
+              "host" : "localhost",
               "port" : 1883
             },
             "encryption": "legacy",
             "transport": "stream"
           },
-          "topics": [
-            {
-              "topic": "#",
-              "qos": 0
-            }
-          ]
-        },
-        {
-          "connection": {
+          "mqtt": {
             "username": "test-application-voc@ttn",
             "password": "NNSXS.SOX5JC3PDMP6Q6K6HVWQCXLNQ2JULTKWO3X6KDI.XLHSEVV2RZTL7YWLOP3F6TOXUOGAZA33UPIKSDZ6SRJ2YIM3OXBA"
           },
+          "topics": [
+            { "topic": "#", "qos": 0 }
+          ]
+        },
+        {
           "network" : {
             "instance_name": "ttns-remote",
             "protocol": "in6",
             "in6" : {
-              "address" : "remotehost",
+              "host" : "remotehost",
               "port" : 8080
             },
             "encryption": "tls",
             "transport": "stream"
           },
+          "mqtt": {
+            "username": "test-application-voc@ttn",
+            "password": "NNSXS.SOX5JC3PDMP6Q6K6HVWQCXLNQ2JULTKWO3X6KDI.XLHSEVV2RZTL7YWLOP3F6TOXUOGAZA33UPIKSDZ6SRJ2YIM3OXBA"
+          },
           "topics": [
-            {
-              "topic": "#",
-              "qos": 0
-            }
+            { "topic": "#", "qos": 0 }
           ]
         },
         {
-          "connection": {
-            "client_id": "TTN-Bridge",
-            "loop_prevention": true
-          },
           "network" : {
             "instance_name": "ttn-local",
             "protocol": "in",
             "in" : {
-              "address" : "localhost",
+              "host" : "localhost",
               "port" : 8080
             },
             "encryption": "legacy",
             "transport": "websocket"
           },
-          "topics": [
-            {
-              "topic": "v3/test-application-voc@ttn/devices/+/down/push",
-              "qos": 0
-            }
+          "mqtt": {
+            "client_id": "TTN-Bridge",
+            "loop_prevention": true
+          },
+         "topics": [
+            { "topic": "v3/test-application-voc@ttn/devices/+/down/push",  "qos": 0 }
           ]
         }
       ]

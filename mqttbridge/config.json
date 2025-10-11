@@ -4,54 +4,63 @@
       "name": "Local IoT",
       "brokers": [
         {
-          "connection": {
-            "client_id": "MQTT-Bridge",
-            "username": "Username",
-            "password": "Password",
-            "loop_prevention": true
-          },
           "network": {
             "instance_name": "in-mqtt-1",
             "protocol": "in",
-            "in": { "address": "localhost", "port": 1883 },
+            "in": {
+              "host": "localhost",
+              "port": 1883
+            },
             "encryption": "legacy",
             "transport": "stream"
+          },
+          "mqtt": {
+            "client_id": "MQTT-Bridge",
+            "username": "Username",
+            "password": "Password",
+            "loop_prevention": true
           },
           "topics": [
             { "topic": "#", "qos": 0 }
           ]
         },
         {
-          "connection": {
-            "client_id": "MQTT-Bridge",
-            "username": "Username",
-            "password": "Password",
-            "loop_prevention": true
-          },
           "network": {
             "instance_name": "in-mqtt-2",
             "protocol": "in",
-            "in": { "address": "localhost", "port": 1883 },
+            "in": {
+              "host": "localhost",
+              "port": 1883
+            },
             "encryption": "legacy",
             "transport": "stream"
           },
-          "topics": [
-            { "topic": "#", "qos": 0 }
-          ]
-        },
-        {
-          "connection": {
+          "mqtt": {
             "client_id": "MQTT-Bridge",
             "username": "Username",
             "password": "Password",
             "loop_prevention": true
           },
+         "topics": [
+            { "topic": "#", "qos": 0 }
+          ]
+        },
+        {
           "network": {
             "instance_name": "in-mqtt-3",
             "protocol": "in",
-            "in": { "address": "localhost", "port": 1883 },
+            "in": {
+              "host": "localhost",
+              "port": 1883
+            },
             "encryption": "legacy",
             "transport": "stream"
+          },
+          "mqtt": {
+            "client_id": "MQTT-Bridge",
+            "username": "Username",
+            "password": "Password",
+            "loop_prevention": true
           },
           "topics": [
             { "topic": "topic/subtopic", "qos": 2 },
@@ -59,88 +68,103 @@
           ]
         },
         {
-          "connection": {
-            "client_id": "MQTT-Bridge",
-            "username": "Username",
-            "password": "Password",
-            "loop_prevention": true
-          },
           "network": {
             "instance_name": "in-mqtt-4",
             "protocol": "in",
-            "in": { "address": "localhost", "port": 1883 },
+            "in": {
+              "host": "localhost",
+              "port": 1883
+            },
             "encryption": "legacy",
             "transport": "stream"
           },
-          "topics": [
-            { "topic": "#", "qos": 0 }
-          ]
-        },
-        {
-          "connection": {
+          "mqtt": {
             "client_id": "MQTT-Bridge",
             "username": "Username",
             "password": "Password",
             "loop_prevention": true
           },
+          "topics": [
+            { "topic": "#", "qos": 0 }
+          ]
+        },
+        {
           "network": {
             "instance_name": "in-wsmqtt-1",
             "protocol": "in",
-            "in": { "address": "localhost", "port": 80 },
+            "in": {
+              "host": "localhost",
+              "port": 80
+            },
             "encryption": "legacy",
             "transport": "websocket"
+          },
+          "mqtt": {
+            "client_id": "MQTT-Bridge",
+            "username": "Username",
+            "password": "Password",
+            "loop_prevention": true
           },
           "topics": [
             { "topic": "#", "qos": 0 }
           ]
         },
         {
-          "connection": {
-            "client_id": "MQTT-Bridge",
-            "username": "Username",
-            "password": "Password",
-            "loop_prevention": true
-          },
           "network": {
             "instance_name": "in-wsmqtt-2",
             "protocol": "in",
-            "in": { "address": "localhost", "port": 80 },
+            "in": {
+              "host": "localhost",
+              "port": 80
+            },
             "encryption": "legacy",
             "transport": "websocket"
           },
-          "topics": [
-            { "topic": "#", "qos": 0 }
-          ]
-        },
-        {
-          "connection": {
+          "mqtt": {
             "client_id": "MQTT-Bridge",
             "username": "Username",
             "password": "Password",
             "loop_prevention": true
           },
+          "topics": [
+            { "topic": "#", "qos": 0 }
+          ]
+        },
+        {
           "network": {
             "instance_name": "in-wsmqtts",
             "protocol": "in",
-            "in": { "address": "localhost", "port": 443 },
+            "in": {
+              "host": "localhost",
+              "port": 443
+            },
             "encryption": "tls",
             "transport": "websocket"
+          },
+          "mqtt": {
+            "client_id": "MQTT-Bridge",
+            "username": "Username",
+            "password": "Password",
+            "loop_prevention": true
           },
           "topics": [
             { "topic": "#", "qos": 0 }
           ]
         },
         {
-          "connection": {
-            "client_id": "TTN-Bridge-Shadow",
-            "loop_prevention": true
-          },
           "network": {
             "instance_name": "ttn-shadow",
             "protocol": "in",
-            "in": { "address": "localhost", "port": 80 },
+            "in": {
+              "host": "localhost",
+              "port": 80
+            },
             "encryption": "legacy",
             "transport": "websocket"
+          },
+          "mqtt": {
+            "client_id": "TTN-Bridge-Shadow",
+            "loop_prevention": true
           },
           "topics": [
             { "topic": "#", "qos": 0 }
@@ -152,34 +176,40 @@
       "name": "TTN IoT",
       "brokers": [
         {
-          "connection": {
-            "username": "test-application-voc@ttn",
-            "password": "NNSXS.SOX5JC3PDMP6Q6K6HVWQCXLNQ2JULTKWO3X6KDI.XLHSEVV2RZTL7YWLOP3F6TOXUOGAZA33UPIKSDZ6SRJ2YIM3OXBA"
-          },
           "network": {
             "instance_name": "ttn-remote",
             "protocol": "in",
-            "in": { "address": "localhost", "port": 1883 },
+            "in": {
+              "host": "localhost",
+              "port": 1883
+            },
             "encryption": "legacy",
             "transport": "stream"
+          },
+          "mqtt": {
+            "username": "test-application-voc@ttn",
+            "password": "NNSXS.SOX5JC3PDMP6Q6K6HVWQCXLNQ2JULTKWO3X6KDI.XLHSEVV2RZTL7YWLOP3F6TOXUOGAZA33UPIKSDZ6SRJ2YIM3OXBA"
           },
           "topics": [
             { "topic": "#", "qos": 0 }
           ]
         },
         {
-          "connection": {
-            "username": "test-application-voc@ttn",
-            "password": "NNSXS.SOX5JC3PDMP6Q6K6HVWQCXLNQ2JULTKWO3X6KDI.XLHSEVV2RZTL7YWLOP3F6TOXUOGAZA33UPIKSDZ6SRJ2YIM3OXBA"
-          },
           "network": {
             "instance_name": "ttns-remote",
             "protocol": "in",
-            "in": { "address": "localhost", "port": 8883 },
+            "in": {
+              "host": "localhost",
+              "port": 8883
+            },
             "encryption": "tls",
             "transport": "stream"
           },
-          "topics": [
+          "mqtt": {
+            "username": "test-application-voc@ttn",
+            "password": "NNSXS.SOX5JC3PDMP6Q6K6HVWQCXLNQ2JULTKWO3X6KDI.XLHSEVV2RZTL7YWLOP3F6TOXUOGAZA33UPIKSDZ6SRJ2YIM3OXBA"
+          },
+         "topics": [
             { "topic": "#", "qos": 0 }
           ]
         }
