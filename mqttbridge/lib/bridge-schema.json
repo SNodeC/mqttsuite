@@ -60,10 +60,12 @@
           "items": {
             "$ref": "#/$defs/topic"
           },
-          "default": {
-            "topic": "#",
-            "qos": 0
-          }
+          "default": [
+            {
+              "topic": "#",
+              "qos": 0
+            }
+          ]
         }
       }
     },
@@ -131,8 +133,7 @@
     "topic": {
       "type": "object",
       "required": [
-        "topic",
-        "qos"
+        "topic"
       ],
       "additionalProperties": false,
       "properties": {
