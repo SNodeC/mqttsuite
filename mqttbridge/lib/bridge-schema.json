@@ -48,11 +48,15 @@
           "type": "string",
           "default": ""
         },
+        "network": {
+          "$ref": "#/$defs/network"
+        },
         "mqtt": {
           "$ref": "#/$defs/mqtt"
         },
-        "network": {
-          "$ref": "#/$defs/network"
+        "prefix": {
+          "type": "string",
+          "default": ""
         },
         "topics": {
           "type": "array",
