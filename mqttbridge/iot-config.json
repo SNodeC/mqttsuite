@@ -4,60 +4,43 @@
       "name": "TTN IoT",
       "brokers": [
         {
-          "network" : {
+          "network": {
             "instance_name": "ttn-remote",
             "protocol": "in",
-            "in" : {
-              "host" : "localhost",
-              "port" : 1883
+            "in": {
+              "host": "eu1.cloud.thethings.network",
+              "port": 1883
             },
             "encryption": "legacy",
             "transport": "stream"
           },
           "mqtt": {
+            "client_id": "client",
             "username": "test-application-voc@ttn",
             "password": "NNSXS.SOX5JC3PDMP6Q6K6HVWQCXLNQ2JULTKWO3X6KDI.XLHSEVV2RZTL7YWLOP3F6TOXUOGAZA33UPIKSDZ6SRJ2YIM3OXBA"
           },
           "topics": [
-            { "topic": "#", "qos": 0 }
+            { "topic": "v3/test-application-voc@ttn/devices/+/#", "qos": 0 }
           ]
         },
         {
-          "network" : {
-            "instance_name": "ttns-remote",
-            "protocol": "in6",
-            "in6" : {
-              "host" : "remotehost",
-              "port" : 8080
-            },
-            "encryption": "tls",
-            "transport": "stream"
-          },
-          "mqtt": {
-            "username": "test-application-voc@ttn",
-            "password": "NNSXS.SOX5JC3PDMP6Q6K6HVWQCXLNQ2JULTKWO3X6KDI.XLHSEVV2RZTL7YWLOP3F6TOXUOGAZA33UPIKSDZ6SRJ2YIM3OXBA"
-          },
-          "topics": [
-            { "topic": "#", "qos": 0 }
-          ]
-        },
-        {
-          "network" : {
+          "network": {
             "instance_name": "ttn-local",
             "protocol": "in",
-            "in" : {
-              "host" : "localhost",
-              "port" : 8080
+            "in": {
+              "host": "localhost",
+              "port": 8080
             },
             "encryption": "legacy",
             "transport": "websocket"
           },
+          "prefix": "test_prefix/",
           "mqtt": {
-            "client_id": "TTN-Bridge",
+            "client_id": "TTN-Local",
             "loop_prevention": true
           },
-         "topics": [
-            { "topic": "v3/test-application-voc@ttn/devices/+/down/push",  "qos": 0 }
+          "topics": [
+            { "topic": "" }
           ]
         }
       ]
