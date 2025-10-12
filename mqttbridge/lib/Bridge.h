@@ -63,7 +63,7 @@ namespace mqtt::bridge::lib {
 
     class Bridge {
     public:
-        explicit Bridge(const std::string& name);
+        explicit Bridge(const std::string& name, const std::string& prefix);
 
         const std::string& getName();
 
@@ -74,8 +74,11 @@ namespace mqtt::bridge::lib {
 
         const std::list<const mqtt::bridge::lib::Mqtt*>& getMqttList() const;
 
+        const std::string& getPrefix() const;
+
     private:
         std::string name;
+        std::string prefix;
 
         std::list<const mqtt::bridge::lib::Mqtt*> mqttList;
     };

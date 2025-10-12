@@ -52,8 +52,9 @@
 
 namespace mqtt::bridge::lib {
 
-    Bridge::Bridge(const std::string& name)
-        : name(name) {
+    Bridge::Bridge(const std::string& name, const std::string& prefix)
+        : name(name)
+        , prefix(prefix) {
     }
 
     const std::string& Bridge::getName() {
@@ -70,13 +71,20 @@ namespace mqtt::bridge::lib {
 
     void Bridge::publish(const mqtt::bridge::lib::Mqtt* originMqtt, const iot::mqtt::packets::Publish& publish) {
         for (const mqtt::bridge::lib::Mqtt* destinationMqtt : mqttList) {
-            if (originMqtt != destinationMqtt) { // Do not reflect message to origin broker. Avoid message looping
-                destinationMqtt->sendPublish(destinationMqtt->getBroker().getPrefix() + publish.getTopic(),
+            if (originMqtt != destinationMqtt) {    // Do not reflect message to origin broker. Avoid message looping
+                destinationMqtt->sendPublish(prefix //
+                                                 + originMqtt->getBroker().getPrefix()      //
+                                                 + destinationMqtt->getBroker().getPrefix() //
+                                                 + publish.getTopic(),
                                              publish.getMessage(),
                                              publish.getQoS(),
                                              publish.getRetain());
             }
         }
+    }
+
+    const std::string& Bridge::getPrefix() const {
+        return prefix;
     }
 
     const std::list<const Mqtt*>& Bridge::getMqttList() const {

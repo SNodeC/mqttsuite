@@ -97,7 +97,7 @@ namespace mqtt::bridge::lib {
                                         bridgesConfigJson = bridgesConfigJson.patch(defaultPatch);
 
                                         for (const nlohmann::json& bridgeConfigJson : bridgesConfigJson["bridges"]) {
-                                            Bridge& bridge = bridgeList.emplace_back(bridgeConfigJson["name"]);
+                                            Bridge& bridge = bridgeList.emplace_back(bridgeConfigJson["name"], bridgeConfigJson["prefix"]);
 
                                             for (const nlohmann::json& brokerConfigJson : bridgeConfigJson["brokers"]) {
                                                 std::list<iot::mqtt::Topic> topics;

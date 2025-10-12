@@ -233,7 +233,8 @@ int main(int argc, char* argv[]) {
         for (const auto& [instanceName, broker] : mqtt::bridge::lib::BridgeStore::instance().getBrokers()) {
             VLOG(1) << "  Creating Broker instance '" << instanceName << "' of Bridge '" << broker.getBridge().getName() << "'";
             VLOG(1) << "    Broker client id: " << broker.getClientId();
-            VLOG(1) << "    Prefix: " << broker.getPrefix();
+            VLOG(1) << "    Bridge prefix: " << broker.getBridge().getPrefix();
+            VLOG(1) << "    Broker Prefix: " << broker.getPrefix();
             VLOG(1) << "    Transport: " << broker.getTransport();
             VLOG(1) << "    Protocol: " << broker.getProtocol();
             VLOG(1) << "    Encryption: " << broker.getEncryption();

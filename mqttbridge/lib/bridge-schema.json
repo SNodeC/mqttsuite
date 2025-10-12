@@ -28,6 +28,10 @@
         "name": {
           "type": "string"
         },
+        "prefix": {
+          "type": "string",
+          "default": ""
+        },
         "brokers": {
           "type": "array",
           "minItems": 1,
