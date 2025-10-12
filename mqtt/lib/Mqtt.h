@@ -86,7 +86,6 @@ namespace mqtt::mqtt::lib {
         void onPubcomp(const iot::mqtt::packets::Pubcomp& pubcomp) final;
 
         const uint8_t qoSDefault;
-        const uint16_t keepAlive;
         const bool cleanSession;
 
         const std::string willTopic;

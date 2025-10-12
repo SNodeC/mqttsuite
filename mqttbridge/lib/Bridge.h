@@ -45,12 +45,14 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 namespace iot::mqtt {
-    class Mqtt;
-
     namespace packets {
         class Publish;
     }
 } // namespace iot::mqtt
+
+namespace mqtt::bridge::lib {
+    class Mqtt;
+}
 
 #include <list>
 #include <string>
@@ -65,17 +67,17 @@ namespace mqtt::bridge::lib {
 
         const std::string& getName();
 
-        void addMqtt(iot::mqtt::Mqtt* mqtt);
-        void removeMqtt(iot::mqtt::Mqtt* mqtt);
+        void addMqtt(mqtt::bridge::lib::Mqtt* mqtt);
+        void removeMqtt(mqtt::bridge::lib::Mqtt* mqtt);
 
-        void publish(const iot::mqtt::Mqtt* originMqtt, const iot::mqtt::packets::Publish& publish);
+        void publish(const mqtt::bridge::lib::Mqtt* originMqtt, const iot::mqtt::packets::Publish& publish);
 
-        const std::list<iot::mqtt::Mqtt*>& getMqttList() const;
+        const std::list<const mqtt::bridge::lib::Mqtt*>& getMqttList() const;
 
     private:
         std::string name;
 
-        std::list<iot::mqtt::Mqtt*> mqttList;
+        std::list<const mqtt::bridge::lib::Mqtt*> mqttList;
     };
 
 } // namespace mqtt::bridge::lib

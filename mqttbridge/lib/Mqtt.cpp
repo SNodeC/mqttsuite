@@ -57,26 +57,32 @@
 namespace mqtt::bridge::lib {
 
     Mqtt::Mqtt(const std::string& connectionName, const Broker& broker)
-        : iot::mqtt::client::Mqtt(connectionName, broker.getClientId(), broker.getSessionStoreFileName())
+        : iot::mqtt::client::Mqtt(connectionName, //
+                                  broker.getClientId(),
+                                  broker.getKeepAlive(),
+                                  broker.getSessionStoreFileName())
         , broker(broker) {
-        VLOG(1) << "Keep Alive: " << broker.getKeepAlive();
-        VLOG(1) << "Client Id: " << broker.getClientId();
-        VLOG(1) << "Clean Session: " << broker.getCleanSession();
-        VLOG(1) << "Will Topic: " << broker.getWillTopic();
-        VLOG(1) << "Will Message: " << broker.getWillMessage();
-        VLOG(1) << "Will QoS: " << static_cast<uint16_t>(broker.getWillQoS());
-        VLOG(1) << "Will Retain " << broker.getWillRetain();
-        VLOG(1) << "Username: " << broker.getUsername();
-        VLOG(1) << "Password: " << broker.getPassword();
-        VLOG(1) << "Loop Prevention: " << broker.getLoopPrevention();
+        VLOG(1) << "Client Id: " << clientId;
+        VLOG(1) << "  Keep Alive: " << keepAlive;
+        VLOG(1) << "  Prefix: " << broker.getPrefix();
+        VLOG(1) << "  Clean Session: " << broker.getCleanSession();
+        VLOG(1) << "  Will Topic: " << broker.getWillTopic();
+        VLOG(1) << "  Will Message: " << broker.getWillMessage();
+        VLOG(1) << "  Will QoS: " << static_cast<uint16_t>(broker.getWillQoS());
+        VLOG(1) << "  Will Retain " << broker.getWillRetain();
+        VLOG(1) << "  Username: " << broker.getUsername();
+        VLOG(1) << "  Password: " << broker.getPassword();
+        VLOG(1) << "  Loop Prevention: " << broker.getLoopPrevention();
+    }
+
+    const Broker& Mqtt::getBroker() const {
+        return broker;
     }
 
     void Mqtt::onConnected() {
         VLOG(1) << "MQTT: Initiating Session";
 
-        sendConnect(broker.getKeepAlive(),
-                    broker.getClientId(),
-                    broker.getCleanSession(),
+        sendConnect(broker.getCleanSession(),
                     broker.getWillTopic(),
                     broker.getWillMessage(),
                     broker.getWillQoS(),

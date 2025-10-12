@@ -76,15 +76,6 @@ namespace mqtt::mqttintegrator::lib {
         void publishMapping(const std::string& topic, const std::string& message, uint8_t qoS, bool retain) final;
 
         const nlohmann::json& connectionJson;
-
-        uint16_t keepAlive;
-        bool cleanSession;
-        std::string willTopic;
-        std::string willMessage;
-        uint8_t willQoS;
-        bool willRetain;
-        std::string username;
-        std::string password;
     };
 
 } // namespace mqtt::mqttintegrator::lib

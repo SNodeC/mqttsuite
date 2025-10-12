@@ -61,32 +61,33 @@ namespace mqtt::mqttintegrator::lib {
                const nlohmann::json& connectionJson,
                const nlohmann::json& mappingJson,
                const std::string& sessionStoreFileName)
-        : iot::mqtt::client::Mqtt(connectionName, connectionJson["client_id"], sessionStoreFileName)
+        : iot::mqtt::client::Mqtt(connectionName, //
+                                  connectionJson["client_id"],
+                                  connectionJson["keep_alive"],
+                                  sessionStoreFileName)
         , mqtt::lib::MqttMapper(mappingJson)
-        , connectionJson(connectionJson)
-        , keepAlive(connectionJson["keep_alive"])
-        , cleanSession(connectionJson["clean_session"])
-        , willTopic(connectionJson["will_topic"])
-        , willMessage(connectionJson["will_message"])
-        , willQoS(connectionJson["will_qos"])
-        , willRetain(connectionJson["will_retain"])
-        , username(connectionJson["username"])
-        , password(connectionJson["password"]) {
-        VLOG(1) << "Keep Alive: " << keepAlive;
+        , connectionJson(connectionJson) {
         VLOG(1) << "Client Id: " << clientId;
-        VLOG(1) << "Clean Session: " << cleanSession;
-        VLOG(1) << "Will Topic: " << willTopic;
-        VLOG(1) << "Will Message: " << willMessage;
-        VLOG(1) << "Will QoS: " << static_cast<uint16_t>(willQoS);
-        VLOG(1) << "Will Retain " << willRetain;
-        VLOG(1) << "Username: " << username;
-        VLOG(1) << "Password: " << password;
+        VLOG(1) << "  Keep Alive: " << keepAlive;
+        VLOG(1) << "  Clean Session: " << connectionJson["clean_session"];
+        VLOG(1) << "  Will Topic: " << connectionJson["will_topic"];
+        VLOG(1) << "  Will Message: " << connectionJson["will_message"];
+        VLOG(1) << "  Will QoS: " << static_cast<uint16_t>(connectionJson["will_qos"]);
+        VLOG(1) << "  Will Retain " << connectionJson["will_retain"];
+        VLOG(1) << "  Username: " << connectionJson["username"];
+        VLOG(1) << "  Password: " << connectionJson["password"];
     }
 
     void Mqtt::onConnected() {
         VLOG(1) << "MQTT: Initiating Session";
 
-        sendConnect(keepAlive, clientId, cleanSession, willTopic, willMessage, willQoS, willRetain, username, password);
+        sendConnect(connectionJson["clean_session"],
+                    connectionJson["will_topic"],
+                    connectionJson["will_message"],
+                    connectionJson["will_qos"],
+                    connectionJson["will_retain"],
+                    connectionJson["username"],
+                    connectionJson["password"]);
     }
 
     bool Mqtt::onSignal(int signum) {

@@ -39,11 +39,13 @@
  * THE SOFTWARE.
  */
 
-#include "Bridge.h"
+#include "lib/Bridge.h"
+
+#include "lib/Broker.h"
+#include "lib/Mqtt.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <iot/mqtt/Mqtt.h>
 #include <iot/mqtt/packets/Publish.h>
 
 #endif // DOXYGEN_SHOULD_SKIP_THIS
@@ -58,23 +60,26 @@ namespace mqtt::bridge::lib {
         return name;
     }
 
-    void Bridge::addMqtt(iot::mqtt::Mqtt* mqtt) {
+    void Bridge::addMqtt(mqtt::bridge::lib::Mqtt* mqtt) {
         mqttList.push_back(mqtt);
     }
 
-    void Bridge::removeMqtt(iot::mqtt::Mqtt* mqtt) { // cppcheck-suppress constParameterPointer
+    void Bridge::removeMqtt(mqtt::bridge::lib::Mqtt* mqtt) { // cppcheck-suppress constParameterPointer
         mqttList.remove(mqtt);
     }
 
-    void Bridge::publish(const iot::mqtt::Mqtt* originMqtt, const iot::mqtt::packets::Publish& publish) {
-        for (iot::mqtt::Mqtt* destinationMqtt : mqttList) {
+    void Bridge::publish(const mqtt::bridge::lib::Mqtt* originMqtt, const iot::mqtt::packets::Publish& publish) {
+        for (const mqtt::bridge::lib::Mqtt* destinationMqtt : mqttList) {
             if (originMqtt != destinationMqtt) { // Do not reflect message to origin broker. Avoid message looping
-                destinationMqtt->sendPublish(publish.getTopic(), publish.getMessage(), publish.getQoS(), publish.getRetain());
+                destinationMqtt->sendPublish(destinationMqtt->getBroker().getPrefix() + publish.getTopic(),
+                                             publish.getMessage(),
+                                             publish.getQoS(),
+                                             publish.getRetain());
             }
         }
     }
 
-    const std::list<iot::mqtt::Mqtt*>& Bridge::getMqttList() const {
+    const std::list<const Mqtt*>& Bridge::getMqttList() const {
         return mqttList;
     }
 

@@ -81,12 +81,10 @@ namespace mqtt::mqttbridge::websocket {
             VLOG(1) << "      " << static_cast<uint16_t>(topic.getQoS()) << ":" << topic.getName();
         }
 
-        if (!topics.empty()) {
-            subProtocol = new iot::mqtt::client::SubProtocol(
-                subProtocolContext,
-                getName(),
-                new mqtt::bridge::lib::Mqtt(subProtocolContext->getSocketConnection()->getConnectionName(), broker));
-        }
+        subProtocol = new iot::mqtt::client::SubProtocol(
+            subProtocolContext,
+            getName(),
+            new mqtt::bridge::lib::Mqtt(subProtocolContext->getSocketConnection()->getConnectionName(), broker));
 
         return subProtocol;
     }

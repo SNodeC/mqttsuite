@@ -233,9 +233,8 @@ namespace mqtt::mqtt::lib {
                const std::string& pubMessage,
                bool pubRetain,
                const std::string& sessionStoreFileName)
-        : iot::mqtt::client::Mqtt(connectionName, clientId, sessionStoreFileName)
+        : iot::mqtt::client::Mqtt(connectionName, clientId, keepAlive, sessionStoreFileName)
         , qoSDefault(qoSDefault)
-        , keepAlive(keepAlive)
         , cleanSession(cleanSession)
         , willTopic(willTopic)
         , willMessage(willMessage)
@@ -247,21 +246,21 @@ namespace mqtt::mqtt::lib {
         , pubTopic(pubTopic)
         , pubMessage(pubMessage)
         , pubRetain(pubRetain) {
-        VLOG(1) << "Keep Alive: " << keepAlive;
         VLOG(1) << "Client Id: " << clientId;
-        VLOG(1) << "Clean Session: " << cleanSession;
-        VLOG(1) << "Will Topic: " << willTopic;
-        VLOG(1) << "Will Message: " << willMessage;
-        VLOG(1) << "Will QoS: " << static_cast<uint16_t>(willQoS);
-        VLOG(1) << "Will Retain " << willRetain;
-        VLOG(1) << "Username: " << username;
-        VLOG(1) << "Password: " << password;
+        VLOG(1) << "  Keep Alive: " << keepAlive;
+        VLOG(1) << "  Clean Session: " << cleanSession;
+        VLOG(1) << "  Will Topic: " << willTopic;
+        VLOG(1) << "  Will Message: " << willMessage;
+        VLOG(1) << "  Will QoS: " << static_cast<uint16_t>(willQoS);
+        VLOG(1) << "  Will Retain " << willRetain;
+        VLOG(1) << "  Username: " << username;
+        VLOG(1) << "  Password: " << password;
     }
 
     void Mqtt::onConnected() {
         VLOG(1) << "MQTT: Initiating Session";
 
-        sendConnect(keepAlive, clientId, cleanSession, willTopic, willMessage, willQoS, willRetain, username, password);
+        sendConnect(cleanSession, willTopic, willMessage, willQoS, willRetain, username, password);
     }
 
     bool Mqtt::onSignal(int signum) {
@@ -273,7 +272,7 @@ namespace mqtt::mqtt::lib {
         return Super::onSignal(signum);
     }
 
-    static uint8_t getQos(std::string qoSString) {
+    static uint8_t getQos(const std::string& qoSString) {
         unsigned long qoS = std::stoul(qoSString);
 
         if (qoS > 2) {

@@ -51,24 +51,30 @@ namespace mqtt::bridge::lib {
 
     Broker::Broker(Bridge& bridge,
                    const std::string& sessionStoreFileName,
-                   std::string&& clientId,
-                   uint16_t keepAlive,
-                   bool cleanSession,
-                   std::string&& willTopic,
-                   std::string&& willMessage,
-                   uint8_t willQoS,
-                   bool willRetain,
-                   std::string&& userName,
-                   std::string&& passWord,
-                   bool loopPrevention,
-                   std::string&& instanceName,
-                   std::string&& protocol,
-                   std::string&& encryption,
-                   std::string&& transport,
+                   const std::string& instanceName,
+                   const std::string& protocol,
+                   const std::string& encryption,
+                   const std::string& transport,
                    const nlohmann::json& address,
-                   std::list<iot::mqtt::Topic>&& topics)
+                   const std::string& clientId,
+                   const uint16_t keepAlive,
+                   bool cleanSession,
+                   const std::string& willTopic,
+                   const std::string& willMessage,
+                   const uint8_t willQoS,
+                   bool willRetain,
+                   const std::string& userName,
+                   const std::string& passWord,
+                   bool loopPrevention,
+                   const std::string& prefix,
+                   const std::list<iot::mqtt::Topic>& topics)
         : bridge(bridge)
         , sessionStoreFileName(sessionStoreFileName)
+        , instanceName(std::move(instanceName))
+        , protocol(protocol)
+        , encryption(encryption)
+        , transport(transport)
+        , address(address)
         , clientId(clientId)
         , keepAlive(keepAlive)
         , cleanSession(cleanSession)
@@ -79,12 +85,8 @@ namespace mqtt::bridge::lib {
         , username(userName)
         , password(passWord)
         , loopPrevention(loopPrevention)
-        , instanceName(std::move(instanceName))
-        , protocol(std::move(protocol))
-        , encryption(std::move(encryption))
-        , transport(std::move(transport))
-        , address(address)
-        , topics(std::move(topics)) {
+        , prefix(prefix)
+        , topics(topics) {
     }
 
     Bridge& Broker::getBridge() const {
@@ -149,6 +151,10 @@ namespace mqtt::bridge::lib {
 
     const std::string& Broker::getTransport() const {
         return transport;
+    }
+
+    const std::string& Broker::getPrefix() const {
+        return prefix;
     }
 
     const std::list<iot::mqtt::Topic>& Broker::getTopics() const {

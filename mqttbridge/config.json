@@ -167,7 +167,7 @@
             "loop_prevention": true
           },
           "topics": [
-            { "topic": "#", "qos": 0 }
+            { "topic": ""}
           ]
         }
       ]
@@ -209,7 +209,7 @@
             "username": "test-application-voc@ttn",
             "password": "NNSXS.SOX5JC3PDMP6Q6K6HVWQCXLNQ2JULTKWO3X6KDI.XLHSEVV2RZTL7YWLOP3F6TOXUOGAZA33UPIKSDZ6SRJ2YIM3OXBA"
           },
-         "topics": [
+          "topics": [
             { "topic": "#", "qos": 0 }
           ]
         }

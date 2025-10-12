@@ -59,6 +59,8 @@ namespace mqtt::bridge::lib {
     public:
         explicit Mqtt(const std::string& connectionName, const Broker& broker);
 
+        const Broker& getBroker() const;
+
     private:
         using Super = iot::mqtt::client::Mqtt;
 
@@ -69,7 +71,7 @@ namespace mqtt::bridge::lib {
         void onConnack(const iot::mqtt::packets::Connack& connack) final;
         void onPublish(const iot::mqtt::packets::Publish& publish) final;
 
-        const mqtt::bridge::lib::Broker& broker;
+        const Broker& broker;
     };
 
 } // namespace mqtt::bridge::lib

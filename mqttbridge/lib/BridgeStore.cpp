@@ -102,8 +102,10 @@ namespace mqtt::bridge::lib {
                                             for (const nlohmann::json& brokerConfigJson : bridgeConfigJson["brokers"]) {
                                                 std::list<iot::mqtt::Topic> topics;
                                                 for (const nlohmann::json& topicJson : brokerConfigJson["topics"]) {
-                                                    topics.emplace_back(topicJson["topic"], // cppcheck-suppress useStlAlgorithm
-                                                                        topicJson["qos"]);
+                                                    if (!topicJson["topic"].get<std::string>().empty()) {
+                                                        topics.emplace_back(topicJson["topic"], // cppcheck-suppress useStlAlgorithm
+                                                                            topicJson["qos"]);
+                                                    }
                                                 }
 
                                                 const nlohmann::json& mqtt = brokerConfigJson["mqtt"];
@@ -112,6 +114,11 @@ namespace mqtt::bridge::lib {
                                                 brokers.emplace(network["instance_name"],
                                                                 Broker(bridge,
                                                                        brokerConfigJson["session_store"],
+                                                                       network["instance_name"],
+                                                                       network["protocol"],
+                                                                       network["encryption"],
+                                                                       network["transport"],
+                                                                       network[network["protocol"]],
                                                                        mqtt["client_id"],
                                                                        mqtt["keep_alive"],
                                                                        mqtt["clean_session"],
@@ -122,12 +129,8 @@ namespace mqtt::bridge::lib {
                                                                        mqtt["username"],
                                                                        mqtt["password"],
                                                                        mqtt["loop_prevention"],
-                                                                       network["instance_name"],
-                                                                       network["protocol"],
-                                                                       network["encryption"],
-                                                                       network["transport"],
-                                                                       network[network["protocol"]],
-                                                                       std::move(topics)));
+                                                                       brokerConfigJson["prefix"],
+                                                                       topics));
                                             }
                                         }
 
