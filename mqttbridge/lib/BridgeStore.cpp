@@ -97,7 +97,8 @@ namespace mqtt::bridge::lib {
                                         bridgesConfigJson = bridgesConfigJson.patch(defaultPatch);
 
                                         for (const nlohmann::json& bridgeConfigJson : bridgesConfigJson["bridges"]) {
-                                            Bridge& bridge = bridgeList.emplace_back(bridgeConfigJson["name"], bridgeConfigJson["prefix"]);
+                                            Bridge& bridge = bridgeList.emplace_back(
+                                                bridgeConfigJson["name"], bridgeConfigJson["prefix"], bridgeConfigJson["disabled"]);
 
                                             for (const nlohmann::json& brokerConfigJson : bridgeConfigJson["brokers"]) {
                                                 std::list<iot::mqtt::Topic> topics;
@@ -130,6 +131,7 @@ namespace mqtt::bridge::lib {
                                                                        mqtt["password"],
                                                                        mqtt["loop_prevention"],
                                                                        brokerConfigJson["prefix"],
+                                                                       brokerConfigJson["disabled"],
                                                                        topics));
                                             }
                                         }

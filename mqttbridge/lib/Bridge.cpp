@@ -52,9 +52,10 @@
 
 namespace mqtt::bridge::lib {
 
-    Bridge::Bridge(const std::string& name, const std::string& prefix)
+    Bridge::Bridge(const std::string& name, const std::string& prefix, bool disabled)
         : name(name)
-        , prefix(prefix) {
+        , prefix(prefix)
+        , disabled(disabled) {
     }
 
     const std::string& Bridge::getName() {
@@ -85,6 +86,10 @@ namespace mqtt::bridge::lib {
 
     const std::string& Bridge::getPrefix() const {
         return prefix;
+    }
+
+    bool Bridge::getDisabled() const {
+        return disabled;
     }
 
     const std::list<const Mqtt*>& Bridge::getMqttList() const {

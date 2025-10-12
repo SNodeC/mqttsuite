@@ -25,6 +25,10 @@
       ],
       "additionalProperties": false,
       "properties": {
+        "disabled": {
+          "type": "boolean",
+          "default": false
+        },
         "name": {
           "type": "string"
         },
@@ -48,6 +52,10 @@
       ],
       "additionalProperties": false,
       "properties": {
+        "disabled": {
+          "type": "boolean",
+          "default": false
+        },
         "session_store": {
           "type": "string",
           "default": ""

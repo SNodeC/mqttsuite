@@ -80,6 +80,7 @@ namespace mqtt::bridge::lib {
                const std::string& password,
                bool loopPrevention,
                const std::string& prefix,
+               bool disabled,
                const std::list<iot::mqtt::Topic>& topics);
 
         Broker(Broker&&) = default;
@@ -107,6 +108,8 @@ namespace mqtt::bridge::lib {
 
         const std::string& getPrefix() const;
 
+        bool getDisabled() const;
+
         const std::list<iot::mqtt::Topic>& getTopics() const;
         const nlohmann::json& getAddress() const;
 
@@ -132,6 +135,8 @@ namespace mqtt::bridge::lib {
         bool loopPrevention;
 
         std::string prefix;
+        bool disabled;
+
         std::list<iot::mqtt::Topic> topics;
     };
 

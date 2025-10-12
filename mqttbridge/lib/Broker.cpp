@@ -67,6 +67,7 @@ namespace mqtt::bridge::lib {
                    const std::string& passWord,
                    bool loopPrevention,
                    const std::string& prefix,
+                   bool disabled,
                    const std::list<iot::mqtt::Topic>& topics)
         : bridge(bridge)
         , sessionStoreFileName(sessionStoreFileName)
@@ -86,6 +87,7 @@ namespace mqtt::bridge::lib {
         , password(passWord)
         , loopPrevention(loopPrevention)
         , prefix(prefix)
+        , disabled(disabled)
         , topics(topics) {
     }
 
@@ -155,6 +157,10 @@ namespace mqtt::bridge::lib {
 
     const std::string& Broker::getPrefix() const {
         return prefix;
+    }
+
+    bool Broker::getDisabled() const {
+        return disabled;
     }
 
     const std::list<iot::mqtt::Topic>& Broker::getTopics() const {

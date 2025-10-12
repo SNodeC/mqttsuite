@@ -1,10 +1,12 @@
 {
   "bridges": [
     {
+      "disabled": false,
       "name": "TTN IoT",
       "prefix": "bridge/",
       "brokers": [
         {
+          "disabled": false,
           "network": {
             "instance_name": "ttn-remote",
             "protocol": "in",
@@ -26,6 +28,7 @@
           ]
         },
         {
+          "disabled": false,
           "network": {
             "instance_name": "ttn-local",
             "protocol": "in",

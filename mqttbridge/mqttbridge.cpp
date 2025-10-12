@@ -233,11 +233,13 @@ int main(int argc, char* argv[]) {
         for (const auto& [instanceName, broker] : mqtt::bridge::lib::BridgeStore::instance().getBrokers()) {
             VLOG(1) << "  Creating Broker instance '" << instanceName << "' of Bridge '" << broker.getBridge().getName() << "'";
             VLOG(1) << "    Broker client id: " << broker.getClientId();
+            VLOG(1) << "    Broker prefix: " << broker.getPrefix();
+            VLOG(1) << "    Broker disabled: " << broker.getDisabled();
+            VLOG(1) << "    Bridge disabled: " << broker.getBridge().getDisabled();
             VLOG(1) << "    Bridge prefix: " << broker.getBridge().getPrefix();
-            VLOG(1) << "    Broker Prefix: " << broker.getPrefix();
-            VLOG(1) << "    Transport: " << broker.getTransport();
-            VLOG(1) << "    Protocol: " << broker.getProtocol();
-            VLOG(1) << "    Encryption: " << broker.getEncryption();
+            VLOG(1) << "    Bridge Transport: " << broker.getTransport();
+            VLOG(1) << "    Bridge Protocol: " << broker.getProtocol();
+            VLOG(1) << "    Bridge Encryption: " << broker.getEncryption();
 
             VLOG(1) << "    Topics:";
             const std::list<iot::mqtt::Topic>& topics = broker.getTopics();
@@ -263,6 +265,8 @@ int main(int argc, char* argv[]) {
 
                                 config.Remote::setHost(broker.getAddress()["host"]);
                                 config.Remote::setPort(broker.getAddress()["port"]);
+
+                                config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                             },
                             broker)
                             .connect([instanceName](const auto& socketAddress, const core::socket::State& state) {
@@ -284,6 +288,8 @@ int main(int argc, char* argv[]) {
 
                                 config.Remote::setHost(broker.getAddress()["host"]);
                                 config.Remote::setPort(broker.getAddress()["port"]);
+
+                                config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                             },
                             broker)
                             .connect([instanceName](const auto& socketAddress, const core::socket::State& state) {
@@ -307,6 +313,8 @@ int main(int argc, char* argv[]) {
 
                                 config.Remote::setHost(broker.getAddress()["host"]);
                                 config.Remote::setPort(broker.getAddress()["port"]);
+
+                                config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                             },
                             broker)
                             .connect([instanceName](const auto& socketAddress, const core::socket::State& state) {
@@ -328,6 +336,8 @@ int main(int argc, char* argv[]) {
 
                                 config.Remote::setHost(broker.getAddress()["host"]);
                                 config.Remote::setPort(broker.getAddress()["port"]);
+
+                                config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                             },
                             broker)
                             .connect([instanceName](const auto& socketAddress, const core::socket::State& state) {
@@ -350,6 +360,8 @@ int main(int argc, char* argv[]) {
 
                                 config.Remote::setBtAddress(broker.getAddress()["host"]);
                                 config.Remote::setPsm(broker.getAddress()["psm"]);
+
+                                config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                             },
                             broker)
                             .connect([instanceName](const auto& socketAddress, const core::socket::State& state) {
@@ -370,6 +382,8 @@ int main(int argc, char* argv[]) {
 
                                 config.Remote::setBtAddress(broker.getAddress()["host"]);
                                 config.Remote::setPsm(broker.getAddress()["psm"]);
+
+                                config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                             },
                             broker)
                             .connect([instanceName](const auto& socketAddress, const core::socket::State& state) {
@@ -392,6 +406,8 @@ int main(int argc, char* argv[]) {
 
                                 config.Remote::setBtAddress(broker.getAddress()["host"]);
                                 config.Remote::setChannel(broker.getAddress()["channel"]);
+
+                                config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                             },
                             broker)
                             .connect([instanceName](const auto& socketAddress, const core::socket::State& state) {
@@ -412,6 +428,8 @@ int main(int argc, char* argv[]) {
 
                                 config.Remote::setBtAddress(broker.getAddress()["host"]);
                                 config.Remote::setChannel(broker.getAddress()["channel"]);
+
+                                config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                             },
                             broker)
                             .connect([instanceName](const auto& socketAddress, const core::socket::State& state) {
@@ -433,6 +451,8 @@ int main(int argc, char* argv[]) {
                                 config.setReconnect();
 
                                 config.Remote::setSunPath(broker.getAddress()["host"]);
+
+                                config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                             },
                             broker)
                             .connect([instanceName](const auto& socketAddress, const core::socket::State& state) {
@@ -452,6 +472,8 @@ int main(int argc, char* argv[]) {
                                 config.setReconnect();
 
                                 config.Remote::setSunPath(broker.getAddress()["host"]);
+
+                                config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                             },
                             broker)
                             .connect([instanceName](const auto& socketAddress, const core::socket::State& state) {
@@ -477,6 +499,8 @@ int main(int argc, char* argv[]) {
 
                             config.Remote::setHost(broker.getAddress()["host"]);
                             config.Remote::setPort(broker.getAddress()["port"]);
+
+                            config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                         });
 #else  // MQTTBRIDGE_IN_WEBSOCKET_LEGACY
                         VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
@@ -494,6 +518,8 @@ int main(int argc, char* argv[]) {
 
                             config.Remote::setHost(broker.getAddress()["host"]);
                             config.Remote::setPort(broker.getAddress()["port"]);
+
+                            config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                         });
 #else  // MQTTBRIDGE_IN_WEBSOCKET_TLS
                         VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
@@ -513,6 +539,8 @@ int main(int argc, char* argv[]) {
 
                             config.Remote::setHost(broker.getAddress()["host"]);
                             config.Remote::setPort(broker.getAddress()["port"]);
+
+                            config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                         });
 #else  // MQTTBRIDGE_IN6_WEBSOCKET_LEGACY
                         VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
@@ -530,6 +558,8 @@ int main(int argc, char* argv[]) {
 
                             config.Remote::setHost(broker.getAddress()["host"]);
                             config.Remote::setPort(broker.getAddress()["port"]);
+
+                            config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                         });
 #else  // MQTTBRIDGE_IN6_WEBSOCKET_TLS
                         VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
