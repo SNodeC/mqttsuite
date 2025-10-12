@@ -2,6 +2,7 @@
   "bridges": [
     {
       "name": "TTN IoT",
+      "prefix": "bridge/",
       "brokers": [
         {
           "network": {
@@ -14,6 +15,7 @@
             "encryption": "legacy",
             "transport": "stream"
           },
+          "prefix": "ttn/",
           "mqtt": {
             "client_id": "client",
             "username": "test-application-voc@ttn",
@@ -34,7 +36,7 @@
             "encryption": "legacy",
             "transport": "websocket"
           },
-          "prefix": "test_prefix/",
+          "prefix": "local/",
           "mqtt": {
             "client_id": "TTN-Local",
             "loop_prevention": true
