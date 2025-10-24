@@ -69,8 +69,8 @@ namespace mqtt::mqtt::websocket {
         const CLI::App* subApp = subProtocolContext->getSocketConnection()->getConfig()->getSection("sub", true, true);
         const CLI::App* pubApp = subProtocolContext->getSocketConnection()->getConfig()->getSection("pub", true, true);
 
-        subApp = (*subApp)["--topic"]->count() > 0 ? subApp : nullptr;
-        pubApp = (*pubApp)["--topic"]->count() > 0 ? pubApp : nullptr;
+        subApp = (subApp != nullptr && (*subApp)["--topic"]->count() > 0) ? subApp : nullptr;
+        pubApp = (pubApp != nullptr && (*pubApp)["--topic"]->count() > 0) ? pubApp : nullptr;
 
         iot::mqtt::client::SubProtocol* subProtocol = nullptr;
 

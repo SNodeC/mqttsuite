@@ -64,8 +64,8 @@ namespace mqtt::mqtt {
         const CLI::App* subApp = socketConnection->getConfig()->getSection("sub", true, true);
         const CLI::App* pubApp = socketConnection->getConfig()->getSection("pub", true, true);
 
-        subApp = (*subApp)["--topic"]->count() > 0 ? subApp : nullptr;
-        pubApp = (*pubApp)["--topic"]->count() > 0 ? pubApp : nullptr;
+        subApp = (subApp != nullptr && (*subApp)["--topic"]->count() > 0) ? subApp : nullptr;
+        pubApp = (pubApp != nullptr && (*pubApp)["--topic"]->count() > 0) ? pubApp : nullptr;
 
         core::socket::stream::SocketContext* socketContext = nullptr;
 
