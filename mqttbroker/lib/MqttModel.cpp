@@ -126,12 +126,7 @@ namespace mqtt::mqttbroker::lib {
     }
 
     void MqttModel::delClient(const std::string& clientId) {
-        MqttModelEntry mqttModelEntry = modelMap[clientId];
-
-        sendEvent(mqttModelEntry.getMqtt()->getConnectionName() + " " + clientId + " " + mqttModelEntry.onlineSince() + " " +
-                      mqttModelEntry.onlineDuration(),
-                  "disconnect",
-                  std::to_string(id++));
+        sendEvent(clientId, "disconnect", std::to_string(id++));
 
         modelMap.erase(clientId);
     }
@@ -189,8 +184,12 @@ namespace mqtt::mqttbroker::lib {
     void MqttModel::sendEvent(const std::string& data, const std::string& event, const std::string& id) {
         for (auto& eventReceiver : eventReceiverList) {
             if (eventReceiver->isConnected()) {
-                eventReceiver->sendFragment("event:" + event);
-                eventReceiver->sendFragment("id:" + id);
+                if (!event.empty()) {
+                    eventReceiver->sendFragment("event:" + event);
+                }
+                if (!id.empty()) {
+                    eventReceiver->sendFragment("id:" + id);
+                }
                 eventReceiver->sendFragment("data:" + data);
                 eventReceiver->sendFragment("");
             }

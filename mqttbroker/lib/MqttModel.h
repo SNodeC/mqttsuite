@@ -104,7 +104,7 @@ namespace mqtt::mqttbroker::lib {
         void publish(const iot::mqtt::packets::Publish& publish);
 
     private:
-        void sendEvent(const std::string& data, const std::string& event = "message", const std::string& id = "");
+        void sendEvent(const std::string& data, const std::string& event = "", const std::string& id = "");
 
         static std::string timePointToString(const std::chrono::time_point<std::chrono::system_clock>& timePoint);
         static std::string
