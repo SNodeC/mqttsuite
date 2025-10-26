@@ -51,10 +51,11 @@
 #include <express/Response.h>
 #include <iot/mqtt/MqttContext.h>
 #include <iot/mqtt/packets/Publish.h>
-#include <nlohmann/detail/json_ref.hpp>
 #include <nlohmann/json.hpp>
 #include <nlohmann/json_fwd.hpp>
 #include <web/http/server/SocketContext.h>
+
+// IWYU pragma: no_include <nlohmann/detail/json_ref.hpp>
 
 //
 
