@@ -107,6 +107,13 @@ function attach(tableSel, url){
      }
   }
 
-  es.addEventListener("connect", connectHandle);         // optional named event
+  const errorHandle = (ev) => {
+    for (const tbody of table.tBodies) {
+      tbody.replaceChildren();
+    }
+  }
+
+  es.addEventListener("connect", connectHandle);
   es.addEventListener("disconnect", disconnectHandle)
+  es.addEventListener("error", errorHandle);
 }

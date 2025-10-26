@@ -175,32 +175,7 @@ static std::string getOverviewPage(inja::Environment environment,
     json["subscribed_topics"] = inja::json::array();
     json["retained_topics"] = inja::json::array();
 
-    inja::json& jsonDataRows = json["data_rows"];
-    for (const auto& [connectionName, mqttModelEntry] : mqttModel.getClients()) {
-        const mqtt::mqttbroker::lib::Mqtt* mqtt = mqttModelEntry.getMqtt();
-        const core::socket::stream::SocketConnection* socketConnection = mqtt->getMqttContext()->getSocketConnection();
-
-        std::ostringstream windowId("window");
-        for (char ch : mqtt->getClientId()) {
-            if (std::isalnum(static_cast<unsigned char>(ch))) {
-                windowId << ch;
-            } else {
-                windowId << std::hex << std::uppercase << std::setw(2) << std::setfill('0')
-                         << static_cast<int>(static_cast<unsigned char>(ch));
-            }
-        }
-
-        jsonDataRows.push_back(
-            {href(mqtt->getClientId(), "/client?" + mqtt->getClientId(), windowId.str(), 450, 900),
-             mqttModelEntry.onlineSince(),
-             "<duration>" + mqttModelEntry.onlineDuration() + "</duration>",
-             mqtt->getConnectionName(),
-             socketConnection->getLocalAddress().toString(),
-             socketConnection->getRemoteAddress().toString(),
-             "<button class=\"red-btn\" onClick=\"disconnectClient('" + mqtt->getClientId() + "')\">Disconnect</button>"});
-    }
-
-    std::map<std::string, std::list<std::pair<std::string, uint8_t>>> subscribedTopics = broker->getSubscriptionTree();
+    const std::map<std::string, std::list<std::pair<std::string, uint8_t>>>& subscribedTopics = broker->getSubscriptionTree();
 
     inja::json& subscribedTopicsJson = json["subscribed_topics"];
     for (const auto& [topic, clients] : subscribedTopics) {

@@ -81,6 +81,20 @@ namespace mqtt::mqttbroker::lib {
         return mqttModel;
     }
 
+    static std::string windowId(const std::string& clientId) {
+        std::ostringstream windowId("window");
+        for (char ch : clientId) {
+            if (std::isalnum(static_cast<unsigned char>(ch))) {
+                windowId << ch;
+            } else {
+                windowId << std::hex << std::uppercase << std::setw(2) << std::setfill('0')
+                         << static_cast<int>(static_cast<unsigned char>(ch));
+            }
+        }
+
+        return windowId.str();
+    }
+
     static std::string href(const std::string& text, const std::string& url, const std::string& windowId, uint16_t width, uint16_t height) {
         return "<a href=\"#\" onClick=\""
                "let key = '" +
@@ -104,17 +118,7 @@ namespace mqtt::mqttbroker::lib {
     void MqttModel::addClient(const std::string& clientId, Mqtt* mqtt) {
         MqttModelEntry mqttModelEntry(mqtt);
 
-        std::ostringstream windowId("window");
-        for (char ch : mqtt->getClientId()) {
-            if (std::isalnum(static_cast<unsigned char>(ch))) {
-                windowId << ch;
-            } else {
-                windowId << std::hex << std::uppercase << std::setw(2) << std::setfill('0')
-                         << static_cast<int>(static_cast<unsigned char>(ch));
-            }
-        }
-
-        nlohmann::json json({href(mqtt->getClientId(), "/client?" + mqtt->getClientId(), windowId.str(), 450, 900),
+        nlohmann::json json({href(mqtt->getClientId(), "/client?" + mqtt->getClientId(), windowId(mqtt->getClientId()), 450, 900),
                              mqttModelEntry.onlineSince(),
                              "<duration>" + mqttModelEntry.onlineDuration() + "</duration>",
                              mqtt->getConnectionName(),
@@ -162,6 +166,19 @@ namespace mqtt::mqttbroker::lib {
         response->getSocketContext()->onDisconnected([this, &eventReceiver]() {
             eventReceiverList.remove(eventReceiver);
         });
+
+        for (auto& mqttModel : modelMap) {
+            nlohmann::json json({href(mqttModel.first, "/client?" + mqttModel.first, windowId(mqttModel.first), 450, 900),
+                                 mqttModel.second.onlineSince(),
+                                 "<duration>" + mqttModel.second.onlineDuration() + "</duration>",
+                                 mqttModel.second.getMqtt()->getConnectionName(),
+                                 mqttModel.second.getMqtt()->getMqttContext()->getSocketConnection()->getLocalAddress().toString(),
+                                 mqttModel.second.getMqtt()->getMqttContext()->getSocketConnection()->getRemoteAddress().toString(),
+                                 "<button class=\"red-btn\" onClick=\"disconnectClient('" + mqttModel.second.getMqtt()->getClientId() +
+                                     "')\">Disconnect</button>"});
+
+            sendEvent(json.dump(), "connect", std::to_string(id++));
+        }
     }
 
     void MqttModel::publish(const iot::mqtt::packets::Publish& publish) {
