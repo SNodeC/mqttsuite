@@ -92,6 +92,7 @@
 #include <iterator>
 #include <list>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <utility>
 
@@ -162,6 +163,7 @@ static std::string getOverviewPage(inja::Environment environment,
                                    mqtt::mqttbroker::lib::MqttModel& mqttModel) {
     inja::json json;
 
+    json["table-id"] = "overview";
     json["title"] = "MQTTBroker | Active Clients";
     json["voc"] = href("Volker Christian", "https://github.com/VolkerChristian/");
     json["broker"] = href("MQTTBroker", "https://github.com/SNodeC/mqttsuite/tree/master/mqttbroker");
@@ -243,7 +245,8 @@ static std::string getOverviewPage(inja::Environment environment,
 
 static std::string getDetailedPage(inja::Environment environment, const mqtt::mqttbroker::lib::Mqtt* mqtt) {
     return environment.render_file("DetailPage.html",
-                                   {{"client_id", mqtt->getClientId()},
+                                   {{"table-id", "detail"},
+                                    {"client_id", mqtt->getClientId()},
                                     {"title", mqtt->getClientId()},
                                     {"header_row", {"Attribute", "Value"}},
                                     {"data_rows",
@@ -500,6 +503,78 @@ static express::Router getRouter(const inja::Environment& environment, std::shar
             upgrade(req, res);
         } else {
             res->redirect("/spinner?/clients");
+        }
+    });
+
+    router.get("/sse", [] APPLICATION(req, res) {
+        if (web::http::ciContains(req->get("Accept"), "text/event-stream")) {
+            res->set("Content-Type", "text/event-stream") //
+                .set("Cache-Control", "no-cache")
+                .set("Connection", "keep-alive");
+            res->sendHeader();
+
+            int lastEventId = 0;
+            try {
+                lastEventId = std::stoi(req->get("Last-Event-ID"));
+            } catch (std::logic_error const& ex) {
+                LOG(ERROR) << "std::logic_error::what(): " << ex.what();
+            }
+
+            mqtt::mqttbroker::lib::MqttModel::instance().addEventReceiver(res, lastEventId);
+        } else {
+            res->send(R"html(<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>SSE Example</title>
+    </head>
+    <body>
+        <h1>Server-Sent Events</h1>
+        <ul id="events"></ul>
+
+        <script>
+            // Initialize the EventSource, listening for server updates
+            const eventSource = new EventSource('http://localhost:8080/sse');
+
+            // Listen for messages from the server
+            eventSource.onmessage = function(event) {
+                const newElement = document.createElement("li");
+                newElement.textContent = event.data;
+                document.getElementById("events").appendChild(newElement);
+            };
+
+            //
+            eventSource.addEventListener("publish", (event) => {
+                const newElement = document.createElement("li");
+                newElement.textContent = event.data;
+                document.getElementById("events").appendChild(newElement);
+            });
+
+            //
+            eventSource.addEventListener("connect", (event) => {
+                JSON.parse(event.data).forEach((item, i) => {
+                    console.log(`#${i}:`, typeof item === 'object' ? JSON.stringify(item, null, 2) : item);
+                    const newElement = document.createElement("li");
+                    newElement.textContent = (`#${i}:`, typeof item === 'object' ? JSON.stringify(item, null, 2) : item);
+                    document.getElementById("events").appendChild(newElement);
+                });
+            });
+
+            //
+            eventSource.addEventListener("disconnect", (event) => {
+                const newElement = document.createElement("li");
+                newElement.textContent = event.data;
+                document.getElementById("events").appendChild(newElement);
+            });
+
+            // Log connection error
+            eventSource.onerror = function(event) {
+                console.log('Error occurred:', event);
+            };
+        </script>
+    </body>
+</html>)html");
         }
     });
 

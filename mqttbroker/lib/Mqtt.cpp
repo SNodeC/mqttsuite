@@ -68,6 +68,8 @@ namespace mqtt::mqttbroker::lib {
     }
 
     void Mqtt::onPublish(const iot::mqtt::packets::Publish& publish) {
+        MqttModel::instance().publish(publish);
+
         publishMappings(publish);
     }
 

@@ -43,7 +43,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(nlohmann_json 3.7.0 REQUIRED)
 find_package(
     snodec
-    COMPONENTS mqtt-server
+    COMPONENTS mqtt-server http-server-express
     REQUIRED
 )
 
@@ -56,8 +56,8 @@ set_source_files_properties(
 target_include_directories(mqtt-broker PUBLIC ${PROJECT_SOURCE_DIR})
 
 target_link_libraries(
-    mqtt-broker PUBLIC snodec::mqtt-server nlohmann_json::nlohmann_json
-                       mqtt-mapping
+    mqtt-broker PUBLIC snodec::mqtt-server snodec::http-server-express
+                       nlohmann_json::nlohmann_json mqtt-mapping
 )
 
 set_target_properties(

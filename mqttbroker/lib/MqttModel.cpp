@@ -45,11 +45,21 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include <cctype>
+#include <core/socket/SocketAddress.h>
 #include <core/socket/stream/SocketConnection.h>
-#include <core/socket/stream/SocketContext.h>
+#include <express/Response.h>
 #include <iot/mqtt/MqttContext.h>
+#include <iot/mqtt/packets/Publish.h>
+#include <nlohmann/detail/json_ref.hpp>
+#include <nlohmann/json.hpp>
+#include <nlohmann/json_fwd.hpp>
+#include <web/http/server/SocketContext.h>
+
 //
+
 #include <ctime>
+#include <functional>
 #include <iomanip>
 #include <sstream>
 
@@ -69,12 +79,61 @@ namespace mqtt::mqttbroker::lib {
         return mqttModel;
     }
 
-    void MqttModel::addClient(const std::string& clientId, Mqtt* mqtt) {
-        modelMap[clientId] = MqttModelEntry(mqtt);
+    static std::string href(const std::string& text, const std::string& url, const std::string& windowId, uint16_t width, uint16_t height) {
+        return "<a href=\"#\" onClick=\""
+               "let key = '" +
+               windowId +
+               "'; "
+               "if (!localStorage.getItem(key)) "
+               "  localStorage.setItem(key, key + '-' + Math.random().toString(36).substr(2, 6)); "
+               "let uniqueId = localStorage.getItem(key); "
+               "if (!window._openWindows) window._openWindows = {}; "
+               "if (!window._openWindows[uniqueId] || window._openWindows[uniqueId].closed) { "
+               "  window._openWindows[uniqueId] = window.open('" +
+               url + "', uniqueId, 'width=" + std::to_string(width) + ", height=" + std::to_string(height) +
+               ",location=no, menubar=no, status=no, toolbar=no'); "
+               "} else { "
+               "  window._openWindows[uniqueId].focus(); "
+               "} return false;\" "
+               "style=\"color:inherit;\">" +
+               text + "</a>";
     }
 
-    void MqttModel::delClient(const std::string& clientIt) {
-        modelMap.erase(clientIt);
+    void MqttModel::addClient(const std::string& clientId, Mqtt* mqtt) {
+        MqttModelEntry mqttModelEntry(mqtt);
+
+        std::ostringstream windowId("window");
+        for (char ch : mqtt->getClientId()) {
+            if (std::isalnum(static_cast<unsigned char>(ch))) {
+                windowId << ch;
+            } else {
+                windowId << std::hex << std::uppercase << std::setw(2) << std::setfill('0')
+                         << static_cast<int>(static_cast<unsigned char>(ch));
+            }
+        }
+
+        nlohmann::json json({href(mqtt->getClientId(), "/client?" + mqtt->getClientId(), windowId.str(), 450, 900),
+                             mqttModelEntry.onlineSince(),
+                             "<duration>" + mqttModelEntry.onlineDuration() + "</duration>",
+                             mqtt->getConnectionName(),
+                             mqtt->getMqttContext()->getSocketConnection()->getLocalAddress().toString(),
+                             mqtt->getMqttContext()->getSocketConnection()->getRemoteAddress().toString(),
+                             "<button class=\"red-btn\" onClick=\"disconnectClient('" + mqtt->getClientId() + "')\">Disconnect</button>"});
+
+        sendEvent(json.dump(), "connect", std::to_string(id++));
+
+        modelMap.emplace(clientId, mqttModelEntry);
+    }
+
+    void MqttModel::delClient(const std::string& clientId) {
+        MqttModelEntry mqttModelEntry = modelMap[clientId];
+
+        sendEvent(mqttModelEntry.getMqtt()->getConnectionName() + " " + clientId + " " + mqttModelEntry.onlineSince() + " " +
+                      mqttModelEntry.onlineDuration(),
+                  "disconnect",
+                  std::to_string(id++));
+
+        modelMap.erase(clientId);
     }
 
     std::map<std::string, MqttModel::MqttModelEntry>& MqttModel::getClients() {
@@ -99,6 +158,18 @@ namespace mqtt::mqttbroker::lib {
         return durationToString(onlineSinceTimePoint);
     }
 
+    void MqttModel::addEventReceiver(const std::shared_ptr<express::Response>& response, [[maybe_unused]] int lastEventId) {
+        auto it = eventReceiverList.insert(eventReceiverList.end(), response);
+
+        response->getSocketContext()->onDisconnected([this, it]() {
+            eventReceiverList.erase(it);
+        });
+    }
+
+    void MqttModel::publish(const iot::mqtt::packets::Publish& publish) {
+        sendEvent(publish.getTopic() + " : " + publish.getMessage(), "publish", std::to_string(id++));
+    }
+
     MqttModel::MqttModelEntry::MqttModelEntry(const Mqtt* mqtt)
         : mqtt(mqtt) {
     }
@@ -113,6 +184,17 @@ namespace mqtt::mqttbroker::lib {
 
     const Mqtt* MqttModel::MqttModelEntry::getMqtt() const {
         return mqtt;
+    }
+
+    void MqttModel::sendEvent(const std::string& data, const std::string& event, const std::string& id) {
+        for (auto& eventReceiver : eventReceiverList) {
+            if (eventReceiver->isConnected()) {
+                eventReceiver->sendFragment("event:" + event);
+                eventReceiver->sendFragment("id:" + id);
+                eventReceiver->sendFragment("data:" + data);
+                eventReceiver->sendFragment("");
+            }
+        }
     }
 
     std::string MqttModel::timePointToString(const std::chrono::time_point<std::chrono::system_clock>& timePoint) {

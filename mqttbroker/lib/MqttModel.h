@@ -46,10 +46,21 @@ namespace mqtt::mqttbroker::lib {
     class Mqtt;
 }
 
+namespace express {
+    class Response;
+}
+
+namespace iot::mqtt::packets {
+    class Publish;
+}
+
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <chrono>
+#include <cstdint>
+#include <list>
 #include <map>
+#include <memory>
 #include <string>
 
 #endif
@@ -79,7 +90,7 @@ namespace mqtt::mqttbroker::lib {
         static MqttModel& instance();
 
         void addClient(const std::string& clientId, Mqtt* mqtt);
-        void delClient(const std::string& clientIt);
+        void delClient(const std::string& clientId);
 
         std::map<std::string, MqttModelEntry>& getClients();
 
@@ -88,7 +99,13 @@ namespace mqtt::mqttbroker::lib {
         std::string onlineSince();
         std::string onlineDuration();
 
+        void addEventReceiver(const std::shared_ptr<express::Response>& response, int lastEventId);
+
+        void publish(const iot::mqtt::packets::Publish& publish);
+
     private:
+        void sendEvent(const std::string& data, const std::string& event = "message", const std::string& id = "");
+
         static std::string timePointToString(const std::chrono::time_point<std::chrono::system_clock>& timePoint);
         static std::string
         durationToString(const std::chrono::time_point<std::chrono::system_clock>& bevore,
@@ -96,8 +113,11 @@ namespace mqtt::mqttbroker::lib {
 
     protected:
         std::map<std::string, MqttModelEntry> modelMap;
+        std::list<std::shared_ptr<express::Response>> eventReceiverList;
 
         std::chrono::time_point<std::chrono::system_clock> onlineSinceTimePoint;
+
+        uint64_t id = 0;
     };
 
 } // namespace mqtt::mqttbroker::lib
