@@ -57,6 +57,7 @@ namespace iot::mqtt::packets {
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <chrono>
+#include <core/timer/Timer.h>
 #include <cstdint>
 #include <list>
 #include <map>
@@ -71,8 +72,11 @@ namespace mqtt::mqttbroker::lib {
     private:
         class MqttModelEntry {
         public:
-            MqttModelEntry() = default;
             MqttModelEntry(const Mqtt* mqtt);
+
+            ~MqttModelEntry();
+
+            MqttModelEntry(MqttModelEntry&&) noexcept = default;
 
             const Mqtt* getMqtt() const;
 
@@ -81,6 +85,19 @@ namespace mqtt::mqttbroker::lib {
 
         private:
             const Mqtt* mqtt = nullptr;
+        };
+
+        class EventReceiver {
+        public:
+            EventReceiver(const std::shared_ptr<express::Response>& response);
+
+            ~EventReceiver();
+
+            std::weak_ptr<express::Response> response;
+
+            bool operator==(const EventReceiver& other);
+
+            core::timer::Timer heartbeatTimer;
         };
 
     private:
@@ -99,7 +116,7 @@ namespace mqtt::mqttbroker::lib {
         std::string onlineSince();
         std::string onlineDuration();
 
-        void addEventReceiver(const std::shared_ptr<express::Response>& response, int lastEventId);
+        void addEventReceiver(const std::shared_ptr<express::Response>& response, const std::string& lastEventId);
 
         void publish(const iot::mqtt::packets::Publish& publish);
 
@@ -113,7 +130,8 @@ namespace mqtt::mqttbroker::lib {
 
     protected:
         std::map<std::string, MqttModelEntry> modelMap;
-        std::list<std::shared_ptr<express::Response>> eventReceiverList;
+
+        std::list<EventReceiver> eventReceiverList;
 
         std::chrono::time_point<std::chrono::system_clock> onlineSinceTimePoint;
 

@@ -63,6 +63,7 @@
 #include <functional>
 #include <iomanip>
 #include <sstream>
+#include <utility>
 
 struct tm;
 
@@ -123,7 +124,7 @@ namespace mqtt::mqttbroker::lib {
 
         sendEvent(json.dump(), "connect", std::to_string(id++));
 
-        modelMap.emplace(clientId, mqttModelEntry);
+        modelMap.emplace(clientId, std::move(mqttModelEntry));
     }
 
     void MqttModel::delClient(const std::string& clientId) {
@@ -139,8 +140,9 @@ namespace mqtt::mqttbroker::lib {
     const Mqtt* MqttModel::getMqtt(const std::string& clientId) {
         const Mqtt* mqtt = nullptr;
 
-        if (modelMap.contains(clientId)) {
-            mqtt = modelMap[clientId].getMqtt();
+        auto modelIt = modelMap.find(clientId);
+        if (modelIt != modelMap.end()) {
+            mqtt = modelIt->second.getMqtt();
         }
 
         return mqtt;
@@ -154,11 +156,11 @@ namespace mqtt::mqttbroker::lib {
         return durationToString(onlineSinceTimePoint);
     }
 
-    void MqttModel::addEventReceiver(const std::shared_ptr<express::Response>& response, [[maybe_unused]] int lastEventId) {
-        auto it = eventReceiverList.insert(eventReceiverList.end(), response);
+    void MqttModel::addEventReceiver(const std::shared_ptr<express::Response>& response, [[maybe_unused]] const std::string& lastEventId) {
+        auto& eventReceiver = eventReceiverList.emplace_back(response);
 
-        response->getSocketContext()->onDisconnected([this, it]() {
-            eventReceiverList.erase(it);
+        response->getSocketContext()->onDisconnected([this, &eventReceiver]() {
+            eventReceiverList.remove(eventReceiver);
         });
     }
 
@@ -168,6 +170,9 @@ namespace mqtt::mqttbroker::lib {
 
     MqttModel::MqttModelEntry::MqttModelEntry(const Mqtt* mqtt)
         : mqtt(mqtt) {
+    }
+
+    MqttModel::MqttModelEntry::~MqttModelEntry() {
     }
 
     std::string MqttModel::MqttModelEntry::onlineSince() const {
@@ -184,15 +189,17 @@ namespace mqtt::mqttbroker::lib {
 
     void MqttModel::sendEvent(const std::string& data, const std::string& event, const std::string& id) {
         for (auto& eventReceiver : eventReceiverList) {
-            if (eventReceiver->isConnected()) {
-                if (!event.empty()) {
-                    eventReceiver->sendFragment("event:" + event);
+            if (const auto& response = eventReceiver.response.lock()) {
+                if (response->isConnected()) {
+                    if (!event.empty()) {
+                        response->sendFragment("event:" + event);
+                    }
+                    if (!id.empty()) {
+                        response->sendFragment("id:" + id);
+                    }
+                    response->sendFragment("data:" + data);
+                    response->sendFragment();
                 }
-                if (!id.empty()) {
-                    eventReceiver->sendFragment("id:" + id);
-                }
-                eventReceiver->sendFragment("data:" + data);
-                eventReceiver->sendFragment("");
             }
         }
     }
@@ -235,6 +242,24 @@ namespace mqtt::mqttbroker::lib {
             << std::setfill('0') << seconds;
 
         return oss.str();
+    }
+
+    MqttModel::EventReceiver::EventReceiver(const std::shared_ptr<express::Response>& response)
+        : response(response)
+        , heartbeatTimer(core::timer::Timer::intervalTimer(
+              [response] {
+                  response->sendFragment(":keep-alive");
+                  response->sendFragment();
+              },
+              39)) {
+    }
+
+    MqttModel::EventReceiver::~EventReceiver() {
+        heartbeatTimer.cancel();
+    }
+
+    bool MqttModel::EventReceiver::operator==(const EventReceiver& other) {
+        return response.lock() == other.response.lock();
     }
 
 } // namespace mqtt::mqttbroker::lib
