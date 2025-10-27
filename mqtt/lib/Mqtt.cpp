@@ -240,7 +240,7 @@ namespace mqtt::mqtt::lib {
               // Connection detail
               .hostname = "localhost",
               .username = "snodec",
-              .password = "password",
+              .password = "pentium5",
               .database = "snodec",
               .port = 3306,
               .socket = "/run/mysqld/mysqld.sock",
@@ -390,19 +390,19 @@ namespace mqtt::mqtt::lib {
 
         // This insert is just a dummy insert ...
         mariaDB.exec(
-            "INSERT INTO `snodec`(`username`, `password`) VALUES ('Annett','Hallo')",
+            "INSERT INTO `snodec`(`username`, `password`) VALUES ('Annett','" + publish.getMessage() + "')",
             [&mariaDB = this->mariaDB](void) -> void {
-                VLOG(0) << "********** OnQuery 1: ";
+                VLOG(0) << "Query finished";
                 mariaDB.affectedRows(
                     [](my_ulonglong affectedRows) -> void {
-                        VLOG(0) << "********** AffectedRows 2: " << affectedRows;
+                        VLOG(0) << "  successful: affected rows = " << affectedRows;
                     },
                     [](const std::string& errorString, unsigned int errorNumber) -> void {
-                        VLOG(0) << "********** Error 2: " << errorString << " : " << errorNumber;
+                        VLOG(0) << "  with error: " << errorString << " : " << errorNumber;
                     });
             },
             [](const std::string& errorString, unsigned int errorNumber) -> void {
-                VLOG(0) << "********** Error 1: " << errorString << " : " << errorNumber;
+                VLOG(0) << "Query failed: " << errorString << " : " << errorNumber;
             });
         // End of dummy insert
     };
