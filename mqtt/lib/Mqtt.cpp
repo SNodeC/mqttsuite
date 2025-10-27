@@ -50,10 +50,12 @@
 
 #include <algorithm>
 #include <cstring>
+#include <functional>
 #include <iterator>
 #include <list>
 #include <log/Logger.h>
 #include <map>
+#include <mysql.h>
 #include <nlohmann/json_fwd.hpp>
 #include <sstream>
 #include <stdexcept>
@@ -234,6 +236,16 @@ namespace mqtt::mqtt::lib {
                bool pubRetain,
                const std::string& sessionStoreFileName)
         : iot::mqtt::client::Mqtt(connectionName, clientId, keepAlive, sessionStoreFileName)
+        , mariaDB({
+              // Connection detail
+              .hostname = "localhost",
+              .username = "snodec",
+              .password = "password",
+              .database = "snodec",
+              .port = 3306,
+              .socket = "/run/mysqld/mysqld.sock",
+              .flags = 0,
+          })
         , qoSDefault(qoSDefault)
         , cleanSession(cleanSession)
         , willTopic(willTopic)
@@ -369,7 +381,31 @@ namespace mqtt::mqtt::lib {
                                " │ Dup: " + (publish.getDup() != 0 ? "true" : "false");
 
         VLOG(0) << formatAsLogString(prefix, headLine, publish.getMessage());
-    }
+
+        [[maybe_unused]] nlohmann::json messageAsJSON(publish.getMessage());
+
+        // Here you can analyse and retrieve data from the json (j
+        // and decide on base of the fPort what to do with the data
+        // Maybe store it into a particular db table ...
+
+        // This insert is just a dummy insert ...
+        mariaDB.exec(
+            "INSERT INTO `snodec`(`username`, `password`) VALUES ('Annett','Hallo')",
+            [&mariaDB = this->mariaDB](void) -> void {
+                VLOG(0) << "********** OnQuery 1: ";
+                mariaDB.affectedRows(
+                    [](my_ulonglong affectedRows) -> void {
+                        VLOG(0) << "********** AffectedRows 2: " << affectedRows;
+                    },
+                    [](const std::string& errorString, unsigned int errorNumber) -> void {
+                        VLOG(0) << "********** Error 2: " << errorString << " : " << errorNumber;
+                    });
+            },
+            [](const std::string& errorString, unsigned int errorNumber) -> void {
+                VLOG(0) << "********** Error 1: " << errorString << " : " << errorNumber;
+            });
+        // End of dummy insert
+    };
 
     void Mqtt::onPuback([[maybe_unused]] const iot::mqtt::packets::Puback& puback) {
         if (subTopics.empty()) {

@@ -42,6 +42,7 @@
 #ifndef APPS_MQTTBROKER_MQTT_SOCKETCONTEXT_H
 #define APPS_MQTTBROKER_MQTT_SOCKETCONTEXT_H
 
+#include <database/mariadb/MariaDBClient.h>
 #include <iot/mqtt/client/Mqtt.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -84,6 +85,8 @@ namespace mqtt::mqtt::lib {
         void onSuback(const iot::mqtt::packets::Suback& suback) final;
         void onPuback(const iot::mqtt::packets::Puback& puback) final;
         void onPubcomp(const iot::mqtt::packets::Pubcomp& pubcomp) final;
+
+        database::mariadb::MariaDBClient mariaDB;
 
         const uint8_t qoSDefault;
         const bool cleanSession;

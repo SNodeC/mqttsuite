@@ -43,7 +43,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(nlohmann_json 3.7.0 REQUIRED)
 find_package(
     snodec
-    COMPONENTS mqtt-client
+    COMPONENTS mqtt-client db-mariadb
     REQUIRED
 )
 
@@ -53,7 +53,7 @@ target_include_directories(mqtt-cli PUBLIC ${PROJECT_SOURCE_DIR})
 
 target_link_libraries(
     mqtt-cli PUBLIC snodec::mqtt-client nlohmann_json::nlohmann_json
-                    mqtt-mapping
+                    snodec::db-mariadb mqtt-mapping
 )
 
 set_target_properties(
