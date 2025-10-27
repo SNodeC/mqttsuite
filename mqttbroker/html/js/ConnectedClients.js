@@ -43,13 +43,15 @@ function attach(tableSel, url){
 
   function compareKeys(a, b) {
     const A = norm(a), B = norm(b);
-    if (A === B)
+    if (A === B) {
       return 0;
+    }
 
     // Locale-aware compare (numbers, accents, case handled by collator options)
     const c = coll.compare(A, B);
-    if (c !== 0)
+    if (c !== 0) {
       return c;
+    }
 
     // Deterministic tiebreaker (rare but good hygiene)
     return A < B ? -1 : 1;
@@ -60,8 +62,12 @@ function attach(tableSel, url){
     for (const row of tbody.rows) {
       const rowKey = row.cells[0]?.innerText ?? "";
       const cmp = compareKeys(key, rowKey);
-      if (cmp < 0) return tbody.insertBefore(tr, row);
-      if (cmp === 0) return tbody.replaceChild(tr, row); // update existing
+      if (cmp < 0) {
+        return tbody.insertBefore(tr, row);
+      }
+      if (cmp === 0) {
+        return tbody.replaceChild(tr, row); // update existing
+      }
     }
     tbody.appendChild(tr);
   };
@@ -90,7 +96,9 @@ function attach(tableSel, url){
     for (const tbody of table.tBodies) {
        for (const row of Array.from(tbody.rows)) {
          const cell0 = row.cells[0];
-         if (!cell0) continue;
+         if (!cell0) {
+          continue;
+        }
 
          // Prefer a precomputed sort key; fallback to user-visible text
          const hay =
