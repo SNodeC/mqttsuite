@@ -390,9 +390,19 @@ namespace mqtt::mqtt::lib {
         // Maybe store it into a particular db table ...
         // E.g.:
 
+        VLOG(0) << "ApplicationId: " << messageAsJSON["end_device_ids"]["application_ids"]["application_id"];
+
         VLOG(0) << "Uplink message field\n" << messageAsJSON["uplink_message"].dump(4);
         VLOG(0) << "Decoded payload field\n" << messageAsJSON["uplink_message"]["decoded_payload"].dump(4);
 
+        VLOG(0) << "DeviceID: " << messageAsJSON["end_device_ids"]["device_id"];
+        VLOG(0) << "DeviceEUI: " << messageAsJSON["end_device_ids"]["dev_eui"];
+        VLOG(0) << "Received at: " << messageAsJSON["received_at"];
+        for (const auto& rx_metadata : messageAsJSON["uplink_message"]["rx_metadata"]) {
+            VLOG(0) << "Received via GW: " << rx_metadata["gateway_ids"]["gateway_id"];
+        }
+
+        VLOG(0) << "MessageCnt: " << messageAsJSON["uplink_message"]["f_cnt"];
         VLOG(0) << "F-Port field: " << messageAsJSON["uplink_message"]["f_port"];
         VLOG(0) << "Frm payload field: " << messageAsJSON["uplink_message"]["frm_payload"];
         VLOG(0) << "Frm payload base64 decoded: " << base64::base64_decode(messageAsJSON["uplink_message"]["frm_payload"]);
