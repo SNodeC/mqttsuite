@@ -45,6 +45,7 @@
 #include <iot/mqtt/packets/Connack.h>
 #include <iot/mqtt/packets/Publish.h>
 #include <iot/mqtt/packets/Suback.h>
+#include <utils/base64.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
@@ -382,11 +383,19 @@ namespace mqtt::mqtt::lib {
 
         VLOG(0) << formatAsLogString(prefix, headLine, publish.getMessage());
 
-        [[maybe_unused]] nlohmann::json messageAsJSON(publish.getMessage());
+        nlohmann::json messageAsJSON = nlohmann::json::parse(publish.getMessage());
 
         // Here you can analyse and retrieve data from the json (j
         // and decide on base of the fPort what to do with the data
         // Maybe store it into a particular db table ...
+        // E.g.:
+
+        VLOG(0) << "Uplink message field\n" << messageAsJSON["uplink_message"].dump(4);
+        VLOG(0) << "Decoded payload field\n" << messageAsJSON["uplink_message"]["decoded_payload"].dump(4);
+
+        VLOG(0) << "F-Port field: " << messageAsJSON["uplink_message"]["f_port"];
+        VLOG(0) << "Frm payload field: " << messageAsJSON["uplink_message"]["frm_payload"];
+        VLOG(0) << "Frm payload base64 decoded: " << base64::base64_decode(messageAsJSON["uplink_message"]["frm_payload"]);
 
         // This insert is just a dummy insert ...
         mariaDB.exec(
