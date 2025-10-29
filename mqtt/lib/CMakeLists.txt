@@ -43,17 +43,20 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(nlohmann_json 3.7.0 REQUIRED)
 find_package(
     snodec
-    COMPONENTS mqtt-client db-mariadb
+    COMPONENTS mqtt-client
     REQUIRED
 )
 
-add_library(mqtt-cli SHARED Mqtt.cpp Mqtt.h)
+# Find PostgreSQL (libpq)
+find_package(PostgreSQL REQUIRED)
 
-target_include_directories(mqtt-cli PUBLIC ${PROJECT_SOURCE_DIR})
+add_library(mqtt-cli SHARED Mqtt.cpp Mqtt.h AsyncPostgresClient.cpp AsyncPostgresClient.h)
+
+target_include_directories(mqtt-cli PUBLIC ${PROJECT_SOURCE_DIR} ${PostgreSQL_INCLUDE_DIRS})
 
 target_link_libraries(
     mqtt-cli PUBLIC snodec::mqtt-client nlohmann_json::nlohmann_json
-                    snodec::db-mariadb mqtt-mapping
+                    mqtt-mapping ${PostgreSQL_LIBRARIES}
 )
 
 set_target_properties(

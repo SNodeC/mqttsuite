@@ -56,7 +56,6 @@
 #include <list>
 #include <log/Logger.h>
 #include <map>
-#include <mysql.h>
 #include <nlohmann/json_fwd.hpp>
 #include <sstream>
 #include <stdexcept>
@@ -237,16 +236,16 @@ namespace mqtt::mqtt::lib {
                bool pubRetain,
                const std::string& sessionStoreFileName)
         : iot::mqtt::client::Mqtt(connectionName, clientId, keepAlive, sessionStoreFileName)
-        , mariaDB({
-              // Connection detail
-              .hostname = "localhost",
-              .username = "snodec",
-              .password = "pentium5",
-              .database = "snodec",
-              .port = 3306,
-              .socket = "/run/mysqld/mysqld.sock",
-              .flags = 0,
-          })
+        , postgresDB(
+              {
+                  // Connection detail
+                  .hostname = "localhost", // raspberrypi-itnh.local
+                  .username = "itnh",
+                  .password = "q66yg8StA7Fw", // Hi everyone! Please don't hack our DB :)
+                  .database = "itnh",
+                  .port = 50000,
+              },
+              5) // Pool size of 5 connections for parallel queries
         , qoSDefault(qoSDefault)
         , cleanSession(cleanSession)
         , willTopic(willTopic)
@@ -383,38 +382,129 @@ namespace mqtt::mqtt::lib {
 
         VLOG(0) << formatAsLogString(prefix, headLine, publish.getMessage());
 
-        nlohmann::json messageAsJSON = nlohmann::json::parse(publish.getMessage());
+        nlohmann::json messageAsJSON;
+        try {
+            messageAsJSON = nlohmann::json::parse(publish.getMessage());
+        } catch (const nlohmann::json::parse_error& e) {
+            VLOG(0) << "Failed to parse JSON: " << e.what();
+            return;
+        }
 
-        // Here you can analyse and retrieve data from the json (j
-        // and decide on base of the fPort what to do with the data
-        // Maybe store it into a particular db table ...
-        // E.g.:
+        auto safeGet = [](const nlohmann::json& j, const std::vector<std::string>& path) -> nlohmann::json {
+            const nlohmann::json* cur = &j;
+            for (const auto& p : path) {
+                if (cur->contains(p)) {
+                    cur = &(*cur)[p];
+                } else {
+                    return nullptr;
+                }
+            }
+            return *cur;
+        };
 
-        VLOG(0) << "Uplink message field\n" << messageAsJSON["uplink_message"].dump(4);
-        VLOG(0) << "Decoded payload field\n" << messageAsJSON["uplink_message"]["decoded_payload"].dump(4);
+        std::string device_id = safeGet(messageAsJSON, {"end_device_ids", "device_id"}).get<std::string>();
+        std::string ts = safeGet(messageAsJSON, {"received_at"}).get<std::string>();
+        auto uplink = messageAsJSON["uplink_message"];
+        // int f_cnt = uplink["f_cnt"].get<int>();
+        // int f_port = uplink["f_port"].get<int>();
+        auto decoded = uplink.value("decoded_payload", nlohmann::json::object());
+        auto rx_metadata = uplink.value("rx_metadata", nlohmann::json::array());
 
-        VLOG(0) << "F-Port field: " << messageAsJSON["uplink_message"]["f_port"];
-        VLOG(0) << "Frm payload field: " << messageAsJSON["uplink_message"]["frm_payload"];
-        VLOG(0) << "Frm payload base64 decoded: " << base64::base64_decode(messageAsJSON["uplink_message"]["frm_payload"]);
+        std::optional<double> temperature =
+            decoded.contains("temperature") ? std::make_optional(decoded["temperature"].get<double>()) : std::nullopt;
+        std::optional<double> ph = decoded.contains("ph") ? std::make_optional(decoded["ph"].get<double>()) : std::nullopt;
+        std::optional<double> dts = decoded.contains("dts") ? std::make_optional(decoded["dts"].get<double>()) : std::nullopt;
+        std::optional<double> lat, lon, alt;
+        if (!rx_metadata.empty() && rx_metadata[0].contains("location")) {
+            auto loc = rx_metadata[0]["location"];
+            lat = loc.value("latitude", 0.0);
+            lon = loc.value("longitude", 0.0);
+            alt = loc.value("altitude", 0.0);
+        }
 
-        // This insert is just a dummy insert ...
-        mariaDB.exec(
-            "INSERT INTO `snodec`(`username`, `password`) VALUES ('Annett','" + publish.getMessage() + "')",
-            [&mariaDB = this->mariaDB](void) -> void {
-                VLOG(0) << "Query finished";
-                mariaDB.affectedRows(
-                    [](my_ulonglong affectedRows) -> void {
-                        VLOG(0) << "  successful: affected rows = " << affectedRows;
+        // we call this auto function after we have the sensor_id which we get below from the sensors table
+        // then we run insertMeasurements(sensor_id) to insert the measurements
+        auto insertMeasurements = [this, ts, temperature, ph, dts, lat, lon, alt](int sensor_id) {
+            if (temperature) {
+                postgresDB.exec(
+                    "INSERT INTO temperature (sensor_id, ts, value) VALUES ($1, $2, $3)",
+                    [sensor_id]([[maybe_unused]] nlohmann::json result) {
+                        VLOG(2) << "Inserted temperature for sensor " << sensor_id;
                     },
-                    [](const std::string& errorString, unsigned int errorNumber) -> void {
-                        VLOG(0) << "  with error: " << errorString << " : " << errorNumber;
-                    });
+                    [](const std::string& err, [[maybe_unused]] int code) {
+                        VLOG(0) << "Error inserting temperature: " << err;
+                    },
+                    std::vector<nlohmann::json>{sensor_id, ts, *temperature});
+            }
+            if (ph) {
+                postgresDB.exec(
+                    "INSERT INTO ph (sensor_id, ts, value) VALUES ($1, $2, $3)",
+                    [sensor_id]([[maybe_unused]] nlohmann::json result) {
+                        VLOG(2) << "Inserted ph for sensor " << sensor_id;
+                    },
+                    [](const std::string& err, [[maybe_unused]] int code) {
+                        VLOG(0) << "Error inserting ph: " << err;
+                    },
+                    std::vector<nlohmann::json>{sensor_id, ts, *ph});
+            }
+            if (dts) {
+                postgresDB.exec(
+                    "INSERT INTO dts (sensor_id, ts, value) VALUES ($1, $2, $3)",
+                    [sensor_id]([[maybe_unused]] nlohmann::json result) {
+                        VLOG(2) << "Inserted dts for sensor " << sensor_id;
+                    },
+                    [](const std::string& err, [[maybe_unused]] int code) {
+                        VLOG(0) << "Error inserting dts: " << err;
+                    },
+                    std::vector<nlohmann::json>{sensor_id, ts, *dts});
+            }
+            if (lat && lon) {
+                postgresDB.exec(
+                    "INSERT INTO gps (sensor_id, ts, lat, lon, alt) VALUES ($1, $2, $3, $4, $5)",
+                    [sensor_id]([[maybe_unused]] nlohmann::json result) {
+                        VLOG(2) << "Inserted GPS for sensor " << sensor_id;
+                    },
+                    [](const std::string& err, [[maybe_unused]] int code) {
+                        VLOG(0) << "Error inserting GPS: " << err;
+                    },
+                    std::vector<nlohmann::json>{sensor_id, ts, *lat, *lon, alt.value_or(0.0)});
+            }
+        };
+
+        // Check if the sensor exists
+        postgresDB.exec(
+            "SELECT id FROM sensors WHERE device_id = $1",
+            [this, device_id, insertMeasurements](nlohmann::json result) {
+                if (!result.empty()) {
+                    int sensor_id = result[0]["id"].get<int>();
+                    // insert for found sensor
+                    insertMeasurements(sensor_id);
+                } else {
+                    // Sensor doesn't exist, insert it first
+                    postgresDB.exec(
+                        "INSERT INTO sensors (device_id) VALUES ($1) RETURNING id",
+                        [insertMeasurements](nlohmann::json insertResult) {
+                            if (!insertResult.empty()) {
+                                int sensor_id = insertResult[0]["id"].get<int>();
+                                // insert for new created sensor
+                                insertMeasurements(sensor_id);
+                            }
+                        },
+                        [](const std::string& err, [[maybe_unused]] int code) {
+                            VLOG(0) << "Error inserting sensor: " << err;
+                        },
+                        std::vector<nlohmann::json>{device_id});
+                }
             },
-            [](const std::string& errorString, unsigned int errorNumber) -> void {
-                VLOG(0) << "Query failed: " << errorString << " : " << errorNumber;
-            });
-        // End of dummy insert
-    };
+            [](const std::string& err, [[maybe_unused]] int code) {
+                VLOG(0) << "Error selecting sensor: " << err;
+            },
+            std::vector<nlohmann::json>{device_id});
+    }
+    void Mqtt::pollDatabase() {
+        // Process any pending async query results
+        postgresDB.pollResults();
+    }
 
     void Mqtt::onPuback([[maybe_unused]] const iot::mqtt::packets::Puback& puback) {
         if (subTopics.empty()) {
