@@ -57,7 +57,7 @@
 #include <log/Logger.h>
 #include <map>
 #include <mysql.h>
-#include <nlohmann/json_fwd.hpp>
+#include <nlohmann/json.hpp>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -68,11 +68,11 @@
 #include <utils/system/signal.h>
 #include <vector>
 
+// IWYU pragma: no_include <nlohmann/detail/iterators/iter_impl.hpp>  // for iter_impl
+// IWYU pragma: no_include <nlohmann/json_fwd.hpp>                    // for json
+
 #endif
 
-// include the single‐header JSON library:
-// https://github.com/nlohmann/json/releases
-#include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
 // get current terminal width, fallback to 80
@@ -237,16 +237,25 @@ namespace mqtt::mqtt::lib {
                bool pubRetain,
                const std::string& sessionStoreFileName)
         : iot::mqtt::client::Mqtt(connectionName, clientId, keepAlive, sessionStoreFileName)
-        , mariaDB({
-              // Connection detail
-              .hostname = "localhost",
-              .username = "snodec",
-              .password = "pentium5",
-              .database = "snodec",
-              .port = 3306,
-              .socket = "/run/mysqld/mysqld.sock",
-              .flags = 0,
-          })
+        , mariaDB( // Connection detail
+              {
+                  .hostname = "localhost",
+                  .username = "snodec",
+                  .password = "pentium5",
+                  .database = "snodec",
+                  .port = 3306,
+                  .socket = "/run/mysqld/mysqld.sock",
+                  .flags = 0,
+              },
+              [](const database::mariadb::MariaDBState& state) {
+                  if (state.connected) {
+                      VLOG(0) << "MariaDB: Connected";
+                  } else if (state.error != 0) {
+                      VLOG(0) << "MariaDB: " << state.errorMessage << " [" << state.error << "]";
+                  } else {
+                      VLOG(0) << "MariaDB: Lost connection";
+                  }
+              })
         , qoSDefault(qoSDefault)
         , cleanSession(cleanSession)
         , willTopic(willTopic)
@@ -408,20 +417,21 @@ namespace mqtt::mqtt::lib {
         VLOG(0) << "Frm payload base64 decoded: " << base64::base64_decode(messageAsJSON["uplink_message"]["frm_payload"]);
 
         // This insert is just a dummy insert ...
+
         mariaDB.exec(
             "INSERT INTO `snodec`(`username`, `password`) VALUES ('Annett','" + publish.getMessage() + "')",
             [&mariaDB = this->mariaDB](void) -> void {
-                VLOG(0) << "Query finished";
+                VLOG(0) << "MariaDB: Query completed";
                 mariaDB.affectedRows(
                     [](my_ulonglong affectedRows) -> void {
-                        VLOG(0) << "  successful: affected rows = " << affectedRows;
+                        VLOG(0) << "  query affected rows: " << affectedRows;
                     },
                     [](const std::string& errorString, unsigned int errorNumber) -> void {
-                        VLOG(0) << "  with error: " << errorString << " : " << errorNumber;
+                        VLOG(0) << "  query affected rows failed: " << errorString << " : " << errorNumber;
                     });
             },
             [](const std::string& errorString, unsigned int errorNumber) -> void {
-                VLOG(0) << "Query failed: " << errorString << " : " << errorNumber;
+                VLOG(0) << "MariaDB: Query failed: " << errorString << " : " << errorNumber;
             });
         // End of dummy insert
     };
