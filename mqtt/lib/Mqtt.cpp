@@ -241,7 +241,7 @@ namespace mqtt::mqtt::lib {
               // Connection detail
               .hostname = "localhost",
               .username = "root",
-              .password = "",
+              .password = "hagenberg",
               .database = "SensorDataDB",
               .port = 3306,
               .socket = "/run/mysqld/mysqld.sock",
