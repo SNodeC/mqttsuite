@@ -240,9 +240,9 @@ namespace mqtt::mqtt::lib {
         , mariaDB({
               // Connection detail
               .hostname = "localhost",
-              .username = "snodec",
-              .password = "pentium5",
-              .database = "snodec",
+              .username = "root",
+              .password = "",
+              .database = "SensorDataDB",
               .port = 3306,
               .socket = "/run/mysqld/mysqld.sock",
               .flags = 0,
