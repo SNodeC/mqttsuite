@@ -239,6 +239,7 @@ namespace mqtt::mqtt::lib {
         : iot::mqtt::client::Mqtt(connectionName, clientId, keepAlive, sessionStoreFileName)
         , mariaDB( // Connection detail
               {
+                  .connectionName = connectionName,
                   .hostname = "localhost",
                   .username = "snodec",
                   .password = "pentium5",
@@ -247,13 +248,13 @@ namespace mqtt::mqtt::lib {
                   .socket = "/run/mysqld/mysqld.sock",
                   .flags = 0,
               },
-              [](const database::mariadb::MariaDBState& state) {
+              [&connectionName = this->connectionName](const database::mariadb::MariaDBState& state) {
                   if (state.connected) {
-                      VLOG(0) << "MariaDB: Connected";
+                      VLOG(0) << connectionName << " MariaDB: Connected";
                   } else if (state.error != 0) {
-                      VLOG(0) << "MariaDB: " << state.errorMessage << " [" << state.error << "]";
+                      VLOG(0) << connectionName << " MariaDB: " << state.errorMessage << " [" << state.error << "]";
                   } else {
-                      VLOG(0) << "MariaDB: Lost connection";
+                      VLOG(0) << connectionName << " MariaDB: Lost connection";
                   }
               })
         , qoSDefault(qoSDefault)
@@ -420,8 +421,8 @@ namespace mqtt::mqtt::lib {
 
         mariaDB.exec(
             "INSERT INTO `snodec`(`username`, `password`) VALUES ('Annett','" + publish.getMessage() + "')",
-            [&mariaDB = this->mariaDB](void) -> void {
-                VLOG(0) << "MariaDB: Query completed";
+            [&mariaDB = this->mariaDB, &connectionName = this->connectionName](void) -> void {
+                VLOG(0) << connectionName << " MariaDB: Query completed";
                 mariaDB.affectedRows(
                     [](my_ulonglong affectedRows) -> void {
                         VLOG(0) << "  query affected rows: " << affectedRows;
@@ -430,8 +431,8 @@ namespace mqtt::mqtt::lib {
                         VLOG(0) << "  query affected rows failed: " << errorString << " : " << errorNumber;
                     });
             },
-            [](const std::string& errorString, unsigned int errorNumber) -> void {
-                VLOG(0) << "MariaDB: Query failed: " << errorString << " : " << errorNumber;
+            [&connectionName = this->connectionName](const std::string& errorString, unsigned int errorNumber) -> void {
+                VLOG(0) << connectionName << " MariaDB: Query failed: " << errorString << " : " << errorNumber;
             });
         // End of dummy insert
     };
