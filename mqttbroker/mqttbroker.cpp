@@ -40,6 +40,7 @@
  */
 
 #include "SocketContextFactory.h" // IWYU pragma: keep
+#include "config.h"
 #include "lib/Mqtt.h"
 #include "lib/MqttModel.h"
 
@@ -62,19 +63,50 @@
 #include <iot/mqtt/MqttContext.h>
 #include <utils/Config.h>
 //
+
+#ifdef CONFIG_MQTTSUITE_BROKER_TCP_IPV4
 #include <express/legacy/in/Server.h>
-#include <express/legacy/in6/Server.h>
-#include <express/legacy/un/Server.h>
+#ifdef CONFIG_MQTTSUITE_BROKER_TLS_IPV4
 #include <express/tls/in/Server.h>
+#endif
+#endif
+
+#ifdef CONFIG_MQTTSUITE_BROKER_TCP_IPV6
+#include <express/legacy/in6/Server.h>
+#ifdef CONFIG_MQTTSUITE_BROKER_TLS_IPV6
 #include <express/tls/in6/Server.h>
+#endif
+#endif
+
+#ifdef CONFIG_MQTTSUITE_BROKER_UNIX
+#include <express/legacy/un/Server.h>
+#ifdef CONFIG_MQTTSUITE_BROKER_UNIX_TLS
 #include <express/tls/un/Server.h>
+#endif
+#endif
+
 //
+#ifdef CONFIG_MQTTSUITE_BROKER_TCP_IPV4
 #include <net/in/stream/legacy/SocketServer.h>
+#ifdef CONFIG_MQTTSUITE_BROKER_TLS_IPV4
 #include <net/in/stream/tls/SocketServer.h>
+#endif
+#endif
+
+#ifdef CONFIG_MQTTSUITE_BROKER_TCP_IPV6
 #include <net/in6/stream/legacy/SocketServer.h>
+#ifdef CONFIG_MQTTSUITE_BROKER_TLS_IPV6
 #include <net/in6/stream/tls/SocketServer.h>
+#endif
+#endif
+
+#ifdef CONFIG_MQTTSUITE_BROKER_UNIX
 #include <net/un/stream/legacy/SocketServer.h>
+#ifdef CONFIG_MQTTSUITE_BROKER_UNIX_TLS
 #include <net/un/stream/tls/SocketServer.h>
+#endif
+#endif
+
 #include <web/http/http_utils.h>
 //
 #include <express/middleware/JsonMiddleware.h>
@@ -525,6 +557,7 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<iot::mqtt::server::broker::Broker> broker =
         iot::mqtt::server::broker::Broker::instance(SUBSCRIPTION_MAX_QOS, utils::Config::getStringOptionValue("--mqtt-session-store"));
 
+#ifdef CONFIG_MQTTSUITE_BROKER_TCP_IPV4
     net::in::stream::legacy::Server<mqtt::mqttbroker::SocketContextFactory>(
         "in-mqtt",
         [](auto& config) {
@@ -537,6 +570,7 @@ int main(int argc, char* argv[]) {
             reportState("in-mqtt", socketAddress, state);
         });
 
+#ifdef CONFIG_MQTTSUITE_BROKER_TLS_IPV4
     net::in::stream::tls::Server<mqtt::mqttbroker::SocketContextFactory>(
         "in-mqtts",
         [](auto& config) {
@@ -548,7 +582,10 @@ int main(int argc, char* argv[]) {
         .listen([](const auto& socketAddress, core::socket::State state) {
             reportState("in-mqtts", socketAddress, state);
         });
+#endif
+#endif
 
+#ifdef CONFIG_MQTTSUITE_BROKER_TCP_IPV6
     net::in6::stream::legacy::Server<mqtt::mqttbroker::SocketContextFactory>(
         "in6-mqtt",
         [](auto& config) {
@@ -563,6 +600,7 @@ int main(int argc, char* argv[]) {
             reportState("in6-mqtt", socketAddress, state);
         });
 
+#ifdef CONFIG_MQTTSUITE_BROKER_TLS_IPV6
     net::in6::stream::tls::Server<mqtt::mqttbroker::SocketContextFactory>(
         "in6-mqtts",
         [](auto& config) {
@@ -576,7 +614,10 @@ int main(int argc, char* argv[]) {
         .listen([](const auto& socketAddress, core::socket::State state) {
             reportState("in6-mqtts", socketAddress, state);
         });
+#endif
+#endif
 
+#ifdef CONFIG_MQTTSUITE_BROKER_UNIX
     net::un::stream::legacy::Server<mqtt::mqttbroker::SocketContextFactory>(
         "un-mqtt",
         [](auto& config) {
@@ -588,6 +629,7 @@ int main(int argc, char* argv[]) {
             reportState("un-mqtt", socketAddress, state);
         });
 
+#ifdef CONFIG_MQTTSUITE_BROKER_UNIX_TLS
     net::un::stream::tls::Server<mqtt::mqttbroker::SocketContextFactory>(
         "un-mqtts",
         [](auto& config) {
@@ -598,22 +640,29 @@ int main(int argc, char* argv[]) {
         .listen([](const auto& socketAddress, core::socket::State state) {
             reportState("un-mqtts", socketAddress, state);
         });
+#endif
+#endif
 
     inja::Environment environment{utils::Config::getStringOptionValue("--html-dir") + "/"};
     express::Router router = getRouter(environment, broker);
 
+#ifdef CONFIG_MQTTSUITE_BROKER_TCP_IPV4
     express::legacy::in::Server("in-http", router, reportState, [](auto& config) {
         config.setPort(8080);
         config.setRetry();
         config.setDisableNagleAlgorithm();
     });
 
+#ifdef CONFIG_MQTTSUITE_BROKER_TLS_IPV4
     express::tls::in::Server("in-https", router, reportState, [](auto& config) {
         config.setPort(8088);
         config.setRetry();
         config.setDisableNagleAlgorithm();
     });
+#endif
+#endif
 
+#ifdef CONFIG_MQTTSUITE_BROKER_TCP_IPV6
     express::legacy::in6::Server("in6-http", router, reportState, [](auto& config) {
         config.setPort(8080);
         config.setRetry();
@@ -622,6 +671,7 @@ int main(int argc, char* argv[]) {
         config.setIPv6Only();
     });
 
+#ifdef CONFIG_MQTTSUITE_BROKER_TLS_IPV6
     express::tls::in6::Server("in6-https", router, reportState, [](auto& config) {
         config.setPort(8088);
         config.setRetry();
@@ -629,14 +679,20 @@ int main(int argc, char* argv[]) {
 
         config.setIPv6Only();
     });
+#endif
+#endif
 
+#ifdef CONFIG_MQTTSUITE_BROKER_UNIX
     express::legacy::un::Server("un-http", router, reportState, [](auto& config) {
         config.setSunPath("/tmp/" + utils::Config::getApplicationName() + "-" + config.getInstanceName());
     });
 
+#ifdef CONFIG_MQTTSUITE_BROKER_UNIX_TLS
     express::tls::un::Server("un-https", router, reportState, [](auto& config) {
         config.setSunPath("/tmp/" + utils::Config::getApplicationName() + "-" + config.getInstanceName());
     });
+#endif
+#endif
 
     return core::SNodeC::start();
 }

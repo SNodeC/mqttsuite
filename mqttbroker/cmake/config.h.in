@@ -1,0 +1,10 @@
+/* Auto-generated from CMake options — include this in your sources. */
+
+#cmakedefine CONFIG_MQTTSUITE_BROKER_TCP_IPV4
+#cmakedefine CONFIG_MQTTSUITE_BROKER_TLS_IPV4
+#cmakedefine CONFIG_MQTTSUITE_BROKER_TCP_IPV6
+#cmakedefine CONFIG_MQTTSUITE_BROKER_TLS_IPV6
+#cmakedefine CONFIG_MQTTSUITE_BROKER_UNIX
+#cmakedefine CONFIG_MQTTSUITE_BROKER_UNIX_TLS
+#cmakedefine CONFIG_MQTTSUITE_BROKER_WS
+#cmakedefine CONFIG_MQTTSUITE_BROKER_WSS

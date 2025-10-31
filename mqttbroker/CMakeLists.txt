@@ -37,6 +37,117 @@
 
 cmake_minimum_required(VERSION 3.14)
 
+# dep_option(NAME HELP_TEXT DEFAULT DEP1 [DEP2 ...]) - If all DEPs are TRUE →
+# create a normal CACHE BOOL option (visible in GUI). - Else → remove the cache
+# entry (so it disappears from GUI) and force the var OFF.
+function(dep_option NAME HELP DEFAULT)
+    set(options)
+    set(oneValueArgs)
+    set(multiValueArgs)
+    cmake_parse_arguments(
+        DO "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN}
+    )
+
+    # Remaining args after DEFAULT are the dependency vars
+    set(_deps_ok TRUE)
+    foreach(d ${DO_UNPARSED_ARGUMENTS})
+        if(NOT ${d})
+            set(_deps_ok FALSE)
+        endif()
+    endforeach()
+
+    if(_deps_ok)
+        # Create/keep a visible option; preserve -D overrides
+        if(DEFINED ${NAME})
+            set(_cur "${${NAME}}")
+            option(${NAME} "${HELP}" ${DEFAULT})
+            set(${NAME}
+                "${_cur}"
+                CACHE BOOL "${HELP}" FORCE
+            )
+        else()
+            option(${NAME} "${HELP}" ${DEFAULT})
+        endif()
+        mark_as_advanced(CLEAR ${NAME})
+    else()
+        # Hide by removing cache entry; also force normal var OFF for if() logic
+        if(DEFINED ${NAME})
+            unset(${NAME} CACHE)
+        endif()
+        set(${NAME}
+            OFF
+            PARENT_SCOPE
+        )
+        set(${NAME} OFF) # local too
+    endif()
+endfunction()
+
+option(CONFIG_MQTTSUITE_BROKER_TCP_IPV4 "MQTTSuite broker TCP IPv4" ON)
+option(CONFIG_MQTTSUITE_BROKER_TCP_IPV6 "MQTTSuite broker TCP IPv6" ON)
+option(CONFIG_MQTTSUITE_BROKER_UNIX "MQTTSuite broker Unix" ON)
+option(CONFIG_MQTTSUITE_BROKER_WS "MQTTSuite broker WebSocket" ON)
+
+# Dependent TLS/WSS toggles (only visible when the base is ON)
+dep_option(
+    CONFIG_MQTTSUITE_BROKER_TLS_IPV4 "SSL/TLS (IPv4)" ON
+    CONFIG_MQTTSUITE_BROKER_TCP_IPV4
+)
+
+dep_option(
+    CONFIG_MQTTSUITE_BROKER_TLS_IPV6 "SSL/TLS (IPv6)" ON
+    CONFIG_MQTTSUITE_BROKER_TCP_IPV6
+)
+
+dep_option(
+    CONFIG_MQTTSUITE_BROKER_UNIX_TLS "SSL/TLS (Unix domain sockets)" ON
+    CONFIG_MQTTSUITE_BROKER_UNIX
+)
+
+dep_option(
+    CONFIG_MQTTSUITE_BROKER_WSS "WebSocket (WSS)" ON CONFIG_MQTTSUITE_BROKER_WS
+)
+
+set(MQTTBROKER_COMPONENTS "")
+set(MQTTBROKER_LINK_LIBS "")
+# Common nets
+if(CONFIG_MQTTSUITE_BROKER_TCP_IPV4)
+    list(APPEND MQTTBROKER_COMPONENTS net-in-stream-legacy
+         http-server-express-legacy-in
+    )
+    if(CONFIG_MQTTSUITE_BROKER_TLS_IPV4)
+        list(APPEND MQTTBROKER_COMPONENTS net-in-stream-tls
+             http-server-express-tls-in
+        )
+    endif()
+endif()
+if(CONFIG_MQTTSUITE_BROKER_TCP_IPV6)
+    list(APPEND MQTTBROKER_COMPONENTS net-in6-stream-legacy
+         http-server-express-legacy-in6
+    )
+    if(CONFIG_MQTTSUITE_BROKER_TLS_IPV6)
+        list(APPEND MQTTBROKER_COMPONENTS net-in6-stream-tls
+             http-server-express-tls-in6
+        )
+    endif()
+endif()
+if(CONFIG_MQTTSUITE_BROKER_UNIX)
+    list(APPEND MQTTBROKER_COMPONENTS net-un-stream-legacy
+         http-server-express-legacy-un
+    )
+    if(CONFIG_MQTTSUITE_BROKER_UNIX_TLS)
+        list(APPEND MQTTBROKER_COMPONENTS net-un-stream-tls
+             http-server-express-tls-un
+        )
+    endif()
+endif()
+list(REMOVE_DUPLICATES MQTTBROKER_COMPONENTS)
+
+set(MQTTBROKER_LINK_LIBS "")
+foreach(c IN LISTS MQTTBROKER_COMPONENTS)
+    list(APPEND MQTTBROKER_LINK_LIBS snodec::${c})
+endforeach()
+list(REMOVE_DUPLICATES SNODEC_LINK_LIBS)
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -48,20 +159,14 @@ add_subdirectory(websocket)
 find_package(nlohmann_json 3.7.0 REQUIRED)
 find_package(fmt REQUIRED)
 find_package(
-    snodec 1.0.0 REQUIRED
-    COMPONENTS net-in-stream-tls
-               net-in6-stream-legacy
-               net-in6-stream-tls
-               net-un-stream-legacy
-               net-un-stream-tls
-               http-server-express-legacy-in
-               http-server-express-legacy-in6
-               http-server-express-legacy-un
-               http-server-express-tls-in
-               http-server-express-tls-in6
-               http-server-express-tls-un
-               mqtt-server
+    snodec 1.0.0 REQUIRED COMPONENTS ${MQTTBROKER_COMPONENTS} mqtt-server
 )
+
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/config.h.in
+    ${CMAKE_CURRENT_BINARY_DIR}/generated/config.h
+)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/generated)
 
 set(MQTTBROKER_CPP mqttbroker.cpp SocketContextFactory.cpp)
 set(MQTTBROKER_H SocketContextFactory.h)
@@ -83,22 +188,8 @@ file(GLOB_RECURSE WEB_ASSETS "${CMAKE_CURRENT_SOURCE_DIR}/html/*.html"
 target_sources(mqttbroker PRIVATE ${WEB_ASSETS})
 
 target_link_libraries(
-    mqttbroker
-    PUBLIC snodec::net-in-stream-tls
-           snodec::net-in6-stream-legacy
-           snodec::net-in6-stream-tls
-           snodec::net-un-stream-legacy
-           snodec::net-un-stream-tls
-           snodec::http-server-express-legacy-in
-           snodec::http-server-express-legacy-in6
-           snodec::http-server-express-legacy-un
-           snodec::http-server-express-tls-in
-           snodec::http-server-express-tls-in6
-           snodec::http-server-express-tls-un
-           snodec::mqtt-server
-           mqtt-mapping
-           mqtt-broker
-           fmt
+    mqttbroker PUBLIC ${MQTTBROKER_LINK_LIBS} snodec::mqtt-server mqtt-mapping
+                      mqtt-broker fmt
 )
 
 install(TARGETS mqttbroker RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
