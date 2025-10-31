@@ -1,0 +1,10 @@
+/* Auto-generated from CMake options — include this in your sources. */
+
+#cmakedefine CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4
+#cmakedefine CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4
+#cmakedefine CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6
+#cmakedefine CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6
+#cmakedefine CONFIG_MQTTSUITE_BRIDGE_UNIX
+#cmakedefine CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS
+#cmakedefine CONFIG_MQTTSUITE_BRIDGE_WS
+#cmakedefine CONFIG_MQTTSUITE_BRIDGE_WSS

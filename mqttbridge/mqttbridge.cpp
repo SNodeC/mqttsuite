@@ -40,6 +40,7 @@
  */
 
 #include "SocketContextFactory.h" // IWYU pragma: keep
+#include "config.h"
 #include "lib/BridgeStore.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -52,98 +53,48 @@
 #include <utils/CLI11.hpp>
 //
 
-/*
-// This can be and is done in CMakeLists.txt
-// =========================================
-#if !defined(MQTTBRIDGE_IN_STREAM_LEGACY)
-#define MQTTBRIDGE_IN_STREAM_LEGACY
-#endif
-#if !defined(MQTTBRIDGE_IN6_STREAM_LEGACY)
-#define MQTTBRIDGE_IN6_STREAM_LEGACY
-#endif
-#if !defined(MQTTBRIDGE_L2_STREAM_LEGACY)
-#define MQTTBRIDGE_L2_STREAM_LEGACY
-#endif
-#if !defined(MQTTBRIDGE_RC_STREAM_LEGACY)
-#define MQTTBRIDGE_RC_STREAM_LEGACY
-#endif
-#if !defined(MQTTBRIDGE_UN_STREAM_LEGACY)
-#define MQTTBRIDGE_UN_STREAM_LEGACY
-#endif
-#if !defined(MQTTBRIDGE_IN_STREAM_TLS)
-#define MQTTBRIDGE_IN_STREAM_TLS
-#endif
-#if !defined(MQTTBRIDGE_IN6_STREAM_TLS)
-#define MQTTBRIDGE_IN6_STREAM_TLS
-#endif
-#if !defined(MQTTBRIDGE_L2_STREAM_TLS)
-#define MQTTBRIDGE_L2_STREAM_TLS
-#endif
-#if !defined(MQTTBRIDGE_RC_STREAM_TLS)
-#define MQTTBRIDGE_RC_STREAM_TLS
-#endif
-#if !defined(MQTTBRIDGE_UN_STREAM_TLS)
-#define MQTTBRIDGE_UN_STREAM_TLS
-#endif
-
-#if !defined(MQTTBRIDGE_IN_WEBSOCKET_LEGACY)
-#define MQTTBRIDGE_IN_WEBSOCKET_LEGACY
-#endif
-#if !defined(MQTTBRIDGE_IN6_WEBSOCKET_LEGACY)
-#define MQTTBRIDGE_IN6_WEBSOCKET_LEGACY
-#endif
-#if !defined(MQTTBRIDGE_IN_WEBSOCKET_TLS)
-#define MQTTBRIDGE_IN_WEBSOCKET_TLS
-#endif
-#if !defined(MQTTBRIDGE_IN6_WEBSOCKET_TLS)
-#define MQTTBRIDGE_IN6_WEBSOCKET_TLS
-#endif
-*/
-
 // Select necessary include files
 // ==============================
-#if defined(MQTTBRIDGE_IN_STREAM_LEGACY)
+#if defined(CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4)
 #include <net/in/stream/legacy/SocketClient.h>
-#endif
-#if defined(MQTTBRIDGE_IN_STREAM_TLS)
+#if defined(CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4)
 #include <net/in/stream/tls/SocketClient.h>
 #endif
-#if defined(MQTTBRIDGE_IN6_STREAM_LEGACY)
-#include <net/in6/stream/legacy/SocketClient.h>
-#endif
-#if defined(MQTTBRIDGE_IN6_STREAM_TLS)
-#include <net/in6/stream/tls/SocketClient.h>
-#endif
-#if defined(MQTTBRIDGE_L2_STREAM_LEGACY)
-#include <net/l2/stream/legacy/SocketClient.h>
-#endif
-#if defined(MQTTBRIDGE_L2_STREAM_TLS)
-#include <net/l2/stream/tls/SocketClient.h>
-#endif
-#if defined(MQTTBRIDGE_RC_STREAM_LEGACY)
-#include <net/rc/stream/legacy/SocketClient.h>
-#endif
-#if defined(MQTTBRIDGE_RC_STREAM_TLS)
-#include <net/rc/stream/tls/SocketClient.h>
-#endif
-#if defined(MQTTBRIDGE_UN_STREAM_LEGACY)
-#include <net/un/stream/legacy/SocketClient.h>
-#endif
-#if defined(MQTTBRIDGE_UN_STREAM_TLS)
-#include <net/un/stream/tls/SocketClient.h>
 #endif
 
-#if defined(MQTTBRIDGE_IN_WEBSOCKET_LEGACY)
-#include <web/http/legacy/in/Client.h>
+#if defined(CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6)
+#include <net/in6/stream/legacy/SocketClient.h>
+#if defined(CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6)
+#include <net/in6/stream/tls/SocketClient.h>
 #endif
-#if defined(MQTTBRIDGE_IN_WEBSOCKET_TLS)
+#endif
+
+#if defined(CONFIG_MQTTSUITE_BRIDGE_UNIX)
+#include <net/un/stream/legacy/SocketClient.h>
+#if defined(CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS)
+#include <net/un/stream/tls/SocketClient.h>
+#endif
+#endif
+
+#if defined(CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4) && defined(CONFIG_MQTTSUITE_BRIDGE_WS)
+#include <web/http/legacy/in/Client.h>
+#if defined(CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4) && defined(CONFIG_MQTTSUITE_BRIDGE_WSS)
 #include <web/http/tls/in/Client.h>
 #endif
-#if defined(MQTTBRIDGE_IN6_WEBSOCKET_LEGACY)
-#include <web/http/legacy/in6/Client.h>
 #endif
-#if defined(MQTTBRIDGE_IN6_WEBSOCKET_TLS)
+
+#if defined(CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6) && defined(CONFIG_MQTTSUITE_BRIDGE_WS)
+#include <web/http/legacy/in6/Client.h>
+#if defined(CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6) && defined(CONFIG_MQTTSUITE_BRIDGE_WSS)
 #include <web/http/tls/in6/Client.h>
+#endif
+#endif
+
+#if defined(CONFIG_MQTTSUITE_BRIDGE_UNIX) && defined(CONFIG_MQTTSUITE_BRIDGE_WS)
+#include <web/http/legacy/un/Client.h>
+#if defined(CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS) && defined(CONFIG_MQTTSUITE_BRIDGE_WSS)
+#include <web/http/tls/un/Client.h>
+#endif
 #endif
 
 #include <list>
@@ -254,7 +205,7 @@ int main(int argc, char* argv[]) {
             if (transport == "stream") {
                 if (protocol == "in") {
                     if (encryption == "legacy") {
-#if defined(MQTTBRIDGE_IN_STREAM_LEGACY)
+#if defined(CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4)
                         net::in::stream::legacy::Client<mqtt::bridge::SocketContextFactory>(
                             instanceName,
                             [&broker](auto& config) {
@@ -272,12 +223,12 @@ int main(int argc, char* argv[]) {
                             .connect([instanceName](const auto& socketAddress, const core::socket::State& state) {
                                 reportState(instanceName, socketAddress, state);
                             });
-#else  // MQTTBRIDGE_IN_STREAM_LEGACY
+#else  // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4
                         VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                 << "' not supported.";
-#endif // MQTTBRIDGE_IN_STREAM_LEGACY
+#endif // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4
                     } else if (encryption == "tls") {
-#if defined(MQTTBRIDGE_IN_STREAM_TLS)
+#if defined(CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4)
                         net::in::stream::tls::Client<mqtt::bridge::SocketContextFactory>(
                             instanceName,
                             [&broker](auto& config) {
@@ -295,14 +246,14 @@ int main(int argc, char* argv[]) {
                             .connect([instanceName](const auto& socketAddress, const core::socket::State& state) {
                                 reportState(instanceName, socketAddress, state);
                             });
-#else  // MQTTBRIDGE_IN_STREAM_TLS
+#else  // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4
                         VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                 << "' not supported.";
-#endif // MQTTBRIDGE_IN_STREAM_TLS
+#endif // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4
                     }
                 } else if (protocol == "in6") {
                     if (encryption == "legacy") {
-#if defined(MQTTBRIDGE_IN6_STREAM_LEGACY)
+#if defined(CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6)
                         net::in6::stream::legacy::Client<mqtt::bridge::SocketContextFactory>(
                             instanceName,
                             [&broker](auto& config) {
@@ -320,12 +271,12 @@ int main(int argc, char* argv[]) {
                             .connect([instanceName](const auto& socketAddress, const core::socket::State& state) {
                                 reportState(instanceName, socketAddress, state);
                             });
-#else  // MQTTBRIDGE_IN6_STREAM_LEGACY
+#else  // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6
                         VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                 << "' not supported.";
-#endif // MQTTBRIDGE_IN6_STREAM_LEGACY
+#endif // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6
                     } else if (encryption == "tls") {
-#if defined(MQTTBRIDGE_IN6_STREAM_TLS)
+#if defined(CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6)
                         net::in6::stream::tls::Client<mqtt::bridge::SocketContextFactory>(
                             instanceName,
                             [&broker](auto& config) {
@@ -343,106 +294,14 @@ int main(int argc, char* argv[]) {
                             .connect([instanceName](const auto& socketAddress, const core::socket::State& state) {
                                 reportState(instanceName, socketAddress, state);
                             });
-#else  // MQTTBRIDGE_IN6_STREAM_TLS
+#else  // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6
                         VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                 << "' not supported.";
-#endif // MQTTBRIDGE_IN6_STREAM_TLS
-                    }
-                } else if (protocol == "l2") {
-                    if (encryption == "legacy") {
-#if defined(MQTTBRIDGE_L2_STREAM_LEGACY)
-                        net::l2::stream::legacy::Client<mqtt::bridge::SocketContextFactory>(
-                            instanceName,
-                            [&broker](auto& config) {
-                                config.setRetry();
-                                config.setRetryBase(1);
-                                config.setReconnect();
-
-                                config.Remote::setBtAddress(broker.getAddress()["host"]);
-                                config.Remote::setPsm(broker.getAddress()["psm"]);
-
-                                config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
-                            },
-                            broker)
-                            .connect([instanceName](const auto& socketAddress, const core::socket::State& state) {
-                                reportState(instanceName, socketAddress, state);
-                            });
-#else  // MQTTBRIDGE_L2_STREAM_LEGACY
-                        VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
-                                << "' not supported.";
-#endif // MQTTBRIDGE_L2_STREAM_LEGACY
-                    } else if (encryption == "tls") {
-#if defined(MQTTBRIDGE_L2_STREAM_TLS)
-                        net::l2::stream::tls::Client<mqtt::bridge::SocketContextFactory>(
-                            instanceName,
-                            [&broker](auto& config) {
-                                config.setRetry();
-                                config.setRetryBase(1);
-                                config.setReconnect();
-
-                                config.Remote::setBtAddress(broker.getAddress()["host"]);
-                                config.Remote::setPsm(broker.getAddress()["psm"]);
-
-                                config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
-                            },
-                            broker)
-                            .connect([instanceName](const auto& socketAddress, const core::socket::State& state) {
-                                reportState(instanceName, socketAddress, state);
-                            });
-#else  // MQTTBRIDGE_L2_STREAM_TLS
-                        VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
-                                << "' not supported.";
-#endif // MQTTBRIDGE_L2_STREAM_TLS
-                    }
-                } else if (protocol == "rc") {
-                    if (encryption == "legacy") {
-#if defined(MQTTBRIDGE_RC_STREAM_LEGACY)
-                        net::rc::stream::legacy::Client<mqtt::bridge::SocketContextFactory>(
-                            instanceName,
-                            [&broker](auto& config) {
-                                config.setRetry();
-                                config.setRetryBase(1);
-                                config.setReconnect();
-
-                                config.Remote::setBtAddress(broker.getAddress()["host"]);
-                                config.Remote::setChannel(broker.getAddress()["channel"]);
-
-                                config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
-                            },
-                            broker)
-                            .connect([instanceName](const auto& socketAddress, const core::socket::State& state) {
-                                reportState(instanceName, socketAddress, state);
-                            });
-#else  // MQTTBRIDGE_RC_STREAM_LEGACY
-                        VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
-                                << "' not supported.";
-#endif // MQTTBRIDGE_RC_STREAM_LEGACY
-                    } else if (encryption == "tls") {
-#if defined(MQTTBRIDGE_RC_STREAM_TLS)
-                        net::rc::stream::tls::Client<mqtt::bridge::SocketContextFactory>(
-                            instanceName,
-                            [&broker](auto& config) {
-                                config.setRetry();
-                                config.setRetryBase(1);
-                                config.setReconnect();
-
-                                config.Remote::setBtAddress(broker.getAddress()["host"]);
-                                config.Remote::setChannel(broker.getAddress()["channel"]);
-
-                                config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
-                            },
-                            broker)
-                            .connect([instanceName](const auto& socketAddress, const core::socket::State& state) {
-                                reportState(instanceName, socketAddress, state);
-                            });
-#else  // MQTTBRIDGE_RC_STREAM_TLS
-                        VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
-                                << "' not supported.";
-#endif // MQTTBRIDGE_RC_STREAM_TLS
+#endif // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6
                     }
                 } else if (protocol == "un") {
                     if (encryption == "legacy") {
-#if defined(MQTTBRIDGE_UN_STREAM_LEGACY)
+#if defined(CONFIG_MQTTSUITE_BRIDGE_UNIX)
                         net::un::stream::legacy::Client<mqtt::bridge::SocketContextFactory>(
                             instanceName,
                             [&broker](auto& config) {
@@ -458,12 +317,12 @@ int main(int argc, char* argv[]) {
                             .connect([instanceName](const auto& socketAddress, const core::socket::State& state) {
                                 reportState(instanceName, socketAddress, state);
                             });
-#else  // MQTTBRIDGE_UN_STREAM_LEGACY
+#else  // CONFIG_MQTTSUITE_BRIDGE_UNIX
                         VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                 << "' not supported.";
-#endif // MQTTBRIDGE_UN_STREAM_LEGACY
+#endif // CONFIG_MQTTSUITE_BRIDGE_UNIX
                     } else if (encryption == "tls") {
-#if defined(MQTTBRIDGE_UN_STREAM_TLS)
+#if defined(CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS)
                         net::un::stream::tls::Client<mqtt::bridge::SocketContextFactory>(
                             instanceName,
                             [&broker](auto& config) {
@@ -479,16 +338,16 @@ int main(int argc, char* argv[]) {
                             .connect([instanceName](const auto& socketAddress, const core::socket::State& state) {
                                 reportState(instanceName, socketAddress, state);
                             });
-#else  // MQTTBRIDGE_UN_STREAM_TLS
+#else  // CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS
                         VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                 << "' not supported.";
-#endif // MQTTBRIDGE_UN_STREAM_TLS
+#endif // CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS
                     }
                 }
             } else if (transport == "websocket") {
                 if (protocol == "in") {
                     if (encryption == "legacy") {
-#if defined(MQTTBRIDGE_IN_WEBSOCKET_LEGACY)
+#if defined(CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4) && defined(CONFIG_MQTTSUITE_BRIDGE_WS)
                         startClient<web::http::legacy::in::Client>(broker.getInstanceName(), [&broker](auto& config) {
                             config.Remote::setPort(8080);
 
@@ -502,12 +361,12 @@ int main(int argc, char* argv[]) {
 
                             config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                         });
-#else  // MQTTBRIDGE_IN_WEBSOCKET_LEGACY
+#else  // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4 && CONFIG_MQTTSUITE_BRIDGE_WS
                         VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                 << "' not supported.";
-#endif // MQTTBRIDGE_IN_WEBSOCKET_LEGACY
+#endif // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4 && CONFIG_MQTTSUITE_BRIDGE_WS
                     } else if (encryption == "tls") {
-#if defined(MQTTBRIDGE_IN_WEBSOCKET_TLS)
+#if defined(CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4) && defined(CONFIG_MQTTSUITE_BRIDGE_WSS)
                         startClient<web::http::tls::in::Client>(broker.getInstanceName(), [&broker](auto& config) {
                             config.Remote::setPort(8088);
 
@@ -521,14 +380,14 @@ int main(int argc, char* argv[]) {
 
                             config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                         });
-#else  // MQTTBRIDGE_IN_WEBSOCKET_TLS
+#else  // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4 && CONFIG_MQTTSUITE_BRIDGE_WSS
                         VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                 << "' not supported.";
-#endif // MQTTBRIDGE_IN_WEBSOCKET_TLS
+#endif // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4 && CONFIG_MQTTSUITE_BRIDGE_WSS
                     }
                 } else if (protocol == "in6") {
                     if (encryption == "legacy") {
-#if defined(MQTTBRIDGE_IN6_WEBSOCKET_LEGACY)
+#if defined(CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6) && defined(CONFIG_MQTTSUITE_BRIDGE_WS)
                         startClient<web::http::legacy::in6::Client>(broker.getInstanceName(), [&broker](auto& config) {
                             config.Remote::setPort(8080);
 
@@ -542,12 +401,12 @@ int main(int argc, char* argv[]) {
 
                             config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                         });
-#else  // MQTTBRIDGE_IN6_WEBSOCKET_LEGACY
+#else  // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6 && CONFIG_MQTTSUITE_BRIDGE_WS
                         VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                 << "' not supported.";
-#endif // MQTTBRIDGE_IN6_WEBSOCKET_LEGACY
+#endif // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6&&  CONFIG_MQTTSUITE_BRIDGE_WS
                     } else if (encryption == "tls") {
-#if defined(MQTTBRIDGE_IN6_WEBSOCKET_TLS)
+#if defined(CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6) && defined(CONFIG_MQTTSUITE_BRIDGE_WSS)
                         startClient<web::http::tls::in6::Client>(broker.getInstanceName(), [&broker](auto& config) {
                             config.Remote::setPort(8088);
 
@@ -561,10 +420,42 @@ int main(int argc, char* argv[]) {
 
                             config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                         });
-#else  // MQTTBRIDGE_IN6_WEBSOCKET_TLS
+#else  // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6 && CONFIG_MQTTSUITE_BRIDGE_WSS
                         VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                 << "' not supported.";
-#endif // MQTTBRIDGE_IN6_WEBSOCKET_TLS
+#endif // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6 && CONFIG_MQTTSUITE_BRIDGE_WSS
+                    }
+                } else if (protocol == "un") {
+                    if (encryption == "legacy") {
+#if defined(CONFIG_MQTTSUITE_BRIDGE_UNIX) && defined(CONFIG_MQTTSUITE_BRIDGE_WS)
+                        startClient<web::http::legacy::un::Client>(broker.getInstanceName(), [&broker](auto& config) {
+                            config.setRetry();
+                            config.setRetryBase(1);
+                            config.setReconnect();
+
+                            config.Remote::setSunPath(broker.getAddress()["path"]);
+
+                            config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
+                        });
+#else  // CONFIG_MQTTSUITE_BRIDGE_UNIX && CONFIG_MQTTSUITE_BRIDGE_WS
+                        VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                                << "' not supported.";
+#endif // CONFIG_MQTTSUITE_BRIDGE_UNIX &&  CONFIG_MQTTSUITE_BRIDGE_WS
+                    } else if (encryption == "tls") {
+#if defined(CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS) && defined(CONFIG_MQTTSUITE_BRIDGE_WSS)
+                        startClient<web::http::tls::un::Client>(broker.getInstanceName(), [&broker](auto& config) {
+                            config.setRetry();
+                            config.setRetryBase(1);
+                            config.setReconnect();
+
+                            config.Remote::setSunPath(broker.getAddress()["path"]);
+
+                            config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
+                        });
+#else  // CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS && CONFIG_MQTTSUITE_BRIDGE_WSS
+                        VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                                << "' not supported.";
+#endif // CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS && CONFIG_MQTTSUITE_BRIDGE_WSS
                     }
                 }
             } else {

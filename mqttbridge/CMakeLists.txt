@@ -37,6 +37,108 @@
 
 cmake_minimum_required(VERSION 3.14)
 
+# dep_option(NAME HELP_TEXT DEFAULT DEP1 [DEP2 ...]) - If all DEPs are TRUE →
+# create a normal CACHE BOOL option (visible in GUI). - Else → remove the cache
+# entry (so it disappears from GUI) and force the var OFF.
+function(dep_option NAME HELP DEFAULT)
+    set(options)
+    set(oneValueArgs)
+    set(multiValueArgs)
+    cmake_parse_arguments(
+        DO "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN}
+    )
+
+    # Remaining args after DEFAULT are the dependency vars
+    set(_deps_ok TRUE)
+    foreach(d ${DO_UNPARSED_ARGUMENTS})
+        if(NOT ${d})
+            set(_deps_ok FALSE)
+        endif()
+    endforeach()
+
+    if(_deps_ok)
+        # Create/keep a visible option; preserve -D overrides
+        if(DEFINED ${NAME})
+            set(_cur "${${NAME}}")
+            option(${NAME} "${HELP}" ${DEFAULT})
+            set(${NAME}
+                "${_cur}"
+                CACHE BOOL "${HELP}" FORCE
+            )
+        else()
+            option(${NAME} "${HELP}" ${DEFAULT})
+        endif()
+        mark_as_advanced(CLEAR ${NAME})
+    else()
+        # Hide by removing cache entry; also force normal var OFF for if() logic
+        if(DEFINED ${NAME})
+            unset(${NAME} CACHE)
+        endif()
+        set(${NAME}
+            OFF
+            PARENT_SCOPE
+        )
+        set(${NAME} OFF) # local too
+    endif()
+endfunction()
+
+option(CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4 "MQTTSuite broker TCP IPv4" ON)
+option(CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6 "MQTTSuite broker TCP IPv6" ON)
+option(CONFIG_MQTTSUITE_BRIDGE_UNIX "MQTTSuite broker Unix" ON)
+option(CONFIG_MQTTSUITE_BRIDGE_WS "MQTTSuite broker WebSocket" ON)
+
+# Dependent TLS/WSS toggles (only visible when the base is ON)
+dep_option(
+    CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4 "SSL/TLS (IPv4)" ON
+    CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4
+)
+
+dep_option(
+    CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6 "SSL/TLS (IPv6)" ON
+    CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6
+)
+
+dep_option(
+    CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS "SSL/TLS (Unix domain sockets)" ON
+    CONFIG_MQTTSUITE_BRIDGE_UNIX
+)
+
+dep_option(
+    CONFIG_MQTTSUITE_BRIDGE_WSS "WebSocket (WSS)" ON CONFIG_MQTTSUITE_BRIDGE_WS
+)
+
+set(MQTTBRIDGE_COMPONENTS "")
+set(MQTTBRIDGE_LINK_LIBS "")
+# Common nets
+if(CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4)
+    list(APPEND MQTTBRIDGE_COMPONENTS net-in-stream-legacy)
+    if(CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4)
+        list(APPEND MQTTBRIDGE_COMPONENTS net-in-stream-tls)
+    endif()
+endif()
+if(CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6)
+    list(APPEND MQTTBRIDGE_COMPONENTS net-in6-stream-legacy)
+    if(CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6)
+        list(APPEND MQTTBRIDGE_COMPONENTS net-in6-stream-tls)
+    endif()
+endif()
+if(CONFIG_MQTTSUITE_BRIDGE_UNIX)
+    list(APPEND MQTTBRIDGE_COMPONENTS net-un-stream-legacy)
+    if(CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS)
+        list(APPEND MQTTBRIDGE_COMPONENTS net-un-stream-tls)
+    endif()
+endif()
+if(CONFIG_MQTTSUITE_BRIDGE_WS OR CONFIG_MQTTSUITE_BRIDGE_WSS)
+    list(APPEND MQTTBRIDGE_COMPONENTS http-client)
+endif()
+list(REMOVE_DUPLICATES MQTTBRIDGE_COMPONENTS)
+
+set(MQTTBRIDGE_LINK_LIBS "")
+foreach(c IN LISTS MQTTBRIDGE_COMPONENTS)
+    list(APPEND MQTTBRIDGE_LINK_LIBS snodec::${c})
+endforeach()
+list(REMOVE_DUPLICATES SNODEC_LINK_LIBS)
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -48,89 +150,22 @@ add_subdirectory(websocket)
 find_package(nlohmann_json 3.7.0 REQUIRED)
 find_package(
     snodec 1.0.0 REQUIRED
-    COMPONENTS net-in-stream-legacy
-               net-in6-stream-legacy
-               net-un-stream-legacy
-               net-in-stream-tls
-               net-in6-stream-tls
-               net-un-stream-tls
-               http-client
-               mqtt
+    COMPONENTS ${MQTTBRIDGE_COMPONENTS} mqtt
     OPTIONAL_COMPONENTS net-l2-stream-legacy net-rc-stream-legacy
                         net-l2-stream-tls net-rc-stream-tls
 )
 
-macro(add_instance INSTANCE SOURCE)
-    set(${INSTANCE}
-        "ON"
-        CACHE BOOL "${INSTANCE}"
-    )
-
-    string(TOUPPER ${${INSTANCE}} ${INSTANCE}_UPPER)
-    if(${${INSTANCE}_UPPER} STREQUAL "ON" OR ${${INSTANCE}_UPPER} STREQUAL
-                                             "TRUE"
-    )
-        message("Append ${INSTANCE} to ${SOURCE}")
-        set_property(
-            SOURCE ${SOURCE}
-            APPEND
-            PROPERTY COMPILE_DEFINITIONS ${INSTANCE}
-        )
-    endif(${${INSTANCE}_UPPER} STREQUAL "ON" OR ${${INSTANCE}_UPPER} STREQUAL
-                                                "TRUE"
-    )
-endmacro(add_instance INSTANCE)
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/config.h.in
+    ${CMAKE_CURRENT_BINARY_DIR}/generated/config.h
+)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/generated)
 
 set(MQTTBRIDGE_CPP mqttbridge.cpp SocketContextFactory.cpp)
 set(MQTTBRIDGE_H SocketContextFactory.h)
 
 add_executable(mqttbridge ${MQTTBRIDGE_CPP} ${MQTTBRIDGE_H})
 
-add_instance(MQTTBRIDGE_IN_STREAM_LEGACY mqttbridge.cpp)
-add_instance(MQTTBRIDGE_IN_STREAM_TLS mqttbridge.cpp)
-
-add_instance(MQTTBRIDGE_IN6_STREAM_LEGACY mqttbridge.cpp)
-add_instance(MQTTBRIDGE_IN6_STREAM_TLS mqttbridge.cpp)
-
-add_instance(MQTTBRIDGE_UN_STREAM_LEGACY mqttbridge.cpp)
-add_instance(MQTTBRIDGE_UN_STREAM_TLS mqttbridge.cpp)
-
-add_instance(MQTTBRIDGE_IN_WEBSOCKET_LEGACY mqttbridge.cpp)
-add_instance(MQTTBRIDGE_IN6_WEBSOCKET_LEGACY mqttbridge.cpp)
-
-add_instance(MQTTBRIDGE_IN_WEBSOCKET_TLS mqttbridge.cpp)
-add_instance(MQTTBRIDGE_IN6_WEBSOCKET_TLS mqttbridge.cpp)
-
-if(TARGET snodec::net-l2-stream-legacy)
-    add_instance(MQTTBRIDGE_L2_STREAM_LEGACY mqttbridge.cpp)
-    list(APPEND BLUETOOTH_LIBS "snodec::net-l2-stream-legacy")
-endif(TARGET snodec::net-l2-stream-legacy)
-if(TARGET snodec::net-l2-stream-tls)
-    add_instance(MQTTBRIDGE_L2_STREAM_TLS mqttbridge.cpp)
-    list(APPEND BLUETOOTH_LIBS "snodec::net-l2-stream-tls")
-endif(TARGET snodec::net-l2-stream-tls)
-
-if(TARGET snodec::net-rc-stream-legacy)
-    add_instance(MQTTBRIDGE_RC_STREAM_LEGACY mqttbridge.cpp)
-    list(APPEND BLUETOOTH_LIBS "snodec::net-rc-stream-legacy")
-endif(TARGET snodec::net-rc-stream-legacy)
-if(TARGET snodec::net-rc-stream-tls)
-    add_instance(MQTTBRIDGE_RC_STREAM_TLS mqttbridge.cpp)
-    list(APPEND BLUETOOTH_LIBS "snodec::net-rc-stream-tls")
-endif(TARGET snodec::net-rc-stream-tls)
-
-target_link_libraries(
-    mqttbridge
-    PUBLIC snodec::net-in-stream-legacy
-           snodec::net-un-stream-legacy
-           snodec::net-in6-stream-legacy
-           snodec::net-in-stream-tls
-           snodec::net-un-stream-tls
-           snodec::net-in6-stream-tls
-           ${BLUETOOTH_LIBS}
-           snodec::http-client
-           snodec::mqtt
-           mqtt-bridge
-)
+target_link_libraries(mqttbridge PUBLIC ${MQTTBRIDGE_LINK_LIBS} mqtt-bridge)
 
 install(TARGETS mqttbridge RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
