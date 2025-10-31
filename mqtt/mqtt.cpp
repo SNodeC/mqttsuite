@@ -40,6 +40,7 @@
  */
 
 #include "SocketContextFactory.h" // IWYU pragma: keep
+#include "config.h"
 
 #ifdef LINK_SUBPROTOCOL_STATIC
 
@@ -67,8 +68,10 @@
 #include <net/un/stream/tls/SocketClient.h>
 #include <web/http/legacy/in/Client.h>
 #include <web/http/legacy/in6/Client.h>
+#include <web/http/legacy/un/Client.h>
 #include <web/http/tls/in/Client.h>
 #include <web/http/tls/in6/Client.h>
+#include <web/http/tls/un/Client.h>
 //
 #include <log/Logger.h>
 #include <utils/Config.h>
@@ -315,6 +318,7 @@ int main(int argc, char* argv[]) {
 
     // Start of application
 
+#if defined(CONFIG_MQTTSUITE_CLI_TCP_IPV4)
     net::in::stream::legacy::Client<mqtt::mqtt::SocketContextFactory>("in-mqtt", [](auto& config) {
         config.Remote::setPort(1883);
 
@@ -326,7 +330,9 @@ int main(int argc, char* argv[]) {
     }).connect([](const auto& socketAddress, const core::socket::State& state) {
         reportState("in-mqtt", socketAddress, state);
     });
+#endif
 
+#if defined(CONFIG_MQTTSUITE_CLI_TLS_IPV4)
     net::in::stream::tls::Client<mqtt::mqtt::SocketContextFactory>("in-mqtts", [](auto& config) {
         config.Remote::setPort(1883);
 
@@ -339,7 +345,9 @@ int main(int argc, char* argv[]) {
     }).connect([](const auto& socketAddress, const core::socket::State& state) {
         reportState("in-mqtts", socketAddress, state);
     });
+#endif
 
+#if defined(CONFIG_MQTTSUITE_CLI_TCP_IPV6)
     net::in6::stream::legacy::Client<mqtt::mqtt::SocketContextFactory>("in6-mqtt", [](auto& config) {
         config.Remote::setPort(1883);
 
@@ -352,7 +360,9 @@ int main(int argc, char* argv[]) {
     }).connect([](const auto& socketAddress, const core::socket::State& state) {
         reportState("in6-mqtt", socketAddress, state);
     });
+#endif
 
+#if defined(CONFIG_MQTTSUITE_CLI_TLS_IPV6)
     net::in6::stream::tls::Client<mqtt::mqtt::SocketContextFactory>("in6-mqtts", [](auto& config) {
         config.Remote::setPort(1883);
 
@@ -365,7 +375,9 @@ int main(int argc, char* argv[]) {
     }).connect([](const auto& socketAddress, const core::socket::State& state) {
         reportState("in6-mqtts", socketAddress, state);
     });
+#endif
 
+#if defined(CONFIG_MQTTSUITE_CLI_UNIX)
     net::un::stream::legacy::Client<mqtt::mqtt::SocketContextFactory>("un-mqtt", [](auto& config) {
         config.Remote::setSunPath("/var/mqttbroker-un-mqtt");
 
@@ -377,7 +389,9 @@ int main(int argc, char* argv[]) {
     }).connect([](const auto& socketAddress, const core::socket::State& state) {
         reportState("un-mqtt", socketAddress, state);
     });
+#endif
 
+#if defined(CONFIG_MQTTSUITE_CLI_UNIX_TLS)
     net::un::stream::tls::Client<mqtt::mqtt::SocketContextFactory>("un-mqtts", [](auto& config) {
         config.Remote::setSunPath("/var/mqttbroker-un-mqtts");
 
@@ -389,7 +403,9 @@ int main(int argc, char* argv[]) {
     }).connect([](const auto& socketAddress, const core::socket::State& state) {
         reportState("un-mqtts", socketAddress, state);
     });
+#endif
 
+#if defined(CONFIG_MQTTSUITE_CLI_TCP_IPV4) && defined(CONFIG_MQTTSUITE_CLI_WS)
     startClient<web::http::legacy::in::Client>("in-wsmqtt", [](auto& config) {
         config.Remote::setPort(8080);
 
@@ -400,7 +416,9 @@ int main(int argc, char* argv[]) {
 
         createConfig(config);
     });
+#endif
 
+#if defined(CONFIG_MQTTSUITE_CLI_TLS_IPV4) && defined(CONFIG_MQTTSUITE_CLI_WSS)
     startClient<web::http::tls::in::Client>("in-wsmqtts", [](auto& config) {
         config.Remote::setPort(8088);
 
@@ -411,7 +429,9 @@ int main(int argc, char* argv[]) {
 
         createConfig(config);
     });
+#endif
 
+#if defined(CONFIG_MQTTSUITE_CLI_TCP_IPV6) && defined(CONFIG_MQTTSUITE_CLI_WS)
     startClient<web::http::legacy::in6::Client>("in6-wsmqtt", [](auto& config) {
         config.Remote::setPort(8080);
 
@@ -422,7 +442,9 @@ int main(int argc, char* argv[]) {
 
         createConfig(config);
     });
+#endif
 
+#if defined(CONFIG_MQTTSUITE_CLI_TLS_IPV6) && defined(CONFIG_MQTTSUITE_CLI_WSS)
     startClient<web::http::tls::in6::Client>("in6-wsmqtts", [](auto& config) {
         config.Remote::setPort(8088);
 
@@ -434,6 +456,29 @@ int main(int argc, char* argv[]) {
 
         createConfig(config);
     });
+#endif
+
+#if defined(CONFIG_MQTTSUITE_CLI_UNIX) && defined(CONFIG_MQTTSUITE_CLI_WS)
+    startClient<web::http::legacy::un::Client>("un-wsmqtt", [](auto& config) {
+        config.setRetry();
+        config.setRetryBase(1);
+        config.setReconnect();
+        config.setDisabled();
+
+        createConfig(config);
+    });
+#endif
+
+#if defined(CONFIG_MQTTSUITE_CLI_UNIX_TLS) && defined(CONFIG_MQTTSUITE_CLI_WSS)
+    startClient<web::http::tls::un::Client>("un-wsmqtts", [](auto& config) {
+        config.setRetry();
+        config.setRetryBase(1);
+        config.setReconnect();
+        config.setDisabled();
+
+        createConfig(config);
+    });
+#endif
 
     return core::SNodeC::start();
 }
