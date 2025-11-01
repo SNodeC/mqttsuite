@@ -2,9 +2,9 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include <cstring>
 #include <log/Logger.h>
 #include <sstream>
-#include <cstring>
 #include <vector>
 
 #endif
@@ -35,7 +35,7 @@ namespace mqtt::mqtt::lib {
             try {
                 auto conn = std::make_unique<AsyncPostgresConnection>(config_);
 
-                ConnectionWrapper wrapper{std::move(conn), true, false};
+                ConnectionWrapper wrapper{std::move(conn), true, false, i};
                 connectionPool_.push_back(std::move(wrapper));
 
                 size_t index = i;
@@ -96,6 +96,8 @@ namespace mqtt::mqtt::lib {
 
     void AsyncPostgresClient::exec(const std::string& query, SuccessCallback onSuccess, ErrorCallback onError) {
         auto queryFunc = [query, onSuccess, onError, this](AsyncPostgresConnection* conn, ConnectionWrapper* wrapper) {
+            VLOG(2) << "Sending query on connection " << wrapper->index << ": " << query;
+
             conn->executeQuery(
                 query,
                 [onSuccess, wrapper, this](nlohmann::json result) {
@@ -146,6 +148,8 @@ namespace mqtt::mqtt::lib {
         std::vector<std::string> paramStrings = convertParamsToStrings(params);
 
         auto queryFunc = [query, paramStrings, onSuccess, onError, this](AsyncPostgresConnection* conn, ConnectionWrapper* wrapper) {
+            VLOG(2) << "Sending query on connection " << wrapper->index << ": " << query;
+
             conn->executeQuery(
                 query,
                 [onSuccess, wrapper, this](nlohmann::json result) {

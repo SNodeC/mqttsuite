@@ -55,6 +55,7 @@ namespace mqtt::mqtt::lib {
             std::unique_ptr<AsyncPostgresConnection> connection;
             bool connecting;
             bool available;
+            size_t index; // for testing/logging which connection is used
         };
 
         void initializePool(size_t poolSize);
