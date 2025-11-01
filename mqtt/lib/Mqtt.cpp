@@ -501,11 +501,7 @@ namespace mqtt::mqtt::lib {
             },
             std::vector<nlohmann::json>{device_id});
     }
-    void Mqtt::pollDatabase() {
-        // Process any pending async query results
-        postgresDB.pollResults();
-    }
-
+    
     void Mqtt::onPuback([[maybe_unused]] const iot::mqtt::packets::Puback& puback) {
         if (subTopics.empty()) {
             sendDisconnect();
