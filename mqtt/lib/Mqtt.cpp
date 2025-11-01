@@ -239,8 +239,8 @@ namespace mqtt::mqtt::lib {
         , postgresDB(
               {
                   // Connection detail
-                  .hostaddr = "127.0.0.1", // avoid DNS lookups
                   .hostname = "localhost", // raspberrypi-itnh.local
+                  .hostaddr = "127.0.0.1", // avoid DNS lookups
                   .username = "itnh",
                   .password = "q66yg8StA7Fw", // Hi everyone! Please don't hack our DB :)
                   .database = "itnh",
