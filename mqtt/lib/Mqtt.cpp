@@ -427,53 +427,53 @@ namespace mqtt::mqtt::lib {
         auto insertMeasurements = [this, ts, temperature, ph, dts, lat, lon, alt](int sensor_id) {
             if (temperature) {
                 postgresDB.exec(
-                    "INSERT INTO temperature (sensor_id, ts, value) VALUES ($1, $2, $3)",
+                    "INSERT INTO \"TemperatureReading\" (\"sensorId\", value, \"createdAt\") VALUES ($1, $2, $3)",
                     [sensor_id]([[maybe_unused]] nlohmann::json result) {
                         VLOG(2) << "Inserted temperature for sensor " << sensor_id;
                     },
                     [](const std::string& err, [[maybe_unused]] int code) {
                         VLOG(0) << "Error inserting temperature: " << err;
                     },
-                    std::vector<nlohmann::json>{sensor_id, ts, *temperature});
+                    std::vector<nlohmann::json>{sensor_id, *temperature, ts});
             }
             if (ph) {
                 postgresDB.exec(
-                    "INSERT INTO ph (sensor_id, ts, value) VALUES ($1, $2, $3)",
+                    "INSERT INTO \"PhReading\" (\"sensorId\", value, \"createdAt\") VALUES ($1, $2, $3)",
                     [sensor_id]([[maybe_unused]] nlohmann::json result) {
                         VLOG(2) << "Inserted ph for sensor " << sensor_id;
                     },
                     [](const std::string& err, [[maybe_unused]] int code) {
                         VLOG(0) << "Error inserting ph: " << err;
                     },
-                    std::vector<nlohmann::json>{sensor_id, ts, *ph});
+                    std::vector<nlohmann::json>{sensor_id, *ph, ts});
             }
             if (dts) {
                 postgresDB.exec(
-                    "INSERT INTO dts (sensor_id, ts, value) VALUES ($1, $2, $3)",
+                    "INSERT INTO \"DtsReading\" (\"sensorId\", value, \"createdAt\") VALUES ($1, $2, $3)",
                     [sensor_id]([[maybe_unused]] nlohmann::json result) {
                         VLOG(2) << "Inserted dts for sensor " << sensor_id;
                     },
                     [](const std::string& err, [[maybe_unused]] int code) {
                         VLOG(0) << "Error inserting dts: " << err;
                     },
-                    std::vector<nlohmann::json>{sensor_id, ts, *dts});
+                    std::vector<nlohmann::json>{sensor_id, std::to_string(*dts), ts});
             }
             if (lat && lon) {
                 postgresDB.exec(
-                    "INSERT INTO gps (sensor_id, ts, lat, lon, alt) VALUES ($1, $2, $3, $4, $5)",
+                    "INSERT INTO \"GpsReading\" (\"sensorId\", lat, lon, alt, \"createdAt\") VALUES ($1, $2, $3, $4, $5)",
                     [sensor_id]([[maybe_unused]] nlohmann::json result) {
                         VLOG(2) << "Inserted GPS for sensor " << sensor_id;
                     },
                     [](const std::string& err, [[maybe_unused]] int code) {
                         VLOG(0) << "Error inserting GPS: " << err;
                     },
-                    std::vector<nlohmann::json>{sensor_id, ts, *lat, *lon, alt.value_or(0.0)});
+                    std::vector<nlohmann::json>{sensor_id, *lat, *lon, alt.value_or(0.0), ts});
             }
         };
 
         // Check if the sensor exists
         postgresDB.exec(
-            "SELECT id FROM sensors WHERE device_id = $1",
+            "SELECT id FROM \"Sensor\" WHERE \"deviceId\" = $1",
             [this, device_id, insertMeasurements](nlohmann::json result) {
                 if (!result.empty()) {
                     int sensor_id = result[0]["id"].get<int>();
@@ -482,8 +482,8 @@ namespace mqtt::mqtt::lib {
                 } else {
                     // Sensor doesn't exist, insert it first
                     postgresDB.exec(
-                        "INSERT INTO sensors (device_id) VALUES ($1) RETURNING id",
-                        [insertMeasurements](nlohmann::json insertResult) {
+                        "INSERT INTO \"Sensor\" (\"deviceId\") VALUES ($1) RETURNING id",
+                        [this, insertMeasurements](nlohmann::json insertResult) {
                             if (!insertResult.empty()) {
                                 int sensor_id = insertResult[0]["id"].get<int>();
                                 // insert for new created sensor

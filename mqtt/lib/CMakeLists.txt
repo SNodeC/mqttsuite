@@ -50,7 +50,7 @@ find_package(
 # Find PostgreSQL (libpq)
 find_package(PostgreSQL REQUIRED)
 
-add_library(mqtt-cli SHARED Mqtt.cpp Mqtt.h AsyncPostgresClient.cpp AsyncPostgresClient.h)
+add_library(mqtt-cli SHARED Mqtt.cpp Mqtt.h AsyncPostgresClient.cpp AsyncPostgresClient.h AsyncPostgresConnection.cpp AsyncPostgresConnection.h)
 
 target_include_directories(mqtt-cli PUBLIC ${PROJECT_SOURCE_DIR} ${PostgreSQL_INCLUDE_DIRS})
 
