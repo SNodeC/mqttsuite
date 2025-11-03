@@ -447,7 +447,7 @@ namespace mqtt::mqtt::lib {
                     Oid type = PQftype(res, col);
 
                     // Handle common PostgreSQL types
-                    /* 
+                    /*
                         SELECT *
                         FROM pg_type
                         WHERE typname NOT LIKE '\_%' ESCAPE '\';
@@ -499,12 +499,8 @@ namespace mqtt::mqtt::lib {
             currentQuery_ = nullptr;
         }
 
-        if (ReadEventReceiver::isEnabled()) {
-            ReadEventReceiver::disable();
-        }
-        if (WriteEventReceiver::isEnabled()) {
-            WriteEventReceiver::disable();
-        }
+        // Unnecessary to disable event receivers as the destructor/cleanup wont
+        // be called unless all read and write events are already disabled
 
         if (conn_ != nullptr) {
             PQfinish(conn_);

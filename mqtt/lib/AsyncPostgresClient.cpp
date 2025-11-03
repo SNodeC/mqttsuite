@@ -24,6 +24,21 @@ namespace mqtt::mqtt::lib {
             queryQueue_.pop();
         }
 
+        // Disable all events for every connection before clearing the pool
+        // This will cause unobservedEvent() to be called, which will self-destruct each connection
+        for (auto& wrapper : connectionPool_) {
+            if (wrapper.connection != nullptr) {
+                // Disable read and write event receivers
+                // This unregisters the connection from the snode.c event loop
+                if (wrapper.connection->ReadEventReceiver::isEnabled()) {
+                    wrapper.connection->ReadEventReceiver::disable();
+                }
+                if (wrapper.connection->WriteEventReceiver::isEnabled()) {
+                    wrapper.connection->WriteEventReceiver::disable();
+                }
+            }
+        }
+
         // Connections will self-destruct via unobservedEvent() of snode.c event loop
         connectionPool_.clear();
     }
