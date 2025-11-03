@@ -30,12 +30,7 @@ namespace mqtt::mqtt::lib {
             if (wrapper.connection != nullptr) {
                 // Disable read and write event receivers
                 // This unregisters the connection from the snode.c event loop
-                if (wrapper.connection->ReadEventReceiver::isEnabled()) {
-                    wrapper.connection->ReadEventReceiver::disable();
-                }
-                if (wrapper.connection->WriteEventReceiver::isEnabled()) {
-                    wrapper.connection->WriteEventReceiver::disable();
-                }
+                wrapper.connection->disableEvents();
             }
         }
 

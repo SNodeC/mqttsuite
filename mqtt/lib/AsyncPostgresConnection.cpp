@@ -91,6 +91,7 @@ namespace mqtt::mqtt::lib {
             if (connectCallback_) {
                 connectCallback_(false, error);
             }
+            delete this; // we can just delete because this is before we enable readeventreceiver/writeeventreceiver
             return;
         }
 
@@ -104,6 +105,7 @@ namespace mqtt::mqtt::lib {
             if (connectCallback_) {
                 connectCallback_(false, "Failed to set non-blocking mode: " + error);
             }
+            delete this; // we can just delete because this is before we enable readeventreceiver/writeeventreceiver
             return;
         }
 
@@ -118,18 +120,31 @@ namespace mqtt::mqtt::lib {
             if (connectCallback_) {
                 connectCallback_(false, "Invalid socket descriptor: " + error);
             }
+            delete this; // we can just delete because this is before we enable readeventreceiver/writeeventreceiver
             return;
         }
 
         VLOG(2) << "PostgreSQL: Got socket descriptor: " << fd_;
 
-        if (!ReadEventReceiver::enable(fd_) || !WriteEventReceiver::enable(fd_)) {
-            VLOG(0) << "PostgreSQL: Failed to register socket with event system";
+        if (!ReadEventReceiver::enable(fd_)) {
+            VLOG(0) << "PostgreSQL: Failed to register read socket with event system";
             cleanup();
             state_ = State::ERROR;
             if (connectCallback_) {
-                connectCallback_(false, "Failed to register socket with event system");
+                connectCallback_(false, "Failed to register read socket with event system");
             }
+            delete this; // we can just delete because this is before we enable writeeventreceiver and readeventreceiver failed
+            return;
+        }
+
+        if (!WriteEventReceiver::enable(fd_)) {
+            VLOG(0) << "PostgreSQL: Failed to register write socket with event system";
+            cleanup();
+            state_ = State::ERROR;
+            if (connectCallback_) {
+                connectCallback_(false, "Failed to register write socket with event system");
+            }
+            disableEvents(); // we cannot just delete this because readeventreceiver was already enabled, we just disable the events and let it self-destruct later
             return;
         }
 
@@ -388,27 +403,24 @@ namespace mqtt::mqtt::lib {
 
             case PGRES_BAD_RESPONSE:
             case PGRES_NONFATAL_ERROR:
-            case PGRES_FATAL_ERROR:
-                {
-                    std::string error = PQresultErrorMessage(result);
-                    if (error.empty()) {
-                        error = PQerrorMessage(conn_);
-                    }
-                    VLOG(0) << "PostgreSQL: Query error: " << error;
-
-                    // Try to extract error code
-                    int errorCode = -1;
-                    const char* sqlstate = PQresultErrorField(result, PG_DIAG_SQLSTATE);
-                    if (sqlstate != nullptr) {
-                        errorCode = std::atoi(sqlstate);
-                    }
-
-                    if (currentQuery_->onError) {
-                        currentQuery_->onError(error, errorCode);
-                    }
+            case PGRES_FATAL_ERROR: {
+                std::string error = PQresultErrorMessage(result);
+                if (error.empty()) {
+                    error = PQerrorMessage(conn_);
                 }
-                break;
+                VLOG(0) << "PostgreSQL: Query error: " << error;
 
+                // Try to extract error code
+                int errorCode = -1;
+                const char* sqlstate = PQresultErrorField(result, PG_DIAG_SQLSTATE);
+                if (sqlstate != nullptr) {
+                    errorCode = std::atoi(sqlstate);
+                }
+
+                if (currentQuery_->onError) {
+                    currentQuery_->onError(error, errorCode);
+                }
+            } break;
             default:
                 VLOG(0) << "PostgreSQL: Unexpected result status: " << status;
                 if (currentQuery_->onError) {
@@ -439,8 +451,8 @@ namespace mqtt::mqtt::lib {
                     rowObj[fieldName] = nullptr;
                 } else {
                     // see https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQGETVALUE
-                    // "An empty string is returned if the field value is null. See PQgetisnull to distinguish null values from empty-string values."
-                    // we fix this by checking PQgetisnull above
+                    // "An empty string is returned if the field value is null. See PQgetisnull to distinguish null values from empty-string
+                    // values." we fix this by checking PQgetisnull above
                     const char* value = PQgetvalue(res, row, col);
 
                     // see https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQFTYPE
@@ -516,6 +528,13 @@ namespace mqtt::mqtt::lib {
         if (currentQuery_ != nullptr && currentQuery_->onError) {
             currentQuery_->onError(error, code);
         }
+    }
+
+    void AsyncPostgresConnection::disableEvents() {
+        if (ReadEventReceiver::isEnabled())
+            ReadEventReceiver::disable();
+        if (WriteEventReceiver::isEnabled())
+            WriteEventReceiver::disable();
     }
 
     /*

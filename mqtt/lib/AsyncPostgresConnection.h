@@ -68,6 +68,8 @@ namespace mqtt::mqtt::lib {
             return connected_ && currentQuery_ == nullptr;
         }
 
+        void disableEvents();
+
     protected:
         void readEvent() override;
         void readTimeout() override;
