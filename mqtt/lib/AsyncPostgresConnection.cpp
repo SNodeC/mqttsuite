@@ -6,7 +6,7 @@
 #include <log/Logger.h>
 #include <sstream>
 
-#endif
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 namespace mqtt::mqtt::lib {
 
@@ -421,6 +421,8 @@ namespace mqtt::mqtt::lib {
     nlohmann::json AsyncPostgresConnection::convertResultToJson(PGresult* res) {
         nlohmann::json result = nlohmann::json::array();
 
+        // see https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQNTUPLES
+        // "Note that PGresult objects are limited to no more than INT_MAX rows, so an int result is sufficient."
         int nRows = PQntuples(res);
         int nCols = PQnfields(res);
 
@@ -430,13 +432,26 @@ namespace mqtt::mqtt::lib {
             for (int col = 0; col < nCols; ++col) {
                 const char* fieldName = PQfname(res, col);
 
+                // see https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQGETISNULL
+                // "This function returns 1 if the field is null and 0 if it contains a non-null value."
+                // "Note that PQgetvalue will return an empty string, not a null pointer, for a null field."
                 if (PQgetisnull(res, row, col)) {
                     rowObj[fieldName] = nullptr;
                 } else {
+                    // see https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQGETVALUE
+                    // "An empty string is returned if the field value is null. See PQgetisnull to distinguish null values from empty-string values."
+                    // we fix this by checking PQgetisnull above
                     const char* value = PQgetvalue(res, row, col);
+
+                    // see https://www.postgresql.org/docs/current/libpq-exec.html#LIBPQ-PQFTYPE
                     Oid type = PQftype(res, col);
 
                     // Handle common PostgreSQL types
+                    /* 
+                        SELECT *
+                        FROM pg_type
+                        WHERE typname NOT LIKE '\_%' ESCAPE '\';
+                    */
                     switch (type) {
                         case 16: // BOOL
                             rowObj[fieldName] = (value[0] == 't');

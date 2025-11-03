@@ -50,6 +50,7 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <algorithm>
+#include <cstdlib>
 #include <cstring>
 #include <functional>
 #include <iterator>
@@ -237,16 +238,14 @@ namespace mqtt::mqtt::lib {
                const std::string& sessionStoreFileName)
         : iot::mqtt::client::Mqtt(connectionName, clientId, keepAlive, sessionStoreFileName)
         , postgresDB(
-              {
-                  // Connection detail
-                  .hostname = "localhost", // raspberrypi-itnh.local
-                  .hostaddr = "127.0.0.1", // avoid DNS lookups
-                  .username = "itnh",
-                  .password = "q66yg8StA7Fw", // Hi everyone! Please don't hack our DB :)
-                  .database = "itnh",
-                  .port = 50000,
-              },
-              5) // Pool size of 5 connections for parallel queries
+              {// Connection detail
+               .hostname = getenv("PG_HOSTNAME"),
+               .hostaddr = getenv("PG_HOSTADDRESS"), // should use host address to avoid DNS lookups
+               .username = getenv("PG_USER"),
+               .password = getenv("PG_PASSWORD"),
+               .database = getenv("PG_DATABASE"),
+               .port = std::getenv("PG_PORT") ? static_cast<uint16_t>(std::stoi(std::getenv("PG_PORT"))) : static_cast<uint16_t>(5432)},
+              std::getenv("PG_POOL_SIZE") ? std::stoi(std::getenv("PG_POOL_SIZE")) : 5) // Pool size of 5 connections for parallel queries
         , qoSDefault(qoSDefault)
         , cleanSession(cleanSession)
         , willTopic(willTopic)
@@ -502,7 +501,7 @@ namespace mqtt::mqtt::lib {
             },
             std::vector<nlohmann::json>{device_id});
     }
-    
+
     void Mqtt::onPuback([[maybe_unused]] const iot::mqtt::packets::Puback& puback) {
         if (subTopics.empty()) {
             sendDisconnect();

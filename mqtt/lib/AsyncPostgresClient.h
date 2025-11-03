@@ -10,7 +10,7 @@
 #include <queue>
 #include <string>
 #include <vector>
-#endif
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 namespace mqtt::mqtt::lib {
 
@@ -52,7 +52,7 @@ namespace mqtt::mqtt::lib {
 
     private:
         struct ConnectionWrapper {
-            std::unique_ptr<AsyncPostgresConnection> connection;
+            AsyncPostgresConnection* connection;
             bool connecting;
             bool available;
             size_t index; // for testing/logging which connection is used

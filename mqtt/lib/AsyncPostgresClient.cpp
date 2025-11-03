@@ -7,7 +7,7 @@
 #include <sstream>
 #include <vector>
 
-#endif
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 namespace mqtt::mqtt::lib {
 
@@ -24,7 +24,7 @@ namespace mqtt::mqtt::lib {
             queryQueue_.pop();
         }
 
-        // Connection cleanup is handled by unique_ptr destructors
+        // Connections will self-destruct via unobservedEvent() of snode.c event loop
         connectionPool_.clear();
     }
 
@@ -33,10 +33,10 @@ namespace mqtt::mqtt::lib {
 
         for (size_t i = 0; i < poolSize; ++i) {
             try {
-                auto conn = std::make_unique<AsyncPostgresConnection>(config_);
+                AsyncPostgresConnection* conn = new AsyncPostgresConnection(config_);
 
-                ConnectionWrapper wrapper{std::move(conn), true, false, i};
-                connectionPool_.push_back(std::move(wrapper));
+                ConnectionWrapper wrapper{conn, true, false, i};
+                connectionPool_.push_back(wrapper);
 
                 size_t index = i;
                 connectionPool_[index].connection->connectAsync([this, index](bool success, const std::string& errorMsg) {
@@ -132,11 +132,11 @@ namespace mqtt::mqtt::lib {
         if (wrapper != nullptr) {
             // Execute immediately on available connection
             wrapper->available = false;
-            queryFunc(wrapper->connection.get(), wrapper);
+            queryFunc(wrapper->connection, wrapper);
         } else {
             VLOG(2) << "No available connection, queueing query";
             queryQueue_.push([queryFunc](ConnectionWrapper* w) {
-                queryFunc(w->connection.get(), w);
+                queryFunc(w->connection, w);
             });
         }
     }
@@ -182,12 +182,12 @@ namespace mqtt::mqtt::lib {
         if (wrapper != nullptr) {
             // Execute immediately on available connection
             wrapper->available = false;
-            queryFunc(wrapper->connection.get(), wrapper);
+            queryFunc(wrapper->connection, wrapper);
         } else {
             // No available connection, queue the query
             VLOG(2) << "No available connection, queueing query";
             queryQueue_.push([queryFunc](ConnectionWrapper* w) {
-                queryFunc(w->connection.get(), w);
+                queryFunc(w->connection, w);
             });
         }
     }

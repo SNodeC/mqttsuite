@@ -1,17 +1,17 @@
 #ifndef MQTT_LIB_ASYNCPOSTGRESCONNECTION_H
 #define MQTT_LIB_ASYNCPOSTGRESCONNECTION_H
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #include "core/eventreceiver/ReadEventReceiver.h"
 #include "core/eventreceiver/WriteEventReceiver.h"
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #include <functional>
 #include <libpq-fe.h>
 #include <nlohmann/json.hpp>
 #include <queue>
 #include <string>
 #include <vector>
-#endif
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 namespace mqtt::mqtt::lib {
 
