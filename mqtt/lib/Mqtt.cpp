@@ -501,7 +501,7 @@ namespace mqtt::mqtt::lib {
                     [](const std::string& err, [[maybe_unused]] int code) {
                         VLOG(0) << "Error inserting temperature: " << err;
                     },
-                    std::vector<nlohmann::json>{sensor_id, *temperature, ts});
+                    std::vector<nlohmann::json>{sensor_id, *temperature});
             }
             if (ph) {
                 postgresDB.exec(
@@ -512,7 +512,7 @@ namespace mqtt::mqtt::lib {
                     [](const std::string& err, [[maybe_unused]] int code) {
                         VLOG(0) << "Error inserting ph: " << err;
                     },
-                    std::vector<nlohmann::json>{sensor_id, *ph, ts});
+                    std::vector<nlohmann::json>{sensor_id, *ph});
             }
             if (tds) {
                 postgresDB.exec(
@@ -523,7 +523,7 @@ namespace mqtt::mqtt::lib {
                     [](const std::string& err, [[maybe_unused]] int code) {
                         VLOG(0) << "Error inserting tds: " << err;
                     },
-                    std::vector<nlohmann::json>{sensor_id, std::to_string(*tds), ts});
+                    std::vector<nlohmann::json>{sensor_id, std::to_string(*tds)});
             }
             if (turbidity) {
                 postgresDB.exec(
@@ -534,7 +534,7 @@ namespace mqtt::mqtt::lib {
                     [](const std::string& err, [[maybe_unused]] int code) {
                         VLOG(0) << "Error inserting turbidity: " << err;
                     },
-                    std::vector<nlohmann::json>{sensor_id, std::to_string(*turbidity), ts});
+                    std::vector<nlohmann::json>{sensor_id, std::to_string(*turbidity)});
             }
             if (lat && lon) {
                 postgresDB.exec(
