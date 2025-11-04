@@ -414,6 +414,7 @@ namespace mqtt::mqtt::lib {
             decoded.contains("temperature") ? std::make_optional(decoded["temperature"].get<double>()) : std::nullopt;
         std::optional<double> ph = decoded.contains("ph") ? std::make_optional(decoded["ph"].get<double>()) : std::nullopt;
         std::optional<double> tds = decoded.contains("tds") ? std::make_optional(decoded["tds"].get<double>()) : std::nullopt;
+        std::optional<double> turbidity = decoded.contains("turbidity") ? std::make_optional(decoded["turbidity"].get<double>()) : std::nullopt;
         std::optional<double> lat, lon, alt;
         if (!rx_metadata.empty() && rx_metadata[0].contains("location")) {
             auto loc = rx_metadata[0]["location"];
@@ -424,7 +425,7 @@ namespace mqtt::mqtt::lib {
 
         // we call this auto function after we have the sensor_id which we get below from the sensors table
         // then we run insertMeasurements(sensor_id) to insert the measurements
-        auto insertMeasurements = [this, ts, temperature, ph, tds, lat, lon, alt](int sensor_id) {
+        auto insertMeasurements = [this, ts, temperature, ph, tds, turbidity, lat, lon, alt](int sensor_id) {
             if (temperature) {
                 postgresDB.exec(
                     "INSERT INTO \"TemperatureReading\" (\"sensorId\", value, \"createdAt\") VALUES ($1, $2, $3)",
@@ -457,6 +458,17 @@ namespace mqtt::mqtt::lib {
                         VLOG(0) << "Error inserting tds: " << err;
                     },
                     std::vector<nlohmann::json>{sensor_id, std::to_string(*tds), ts});
+            }
+            if (turbidity) {
+                postgresDB.exec(
+                    "INSERT INTO \"TurbidityReading\" (\"sensorId\", value, \"createdAt\") VALUES ($1, $2, $3)",
+                    [sensor_id]([[maybe_unused]] nlohmann::json result) {
+                        VLOG(2) << "Inserted turbidity for sensor " << sensor_id;
+                    },
+                    [](const std::string& err, [[maybe_unused]] int code) {
+                        VLOG(0) << "Error inserting turbidity: " << err;
+                    },
+                    std::vector<nlohmann::json>{sensor_id, std::to_string(*turbidity), ts});
             }
             if (lat && lon) {
                 postgresDB.exec(
