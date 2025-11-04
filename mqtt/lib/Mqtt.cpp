@@ -402,33 +402,99 @@ namespace mqtt::mqtt::lib {
             return *cur;
         };
 
+        /*
+
+        // my uplink payload formatter for TTN
+
+        function decodeUplink(input) {
+             const {fPort, bytes} = input;
+             let data = {};
+
+             try {
+                 switch (fPort) {
+                     case 1: // GPS: latitude, longitude, altitude, hdop (CSV string)
+                     {
+                         const gpsStr = String.fromCharCode(... bytes);
+                         const parts = gpsStr.split(",");
+                         if (parts.length == = 4) {
+                             data.latitude = parseFloat(parts[0]);
+                             data.longitude = parseFloat(parts[1]);
+                             data.altitude = parseFloat(parts[2]);
+                             data.hdop = parseFloat(parts[3]);
+                         } else {
+                             throw new Error("Invalid GPS CSV payload");
+                         }
+                     } break;
+
+                     case 2: // Temperature (text string)
+                         data.temperature = parseFloat(String.fromCharCode(... bytes));
+                         break;
+
+                     case 3: // pH (text string)
+                         data.ph = parseFloat(String.fromCharCode(... bytes));
+                         break;
+
+                     case 4: // TDS (text string)
+                         data.tds = parseFloat(String.fromCharCode(... bytes));
+                         break;
+
+                     case 5: // Turbidity (text string)
+                         data.turbidity = parseFloat(String.fromCharCode(... bytes));
+                         break;
+
+                     case 225: // Test: "Hello World" string
+                         data.text = String.fromCharCode(... bytes);
+                         break;
+
+                     default: // unknown port
+                         data.raw = Array.from(bytes);
+                         break;
+                 }
+
+                 return {data, warnings : [], errors : []};
+             } catch (e) {
+                 return {data : {}, warnings : [], errors : [e.message]};
+             }
+         }
+
+         */
+
         std::string device_id = safeGet(messageAsJSON, {"end_device_ids", "device_id"}).get<std::string>();
         std::string ts = safeGet(messageAsJSON, {"received_at"}).get<std::string>();
         auto uplink = messageAsJSON["uplink_message"];
         // int f_cnt = uplink["f_cnt"].get<int>();
         // int f_port = uplink["f_port"].get<int>();
         auto decoded = uplink.value("decoded_payload", nlohmann::json::object());
-        auto rx_metadata = uplink.value("rx_metadata", nlohmann::json::array());
+        // auto rx_metadata = uplink.value("rx_metadata", nlohmann::json::array());
 
         std::optional<double> temperature =
             decoded.contains("temperature") ? std::make_optional(decoded["temperature"].get<double>()) : std::nullopt;
         std::optional<double> ph = decoded.contains("ph") ? std::make_optional(decoded["ph"].get<double>()) : std::nullopt;
         std::optional<double> tds = decoded.contains("tds") ? std::make_optional(decoded["tds"].get<double>()) : std::nullopt;
-        std::optional<double> turbidity = decoded.contains("turbidity") ? std::make_optional(decoded["turbidity"].get<double>()) : std::nullopt;
-        std::optional<double> lat, lon, alt;
-        if (!rx_metadata.empty() && rx_metadata[0].contains("location")) {
-            auto loc = rx_metadata[0]["location"];
-            lat = loc.value("latitude", 0.0);
-            lon = loc.value("longitude", 0.0);
-            alt = loc.value("altitude", 0.0);
-        }
+        std::optional<double> turbidity =
+            decoded.contains("turbidity") ? std::make_optional(decoded["turbidity"].get<double>()) : std::nullopt;
+
+        // from GPS
+        std::optional<double> lat = decoded.contains("latitude") ? std::make_optional(decoded["latitude"].get<double>()) : std::nullopt;
+        std::optional<double> lon = decoded.contains("longitude") ? std::make_optional(decoded["longitude"].get<double>()) : std::nullopt;
+        std::optional<double> alt = decoded.contains("altitude") ? std::make_optional(decoded["altitude"].get<double>()) : std::nullopt;
+        std::optional<double> hdop = decoded.contains("hdop") ? std::make_optional(decoded["hdop"].get<double>()) : std::nullopt;
+
+        //  auto rx_metadata = uplink.value("rx_metadata", nlohmann::json::array());
+        // std::optional<double> lat, lon, alt;
+        // if (!rx_metadata.empty() && rx_metadata[0].contains("location")) {
+        //     auto loc = rx_metadata[0]["location"];
+        //     lat = loc.value("latitude", 0.0);
+        //     lon = loc.value("longitude", 0.0);
+        //     alt = loc.value("altitude", 0.0);
+        // }
 
         // we call this auto function after we have the sensor_id which we get below from the sensors table
         // then we run insertMeasurements(sensor_id) to insert the measurements
-        auto insertMeasurements = [this, ts, temperature, ph, tds, turbidity, lat, lon, alt](int sensor_id) {
+        auto insertMeasurements = [this, ts, temperature, ph, tds, turbidity, lat, lon, alt, hdop](int sensor_id) {
             if (temperature) {
                 postgresDB.exec(
-                    "INSERT INTO \"TemperatureReading\" (\"sensorId\", value, \"createdAt\") VALUES ($1, $2, $3)",
+                    "INSERT INTO \"TemperatureReading\" (\"sensorId\", value) VALUES ($1, $2)",
                     [sensor_id]([[maybe_unused]] nlohmann::json result) {
                         VLOG(2) << "Inserted temperature for sensor " << sensor_id;
                     },
@@ -439,7 +505,7 @@ namespace mqtt::mqtt::lib {
             }
             if (ph) {
                 postgresDB.exec(
-                    "INSERT INTO \"PhReading\" (\"sensorId\", value, \"createdAt\") VALUES ($1, $2, $3)",
+                    "INSERT INTO \"PhReading\" (\"sensorId\", value) VALUES ($1, $2)",
                     [sensor_id]([[maybe_unused]] nlohmann::json result) {
                         VLOG(2) << "Inserted ph for sensor " << sensor_id;
                     },
@@ -450,7 +516,7 @@ namespace mqtt::mqtt::lib {
             }
             if (tds) {
                 postgresDB.exec(
-                    "INSERT INTO \"TdsReading\" (\"sensorId\", value, \"createdAt\") VALUES ($1, $2, $3)",
+                    "INSERT INTO \"TdsReading\" (\"sensorId\", value) VALUES ($1, $2)",
                     [sensor_id]([[maybe_unused]] nlohmann::json result) {
                         VLOG(2) << "Inserted tds for sensor " << sensor_id;
                     },
@@ -461,7 +527,7 @@ namespace mqtt::mqtt::lib {
             }
             if (turbidity) {
                 postgresDB.exec(
-                    "INSERT INTO \"TurbidityReading\" (\"sensorId\", value, \"createdAt\") VALUES ($1, $2, $3)",
+                    "INSERT INTO \"TurbidityReading\" (\"sensorId\", value) VALUES ($1, $2)",
                     [sensor_id]([[maybe_unused]] nlohmann::json result) {
                         VLOG(2) << "Inserted turbidity for sensor " << sensor_id;
                     },
@@ -472,14 +538,18 @@ namespace mqtt::mqtt::lib {
             }
             if (lat && lon) {
                 postgresDB.exec(
-                    "INSERT INTO \"GpsReading\" (\"sensorId\", lat, lon, alt, \"createdAt\") VALUES ($1, $2, $3, $4, $5)",
+                    "INSERT INTO \"GpsReading\" (\"sensorId\", lat, lon, alt, hdop) VALUES ($1, $2, $3, $4, $5)",
                     [sensor_id]([[maybe_unused]] nlohmann::json result) {
                         VLOG(2) << "Inserted GPS for sensor " << sensor_id;
                     },
                     [](const std::string& err, [[maybe_unused]] int code) {
                         VLOG(0) << "Error inserting GPS: " << err;
                     },
-                    std::vector<nlohmann::json>{sensor_id, *lat, *lon, alt.value_or(0.0), ts});
+                    std::vector<nlohmann::json>{sensor_id,
+                                                *lat,
+                                                *lon,
+                                                alt.has_value() ? nlohmann::json(*alt) : nullptr,
+                                                hdop.has_value() ? nlohmann::json(*hdop) : nullptr});
             }
         };
 
