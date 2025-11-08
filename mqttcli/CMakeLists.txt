@@ -156,15 +156,15 @@ configure_file(
 )
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/generated)
 
-set(MQTT_CPP mqtt.cpp SocketContextFactory.cpp)
+set(MQTT_CPP mqttcli.cpp SocketContextFactory.cpp)
 set(MQTT_H SocketContextFactory.h)
 
-add_executable(mqtt ${MQTT_CPP} ${MQTT_H})
+add_executable(mqttcli ${MQTT_CPP} ${MQTT_H})
 
-target_include_directories(mqtt PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(mqttcli PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 
 target_link_libraries(
-    mqtt PUBLIC ${MQTTCLI_LINK_LIBS} snodec::mqtt-client mqtt-cli
+    mqttcli PUBLIC ${MQTTCLI_LINK_LIBS} snodec::mqtt-client mqtt-cli
 )
 
-install(TARGETS mqtt RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(TARGETS mqttcli RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})

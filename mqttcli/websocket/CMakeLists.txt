@@ -51,21 +51,22 @@ set(MQTTSUBSUBPROTOCOL_CPP SubProtocolFactory.cpp)
 set(MQTTSUBSUBPROTOCOL_H SubProtocolFactory.h)
 
 add_library(
-    websocket-mqtt SHARED ${MQTTSUBSUBPROTOCOL_CPP} ${MQTTSUBSUBPROTOCOL_H}
+    websocket-mqtt-cli-client SHARED ${MQTTSUBSUBPROTOCOL_CPP}
+                                     ${MQTTSUBSUBPROTOCOL_H}
 )
 
 target_link_libraries(
-    websocket-mqtt PUBLIC snodec::net snodec::mqtt-client-websocket mqtt-cli
-                          nlohmann_json::nlohmann_json
+    websocket-mqtt-cli-client PUBLIC snodec::net snodec::mqtt-client-websocket
+                                     mqtt-cli nlohmann_json::nlohmann_json
 )
 
 set_target_properties(
-    websocket-mqtt
+    websocket-mqtt-cli-client
     PROPERTIES OUTPUT_NAME "snodec-websocket-mqtt-client"
                VERSION ${MQTTSuite_VERSION}
                SOVERSION ${SNODEC_SOVERSION}
 )
 
-install(TARGETS websocket-mqtt
-        LIBRARY DESTINATION ${WEBSOCKET_SUBPROTOCOL_INSTALL_LIBDIR}/mqtt/
+install(TARGETS websocket-mqtt-client
+        LIBRARY DESTINATION ${WEBSOCKET_SUBPROTOCOL_INSTALL_LIBDIR}/mqttcli/
 )
