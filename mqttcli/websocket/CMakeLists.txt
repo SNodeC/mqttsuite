@@ -67,6 +67,6 @@ set_target_properties(
                SOVERSION ${SNODEC_SOVERSION}
 )
 
-install(TARGETS websocket-mqtt-client
+install(TARGETS websocket-mqtt-cli-client
         LIBRARY DESTINATION ${WEBSOCKET_SUBPROTOCOL_INSTALL_LIBDIR}/mqttcli/
 )
