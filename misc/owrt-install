@@ -22,4 +22,4 @@ fi
 opkg update
 
 ! opkg --force-removal-of-dependent-packages remove snode.c
-opkg --force-space install mqttsuite
+opkg install mqttsuite-full
