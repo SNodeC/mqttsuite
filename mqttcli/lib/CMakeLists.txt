@@ -53,7 +53,6 @@ target_include_directories(mqtt-cli PUBLIC ${PROJECT_SOURCE_DIR})
 
 target_link_libraries(
     mqtt-cli PUBLIC snodec::mqtt-client nlohmann_json::nlohmann_json
-                    mqtt-mapping
 )
 
 set_target_properties(
