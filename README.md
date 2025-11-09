@@ -175,7 +175,7 @@ The [**MQTTSuite**](https://snodec.github.io/mqttsuite-doc/html/index.html) is a
 
 Volker Christian ([me@vchrist.at](mailto:me@vchrist.at), [volker.christian@fh-hagenberg.at](mailto:volker.christian@fh-hagenberg.at))
 
-### Installation
+## Installation
 
 Installation is straightforward:
 
@@ -185,7 +185,7 @@ Installation is straightforward:
 
 Use the detailed platform-specific instructions below.
 
-#### Supported Systems & Hardware
+### Supported Systems & Hardware
 
 Development is primarily on **Debian Sid**; since **Debian Bookworm** it also builds cleanly on Debian stable. With the required tools and libraries installed, it should compile on most Linux distributions.
 
@@ -196,7 +196,7 @@ Known good targets:
 - **OpenWrt** 23.05.0 and later (all architectures)
 - **Android** via [Termux](https://termux.dev/en/) *(documentation in preparation)*
 
-#### Minimum Required Compiler Versions
+### Minimum Required Compiler Versions
 
 SNode.C leverages C++20 features; therefore recent compilers are required.
 
@@ -205,13 +205,13 @@ SNode.C leverages C++20 features; therefore recent compilers are required.
 
 Either toolchain is supported.
 
-#### Requirements & Dependencies
+### Requirements & Dependencies
 
 Some tools and libraries must be present. A few libraries are bundled within MQTTSuite.
 
-##### Tools
+#### Tools
 
-**Mandatory**
+##### Mandatory
 
 - `git` — <https://git-scm.com/>
 - `cmake` — <https://cmake.org/>
@@ -221,38 +221,38 @@ Some tools and libraries must be present. A few libraries are bundled within MQT
 - `clang` — <https://clang.llvm.org/>
 - `pkg-config` — <https://www.freedesktop.org/wiki/Software/pkg-config/>
 
-**Optional (useful for development/QA)**
+##### Optional (useful for development/QA)
 
 - `iwyu` — <https://include-what-you-use.org/>
 - `clang-format` — <https://clang.llvm.org/docs/ClangFormat.html>
 - `cmake-format` — <https://cmake-format.readthedocs.io/>
 - `doxygen` — <https://www.doxygen.nl/>
 
-##### Frameworks
+#### Frameworks
 
-**Mandatory**
+##### Mandatory
 
 - **SNode.C** – Simple NODE in C++: <https://github.com/SNodeC/snode.c>
 
-##### Libraries
+#### Libraries
 
-**Mandatory**
+##### Mandatory
 
 - **libfmt** (≥ 11.0.0) development files — <https://github.com/fmtlib/fmt>
 
-**Bundled (no separate installation required)**
+##### Bundled (no separate installation required)
 
 - **JSON Schema Validator for Modern C++** — <https://github.com/pboettch/json-schema-validator>
 - **INJA**: A Template Engine for Modern C++ — <https://github.com/pantor/inja>
 
-#### Installation on Debian-Style Systems (x86-64, ARM)
+### Installation on Debian-Style Systems (x86-64, ARM)
 
-##### Install SNode.C
+#### Install SNode.C
 
 Follow the SNode.C installation guide:  
 <https://github.com/SNodeC/snode.c?tab=readme-ov-file#installation>
 
-##### Install system packages
+#### Install system packages
 
 ```sh
 sudo apt update
@@ -261,7 +261,7 @@ sudo apt install libfmt-dev
 ## sudo apt install git cmake build-essential ninja-build pkg-config
 ```
 
-##### Build & Install MQTTSuite
+#### Build & Install MQTTSuite
 
 ```sh
 mkdir mqttsuite
@@ -277,7 +277,7 @@ sudo ldconfig
 
 > Tip: Use all CPU threads (`-j$(nproc)`) to speed up the build—especially useful on SBCs.
 
-#### Deployment on OpenWrt
+### Deployment on OpenWrt
 
 *Assumptions:* You have **SSH** and **SFTP** access to the router, and WAN connectivity is configured.
 
@@ -292,7 +292,7 @@ High-level steps:
 5. **Cross-compile MQTTSuite**
 6. **Deploy the resulting `.ipk` packages to the router**
 
-##### Choose & download an SDK
+#### Choose & download an SDK
 
 Download an SDK (23.05.0-rc1 or later) from the OpenWrt download site and extract it to `<DIR>`.
 
@@ -316,14 +316,14 @@ For the example above:
 - `<libc>` = musl
 - `<abi>` = eabi
 
-##### Patch the SDK to integrate the MQTTSuite feed
+#### Patch the SDK to integrate the MQTTSuite feed
 
 ```sh
 cd <SDK_DIR>
 echo "src-git snodec https://github.com/SNodeC/OpenWRT" >> feeds.conf.default
 ```
 
-##### Install the MQTTSuite package and its dependencies
+#### Install the MQTTSuite package and its dependencies
 
 ```sh
 cd <SDK_DIR>
@@ -331,7 +331,7 @@ cd <SDK_DIR>
 ./scripts/feeds install mqttsuite
 ```
 
-##### Configure the SDK
+#### Configure the SDK
 
 ```sh
 cd <SDK_DIR>
@@ -346,7 +346,7 @@ make menuconfig
 ## Navigate: Network -> SNode.C
 ```
 
-##### Cross-compile MQTTSuite
+#### Cross-compile MQTTSuite
 
 ```sh
 cd <SDK_DIR>
@@ -362,7 +362,7 @@ What happens:
 > After building, the `.ipk` packages for **MQTTSuite** and **SNode.C** are usually found under:  
 > `<SDK_DIR>/bin/packages/<architecture>/snodec/`
 
-##### Deploy MQTTSuite
+#### Deploy MQTTSuite
 
 Copy and install the generated packages onto the router:
 
@@ -385,7 +385,7 @@ exit
 During package installation, a new **UNIX group** (with member `root`) is created and used for managing config, log, and PID files.  
 **Note:** log out and log in again to activate the new group membership.
 
-#### Post-Install Tips
+### Post-Install Tips
 
 - **Persist-once workflow:** All MQTTSuite applications support `--write-config` / `-w`. Start once with explicit flags, verify, then run with no flags.
 - **Use UNIX domain sockets** for same-host integrations; they reduce overhead and surface area.
