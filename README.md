@@ -19,7 +19,7 @@ The [**MQTTSuite**](https://snodec.github.io/mqttsuite-doc/html/index.html) is a
 
 <!--ts-->
 * [MQTTSuite](#mqttsuite)
-      * [Overview](#overview)
+   * [Overview](#overview)
       * [Components](#components)
       * [Table of Content](#table-of-content)
       * [License](#license)
@@ -49,6 +49,13 @@ The [**MQTTSuite**](https://snodec.github.io/mqttsuite-doc/html/index.html) is a
          * [Configuration](#configuration)
          * [Notes](#notes)
       * [Quick Start (Recommended Flow)](#quick-start-recommended-flow)
+         * [Disable all but the in-mqtt instance](#disable-all-but-the-in-mqtt-instance)
+         * [Start a plain MQTT listener on TCP/IPv4](#start-a-plain-mqtt-listener-on-tcpipv4)
+         * [Add a persistent session store (survives restarts)](#add-a-persistent-session-store-survives-restarts)
+         * [Enable the Web Interface (HTTP)](#enable-the-web-interface-http)
+         * [Persist your configuration using -w (so you don’t repeat flags)](#persist-your-configuration-using--w-so-you-dont-repeat-flags)
+         * [(Optional) Embed the integrator  (after the configuration has been saved)](#optional-embed-the-integrator--after-the-configuration-has-been-saved)
+         * [(For development only) Use custom HTML templates for the Web UI (after the configuration has been saved)](#for-development-only-use-custom-html-templates-for-the-web-ui-after-the-configuration-has-been-saved)
       * [Connection Methods](#connection-methods)
          * [MQTT over TCP/IP](#mqtt-over-tcpip)
          * [MQTT over UNIX Domain Sockets](#mqtt-over-unix-domain-sockets)
@@ -78,8 +85,15 @@ The [**MQTTSuite**](https://snodec.github.io/mqttsuite-doc/html/index.html) is a
          * [The mapping Object (big picture)](#the-mapping-object-big-picture)
             * [Minimal shapes](#minimal-shapes)
             * [Wildcard examples](#wildcard-examples)
+            * [A more complex hierarchy](#a-more-complex-hierarchy)
       * [Subscriptions &amp; Translation Rules](#subscriptions--translation-rules)
       * [Mapping Sections](#mapping-sections)
+         * [static mapping](#static-mapping)
+         * [value mapping (template, scalar)](#value-mapping-template-scalar)
+         * [json mapping (template, object)](#json-mapping-template-object)
+            * [Example input](#example-input)
+            * [Rendered output → 5 to 11pm](#rendered-output--5-to-11pm)
+         * [Template extras](#template-extras)
       * [Optional: plugins](#optional-plugins)
       * [Quick Start (Recommended Flow)](#quick-start-recommended-flow-1)
          * [Skeleton mapping file](#skeleton-mapping-file)
@@ -96,9 +110,9 @@ The [**MQTTSuite**](https://snodec.github.io/mqttsuite-doc/html/index.html) is a
          * [Configuration](#configuration-1)
          * [Notes](#notes-1)
       * [Quick Start (Recommended Flow)](#quick-start-recommended-flow-2)
-         * [Disable all but the in-mqtt instance](#disable-all-but-the-in-mqtt-instance)
+         * [Disable all but the in-mqtt instance](#disable-all-but-the-in-mqtt-instance-1)
          * [Connect to a plain MQTT broker over TCP/IPv4](#connect-to-a-plain-mqtt-broker-over-tcpipv4)
-         * [Add a persistent session store (survives restarts)](#add-a-persistent-session-store-survives-restarts)
+         * [Add a persistent session store (survives restarts)](#add-a-persistent-session-store-survives-restarts-1)
          * [Attach your mapping file (canonical test case below)](#attach-your-mapping-file-canonical-test-case-below)
          * [Persist your configuration using -w](#persist-your-configuration-using--w)
          * [(Optional) Use TLS (MQTTS) instead of plain TCP](#optional-use-tls-mqtts-instead-of-plain-tcp)
@@ -111,6 +125,11 @@ The [**MQTTSuite**](https://snodec.github.io/mqttsuite-doc/html/index.html) is a
          * [MQTT over UNIX Domain WebSockets](#mqtt-over-unix-domain-websockets-1)
          * [Notes](#notes-2)
       * [Canonical Mapping &amp; Test Case](#canonical-mapping--test-case)
+         * [Save as ~/mapping-example.json:](#save-as-mapping-examplejson)
+         * [Run the integrator for this mapping (in-mqtt):](#run-the-integrator-for-this-mapping-in-mqtt)
+         * [Persist once:](#persist-once)
+         * [Then just run](#then-just-run)
+         * [Verification](#verification)
       * [Behavior aligned with the Mapping Description](#behavior-aligned-with-the-mapping-description)
       * [Additions &amp; Field-Tested Guidance](#additions--field-tested-guidance-1)
          * [TLS checklist for client connections (MQTTS / WSS / UDS-WSS)](#tls-checklist-for-client-connections-mqtts--wss--uds-wss)
@@ -140,7 +159,7 @@ The [**MQTTSuite**](https://snodec.github.io/mqttsuite-doc/html/index.html) is a
       * [Best Practices &amp; Validation Tips](#best-practices--validation-tips)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: runner, at: Sun Nov  9 22:44:45 UTC 2025 -->
+<!-- Added by: runner, at: Sun Nov  9 23:50:13 UTC 2025 -->
 
 <!--te-->
 
