@@ -875,7 +875,7 @@ A mapping description has three top-level objects:
 
 ##### A more complex hierarchy
 
-![A complex topic_level structure](/home/voc/projects/mqttsuite/mqttsuite/docs/images/mqtt-topics.png)
+![A complex topic_level structure](docs/images/mqtt-topics.png)
 
 ```json
 "mapping": {
