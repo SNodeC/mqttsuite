@@ -32,153 +32,154 @@ Volker Christian ([me@vchrist.at](mailto:me@vchrist.at), [volker.christian@fh-ha
 ## Table of Content
 
 <!--ts-->
+
 * [MQTTSuite](#mqttsuite)
-   * [Overview](#overview)
-      * [Components](#components)
-      * [License](#license)
-      * [Copyright](#copyright)
-   * [Table of Content](#table-of-content)
-   * [Installation](#installation)
-      * [Supported Systems &amp; Hardware](#supported-systems--hardware)
-      * [Minimum Required Compiler Versions](#minimum-required-compiler-versions)
-      * [Requirements &amp; Dependencies](#requirements--dependencies)
-         * [Tools](#tools)
-            * [Mandatory](#mandatory)
-            * [Optional (useful for development/QA)](#optional-useful-for-developmentqa)
-         * [Frameworks](#frameworks)
-            * [Mandatory](#mandatory-1)
-         * [Libraries](#libraries)
-            * [Mandatory](#mandatory-2)
-            * [Bundled (no separate installation required)](#bundled-no-separate-installation-required)
-      * [Installation on Debian-Style Systems (x86-64, ARM)](#installation-on-debian-style-systems-x86-64-arm)
-         * [Install SNode.C](#install-snodec)
-         * [Install system packages](#install-system-packages)
-         * [Build &amp; Install MQTTSuite](#build--install-mqttsuite)
-      * [Deployment on OpenWrt](#deployment-on-openwrt)
-         * [Choose &amp; download an SDK](#choose--download-an-sdk)
-         * [Patch the SDK to integrate the MQTTSuite feed](#patch-the-sdk-to-integrate-the-mqttsuite-feed)
-         * [Install the MQTTSuite package and its dependencies](#install-the-mqttsuite-package-and-its-dependencies)
-         * [Configure the SDK](#configure-the-sdk)
-         * [Cross-compile MQTTSuite](#cross-compile-mqttsuite)
-         * [Deploy MQTTSuite](#deploy-mqttsuite)
-      * [Post-Install Tips](#post-install-tips)
-   * [MQTTBroker](#mqttbroker)
-      * [Overview &amp; Configuration](#overview--configuration)
-         * [Connection instances of default builds of <em>MQTTBroker</em>](#connection-instances-of-default-builds-of-mqttbroker)
-         * [Configuration](#configuration)
-         * [Notes](#notes)
-      * [Quick Start (Recommended Flow)](#quick-start-recommended-flow)
-         * [Disable all but the in-mqtt instance](#disable-all-but-the-in-mqtt-instance)
-         * [Start a plain MQTT listener on TCP/IPv4](#start-a-plain-mqtt-listener-on-tcpipv4)
-         * [Add a persistent session store (survives restarts)](#add-a-persistent-session-store-survives-restarts)
-         * [Enable the Web Interface (HTTP)](#enable-the-web-interface-http)
-         * [Persist your configuration using -w (so you don’t repeat flags)](#persist-your-configuration-using--w-so-you-dont-repeat-flags)
-         * [(Optional) Embed the integrator  (after the configuration has been saved)](#optional-embed-the-integrator--after-the-configuration-has-been-saved)
-         * [(For development only) Use custom HTML templates for the Web UI (after the configuration has been saved)](#for-development-only-use-custom-html-templates-for-the-web-ui-after-the-configuration-has-been-saved)
-      * [Connection Methods](#connection-methods)
-         * [MQTT over TCP/IP](#mqtt-over-tcpip)
-         * [MQTT over UNIX Domain Sockets](#mqtt-over-unix-domain-sockets)
-         * [MQTT over WebSockets](#mqtt-over-websockets)
-         * [MQTT over UNIX Domain WebSockets](#mqtt-over-unix-domain-websockets)
-      * [Web Interface](#web-interface)
-         * [Web Interface over TCP/IP](#web-interface-over-tcpip)
-         * [Web Interface over UNIX Domain Sockets](#web-interface-over-unix-domain-sockets)
-      * [Additions &amp; Field-Tested Guidance](#additions--field-tested-guidance)
-         * [Quick TLS checklist for MQTT(TCP) and MQTT over WebSockets](#quick-tls-checklist-for-mqtttcp-and-mqtt-over-websockets)
-            * [Example (TCP/TLS):](#example-tcptls)
-            * [Example (WebSockets/TLS):](#example-websocketstls)
-         * [Making configuration persistent (recommended)](#making-configuration-persistent-recommended)
-         * [WebSockets specifics that often trip clients](#websockets-specifics-that-often-trip-clients)
-         * [Quick sanity checks with common tools](#quick-sanity-checks-with-common-tools)
-         * [Quick sanity checks with MQTTSuites command line tool](#quick-sanity-checks-with-mqttsuites-command-line-tool)
-         * [Notes for UNIX domain sockets](#notes-for-unix-domain-sockets)
-         * [Embedded MQTTIntegrator (when --mqtt-mapping-file is provided)](#embedded-mqttintegrator-when---mqtt-mapping-file-is-provided)
-         * [Extending transports](#extending-transports)
-         * [Diagnostics, hardening &amp; tips](#diagnostics-hardening--tips)
-      * [Protocol version note](#protocol-version-note)
-      * [Why this layout works well in production](#why-this-layout-works-well-in-production)
-   * [MQTT Mapping Description](#mqtt-mapping-description)
-      * [Purpose](#purpose)
-      * [Top-Level Structure](#top-level-structure)
-         * [connection options (summary)](#connection-options-summary)
-         * [The mapping Object (big picture)](#the-mapping-object-big-picture)
-            * [Minimal shapes](#minimal-shapes)
-            * [Wildcard examples](#wildcard-examples)
-            * [A more complex hierarchy](#a-more-complex-hierarchy)
-      * [Subscriptions &amp; Translation Rules](#subscriptions--translation-rules)
-      * [Mapping Sections](#mapping-sections)
-         * [static mapping](#static-mapping)
-         * [value mapping (template, scalar)](#value-mapping-template-scalar)
-         * [json mapping (template, object)](#json-mapping-template-object)
-            * [Example input](#example-input)
-            * [Rendered output → 5 to 11pm](#rendered-output--5-to-11pm)
-         * [Template extras](#template-extras)
-      * [Optional: plugins](#optional-plugins)
-      * [Quick Start (Recommended Flow)](#quick-start-recommended-flow-1)
-         * [Skeleton mapping file](#skeleton-mapping-file)
-         * [Add a concrete subscription with a simple static mapping](#add-a-concrete-subscription-with-a-simple-static-mapping)
-         * [Switch to a template mapping when you need logic](#switch-to-a-template-mapping-when-you-need-logic)
-         * [Validate against the schema (example with ajv-cli)](#validate-against-the-schema-example-with-ajv-cli)
-         * [Run the integrator with your mapping](#run-the-integrator-with-your-mapping)
-      * [Field-Tested Guidance](#field-tested-guidance)
-      * [Schema Highlights](#schema-highlights)
-      * [In one sentence](#in-one-sentence)
-   * [MQTTIntegrator](#mqttintegrator)
-      * [Overview &amp; Configuration](#overview--configuration-1)
-         * [Connection instances of default builds of <em>MQTTIntegrator</em>](#connection-instances-of-default-builds-of-mqttintegrator)
-         * [Configuration](#configuration-1)
-         * [Notes](#notes-1)
-      * [Quick Start (Recommended Flow)](#quick-start-recommended-flow-2)
-         * [Disable all but the in-mqtt instance](#disable-all-but-the-in-mqtt-instance-1)
-         * [Connect to a plain MQTT broker over TCP/IPv4](#connect-to-a-plain-mqtt-broker-over-tcpipv4)
-         * [Add a persistent session store (survives restarts)](#add-a-persistent-session-store-survives-restarts-1)
-         * [Attach your mapping file (canonical test case below)](#attach-your-mapping-file-canonical-test-case-below)
-         * [Persist your configuration using -w](#persist-your-configuration-using--w)
-         * [(Optional) Use TLS (MQTTS) instead of plain TCP](#optional-use-tls-mqtts-instead-of-plain-tcp)
-         * [(Optional) Use WebSockets (WSS)](#optional-use-websockets-wss)
-         * [(Optional) Use Unix Domain WebSockets](#optional-use-unix-domain-websockets)
-      * [Connection Methods](#connection-methods-1)
-         * [MQTT over TCP/IP](#mqtt-over-tcpip-1)
-         * [MQTT over UNIX Domain Sockets](#mqtt-over-unix-domain-sockets-1)
-         * [MQTT over WebSockets](#mqtt-over-websockets-1)
-         * [MQTT over UNIX Domain WebSockets](#mqtt-over-unix-domain-websockets-1)
-         * [Notes](#notes-2)
-      * [Canonical Mapping &amp; Test Case](#canonical-mapping--test-case)
-         * [Save as ~/mapping-example.json:](#save-as-mapping-examplejson)
-         * [Run the integrator for this mapping (in-mqtt):](#run-the-integrator-for-this-mapping-in-mqtt)
-         * [Persist once:](#persist-once)
-         * [Then just run](#then-just-run)
-         * [Verification](#verification)
-      * [Behavior aligned with the Mapping Description](#behavior-aligned-with-the-mapping-description)
-      * [Additions &amp; Field-Tested Guidance](#additions--field-tested-guidance-1)
-         * [TLS checklist for client connections (MQTTS / WSS / UDS-WSS)](#tls-checklist-for-client-connections-mqtts--wss--uds-wss)
-            * [Example (TCP/TLS) with mutual TLS:](#example-tcptls-with-mutual-tls)
-            * [Example (WebSockets/TLS):](#example-websocketstls-1)
-            * [Example (Unix Domain WebSockets, TLS layered on the WS endpoint):](#example-unix-domain-websockets-tls-layered-on-the-ws-endpoint)
-         * [Persist-once workflow (recommended)](#persist-once-workflow-recommended)
-         * [WebSockets specifics that often trip clients](#websockets-specifics-that-often-trip-clients-1)
-         * [Diagnostics, hardening &amp; common pitfalls](#diagnostics-hardening--common-pitfalls)
-      * [Protocol version note](#protocol-version-note-1)
-      * [Why this layout works well in production](#why-this-layout-works-well-in-production-1)
-   * [MQTTBridge](#mqttbridge)
-      * [Overview &amp; Configuration](#overview--configuration-2)
-      * [Quick Start (Recommended Flow)](#quick-start-recommended-flow-3)
-         * [Create a minimal bridge-config.json](#create-a-minimal-bridge-configjson)
-         * [Run the bridge:](#run-the-bridge)
-         * [Verify (example):](#verify-example)
-      * [Bridge Configuration JSON](#bridge-configuration-json)
-         * [Overall Structure (at a glance)](#overall-structure-at-a-glance)
-         * [Elements in Detail](#elements-in-detail)
-            * [Root Object](#root-object)
-            * [bridge (each item in bridges)](#bridge-each-item-in-bridges)
-            * [broker (each item in brokers)](#broker-each-item-in-brokers)
-            * [mqtt (client options)](#mqtt-client-options)
-            * [topics (subscriptions for a broker)](#topics-subscriptions-for-a-broker)
-            * [network (transport selection + addressing)](#network-transport-selection--addressing)
-      * [Best Practices &amp; Validation Tips](#best-practices--validation-tips)
+  * [Overview](#overview)
+    * [Components](#components)
+    * [Table of Content](#table-of-content)
+    * [License](#license)
+    * [Copyright](#copyright)
+  * [Installation](#installation)
+    * [Supported Systems &amp; Hardware](#supported-systems--hardware)
+    * [Minimum Required Compiler Versions](#minimum-required-compiler-versions)
+    * [Requirements &amp; Dependencies](#requirements--dependencies)
+      * [Tools](#tools)
+        * [Mandatory](#mandatory)
+        * [Optional (useful for development/QA)](#optional-useful-for-developmentqa)
+      * [Frameworks](#frameworks)
+        * [Mandatory](#mandatory-1)
+      * [Libraries](#libraries)
+        * [Mandatory](#mandatory-2)
+        * [Bundled (no separate installation required)](#bundled-no-separate-installation-required)
+    * [Installation on Debian-Style Systems (x86-64, ARM)](#installation-on-debian-style-systems-x86-64-arm)
+      * [Install SNode.C](#install-snodec)
+      * [Install system packages](#install-system-packages)
+      * [Build &amp; Install MQTTSuite](#build--install-mqttsuite)
+    * [Deployment on OpenWrt](#deployment-on-openwrt)
+      * [Choose &amp; download an SDK](#choose--download-an-sdk)
+      * [Patch the SDK to integrate the MQTTSuite feed](#patch-the-sdk-to-integrate-the-mqttsuite-feed)
+      * [Install the MQTTSuite package and its dependencies](#install-the-mqttsuite-package-and-its-dependencies)
+      * [Configure the SDK](#configure-the-sdk)
+      * [Cross-compile MQTTSuite](#cross-compile-mqttsuite)
+      * [Deploy MQTTSuite](#deploy-mqttsuite)
+    * [Post-Install Tips](#post-install-tips)
+  * [MQTTBroker](#mqttbroker)
+    * [Overview &amp; Configuration](#overview--configuration)
+      * [Connection instances of default builds of <em>MQTTBroker</em>](#connection-instances-of-default-builds-of-mqttbroker)
+      * [Configuration](#configuration)
+      * [Notes](#notes)
+    * [Quick Start (Recommended Flow)](#quick-start-recommended-flow)
+      * [Disable all but the in-mqtt instance](#disable-all-but-the-in-mqtt-instance)
+      * [Start a plain MQTT listener on TCP/IPv4](#start-a-plain-mqtt-listener-on-tcpipv4)
+      * [Add a persistent session store (survives restarts)](#add-a-persistent-session-store-survives-restarts)
+      * [Enable the Web Interface (HTTP)](#enable-the-web-interface-http)
+      * [Persist your configuration using -w (so you don’t repeat flags)](#persist-your-configuration-using--w-so-you-dont-repeat-flags)
+      * [(Optional) Embed the integrator  (after the configuration has been saved)](#optional-embed-the-integrator--after-the-configuration-has-been-saved)
+      * [(For development only) Use custom HTML templates for the Web UI (after the configuration has been saved)](#for-development-only-use-custom-html-templates-for-the-web-ui-after-the-configuration-has-been-saved)
+    * [Connection Methods](#connection-methods)
+      * [MQTT over TCP/IP](#mqtt-over-tcpip)
+      * [MQTT over UNIX Domain Sockets](#mqtt-over-unix-domain-sockets)
+      * [MQTT over WebSockets](#mqtt-over-websockets)
+      * [MQTT over UNIX Domain WebSockets](#mqtt-over-unix-domain-websockets)
+    * [Web Interface](#web-interface)
+      * [Web Interface over TCP/IP](#web-interface-over-tcpip)
+      * [Web Interface over UNIX Domain Sockets](#web-interface-over-unix-domain-sockets)
+    * [Additions &amp; Field-Tested Guidance](#additions--field-tested-guidance)
+      * [Quick TLS checklist for MQTT(TCP) and MQTT over WebSockets](#quick-tls-checklist-for-mqtttcp-and-mqtt-over-websockets)
+        * [Example (TCP/TLS):](#example-tcptls)
+        * [Example (WebSockets/TLS):](#example-websocketstls)
+      * [Making configuration persistent (recommended)](#making-configuration-persistent-recommended)
+      * [WebSockets specifics that often trip clients](#websockets-specifics-that-often-trip-clients)
+      * [Quick sanity checks with common tools](#quick-sanity-checks-with-common-tools)
+      * [Quick sanity checks with MQTTSuites command line tool](#quick-sanity-checks-with-mqttsuites-command-line-tool)
+      * [Notes for UNIX domain sockets](#notes-for-unix-domain-sockets)
+      * [Embedded MQTTIntegrator (when --mqtt-mapping-file is provided)](#embedded-mqttintegrator-when---mqtt-mapping-file-is-provided)
+      * [Extending transports](#extending-transports)
+      * [Diagnostics, hardening &amp; tips](#diagnostics-hardening--tips)
+    * [Protocol version note](#protocol-version-note)
+    * [Why this layout works well in production](#why-this-layout-works-well-in-production)
+  * [MQTT Mapping Description](#mqtt-mapping-description)
+    * [Purpose](#purpose)
+    * [Top-Level Structure](#top-level-structure)
+      * [connection options (summary)](#connection-options-summary)
+      * [The mapping Object (big picture)](#the-mapping-object-big-picture)
+        * [Minimal shapes](#minimal-shapes)
+        * [Wildcard examples](#wildcard-examples)
+        * [A more complex hierarchy](#a-more-complex-hierarchy)
+    * [Subscriptions &amp; Translation Rules](#subscriptions--translation-rules)
+    * [Mapping Sections](#mapping-sections)
+      * [static mapping](#static-mapping)
+      * [value mapping (template, scalar)](#value-mapping-template-scalar)
+      * [json mapping (template, object)](#json-mapping-template-object)
+        * [Example input](#example-input)
+        * [Rendered output → 5 to 11pm](#rendered-output--5-to-11pm)
+      * [Template extras](#template-extras)
+    * [Optional: plugins](#optional-plugins)
+    * [Quick Start (Recommended Flow)](#quick-start-recommended-flow-1)
+      * [Skeleton mapping file](#skeleton-mapping-file)
+      * [Add a concrete subscription with a simple static mapping](#add-a-concrete-subscription-with-a-simple-static-mapping)
+      * [Switch to a template mapping when you need logic](#switch-to-a-template-mapping-when-you-need-logic)
+      * [Validate against the schema (example with ajv-cli)](#validate-against-the-schema-example-with-ajv-cli)
+      * [Run the integrator with your mapping](#run-the-integrator-with-your-mapping)
+    * [Field-Tested Guidance](#field-tested-guidance)
+    * [Schema Highlights](#schema-highlights)
+    * [In one sentence](#in-one-sentence)
+  * [MQTTIntegrator](#mqttintegrator)
+    * [Overview &amp; Configuration](#overview--configuration-1)
+      * [Connection instances of default builds of <em>MQTTIntegrator</em>](#connection-instances-of-default-builds-of-mqttintegrator)
+      * [Configuration](#configuration-1)
+      * [Notes](#notes-1)
+    * [Quick Start (Recommended Flow)](#quick-start-recommended-flow-2)
+      * [Disable all but the in-mqtt instance](#disable-all-but-the-in-mqtt-instance-1)
+      * [Connect to a plain MQTT broker over TCP/IPv4](#connect-to-a-plain-mqtt-broker-over-tcpipv4)
+      * [Add a persistent session store (survives restarts)](#add-a-persistent-session-store-survives-restarts-1)
+      * [Attach your mapping file (canonical test case below)](#attach-your-mapping-file-canonical-test-case-below)
+      * [Persist your configuration using -w](#persist-your-configuration-using--w)
+      * [(Optional) Use TLS (MQTTS) instead of plain TCP](#optional-use-tls-mqtts-instead-of-plain-tcp)
+      * [(Optional) Use WebSockets (WSS)](#optional-use-websockets-wss)
+      * [(Optional) Use Unix Domain WebSockets](#optional-use-unix-domain-websockets)
+    * [Connection Methods](#connection-methods-1)
+      * [MQTT over TCP/IP](#mqtt-over-tcpip-1)
+      * [MQTT over UNIX Domain Sockets](#mqtt-over-unix-domain-sockets-1)
+      * [MQTT over WebSockets](#mqtt-over-websockets-1)
+      * [MQTT over UNIX Domain WebSockets](#mqtt-over-unix-domain-websockets-1)
+      * [Notes](#notes-2)
+    * [Canonical Mapping &amp; Test Case](#canonical-mapping--test-case)
+      * [Save as ~/mapping-example.json:](#save-as-mapping-examplejson)
+      * [Run the integrator for this mapping (in-mqtt):](#run-the-integrator-for-this-mapping-in-mqtt)
+      * [Persist once:](#persist-once)
+      * [Then just run](#then-just-run)
+      * [Verification](#verification)
+    * [Behavior aligned with the Mapping Description](#behavior-aligned-with-the-mapping-description)
+    * [Additions &amp; Field-Tested Guidance](#additions--field-tested-guidance-1)
+      * [TLS checklist for client connections (MQTTS / WSS / UDS-WSS)](#tls-checklist-for-client-connections-mqtts--wss--uds-wss)
+        * [Example (TCP/TLS) with mutual TLS:](#example-tcptls-with-mutual-tls)
+        * [Example (WebSockets/TLS):](#example-websocketstls-1)
+        * [Example (Unix Domain WebSockets, TLS layered on the WS endpoint):](#example-unix-domain-websockets-tls-layered-on-the-ws-endpoint)
+      * [Persist-once workflow (recommended)](#persist-once-workflow-recommended)
+      * [WebSockets specifics that often trip clients](#websockets-specifics-that-often-trip-clients-1)
+      * [Diagnostics, hardening &amp; common pitfalls](#diagnostics-hardening--common-pitfalls)
+    * [Protocol version note](#protocol-version-note-1)
+    * [Why this layout works well in production](#why-this-layout-works-well-in-production-1)
+  * [MQTTBridge](#mqttbridge)
+    * [Overview &amp; Configuration](#overview--configuration-2)
+    * [Quick Start (Recommended Flow)](#quick-start-recommended-flow-3)
+      * [Create a minimal bridge-config.json](#create-a-minimal-bridge-configjson)
+      * [Run the bridge:](#run-the-bridge)
+      * [Verify (example):](#verify-example)
+    * [Bridge Configuration JSON](#bridge-configuration-json)
+      * [Overall Structure (at a glance)](#overall-structure-at-a-glance)
+      * [Elements in Detail](#elements-in-detail)
+        * [Root Object](#root-object)
+        * [bridge (each item in bridges)](#bridge-each-item-in-bridges)
+        * [broker (each item in brokers)](#broker-each-item-in-brokers)
+        * [mqtt (client options)](#mqtt-client-options)
+        * [topics (subscriptions for a broker)](#topics-subscriptions-for-a-broker)
+        * [network (transport selection + addressing)](#network-transport-selection--addressing)
+    * [Best Practices &amp; Validation Tips](#best-practices--validation-tips)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: runner, at: Mon Nov 10 00:14:24 UTC 2025 -->
+<!-- Added by: runner, at: Mon Nov 10 00:01:50 UTC 2025 -->
 
 <!--te-->
 
@@ -293,7 +294,7 @@ sudo ldconfig
 High-level steps:
 
 1. **Choose and download an OpenWrt SDK**
-2. **Patch the SDK to add the SNode.C (snodec) feed**
+2. **Patch the SDK to add the SNode.C (snodec) feed** (contains the MQTTSuite feed)
 3. **Install the MQTTSuite package and dependencies**
 4. **Configure the SDK**
 5. **Cross-compile MQTTSuite**
@@ -323,14 +324,16 @@ For the example above:
 - `<libc>` = musl
 - `<abi>` = eabi
 
-#### Patch the SDK to integrate the MQTTSuite feed
+#### Patch the SDK to integrate the SNode.C feed
+
+This feed contains also the definitions for compiling MQTTSuite.
 
 ```sh
 cd <SDK_DIR>
 echo "src-git snodec https://github.com/SNodeC/OpenWRT" >> feeds.conf.default
 ```
 
-#### Install the MQTTSuite package and its dependencies
+#### Install the MQTTSuite package definition and its dependencies
 
 ```sh
 cd <SDK_DIR>
@@ -345,12 +348,13 @@ cd <SDK_DIR>
 make defconfig
 ```
 
-You can keep defaults. To customize SNode.C options:
+You can keep defaults. To customize SNode.C/MQTTSuite options:
 
 ```sh
 cd <SDK_DIR>
 make menuconfig
 ## Navigate: Network -> SNode.C
+##       or: Network -> MQTTSuite
 ```
 
 #### Cross-compile MQTTSuite
@@ -456,6 +460,7 @@ mqttbroker in-mqtts --disabled
            in6-https --disabled
            un-http --disabled
            un-https --disabled
+           -w
 ```
 
 #### Start a plain MQTT listener on TCP/IPv4
@@ -1567,7 +1572,7 @@ Two brokers, bidirectional, loop prevention on:
 #### Run the bridge:
 
 ```bash
-mqttbridge --bridge-config-file /etc/mqttsuite/bridge-config.json
+mqttbridge bridge --definition /etc/mqttsuite/bridge-config.json
 ```
 
 #### Verify (example):
@@ -1589,7 +1594,7 @@ This section shows the **overall file structure** first, then elaborates on **ea
 
 #### Overall Structure (at a glance)
 
-```jsonc
+```json
 {
   "bridges": [                       // required, ≥ 1 items
     {
@@ -1643,7 +1648,7 @@ This section shows the **overall file structure** first, then elaborates on **ea
 ```
 
 **Forwarding logic (mental model):**  
-For each bridge, every broker subscribes to its configured `topics`. Incoming messages that match a broker’s subscriptions are **forwarded to all the other brokers** in the same bridge. When forwarding, the bridge applies (if set):
+Within each configured bridge, the MQTTBridge establishes connections to all configured brokers and subscribes to their specified `topics`, ensuring message forwarding begins immediately after connection. Incoming messages that match a subscriptions are **forwarded to all the other brokers** in the same bridge. When forwarding, the bridge applies (if set):
 
 ```
 <bridge.prefix> + <source-broker.prefix> + <original-topic>
@@ -1747,3 +1752,197 @@ Exactly **one** address object (`in`/`in6`/`un`/`rc`/`l2`) must be present, cons
   - **No forwarding:** Check the *source broker’s* `topics[]` filter and verify the *other* brokers subscribe to the forwarded, prefixed paths.  
   - **Echo storms:** Add prefixes and enable loop prevention on both sides; avoid subscribing to your own bridged prefix everywhere.  
   - **WS handshake failures:** Wrong target or missing subprotocol.
+
+## MQTTCli
+
+### Overview
+
+**MQTTCli** is the command-line client of the **MQTTSuite**. It can **publish** messages and **subscribe** to topics, supports the same transport families as the other apps (**TCP/IPv4**, **TCP/IPv6**, **UNIX domain sockets**, **WebSockets** over these, with optional **TLS**), and integrates with the shared **SNode.C configuration system**. Typical use cases: quick broker smoke tests, scripted data injection, and ad-hoc topic inspection.
+
+---
+
+### Quick Start (Recommended Flow)
+
+1) **Subscribe** to everything on a local broker (TCP/IPv4):
+
+```bash
+mqttcli in-mqtt
+            remote --host 127.0.0.1
+                   --port 1883
+            sub --topic '#'
+```
+
+2) **Publish** a message:
+
+```bash
+mqttcli in-mqtt
+            remote --host 127.0.0.1
+                   --port 1883
+            pub --topic 'test/topic'
+                --message 'hello'
+```
+
+3) **WebSockets (HTTP)** publish:
+
+```bash
+mqttcli in-wsmqtt
+            remote --host 127.0.0.1
+                   --port 8080
+            pub --topic 'test/topic'
+                --message 'hello'
+```
+
+4) **UNIX domain socket** publish:
+
+```bash
+mqttcli un-mqtt
+            remote --sun-path /tmp/mqttbroker-un-mqtt
+            pub --topic 'test/topic'
+                --message 'hello'
+```
+
+5) **Subscribe and publish in one go** (handy for quick checks):
+
+```bash
+mqttcli in-mqtt
+            remote --host 127.0.0.1
+                   --port 1883
+            sub --topic '#'
+            pub --topic 'test/topic'
+                --message 'hello'
+```
+
+> Tip: When publishing JSON on a shell, wrap payloads in single quotes to avoid escaping issues: `--message '{"k":1}'`.
+
+---
+
+### Command Structure
+
+```bash
+mqttcli <instance> [tls …] remote|local <endpoint-options> (sub …)? (pub …)?
+```
+
+- **`<instance>`** selects the transport preset (see tables below).
+
+- **`remote|local`** chooses endpoint style:
+
+  - `remote --host <addr> --port <n>` for TCP/WebSockets, or
+  - `remote --sun-path <path>` for UNIX domain sockets.
+
+- **`sub`** and **`pub`** may be combined in a single invocation.
+
+- **TLS** is configured under a `tls` group when using `*s` instances (e.g., `in-mqtts`, `in-wsmqtts`):
+
+  ```
+  tls --cert <crt> --cert-key <key> --ca-cert <ca>
+  ```
+
+### Supported Transports
+
+#### MQTT over TCP/IP
+
+| **Instance**    | Protocol | Encryption | Default Port |
+| --------------- | -------- | ---------: | -----------: |
+| **`in-mqtt`**   | IPv4     |         No |       `1883` |
+| **`in-mqtts`**  | IPv4     |        Yes |       `8883` |
+| **`in6-mqtt`**  | IPv6     |         No |       `1883` |
+| **`in6-mqtts`** | IPv6     |        Yes |       `8883` |
+
+#### MQTT over UNIX Domain Sockets
+
+| **Instance**   | Encryption | Path Example               |
+| -------------- | ---------: | -------------------------- |
+| **`un-mqtt`**  |         No | `/tmp/mqttbroker-un-mqtt`  |
+| **`un-mqtts`** |        Yes | `/tmp/mqttbroker-un-mqtts` |
+
+#### MQTT over WebSockets
+
+| **Instance**      | Protocol | Encryption | Port | Request Target | Sec-WebSocket-Protocol |
+| ----------------- | -------- | ---------: | ---: | -------------- | ---------------------- |
+| **`in-wsmqtt`**   | IPv4     |         No | 8080 | `/` or `/ws`   | `mqtt`                 |
+| **`in-wsmqtts`**  | IPv4     |        Yes | 8088 | `/` or `/ws`   | `mqtt`                 |
+| **`in6-wsmqtt`**  | IPv6     |         No | 8080 | `/` or `/ws`   | `mqtt`                 |
+| **`in6-wsmqtts`** | IPv6     |        Yes | 8088 | `/` or `/ws`   | `mqtt`                 |
+
+#### MQTT over UNIX Domain WebSockets
+
+| **Instance**     | Encryption | Path Example               | Request Target | Sec-WebSocket-Protocol |
+| ---------------- | ---------: | -------------------------- | -------------- | ---------------------- |
+| **`un-wsmqtt`**  |         No | `/tmp/mqttbroker-un-http`  | `/` or `/ws`   | `mqtt`                 |
+| **`un-wsmqtts`** |        Yes | `/tmp/mqttbroker-un-https` | `/` or `/ws`   | `mqtt`                 |
+
+### Additions & Field-Tested Guidance
+
+#### TLS quick checklist
+
+- Use the `*s` instances (e.g., `in-mqtts`, `in-wsmqtts`) when you need TLS.
+
+- Provide CA for server verification and certificate/key when mutual auth is required:
+
+  ```bash
+  mqttcli in-mqtts
+              remote --host broker.example.org
+                     --port 8883
+              tls --ca-cert /etc/ssl/mqttsuite/ca.crt
+  ```
+
+- Ensure the server name (SNI/hostname) matches the certificate SAN/CN.
+
+#### WebSockets specifics
+
+- The subprotocol **`mqtt`** must be negotiated; ensure proxies preserve `Upgrade`, `Connection`, and `Sec-WebSocket-Protocol`.
+- Default request targets `/` and `/ws` are accepted by the MQTTSuite WS endpoints.
+
+#### UNIX domain sockets
+
+- Prefer `/run` or `/var/run` for service-managed sockets; adjust file **ownership/permissions** for non-root users.
+
+#### Persist once (optional)
+
+- You can persist frequently reused options via `-w`:
+
+  ```bash
+  mqttcli in-mqtt
+              remote --host mqtt.local
+                     --port 1883
+              sub --topic 'sensors/#'
+              -w
+  ```
+
+  Thereafter, a plain `mqttcli sub --topic 'sensors/#'` may reuse the stored configuration.
+
+### Handy Patterns
+
+- **Live-tail everything, then publish:**
+
+  ```bash
+  mqttcli in-mqtt
+              remote --host 127.0.0.1
+                     --port 1883
+              sub --topic '#'
+              pub --topic 'test/topic'
+                  --message 'hello'
+  ```
+
+- **Publish JSON:**
+
+  ```bash
+  mqttcli in-mqtt
+              remote --host 127.0.0.1
+                     --port 1883
+              pub --topic 'sensors/room1'
+                  --message '{"temp":22.7,"hum":48}'
+  ```
+
+- **WS to local Broker UI port (8080):**
+
+  ```bash
+  mqttcli in-wsmqtt
+              remote --host 127.0.0.1
+                     --port 8080
+              sub --topic '#'
+  ```
+
+### Notes
+
+- **Protocol:** MQTT **3.1.1** (align your client expectations accordingly).
