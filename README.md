@@ -1,12 +1,14 @@
+
+
 <p align="center"><img src="./docs/assets/README/Logo-New-Full.png" style="width: 50%;" /></p>
 
-# MQTTSuite
+----
 
-## Overview
+# Overview
 
 The [**MQTTSuite**](https://snodec.github.io/mqttsuite-doc/html/index.html) is a lightweight, production-ready MQTT integration system composed of four focused applications—**MQTTBroker**, **MQTTIntegrator**, **MQTTBridge**, and **MQTTCli**—all powered by [**SNode.C**](https://github.com/SNodeC/snode.c), a single-threaded, single-tasking C++ networking framework. Thanks to its very small footprint, MQTTSuite is especially suitable for resource-constrained systems (embedded Linux, routers, SBCs).
 
-### Components
+## Components
 
 | Component | Role | Highlights |
 |---|---|---|
@@ -17,7 +19,7 @@ The [**MQTTSuite**](https://snodec.github.io/mqttsuite-doc/html/index.html) is a
 
 
 
-### License
+## License
 
 **SNode.C** is dual-licensed under **MIT** and **GPL-3.0-or-later**. You may choose either license when using the framework.
 
@@ -25,11 +27,13 @@ The [**MQTTSuite**](https://snodec.github.io/mqttsuite-doc/html/index.html) is a
 
 > Note: MQTTSuite applications are built on top of SNode.C and follow the respective licensing terms of their repositories and bundled libraries.
 
-### Copyright
+## Copyright
 
 Volker Christian ([me@vchrist.at](mailto:me@vchrist.at), [volker.christian@fh-hagenberg.at](mailto:volker.christian@fh-hagenberg.at))
 
-## Table of Content
+---
+
+# Table of Content
 
 <!--ts-->
 * [MQTTSuite](#mqttsuite)
@@ -198,7 +202,9 @@ Volker Christian ([me@vchrist.at](mailto:me@vchrist.at), [volker.christian@fh-ha
 
 <!--te-->
 
-## Installation
+---
+
+# Installation
 
 Installation is straightforward:
 
@@ -208,7 +214,7 @@ Installation is straightforward:
 
 Use the detailed platform-specific instructions below.
 
-### Supported Systems & Hardware
+## Supported Systems & Hardware
 
 Development is primarily on **Debian Sid**; since **Debian Bookworm** it also builds cleanly on Debian stable. With the required tools and libraries installed, it should compile on most Linux distributions.
 
@@ -219,7 +225,7 @@ Known good targets:
 - **OpenWrt** 23.05.0 and later (all architectures)
 - **Android** via [Termux](https://termux.dev/en/) *(documentation in preparation)*
 
-### Minimum Required Compiler Versions
+## Minimum Required Compiler Versions
 
 SNode.C leverages C++20 features; therefore recent compilers are required.
 
@@ -228,13 +234,13 @@ SNode.C leverages C++20 features; therefore recent compilers are required.
 
 Either toolchain is supported.
 
-### Requirements & Dependencies
+## Requirements & Dependencies
 
 Some tools and libraries must be present. A few libraries are bundled within MQTTSuite.
 
-#### Tools
+### Tools
 
-##### Mandatory
+#### Mandatory
 
 - `git` — <https://git-scm.com/>
 - `cmake` — <https://cmake.org/>
@@ -244,47 +250,47 @@ Some tools and libraries must be present. A few libraries are bundled within MQT
 - `clang` — <https://clang.llvm.org/>
 - `pkg-config` — <https://www.freedesktop.org/wiki/Software/pkg-config/>
 
-##### Optional (useful for development/QA)
+#### Optional (useful for development/QA)
 
 - `iwyu` — <https://include-what-you-use.org/>
 - `clang-format` — <https://clang.llvm.org/docs/ClangFormat.html>
 - `cmake-format` — <https://cmake-format.readthedocs.io/>
 - `doxygen` — <https://www.doxygen.nl/>
 
-#### Frameworks
+### Frameworks
 
-##### Mandatory
+#### Mandatory
 
 - **SNode.C** – Simple NODE in C++: <https://github.com/SNodeC/snode.c>
 
-#### Libraries
+### Libraries
 
-##### Mandatory
+#### Mandatory
 
 - **libfmt** (≥ 11.0.0) development files — <https://github.com/fmtlib/fmt>
 
-##### Bundled (no separate installation required)
+#### Bundled (no separate installation required)
 
 - **JSON Schema Validator for Modern C++** — <https://github.com/pboettch/json-schema-validator>
 - **INJA**: A Template Engine for Modern C++ — <https://github.com/pantor/inja>
 
-### Installation on Debian-Style Systems (x86-64, ARM)
+## Installation on Debian-Style Systems (x86-64, ARM)
 
-#### Install SNode.C
+### Install SNode.C
 
 Follow the SNode.C installation guide:  
 <https://github.com/SNodeC/snode.c?tab=readme-ov-file#installation>
 
-#### Install system packages
+### Install system packages
 
 ```sh
 sudo apt update
 sudo apt install libfmt-dev
-## Recommended for building:
-## sudo apt install git cmake build-essential ninja-build pkg-config
+# Recommended for building:
+# sudo apt install git cmake build-essential ninja-build pkg-config
 ```
 
-#### Build & Install MQTTSuite
+### Build & Install MQTTSuite
 
 ```sh
 mkdir mqttsuite
@@ -292,15 +298,15 @@ cd mqttsuite
 git clone --recurse-submodules https://github.com/SNodeC/mqttsuite.git
 mkdir build
 cd build
-cmake ../mqttsuite        ## optionally: -G Ninja -DCMAKE_BUILD_TYPE=Release
-make -j"$(nproc)"         ## or: ninja
-sudo make install         ## or: sudo ninja install
+cmake ../mqttsuite        # optionally: -G Ninja -DCMAKE_BUILD_TYPE=Release
+make -j"$(nproc)"         # or: ninja
+sudo make install         # or: sudo ninja install
 sudo ldconfig
 ```
 
 > Tip: Use all CPU threads (`-j$(nproc)`) to speed up the build—especially useful on SBCs.
 
-### Deployment on OpenWrt
+## Deployment on OpenWrt
 
 *Assumptions:* You have **SSH** and **SFTP** access to the router, and WAN connectivity is configured.
 
@@ -315,7 +321,7 @@ High-level steps:
 5. **Cross-compile MQTTSuite**
 6. **Deploy the resulting `.ipk` packages to the router**
 
-#### Choose & download an SDK
+### Choose & download an SDK
 
 Download an SDK (23.05.0-rc1 or later) from the OpenWrt download site and extract it to `<DIR>`.
 
@@ -339,7 +345,7 @@ For the example above:
 - `<libc>` = musl
 - `<abi>` = eabi
 
-#### Patch the SDK to integrate the SNode.C feed
+### Patch the SDK to integrate the SNode.C feed
 
 This feed contains also the definitions for compiling MQTTSuite.
 
@@ -348,15 +354,15 @@ cd <SDK_DIR>
 echo "src-git snodec https://github.com/SNodeC/OpenWRT" >> feeds.conf.default
 ```
 
-#### Install the MQTTSuite package definition and its dependencies
+### Install the MQTTSuite package definition and its dependencies
 
 ```sh
 cd <SDK_DIR>
-./scripts/feeds update base packages snodec    ## only these feeds are needed
+./scripts/feeds update base packages snodec    # only these feeds are needed
 ./scripts/feeds install mqttsuite
 ```
 
-#### Configure the SDK
+### Configure the SDK
 
 ```sh
 cd <SDK_DIR>
@@ -368,11 +374,11 @@ You can keep defaults. To customize SNode.C/MQTTSuite options:
 ```sh
 cd <SDK_DIR>
 make menuconfig
-## Navigate: Network -> SNode.C
-##       or: Network -> MQTTSuite
+# Navigate: Network -> SNode.C
+#       or: Network -> MQTTSuite
 ```
 
-#### Cross-compile MQTTSuite
+### Cross-compile MQTTSuite
 
 ```sh
 cd <SDK_DIR>
@@ -388,7 +394,7 @@ What happens:
 > After building, the `.ipk` packages for **MQTTSuite** and **SNode.C** are usually found under:  
 > `<SDK_DIR>/bin/packages/<architecture>/snodec/`
 
-#### Deploy MQTTSuite
+### Deploy MQTTSuite
 
 Copy and install the generated packages onto the router:
 
@@ -402,7 +408,7 @@ exit
 
 ssh root@<router-ip>
 cd /tmp
-opkg install snode.c*.ipk mqttsuite*.ipk   ## add --force-reinstall to overwrite same version
+opkg install snode.c*.ipk mqttsuite*.ipk   # add --force-reinstall to overwrite same version
 exit
 ```
 
@@ -411,20 +417,20 @@ exit
 During package installation, a new **UNIX group** (with member `root`) is created and used for managing config, log, and PID files.  
 **Note:** log out and log in again to activate the new group membership.
 
-### Post-Install Tips
+## Post-Install Tips
 
 - **Persist-once workflow:** All MQTTSuite applications support `--write-config` / `-w`. Start once with explicit flags, verify, then run with no flags.
 - **Use UNIX domain sockets** for same-host integrations; they reduce overhead and surface area.
 - **TLS everywhere off-host:** Use TLS (and client auth where appropriate) when crossing untrusted networks.
 - **Parallel builds:** Always use `-j$(nproc)` (or Ninja) to accelerate compiles.
 
-## MQTTBroker
+---
 
-### Overview & Configuration
+# MQTTBroker
 
 The *MQTTBroker* is the central broker of the **MQTTSuite** and supports multiple connection instances across several transport protocols. Additional transports (e.g., Bluetooth) can be added in the [`mqttbroker.cpp`](https://github.com/SNodeC/mqttsuite/blob/master/mqttbroker/mqttbroker.cpp) source code.
 
-#### Connection instances of default builds of *MQTTBroker*
+## Connection instances of default builds of *MQTTBroker*
 
 - `in-mqtt`: MQTT over IPv4
 - `in-mqtts`: MQTTS over IPv4
@@ -441,13 +447,13 @@ The *MQTTBroker* is the central broker of the **MQTTSuite** and supports multipl
 
 One can control which instances are built by enabling or disabling them through the available `cmake` options.
 
-#### Configuration
+## Configuration
 
 All aspects—such as port numbers, UNIX *sun* paths, and per-listener options—are configurable via the [SNode.C configuration system](https://github.com/SNodeC/snode.c?tab=readme-ov-file#configuration). You can set options in code, on the command line, or by using a configuration file.
 
 If encrypted access is required, [suitable certificates need to be provided](https://github.com/SNodeC/snode.c?tab=readme-ov-file#ssltls-configuration-section-tls).
 
-#### Notes
+## Notes
 
 - **Persistent sessions:** Configure a *session store* if you want client sessions to survive broker restarts by adding the command-line option  
   `--mqtt-session-store <path-to-session-store-file>`.
@@ -457,11 +463,11 @@ If encrypted access is required, [suitable certificates need to be provided](htt
   `--html-dir <dir-of-html-templates>`. The default directory `/var/www/mqttsuite/mqttbroker` is already configured in [`mqttbroker.cpp`](https://github.com/SNodeC/mqttsuite/blob/master/mqttbroker/mqttbroker.cpp).
 - **Persisting options:** All three options above can be made *persistent* by storing their values in a configuration file; append `--write-config` or `-w` to the command line.
 
-### Quick Start (Recommended Flow)
+## Quick Start (Recommended Flow)
 
 Per default all supported connection instances are enabled. Unused instances need to be disabled.
 
-#### Disable all but the `in-mqtt` instance
+### Disable all but the `in-mqtt` instance
 
 ```bash
 mqttbroker in-mqtts --disabled
@@ -478,7 +484,7 @@ mqttbroker in-mqtts --disabled
            -w
 ```
 
-#### Start a plain MQTT listener on TCP/IPv4
+### Start a plain MQTT listener on TCP/IPv4
 
 ```bash
 mqttbroker in-mqtt \
@@ -486,7 +492,7 @@ mqttbroker in-mqtt \
                      --port 1883
 ```
 
-#### Add a persistent session store (survives restarts)  
+### Add a persistent session store (survives restarts)  
 
 ```bash
 mqttbroker --mqtt-session-store /var/lib/mqttsuite/mqttbroker/session.store \
@@ -495,7 +501,7 @@ mqttbroker --mqtt-session-store /var/lib/mqttsuite/mqttbroker/session.store \
                      --port 1883
 ```
 
-#### Enable the Web Interface (HTTP)
+### Enable the Web Interface (HTTP)
 
 ```bash
 mqttbroker --mqtt-session-store /var/lib/mqttsuite/mqttbroker/session.store \
@@ -508,7 +514,7 @@ mqttbroker --mqtt-session-store /var/lib/mqttsuite/mqttbroker/session.store \
                      --port 8080
 ```
 
-#### Persist your configuration using `-w` (so you don’t repeat flags)  
+### Persist your configuration using `-w` (so you don’t repeat flags)  
 
 ```bash
 mqttbroker --mqtt-session-store /var/lib/mqttsuite/mqttbroker/session.store \
@@ -524,21 +530,21 @@ mqttbroker --mqtt-session-store /var/lib/mqttsuite/mqttbroker/session.store \
 
 From now on, a plain `mqttbroker` starts with the stored configuration.
 
-#### (Optional) Embed the integrator  (after the configuration has been saved)
+### (Optional) Embed the integrator  (after the configuration has been saved)
 
 ```bash
 mqttbroker --mqtt-mapping-file /etc/mqttsuite/mappings/mqtt-mapping.json
 ```
 
-#### (For development only) Use custom HTML templates for the Web UI (after the configuration has been saved)
+### (For development only) Use custom HTML templates for the Web UI (after the configuration has been saved)
 
 ```bash
 mqttbroker --html-dir /var/www/mqttsuite/mqttbroker
 ```
 
-### Connection Methods
+## Connection Methods
 
-#### MQTT over TCP/IP
+### MQTT over TCP/IP
 
 MQTT clients can connect via *IPv4* and *IPv6*, using both encrypted and unencrypted channels.
 
@@ -549,7 +555,7 @@ MQTT clients can connect via *IPv4* and *IPv6*, using both encrypted and unencry
 | **`in6-mqtt`**                                               | IPv6     | No         | `1883`     |
 | **`in6-mqtts`**                                              | IPv6     | Yes        | `8883`     |
 
-#### MQTT over UNIX Domain Sockets
+### MQTT over UNIX Domain Sockets
 
 For local (same-host) communication, the broker also supports UNIX domain sockets.
 
@@ -558,7 +564,7 @@ For local (same-host) communication, the broker also supports UNIX domain socket
 | **`un-mqtt`**                                                | No         | `/tmp/mqttbroker-un-mqtt`  |
 | **`un-mqtts`**                                               | Yes        | `/tmp/mqttbroker-un-mqtts` |
 
-#### MQTT over WebSockets
+### MQTT over WebSockets
 
 Clients can connect via WebSockets over both *IPv4* and *IPv6*.
 
@@ -569,7 +575,7 @@ Clients can connect via WebSockets over both *IPv4* and *IPv6*.
 | **`in6-http`**                                               | IPv6     | No         | `8080`     | `/` or `/ws`   | `mqtt`                 |
 | **`in6-https`**                                              | IPv6     | Yes        | `8088`     | `/` or `/ws`   | `mqtt`                 |
 
-#### MQTT over UNIX Domain WebSockets
+### MQTT over UNIX Domain WebSockets
 
 For local (same-host) communication, the broker also supports WebSockets over UNIX domain sockets.
 
@@ -578,9 +584,9 @@ For local (same-host) communication, the broker also supports WebSockets over UN
 | **`un-http`**                                                | No         | `/tmp/mqttbroker-un-http`  | `/` or `/ws`   | `mqtt`                 |
 | **`un-https`**                                               | Yes        | `/tmp/mqttbroker-un-https` | `/` or `/ws`   | `mqtt`                 |
 
-### Web Interface
+## Web Interface
 
-#### Web Interface over TCP/IP
+### Web Interface over TCP/IP
 
 The *MQTTBroker Web Interface* provides real-time visibility into active client connections.
 
@@ -591,7 +597,7 @@ The *MQTTBroker Web Interface* provides real-time visibility into active client 
 | **`in6-http`**                                               | IPv6     | No         | `8080`     | `/` or `/clients` |
 | **`in6-https`**                                              | IPv6     | Yes        | `8088`     | `/` or `/clients` |
 
-#### Web Interface over UNIX Domain Sockets
+### Web Interface over UNIX Domain Sockets
 
 For local (same-host) communication, the broker also supports WebSockets over UNIX domain sockets.
 
@@ -600,9 +606,9 @@ For local (same-host) communication, the broker also supports WebSockets over UN
 | **`un-http`**                                                | No         | `/tmp/mqttbroker-un-http`  | `/` or `/clients` |
 | **`un-https`**                                               | Yes        | `/tmp/mqttbroker-un-https` | `/` or `/client`  |
 
-### Additions & Field-Tested Guidance
+## Additions & Field-Tested Guidance
 
-#### Quick TLS checklist for MQTT(TCP) and MQTT over WebSockets
+### Quick TLS checklist for MQTT(TCP) and MQTT over WebSockets
 
 - Prepare the server certificate chain and private key; include a CA file/dir if you validate client certs or upstreams.
 - Apply via the **instance’s** `tls` section (e.g., `in-mqtts`, `in6-mqtts`, `in-https`, `in6-https`).
@@ -610,7 +616,7 @@ For local (same-host) communication, the broker also supports WebSockets over UN
 - Lock down key file permissions (e.g., `chmod 600` for the key, owned by the service user).
 - After a successful run, append `-w` to persist TLS configuration.
 
-##### Example (TCP/TLS):
+#### Example (TCP/TLS):
 
 ```bash
 mqttbroker in-mqtts \
@@ -621,7 +627,7 @@ mqttbroker in-mqtts \
                    --ca-cert /etc/ssl/mqttsuite/ca.crt
 ```
 
-##### Example (WebSockets/TLS):
+#### Example (WebSockets/TLS):
 
 ```bash
 mqttbroker in-https \
@@ -631,7 +637,7 @@ mqttbroker in-https \
                    --cert-key /etc/ssl/mqttsuite/server.key
 ```
 
-#### Making configuration persistent (recommended)
+### Making configuration persistent (recommended)
 
 - Start the broker with your desired CLI options; verify behavior.
 - Run **once** with `-w` (or `--write-config`) to save the configuration.
@@ -643,53 +649,53 @@ Commonly persisted options:
 - `--mqtt-mapping-file <path.json>` — enable the embedded integrator.
 - `--html-dir <path>` — point the Web UI to your HTML templates.
 
-#### WebSockets specifics that often trip clients
+### WebSockets specifics that often trip clients
 
 - **Subprotocol:** ensure clients send `Sec-WebSocket-Protocol: mqtt`. Most libraries expose this as a “subprotocol” option.
 - **Request target:** use `/` or `/ws` (both are accepted by the WS and WSS instances).
 - **Reverse proxies:** preserve `Upgrade`, `Connection`, and `Sec-WebSocket-Protocol` headers through the proxy.
 
-#### Quick sanity checks with common tools
+### Quick sanity checks with common tools
 
 ``````bash
-## Plain MQTT over TCP
+# Plain MQTT over TCP
 mosquitto_sub -h 127.0.0.1 -p 1883 -t '#' -v
 mosquitto_pub -h 127.0.0.1 -p 1883 -t 'test/topic' -m 'hello'
 
-## MQTT over WebSockets (HTTP)
+# MQTT over WebSockets (HTTP)
 mosquitto_sub -h 127.0.0.1 -p 8080 -t '#' -v --protocol websockets
 ``````
 
-#### Quick sanity checks with MQTTSuites command line tool
+### Quick sanity checks with MQTTSuites command line tool
 
 ```bash
-## Subscribe (plain MQTT)
+# Subscribe (plain MQTT)
 mqttcli in-mqtt \
             remote --host 127.0.0.1 \
                    --port 1883 \
             sub --topic '#'
 
-## Publish (plain MQTT)
+# Publish (plain MQTT)
 mqttcli in-mqtt \
             remote --host 127.0.0.1 \
                    --port 1883 \
             pub --topic 'test/topic' \
                 --message 'hello'
 
-## MQTT over WebSockets (HTTP)
+# MQTT over WebSockets (HTTP)
 mqttcli in-wsmqtt \
             remote --host 127.0.0.1 \
                    --port 8080 \
             pub --topic 'test/topic' \
                 --message 'hello'
 
-## MQTT over Unix Domain Sockets
+# MQTT over Unix Domain Sockets
 mqttcli un-mqtt \
             remote --sun-path /tmp/mqttbroker-un-mqtt \
             pub --topic 'test/topic' \
                 --message 'hello'
 
-## Subscribe and publish at once
+# Subscribe and publish at once
 mqttcli in-mqtt \
             remote --host 127.0.0.1 \
                    --port 1883 \
@@ -698,13 +704,13 @@ mqttcli in-mqtt \
                 --message 'hello'
 ```
 
-#### Notes for UNIX domain sockets
+### Notes for UNIX domain sockets
 
 - Use the UNIX sockets (`/tmp/mqttbroker-un-mqtt*`) for same-host services; they offer low overhead and simple isolation.
 - Place sockets under `/run` or `/var/run` for service-managed lifecycles.
 - Ensure appropriate **ownership/group** (e.g., a dedicated `mqttsuite` group) and **permissions**, so clients can connect without elevating privileges.
 
-#### Embedded MQTTIntegrator (when `--mqtt-mapping-file` is provided)
+### Embedded MQTTIntegrator (when `--mqtt-mapping-file` is provided)
 
 - The broker can embed the **MQTTIntegrator** to transform/normalize payloads and remap topics without touching devices.
 - Typical uses:
@@ -714,12 +720,12 @@ mqttcli in-mqtt \
 
 > Keep your mapping JSON in version control and validate changes in staging before production.
 
-#### Extending transports
+### Extending transports
 
 - Thanks to SNode.C’s layered network design, adding transports (e.g., Bluetooth RFCOMM/L2CAP) follows the same **instance** pattern as TCP/IPv6/UNIX.
 - Define endpoint parameters (address/port, channel, or path), optionally layer TLS (where applicable), and expose configuration via the broker’s CLI/config.
 
-#### Diagnostics, hardening & tips
+### Diagnostics, hardening & tips
 
 **Diagnostics**
 
@@ -739,21 +745,23 @@ mqttcli in-mqtt \
 - **Missing subprotocol on WS:** negotiation fails without `mqtt` subprotocol.
 - **Permission denied on UNIX sockets:** fix group membership and file mode.
 
-### Protocol version note
+## Protocol version note
 
 - The broker implements **MQTT 3.1.1**. Configure client libraries accordingly unless you intentionally diverge.
 
-### Why this layout works well in production
+## Why this layout works well in production
 
 - **Uniform instances:** Every listener (TCPv4/v6, UNIX, WS) is an *instance* with consistent options (listen address/port or path, TLS, limits). This keeps deployments predictable.
 - **Predictable defaults:** Conventional ports (`1883/8883`, `8080/8088`) and request targets (`/` or `/ws`) make client configuration straightforward.
 - **Persist-once workflow:** Use `-w` once, then keep day-to-day ops minimal and repeatable.
 
-## MQTT Mapping Description
+---
+
+# MQTT Mapping Description
 
 As optional for the MQTTBroker a MQTT mapping description is mandatory for the MQTTIntegrator.
 
-### Purpose
+## Purpose
 
 An IoT app’s logic in **MQTTSuite** is expressed as a **JSON mapping file**.  
 This file tells the **MQTTIntegrator** or **MQTTBroker** how to:
@@ -762,10 +770,10 @@ This file tells the **MQTTIntegrator** or **MQTTBroker** how to:
 2) translate (remap) the topics and payloads, and  
 3) publish the translated messages back to the same broker connection.
 
-A complete example lives in the [Canonical Mapping & Test Case](##canonical-mapping-&-test-case) section of the [MQTTIntegrator](#MQTTIntegrator) description.
+A complete example lives in the [Canonical Mapping & Test Case](#canonical-mapping-&-test-case) section of the [MQTTIntegrator](#MQTTIntegrator) description.
 The file must validate against the schema at [`lib/mapping-schema.json`](https://github.com/SNodeC/mqttsuite/blob/master/lib/mapping-schema.json).
 
-### Top-Level Structure
+## Top-Level Structure
 
 A mapping description has three top-level objects:
 
@@ -793,7 +801,7 @@ A mapping description has three top-level objects:
 }
 ```
 
-#### `connection` options (summary)
+### `connection` options (summary)
 
 | Field           | Type    | Default | Notes                                     |
 | --------------- | ------- | ------- | ----------------------------------------- |
@@ -809,7 +817,7 @@ A mapping description has three top-level objects:
 
 > The integrator uses these as **client** settings to connect to the broker it will subscribe to and republish on.
 
-#### The `mapping` Object (big picture)
+### The `mapping` Object (big picture)
 
 `mapping` defines a **topic hierarchy** and **subscriptions** with translation rules.
 
@@ -821,7 +829,7 @@ A mapping description has three top-level objects:
   - `+` → single-level wildcard  
   - `#` → multi-level wildcard (typically used as a **leaf**)
 
-##### Minimal shapes
+#### Minimal shapes
 
 **Single topic level**
 
@@ -860,7 +868,7 @@ A mapping description has three top-level objects:
 }
 ```
 
-##### Wildcard examples
+#### Wildcard examples
 
 **Single-level wildcard (`+`)**: subscribe to `home/+/temperature`
 
@@ -895,7 +903,7 @@ A mapping description has three top-level objects:
 
 > The integrator performs correct wildcard matching when subscribing and dispatching to the defined `subscription`.
 
-##### A more complex hierarchy
+#### A more complex hierarchy
 
 ![A complex topic_level structure](docs/images/mqtt-topics.png)
 
@@ -930,7 +938,7 @@ A mapping description has three top-level objects:
 }
 ```
 
-### Subscriptions & Translation Rules
+## Subscriptions & Translation Rules
 
 A `topic_level` can contain a `subscription` object.  
 This instructs the integrator to **subscribe** to that concrete topic (using the topic path implied by the nested `name`s) and **map** incoming messages to new topics/payloads.
@@ -959,17 +967,17 @@ This instructs the integrator to **subscribe** to that concrete topic (using the
 
 > Each mapping section also accepts **arrays** (`[ … ]`) to apply multiple mappings for the same subscription.
 
-### Mapping Sections
+## Mapping Sections
 
 All mapping sections share **commons**:
 
 - `mapped_topic` *(string, required)* — destination topic.  
-  May be a **template** (supports `{{ ... }}`, `{{## ...}} … {{/ ...}}`) or a plain topic string (no `+` / `#`).
+  May be a **template** (supports `{{ ... }}`, `{{# ...}} … {{/ ...}}`) or a plain topic string (no `+` / `#`).
 - `retain` *(boolean, default `false`)* — set MQTT retain on publishes.
 - `qos` *(integer `0…2`, default `0`)* — **PUBLISH QoS** for the mapped message.  
   *(Independent of `subscription.qos`.)*
 
-#### `static` mapping
+### `static` mapping
 
 Exact string-to-string payload conversion.
 
@@ -985,7 +993,7 @@ Exact string-to-string payload conversion.
 }
 ```
 
-#### `value` mapping (template, scalar)
+### `value` mapping (template, scalar)
 
 Treat the incoming payload as a **scalar** bound to the template variable `message`.
 
@@ -998,7 +1006,7 @@ Treat the incoming payload as a **scalar** bound to the template variable `messa
 }
 ```
 
-#### `json` mapping (template, object)
+### `json` mapping (template, object)
 
 Treat the incoming payload as a **JSON object**, available as `message` inside the template.
 
@@ -1011,15 +1019,15 @@ Treat the incoming payload as a **JSON object**, available as `message` inside t
 }
 ```
 
-##### Example input
+#### Example input
 
 ```json
 { "time": { "start": 5, "end": 10 } }
 ```
 
-##### Rendered output → `5 to 11pm`
+#### Rendered output → `5 to 11pm`
 
-#### Template extras
+### Template extras
 
 - For template mappings (`value` / `json`), an optional field is available:
 
@@ -1029,7 +1037,7 @@ Treat the incoming payload as a **JSON object**, available as `message` inside t
 
   Use this list for implementation-specific template controls. If unused, keep it empty (`[]`).
 
-### Optional: `plugins`
+## Optional: `plugins`
 
 Inside `mapping`, you may provide an optional `plugins` array:
 
@@ -1043,9 +1051,9 @@ Inside `mapping`, you may provide an optional `plugins` array:
 This is a list of plugin identifiers that the integrator may use to extend mapping behavior.  
 (Behavior is implementation-specific; leave empty if not needed.)
 
-### Quick Start (Recommended Flow)
+## Quick Start (Recommended Flow)
 
-#### Skeleton mapping file
+### Skeleton mapping file
 
    ```json
    {
@@ -1062,7 +1070,7 @@ This is a list of plugin identifiers that the integrator may use to extend mappi
    }
    ```
 
-#### Add a concrete subscription with a simple static mapping
+### Add a concrete subscription with a simple static mapping
 
 ```json
 {
@@ -1088,7 +1096,7 @@ This is a list of plugin identifiers that the integrator may use to extend mappi
 }
 ```
 
-#### Switch to a template mapping when you need logic
+### Switch to a template mapping when you need logic
 
 ```json
 "subscription": {
@@ -1101,19 +1109,19 @@ This is a list of plugin identifiers that the integrator may use to extend mappi
 }
 ```
 
-#### Validate against the schema (example with `ajv-cli`)
+### Validate against the schema (example with `ajv-cli`)
 
 ```bash
 ajv validate -s lib/mapping-schema.json -d your-mapping.json
 ```
 
-#### Run the integrator with your mapping
+### Run the integrator with your mapping
 
 ```bash
 mqttintegrator --mqtt-mapping-file your-mapping.json
 ```
 
-### Field-Tested Guidance
+## Field-Tested Guidance
 
 - **Use wildcards deliberately.** `+` is perfect for “same depth, many devices”; `#` is best at a **leaf** to catch everything below a prefix.
 - **Start simple.** Verify flow with a `static` mapping; then move to `value`/`json` templates.
@@ -1123,7 +1131,7 @@ mqttintegrator --mqtt-mapping-file your-mapping.json
 - **Validate early.** Keep the schema in CI; reject invalid mappings before deployment.
 - **Version control.** Store mapping files with your app; review changes and test on staging.
 
-### Schema Highlights
+## Schema Highlights
 
 - **Root**: `mapping` is **required**.
 - **`mapping.topic_level`**: a single object **or** an array of them.  
@@ -1133,19 +1141,19 @@ mqttintegrator --mqtt-mapping-file your-mapping.json
 - **Mapping sections**: require either or an array of `static`, `value`, or `json` (each may be an array).
 - **`mapped_topic`**: non-empty; either a plain topic (no `+/#`) **or** a template expression.
 
-### In one sentence
+## In one sentence
 
 **Model the topic tree (literals and `+`/`#`) → choose subscription points (with subscribe QoS) → translate via `static` / `value` / `json` (with publish QoS) → validate with the schema → run the integrator.**
 
-## MQTTIntegrator
+---
 
-### Overview & Configuration
+# MQTTIntegrator
 
-The *MQTTIntegrator* is the lightweight transformation engine of the **MQTTSuite**. It subscribes to topics on an MQTT broker, **translates** topics/payloads using the **mapping description** (presented earlier), and **publishes the translated messages back to the same broker connection**. It is **not** a multi-broker bridge; there are no `src-*` / `dst-*` pairs.
+The *MQTTIntegrator* is the lightweight transformation engine of the **MQTTSuite**. It subscribes to topics on an MQTT broker, **translates** topics/payloads using the **mapping description** (presented earlier), and **publishes the translated messages back to the same broker connection**.
 
 Additional transports can be added in the source: [`mqttintegrator.cpp`](https://github.com/SNodeC/mqttsuite/blob/master/mqttintegrator/mqttintegrator.cpp).
 
-#### Connection instances of default builds of *MQTTIntegrator*
+## Connection instances of default builds of *MQTTIntegrator*
 
 - `in-mqtt`: MQTT over IPv4 (client to remote `1883`)
 - `in-mqtts`: MQTTS over IPv4 (client to remote `8883`)
@@ -1162,13 +1170,13 @@ Additional transports can be added in the source: [`mqttintegrator.cpp`](https:/
 
 One can control which instances are built by enabling or disabling them through the available `cmake` options.
 
-#### Configuration
+## Configuration
 
 All aspects—such as **remote** host/port, UNIX *sun* paths, WebSocket request targets, and per-connection options—are configurable via the [SNode.C configuration system](https://github.com/SNodeC/snode.c?tab=readme-ov-file#configuration). You can set options in code, on the command line, or via a configuration file.
 
 If encrypted access to the broker is required, [suitable certificates need to be provided](https://github.com/SNodeC/snode.c?tab=readme-ov-file#ssltls-configuration-section-tls) for the **client** connection.
 
-#### Notes
+## Notes
 
 - **Persistent sessions:** Configure a *session store* if you want the client session to survive restarts:  
   `--mqtt-session-store <path-to-session-store-file>`.
@@ -1177,11 +1185,11 @@ If encrypted access to the broker is required, [suitable certificates need to be
 - **Active instances by default:** After installation, all connection instances are enabled. Disable unused ones explicitly with `--disabled` on those instances.
 - **Persisting options:** Use `--write-config` or `-w` once to store current options in the configuration file.
 
-### Quick Start (Recommended Flow)
+## Quick Start (Recommended Flow)
 
 Per default, all supported connection instances are **enabled**. Disable what you don’t use and keep a single, clear path to your broker.
 
-#### Disable all but the `in-mqtt` instance
+### Disable all but the `in-mqtt` instance
 
    ```bash
    mqttintegrator in-mqtts --disabled
@@ -1197,7 +1205,7 @@ Per default, all supported connection instances are **enabled**. Disable what yo
                   un-wsmqtts --disabled
    ```
 
-#### Connect to a plain MQTT broker over TCP/IPv4
+### Connect to a plain MQTT broker over TCP/IPv4
 
    ```bash
    mqttintegrator in-mqtt \
@@ -1205,7 +1213,7 @@ Per default, all supported connection instances are **enabled**. Disable what yo
                              --port 1883
    ```
 
-#### Add a persistent session store (survives restarts)
+### Add a persistent session store (survives restarts)
 
    ```bash
    mqttintegrator --mqtt-session-store /var/lib/mqttsuite/mqttintegrator/session.store \
@@ -1214,7 +1222,7 @@ Per default, all supported connection instances are **enabled**. Disable what yo
                              --port 1883
    ```
 
-#### Attach your mapping file (canonical test case below)
+### Attach your mapping file (canonical test case below)
 
    ```bash
    mqttintegrator --mqtt-session-store /var/lib/mqttsuite/mqttintegrator/session.store \
@@ -1224,7 +1232,7 @@ Per default, all supported connection instances are **enabled**. Disable what yo
                              --port 1883
    ```
 
-#### Persist your configuration using `-w`
+### Persist your configuration using `-w`
 
    ```bash
    mqttintegrator --mqtt-session-store /var/lib/mqttsuite/mqttintegrator/session.store \
@@ -1237,7 +1245,7 @@ Per default, all supported connection instances are **enabled**. Disable what yo
 
    From now on, a plain `mqttintegrator` starts with the stored configuration.
 
-#### (Optional) Use TLS (MQTTS) instead of plain TCP
+### (Optional) Use TLS (MQTTS) instead of plain TCP
 
    ```bash
    mqttintegrator in-mqtts --disabled=false \
@@ -1248,7 +1256,7 @@ Per default, all supported connection instances are **enabled**. Disable what yo
                           --ca-cert /etc/ssl/mqttsuite/ca.crt
    ```
 
-#### (Optional) Use WebSockets (WSS)
+### (Optional) Use WebSockets (WSS)
 
    ```bash
    mqttintegrator in-wsmqtts --disabled=false \
@@ -1257,7 +1265,7 @@ Per default, all supported connection instances are **enabled**. Disable what yo
                       tls --ca-cert /etc/ssl/mqttsuite/ca.crt
    ```
 
-#### (Optional) Use Unix Domain WebSockets
+### (Optional) Use Unix Domain WebSockets
 
    ```bash
    mqttintegrator un-wsmqtt --disabled=false \
@@ -1268,12 +1276,12 @@ Per default, all supported connection instances are **enabled**. Disable what yo
                       tls --ca-cert /etc/ssl/mqttsuite/ca.crt
    ```
 
-### Connection Methods
+## Connection Methods
 
 The *MQTTIntegrator* uses a **client** connection to a single broker. All tables show **remote** endpoints (not local listeners).  
 Disable unused instances with `--disabled`.
 
-#### MQTT over TCP/IP
+### MQTT over TCP/IP
 
 | [Instance](https://github.com/SNodeC/snode.c?tab=readme-ov-file#instance-configuration) | Protocol | Encryption | Remote Port |
 | ------------------------------------------------------------ | -------- | ---------- | ----------- |
@@ -1282,14 +1290,14 @@ Disable unused instances with `--disabled`.
 | **`in6-mqtt`**                                               | IPv6     | No         | `1883`      |
 | **`in6-mqtts`**                                              | IPv6     | Yes        | `8883`      |
 
-#### MQTT over UNIX Domain Sockets
+### MQTT over UNIX Domain Sockets
 
 | [Instance](https://github.com/SNodeC/snode.c?tab=readme-ov-file#instance-configuration) | Encryption | Remote Sun Path            |
 | ------------------------------------------------------------ | ---------- | -------------------------- |
 | **`un-mqtt`**                                                | No         | `/tmp/mqttbroker-un-mqtt`  |
 | **`un-mqtts`**                                               | Yes        | `/tmp/mqttbroker-un-mqtts` |
 
-#### MQTT over WebSockets
+### MQTT over WebSockets
 
 | [Instance](https://github.com/SNodeC/snode.c?tab=readme-ov-file#instance-configuration) | Protocol | Encryption | Remote Port | Request Target | Sec-WebSocket-Protocol |
 | ------------------------------------------------------------ | -------- | ---------- | ----------- | -------------- | ---------------------- |
@@ -1298,19 +1306,19 @@ Disable unused instances with `--disabled`.
 | **`in6-wsmqtt`**                                             | IPv6     | No         | `8080`      | `/ws`          | `mqtt`                 |
 | **`in6-wsmqtts`**                                            | IPv6     | Yes        | `8088`      | `/ws`          | `mqtt`                 |
 
-#### MQTT over UNIX Domain WebSockets
+### MQTT over UNIX Domain WebSockets
 
 | [Instance](https://github.com/SNodeC/snode.c?tab=readme-ov-file#instance-configuration) | Encryption | Remote Sun Path            | Request Target | Sec-WebSocket-Protocol |
 | ------------------------------------------------------------ | ---------- | -------------------------- | -------------- | ---------------------- |
 | **`un-wsmqtt`**                                              | No         | `/tmp/mqttbroker-un-http`  | `/ws`          | `mqtt`                 |
 | **`un-wsmqtts`**                                             | Yes        | `/tmp/mqttbroker-un-https` | `/ws`          | `mqtt`                 |
 
-#### Notes
+### Notes
 
 - For all WS/WSS/UDS-WS instances, the integrator uses `Sec-WebSocket-Protocol: mqtt` and the request target `/ws`.
 - All instances above are enabled by default after installation; deactivate any unneeded instance with `--disabled`.
 
-### Canonical Mapping & Test Case
+## Canonical Mapping & Test Case
 
 This minimal, **schema-valid** mapping subscribes to `kitchen/thermostat/1` and publishes to **`kitchen/heating/1/set`**:
 
@@ -1318,7 +1326,7 @@ This minimal, **schema-valid** mapping subscribes to `kitchen/thermostat/1` and 
 - `"off"` if `temp > 23.0`
 - **no publish** in the 21.0–23.0 deadband
 
-#### Save as `~/mapping-example.json`:
+### Save as `~/mapping-example.json`:
 
 ```json
 {
@@ -1359,7 +1367,7 @@ This minimal, **schema-valid** mapping subscribes to `kitchen/thermostat/1` and 
 }
 ```
 
-#### Run the integrator for this mapping (in-mqtt):
+### Run the integrator for this mapping (in-mqtt):
 
 ```bash
 mqttintegrator --mqtt-session-store ~/session.store \
@@ -1369,7 +1377,7 @@ mqttintegrator --mqtt-session-store ~/session.store \
                           --port 1883
 ```
 
-#### Persist once:
+### Persist once:
 
 ```bash
 mqttintegrator --mqtt-session-store ~/session.store \
@@ -1380,36 +1388,36 @@ mqttintegrator --mqtt-session-store ~/session.store \
                -w
 ```
 
-#### Then just run
+### Then just run
 
 ```bash
 mqttintegrator
 ```
 
-#### Verification
+### Verification
 
 ```bash
-## Observe mapped results
+# Observe mapped results
 mqttcli in-mqtt
             remote --host 127.0.0.1 \
                    --port 1883 \
             sub --topic 'kitchen/heating/1/set'
             
 
-## 20.9 → "on"
+# 20.9 → "on"
 mqttcli in-mqtt
             remote --host 127.0.0.1 \
                    --port 1883 \
             pub --topic 'kitchen/thermostat/1'
                 --message '{"temp":20.9}'
                 
-## 23.5 → "off"mqttcli in-mqtt
+# 23.5 → "off"mqttcli in-mqtt
             remote --host 127.0.0.1 \
                    --port 1883 \
             pub --topic 'kitchen/thermostat/1'
                 --message '{"temp":23.5}'
                 
-## 22.7 → deadband → no publish
+# 22.7 → deadband → no publish
 mqttcli in-mqtt
             remote --host 127.0.0.1 \
                    --port 1883 \
@@ -1419,7 +1427,7 @@ mqttcli in-mqtt
 
 **QoS roles:** `subscription.qos` controls the **subscribe** QoS. The `json.qos` inside the mapping controls the **publish** QoS for the mapped message.
 
-### Behavior aligned with the Mapping Description
+## Behavior aligned with the Mapping Description
 
 - The **mapping file** defines where the integrator places **subscriptions** in the topic tree (including support for `+` and `#` in `topic_level.name`). The integrator performs correct wildcard matching when subscribing and dispatching.
 - `subscription.qos` specifies the QoS used to subscribe at the broker; it does not control publish QoS.
@@ -1427,16 +1435,16 @@ mqttcli in-mqtt
 - Arrays are allowed (`static` / `value` / `json`), enabling **fan-out** (multiple publishes per inbound message).
 - The integrator **republishes** transformed messages **back to the same broker connection** from which they were received.
 
-### Additions & Field-Tested Guidance
+## Additions & Field-Tested Guidance
 
-#### TLS checklist for client connections (MQTTS / WSS / UDS-WSS)
+### TLS checklist for client connections (MQTTS / WSS / UDS-WSS)
 
 - Provide **client certificate & key** if your broker enforces mutual TLS; otherwise a CA bundle is often sufficient.
 - Ensure the broker hostname you connect to is covered by the server certificate’s **CN/SAN** (for TCP/WSS).
 - Lock down permissions on key files (e.g., `chmod 600`, owned by the service user).
 - Configure TLS under the chosen instance’s `tls` subsection.
 
-##### Example (TCP/TLS) with mutual TLS:
+#### Example (TCP/TLS) with mutual TLS:
 
 ```bash
 mqttintegrator in-mqtts \
@@ -1448,7 +1456,7 @@ mqttintegrator in-mqtts \
                       --cert-key-password 'some-password'
 ```
 
-##### Example (WebSockets/TLS):
+#### Example (WebSockets/TLS):
 
 ```bash
 mqttintegrator in-wsmqtts \
@@ -1457,14 +1465,14 @@ mqttintegrator in-wsmqtts \
                   tls --ca-cert /etc/ssl/mqttsuite/ca.crt
 ```
 
-##### Example (Unix Domain WebSockets, TLS layered on the WS endpoint):
+#### Example (Unix Domain WebSockets, TLS layered on the WS endpoint):
 
 ```bash
 mqttintegrator un-wsmqtts \
                   remote --sun-path /tmp/mqttbroker-un-https
 ```
 
-#### Persist-once workflow (recommended)
+### Persist-once workflow (recommended)
 
 - Start with explicit CLI flags; verify connectivity and message flow.
 - Run **once** with `-w` (or `--write-config`) to save the configuration.
@@ -1475,14 +1483,14 @@ Commonly persisted options:
 - `--mqtt-session-store <path>` — keep client session state across restarts.
 - `--mqtt-mapping-file <path.json>` — apply your transformation/normalization rules.
 
-#### WebSockets specifics that often trip clients
+### WebSockets specifics that often trip clients
 
 - **Subprotocol:** the integrator sets `Sec-WebSocket-Protocol: mqtt`. Ensure the broker accepts it.
 - **Request target:** use `/ws` (do not change unless your broker explicitly uses a different target).
 - **Through proxies:** `Upgrade`, `Connection`, and `Sec-WebSocket-Protocol` must pass through unchanged.
 - **UDS-WS:** ensure the **sun path** matches the broker’s WS UDS listener (e.g., `/tmp/mqttbroker-un-http` or `/tmp/mqttbroker-un-https`) and that file permissions allow access.
 
-#### Diagnostics, hardening & common pitfalls
+### Diagnostics, hardening & common pitfalls
 
 **Diagnostics**
 
@@ -1502,19 +1510,19 @@ Commonly persisted options:
 - **Wrong broker path:** mismatched WS target or socket path leads to silent failures.
 - **Mapping file path typos:** the integrator starts but no transforms occur—double-check the filename.
 
-### Protocol version note
+## Protocol version note
 
 - The integrator speaks **MQTT 3.1.1** as a client. Configure your broker accordingly.
 
-### Why this layout works well in production
+## Why this layout works well in production
 
 - **Single-broker focus:** clear operational model—subscribe, transform, and republish on the same connection.
 - **Uniform instance model:** TCPv4/v6, UNIX sockets, Unix Domain WebSockets, and IP WebSockets share a consistent configuration surface.
 - **Persist-once simplicity:** Use `-w` once; day-to-day runs are minimal and repeatable.
 
-## MQTTBridge
+---
 
-### Overview & Configuration
+# MQTTBridge
 
 The **MQTTBridge** is a **pure client-side bridge** in the **MQTTSuite**. It creates one or more **logical bridges**, where each bridge connects to **two or more MQTT brokers** and **relays topics** among them. Forwarding is governed by a single JSON file, **`bridge-config.json`**. The bridge does **not** expose listeners; every connection is an **outbound client** connection to a remote broker.
 
@@ -1529,9 +1537,9 @@ Like the other MQTTSuite apps, the bridge supports the same transport families (
 - **Session stores:** Optional per-broker on-disk session stores to resume state across restarts.
 - **Protocol:** MQTT **3.1.1** client behavior.
 
-### Quick Start (Recommended Flow)
+## Quick Start (Recommended Flow)
 
-#### Create a minimal `bridge-config.json`
+### Create a minimal `bridge-config.json`
 
 Two brokers, bidirectional, loop prevention on:
 
@@ -1557,7 +1565,7 @@ Two brokers, bidirectional, loop prevention on:
             "loop_prevention": true
           },
           "topics": [
-            { "topic": "##", "qos": 0 }
+            { "topic": "#", "qos": 0 }
           ]
         },
         {
@@ -1575,7 +1583,7 @@ Two brokers, bidirectional, loop prevention on:
             "loop_prevention": true
           },
           "topics": [
-            { "topic": "##", "qos": 0 }
+            { "topic": "#", "qos": 0 }
           ]
         }
       ]
@@ -1584,30 +1592,30 @@ Two brokers, bidirectional, loop prevention on:
 }
 ```
 
-#### Run the bridge:
+### Run the bridge:
 
 ```bash
 mqttbridge bridge --definition /etc/mqttsuite/bridge-config.json
 ```
 
-#### Verify (example):
+### Verify (example):
 
 ```bash
-## Publish on 'local' broker → should appear on 'edge' with prefixing
+# Publish on 'local' broker → should appear on 'edge' with prefixing
 mqttcli in-wsmqtt remote --host 127.0.0.1 --port 8080 \
   pub --topic 'sensors/temp' --message '21.5'
 
-## Subscribe on edge:
-mosquitto_sub -h edge.example.net -p 1883 -t 'bridge/local/##' -v
+# Subscribe on edge:
+mosquitto_sub -h edge.example.net -p 1883 -t 'bridge/local/#' -v
 ```
 
 > **Persist-once workflow:** Like other MQTTSuite apps, you can persist CLI runtime options with `-w`. The **bridge topology** itself lives in `bridge-config.json`, so you typically run `mqttbridge --bridge-config-file …` thereafter.
 
-### Bridge Configuration JSON
+## Bridge Configuration JSON
 
 This section shows the **overall file structure** first, then elaborates on **each element**. Unknown keys are **rejected** (`additionalProperties: false` throughout the schema).
 
-#### Overall Structure (at a glance)
+### Overall Structure (at a glance)
 
 ```json
 {
@@ -1648,8 +1656,8 @@ This section shows the **overall file structure** first, then elaborates on **ea
           },
 
           "prefix": "local/",        // optional (string, default "")
-          "topics": [                // optional (≥ 1), default: [{ "topic":"##", "qos":0 }]
-            { "topic": "##", "qos": 0 }
+          "topics": [                // optional (≥ 1), default: [{ "topic":"#", "qos":0 }]
+            { "topic": "#", "qos": 0 }
           ]
         }
 
@@ -1671,15 +1679,15 @@ Within each configured bridge, the MQTTBridge establishes connections to all con
 
 Looping is mitigated with `mqtt.loop_prevention: true` (per broker) plus sensible prefixing.
 
-#### Elements in Detail
+### Elements in Detail
 
-##### Root Object
+#### Root Object
 
 | Field     | Type  | Required | Default | Notes                                                        |
 | --------- | ----- | -------: | ------: | ------------------------------------------------------------ |
 | `bridges` | array |        ✅ |       — | Must contain **≥ 1** `bridge` objects. Unknown keys rejected. |
 
-##### `bridge` (each item in `bridges`)
+#### `bridge` (each item in `bridges`)
 
 | Field      | Type    | Required | Default | Notes                                                       |
 | ---------- | ------- | -------: | ------: | ----------------------------------------------------------- |
@@ -1688,7 +1696,7 @@ Looping is mitigated with `mqtt.loop_prevention: true` (per broker) plus sensibl
 | `prefix`   | string  |        ✖ |    `""` | Optional **bridge-wide** prefix added before forwarding.    |
 | `brokers`  | array   |        ✅ |       — | **≥ 1** broker definitions that participate in this bridge. |
 
-##### `broker` (each item in `brokers`)
+#### `broker` (each item in `brokers`)
 
 | Field           | Type    | Required |                       Default | Notes                                                        |
 | --------------- | ------- | -------: | ----------------------------: | ------------------------------------------------------------ |
@@ -1697,12 +1705,12 @@ Looping is mitigated with `mqtt.loop_prevention: true` (per broker) plus sensibl
 | `network`       | object  |        ✅ |                             — | **Transport selection** and concrete address (see **`network`** below). |
 | `mqtt`          | object  |        ✖ |                      defaults | MQTT client opts (credentials, last will, **loop prevention**). |
 | `prefix`        | string  |        ✖ |                          `""` | Optional **source-broker** prefix added when forwarding **from this broker** to others. |
-| `topics`        | array   |        ✖ | `[{ "topic":"##", "qos":0 }]` | Subscription filters **towards this broker** (SUBSCRIBE QoS per item). Must be ≥1 if present. |
+| `topics`        | array   |        ✖ | `[{ "topic":"#", "qos":0 }]` | Subscription filters **towards this broker** (SUBSCRIBE QoS per item). Must be ≥1 if present. |
 
 > **Subscribe QoS** is taken from `topics[].qos` toward the *source* broker.  
 > **Publish QoS** used when forwarding is chosen by the bridge’s policy; align deployment for consistency (QoS 0/1 are common).
 
-##### `mqtt` (client options)
+#### `mqtt` (client options)
 
 | Field             | Type    | Required | Default | Constraints / Notes                                        |
 | ----------------- | ------- | -------: | ------: | ---------------------------------------------------------- |
@@ -1717,18 +1725,18 @@ Looping is mitigated with `mqtt.loop_prevention: true` (per broker) plus sensibl
 | `password`        | string  |        ✖ |    `""` | Broker auth (if required).                                 |
 | `loop_prevention` | boolean |        ✖ | `false` | Enable to mitigate echo loops. Combine with origin prefix. |
 
-##### `topics` (subscriptions for a broker)
+#### `topics` (subscriptions for a broker)
 
 Each item is a `topic` object:
 
 | Field   | Type    | Required | Default | Constraints / Notes                   |
 | ------- | ------- | -------: | ------: | ------------------------------------- |
-| `topic` | string  |        ✅ |  `"##"` | MQTT filter (`##`, `+` allowed).      |
+| `topic` | string  |        ✅ |  `"#"` | MQTT filter (`#`, `+` allowed).      |
 | `qos`   | integer |        ✖ |     `0` | One of `0`, `1`, `2` (SUBSCRIBE QoS). |
 
 > These control which inbound topics are **accepted from this broker**. Matching messages are forwarded to other brokers.
 
-##### `network` (transport selection + addressing)
+#### `network` (transport selection + addressing)
 
 | Field           | Type   |             Required | Values / Example                               | Notes                              |
 | --------------- | ------ | -------------------: | ---------------------------------------------- | ---------------------------------- |
@@ -1753,13 +1761,13 @@ Exactly **one** address object (`in`/`in6`/`un`/`rc`/`l2`) must be present, cons
 - `rc`: Bluetooth MAC (`^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$`), `channel` ∈ `[1,30]`.
 - `l2`: Bluetooth MAC as above, `psm` ∈ `[1,65535]`.
 
-### Best Practices & Validation Tips
+## Best Practices & Validation Tips
 
 - **Validation:** Stick to the schema—unknown keys fail validation (`additionalProperties: false`).
 - **Secrets:** Keep credentials out of VCS; generate the final JSON at deploy time or mount via secrets.
 - **Prefixes:** Use a **bridge prefix** (e.g., `bridge/`) and **origin prefixes** (e.g., `local/`, `ttn/`) to keep topics intelligible and enable filtering.
 - **Loop prevention:** Enable `mqtt.loop_prevention: true` wherever bidirectional paths overlap. Combine with origin prefixing so the bridge recognizes its own forwarded traffic.
-- **Subscriptions & QoS:** Start broad (`"##"`, QoS 0); once data flows, narrow filters. Keep end-to-end QoS consistent.
+- **Subscriptions & QoS:** Start broad (`"#"`, QoS 0); once data flows, narrow filters. Keep end-to-end QoS consistent.
 - **Sessions & LWT:** For unstable links, define a `session_store` and consider `clean_session: false`. Configure Last Will if operators rely on presence/health topics.
 - **UNIX domain sockets:** Place sockets under `/run` or `/var/run`; set ownership/permissions for the bridge process.
 - **WebSockets:** Target **`/ws`** and ensure the broker accepts subprotocol **`mqtt`**.
@@ -1768,15 +1776,13 @@ Exactly **one** address object (`in`/`in6`/`un`/`rc`/`l2`) must be present, cons
   - **Echo storms:** Add prefixes and enable loop prevention on both sides; avoid subscribing to your own bridged prefix everywhere.  
   - **WS handshake failures:** Wrong target or missing subprotocol.
 
-## MQTTCli
+---
 
-### Overview
+# MQTTCli
 
 **MQTTCli** is the command-line client of the **MQTTSuite**. It can **publish** messages and **subscribe** to topics, supports the same transport families as the other apps (**TCP/IPv4**, **TCP/IPv6**, **UNIX domain sockets**, **WebSockets** over these, with optional **TLS**), and integrates with the shared **SNode.C configuration system**. Typical use cases: quick broker smoke tests, scripted data injection, and ad-hoc topic inspection.
 
----
-
-### Quick Start (Recommended Flow)
+## Quick Start (Recommended Flow)
 
 1) **Subscribe** to everything on a local broker (TCP/IPv4):
 
@@ -1831,7 +1837,7 @@ mqttcli in-mqtt
 
 ---
 
-### Command Structure
+## Command Structure
 
 ```bash
 mqttcli <instance> [tls …] remote|local <endpoint-options> (sub …)? (pub …)?
@@ -1852,9 +1858,9 @@ mqttcli <instance> [tls …] remote|local <endpoint-options> (sub …)? (pub …
   tls --cert <crt> --cert-key <key> --ca-cert <ca>
   ```
 
-### Supported Transports
+## Supported Transports
 
-#### MQTT over TCP/IP
+### MQTT over TCP/IP
 
 | **Instance**    | Protocol | Encryption | Default Port |
 | --------------- | -------- | ---------: | -----------: |
@@ -1863,14 +1869,14 @@ mqttcli <instance> [tls …] remote|local <endpoint-options> (sub …)? (pub …
 | **`in6-mqtt`**  | IPv6     |         No |       `1883` |
 | **`in6-mqtts`** | IPv6     |        Yes |       `8883` |
 
-#### MQTT over UNIX Domain Sockets
+### MQTT over UNIX Domain Sockets
 
 | **Instance**   | Encryption | Path Example               |
 | -------------- | ---------: | -------------------------- |
 | **`un-mqtt`**  |         No | `/tmp/mqttbroker-un-mqtt`  |
 | **`un-mqtts`** |        Yes | `/tmp/mqttbroker-un-mqtts` |
 
-#### MQTT over WebSockets
+### MQTT over WebSockets
 
 | **Instance**      | Protocol | Encryption | Port | Request Target | Sec-WebSocket-Protocol |
 | ----------------- | -------- | ---------: | ---: | -------------- | ---------------------- |
@@ -1879,16 +1885,16 @@ mqttcli <instance> [tls …] remote|local <endpoint-options> (sub …)? (pub …
 | **`in6-wsmqtt`**  | IPv6     |         No | 8080 | `/` or `/ws`   | `mqtt`                 |
 | **`in6-wsmqtts`** | IPv6     |        Yes | 8088 | `/` or `/ws`   | `mqtt`                 |
 
-#### MQTT over UNIX Domain WebSockets
+### MQTT over UNIX Domain WebSockets
 
 | **Instance**     | Encryption | Path Example               | Request Target | Sec-WebSocket-Protocol |
 | ---------------- | ---------: | -------------------------- | -------------- | ---------------------- |
 | **`un-wsmqtt`**  |         No | `/tmp/mqttbroker-un-http`  | `/` or `/ws`   | `mqtt`                 |
 | **`un-wsmqtts`** |        Yes | `/tmp/mqttbroker-un-https` | `/` or `/ws`   | `mqtt`                 |
 
-### Additions & Field-Tested Guidance
+## Additions & Field-Tested Guidance
 
-#### TLS quick checklist
+### TLS quick checklist
 
 - Use the `*s` instances (e.g., `in-mqtts`, `in-wsmqtts`) when you need TLS.
 
@@ -1903,16 +1909,16 @@ mqttcli <instance> [tls …] remote|local <endpoint-options> (sub …)? (pub …
 
 - Ensure the server name (SNI/hostname) matches the certificate SAN/CN.
 
-#### WebSockets specifics
+### WebSockets specifics
 
 - The subprotocol **`mqtt`** must be negotiated; ensure proxies preserve `Upgrade`, `Connection`, and `Sec-WebSocket-Protocol`.
 - Default request targets `/` and `/ws` are accepted by the MQTTSuite WS endpoints.
 
-#### UNIX domain sockets
+### UNIX domain sockets
 
 - Prefer `/run` or `/var/run` for service-managed sockets; adjust file **ownership/permissions** for non-root users.
 
-#### Persist once (optional)
+### Persist once (optional)
 
 - You can persist frequently reused options via `-w`:
 
@@ -1926,7 +1932,7 @@ mqttcli <instance> [tls …] remote|local <endpoint-options> (sub …)? (pub …
 
   Thereafter, a plain `mqttcli sub --topic 'sensors/#'` may reuse the stored configuration.
 
-### Handy Patterns
+## Handy Patterns
 
 - **Live-tail everything, then publish:**
 
@@ -1958,6 +1964,6 @@ mqttcli <instance> [tls …] remote|local <endpoint-options> (sub …)? (pub …
               sub --topic '#'
   ```
 
-### Notes
+## Notes
 
 - **Protocol:** MQTT **3.1.1** (align your client expectations accordingly).
