@@ -49,7 +49,7 @@
 
 #endif
 
-namespace mqtt::mqtt::websocket {
+namespace mqtt::mqttcli::websocket {
 
     class SubProtocolFactory : public web::websocket::SubProtocolFactory<iot::mqtt::client::SubProtocol> {
     public:
@@ -59,8 +59,8 @@ namespace mqtt::mqtt::websocket {
         iot::mqtt::client::SubProtocol* create(web::websocket::SubProtocolContext* subProtocolContext) override;
     };
 
-} // namespace mqtt::mqtt::websocket
+} // namespace mqtt::mqttcli::websocket
 
-extern "C" mqtt::mqtt::websocket::SubProtocolFactory* mqttClientSubProtocolFactory();
+extern "C" mqtt::mqttcli::websocket::SubProtocolFactory* mqttClientSubProtocolFactory();
 
 #endif // APPS_MQTTBROKER_MQTT_WEBSOCKET_SUBPROTOCOLFACTORY_H

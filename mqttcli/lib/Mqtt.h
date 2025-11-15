@@ -52,7 +52,7 @@
 
 #endif
 
-namespace mqtt::mqtt::lib {
+namespace mqtt::mqttcli::lib {
 
     class Mqtt : public iot::mqtt::client::Mqtt {
     public:
@@ -101,6 +101,6 @@ namespace mqtt::mqtt::lib {
         const bool pubRetain;
     };
 
-} // namespace mqtt::mqtt::lib
+} // namespace mqtt::mqttcli::lib
 
 #endif // APPS_MQTTBROKER_MQTTSUB_SOCKETCONTEXT_H

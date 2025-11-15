@@ -319,7 +319,7 @@ int main(int argc, char* argv[]) {
     // Start of application
 
 #if defined(CONFIG_MQTTSUITE_CLI_TCP_IPV4)
-    net::in::stream::legacy::Client<mqtt::mqtt::SocketContextFactory>("in-mqtt", [](auto& config) {
+    net::in::stream::legacy::Client<mqtt::mqttcli::SocketContextFactory>("in-mqtt", [](auto& config) {
         config.Remote::setPort(1883);
 
         config.setRetry();
@@ -333,7 +333,7 @@ int main(int argc, char* argv[]) {
 #endif
 
 #if defined(CONFIG_MQTTSUITE_CLI_TLS_IPV4)
-    net::in::stream::tls::Client<mqtt::mqtt::SocketContextFactory>("in-mqtts", [](auto& config) {
+    net::in::stream::tls::Client<mqtt::mqttcli::SocketContextFactory>("in-mqtts", [](auto& config) {
         config.Remote::setPort(1883);
 
         config.setRetry();
@@ -348,7 +348,7 @@ int main(int argc, char* argv[]) {
 #endif
 
 #if defined(CONFIG_MQTTSUITE_CLI_TCP_IPV6)
-    net::in6::stream::legacy::Client<mqtt::mqtt::SocketContextFactory>("in6-mqtt", [](auto& config) {
+    net::in6::stream::legacy::Client<mqtt::mqttcli::SocketContextFactory>("in6-mqtt", [](auto& config) {
         config.Remote::setPort(1883);
 
         config.setRetry();
@@ -363,7 +363,7 @@ int main(int argc, char* argv[]) {
 #endif
 
 #if defined(CONFIG_MQTTSUITE_CLI_TLS_IPV6)
-    net::in6::stream::tls::Client<mqtt::mqtt::SocketContextFactory>("in6-mqtts", [](auto& config) {
+    net::in6::stream::tls::Client<mqtt::mqttcli::SocketContextFactory>("in6-mqtts", [](auto& config) {
         config.Remote::setPort(1883);
 
         config.setRetry();
@@ -378,7 +378,7 @@ int main(int argc, char* argv[]) {
 #endif
 
 #if defined(CONFIG_MQTTSUITE_CLI_UNIX)
-    net::un::stream::legacy::Client<mqtt::mqtt::SocketContextFactory>("un-mqtt", [](auto& config) {
+    net::un::stream::legacy::Client<mqtt::mqttcli::SocketContextFactory>("un-mqtt", [](auto& config) {
         config.Remote::setSunPath("/var/mqttbroker-un-mqtt");
 
         config.setRetry();
@@ -392,7 +392,7 @@ int main(int argc, char* argv[]) {
 #endif
 
 #if defined(CONFIG_MQTTSUITE_CLI_UNIX_TLS)
-    net::un::stream::tls::Client<mqtt::mqtt::SocketContextFactory>("un-mqtts", [](auto& config) {
+    net::un::stream::tls::Client<mqtt::mqttcli::SocketContextFactory>("un-mqtts", [](auto& config) {
         config.Remote::setSunPath("/var/mqttbroker-un-mqtts");
 
         config.setRetry();
