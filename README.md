@@ -77,7 +77,7 @@ Volker Christian ([me@vchrist.at](mailto:me@vchrist.at), [volker.christian@fh-ha
       * [Persist your configuration using -w (so you don’t repeat flags)](#persist-your-configuration-using--w-so-you-dont-repeat-flags)
       * [(Optional) Embed the integrator  (after the configuration has been saved)](#optional-embed-the-integrator--after-the-configuration-has-been-saved)
       * [(For development only) Use custom HTML templates for the Web UI (after the configuration has been saved)](#for-development-only-use-custom-html-templates-for-the-web-ui-after-the-configuration-has-been-saved)
-   * [Connection Methods](#connection-methods)
+   * [Supported Transports](#supported-transports)
       * [MQTT over TCP/IP](#mqtt-over-tcpip)
       * [MQTT over UNIX Domain Sockets](#mqtt-over-unix-domain-sockets)
       * [MQTT over WebSockets](#mqtt-over-websockets)
@@ -138,7 +138,7 @@ Volker Christian ([me@vchrist.at](mailto:me@vchrist.at), [volker.christian@fh-ha
       * [(Optional) Use TLS (MQTTS) instead of plain TCP](#optional-use-tls-mqtts-instead-of-plain-tcp)
       * [(Optional) Use WebSockets (WSS)](#optional-use-websockets-wss)
       * [(Optional) Use Unix Domain WebSockets](#optional-use-unix-domain-websockets)
-   * [Connection Methods](#connection-methods-1)
+   * [Supported Transports](#supported-transports-1)
       * [MQTT over TCP/IP](#mqtt-over-tcpip-1)
       * [MQTT over UNIX Domain Sockets](#mqtt-over-unix-domain-sockets-1)
       * [MQTT over WebSockets](#mqtt-over-websockets-1)
@@ -179,7 +179,7 @@ Volker Christian ([me@vchrist.at](mailto:me@vchrist.at), [volker.christian@fh-ha
 * [MQTTCli](#mqttcli)
    * [Quick Start (Recommended Flow)](#quick-start-recommended-flow-4)
    * [Command Structure](#command-structure)
-   * [Supported Transports](#supported-transports)
+   * [Supported Transports](#supported-transports-2)
       * [MQTT over TCP/IP](#mqtt-over-tcpip-2)
       * [MQTT over UNIX Domain Sockets](#mqtt-over-unix-domain-sockets-2)
       * [MQTT over WebSockets](#mqtt-over-websockets-2)
@@ -193,7 +193,7 @@ Volker Christian ([me@vchrist.at](mailto:me@vchrist.at), [volker.christian@fh-ha
    * [Notes](#notes-3)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: runner, at: Wed Nov 12 15:09:34 UTC 2025 -->
+<!-- Added by: runner, at: Thu Nov 20 18:35:29 UTC 2025 -->
 
 <!--te-->
 
