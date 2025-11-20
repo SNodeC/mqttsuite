@@ -544,40 +544,40 @@ mqttbroker --html-dir /var/www/mqttsuite/mqttbroker
 MQTT clients can connect via *IPv4* and *IPv6*, using both encrypted and unencrypted channels.
 
 | [Instance](https://github.com/SNodeC/snode.c?tab=readme-ov-file#instance-configuration) | Protocol | Encryption | Local Port |
-| ------------------------------------------------------------ | -------- | ---------- | ---------- |
-| **`in-mqtt`**                                                | IPv4     | No         | `1883`     |
-| **`in-mqtts`**                                               | IPv4     | Yes        | `8883`     |
-| **`in6-mqtt`**                                               | IPv6     | No         | `1883`     |
-| **`in6-mqtts`**                                              | IPv6     | Yes        | `8883`     |
+| ------------------------------------------------------------ | :------: | :--------: | :--------: |
+| **`in-mqtt`**                                                |   IPv4   |     No     |   `1883`   |
+| **`in-mqtts`**                                               |   IPv4   |    Yes     |   `8883`   |
+| **`in6-mqtt`**                                               |   IPv6   |     No     |   `1883`   |
+| **`in6-mqtts`**                                              |   IPv6   |    Yes     |   `8883`   |
 
 ### MQTT over UNIX Domain Sockets
 
 For local (same-host) communication, the broker also supports UNIX domain sockets.
 
 | [Instance](https://github.com/SNodeC/snode.c?tab=readme-ov-file#instance-configuration) | Encryption | Local Sun Path             |
-| ------------------------------------------------------------ | ---------- | -------------------------- |
-| **`un-mqtt`**                                                | No         | `/tmp/mqttbroker-un-mqtt`  |
-| **`un-mqtts`**                                               | Yes        | `/tmp/mqttbroker-un-mqtts` |
+| ------------------------------------------------------------ | :--------: | -------------------------- |
+| **`un-mqtt`**                                                |     No     | `/tmp/mqttbroker-un-mqtt`  |
+| **`un-mqtts`**                                               |    Yes     | `/tmp/mqttbroker-un-mqtts` |
 
 ### MQTT over WebSockets
 
 Clients can connect via WebSockets over both *IPv4* and *IPv6*.
 
 | [Instance](https://github.com/SNodeC/snode.c?tab=readme-ov-file#instance-configuration) | Protocol | Encryption | Local Port | Request Target | Sec-WebSocket-Protocol |
-| ------------------------------------------------------------ | -------- | ---------- | ---------- | -------------- | ---------------------- |
-| **`in-http`**                                                | IPv4     | No         | `8080`     | `/` or `/ws`   | `mqtt`                 |
-| **`in-https`**                                               | IPv4     | Yes        | `8088`     | `/` or `/ws`   | `mqtt`                 |
-| **`in6-http`**                                               | IPv6     | No         | `8080`     | `/` or `/ws`   | `mqtt`                 |
-| **`in6-https`**                                              | IPv6     | Yes        | `8088`     | `/` or `/ws`   | `mqtt`                 |
+| ------------------------------------------------------------ | :------: | :--------: | :--------: | :------------: | :--------------------: |
+| **`in-http`**                                                |   IPv4   |     No     |   `8080`   |  `/` or `/ws`  |         `mqtt`         |
+| **`in-https`**                                               |   IPv4   |    Yes     |   `8088`   |  `/` or `/ws`  |         `mqtt`         |
+| **`in6-http`**                                               |   IPv6   |     No     |   `8080`   |  `/` or `/ws`  |         `mqtt`         |
+| **`in6-https`**                                              |   IPv6   |    Yes     |   `8088`   |  `/` or `/ws`  |         `mqtt`         |
 
 ### MQTT over UNIX Domain WebSockets
 
 For local (same-host) communication, the broker also supports WebSockets over UNIX domain sockets.
 
 | [Instance](https://github.com/SNodeC/snode.c?tab=readme-ov-file#instance-configuration) | Encryption | Local Sun Path             | Request Target | Sec-WebSocket-Protocol |
-| ------------------------------------------------------------ | ---------- | -------------------------- | -------------- | ---------------------- |
-| **`un-http`**                                                | No         | `/tmp/mqttbroker-un-http`  | `/` or `/ws`   | `mqtt`                 |
-| **`un-https`**                                               | Yes        | `/tmp/mqttbroker-un-https` | `/` or `/ws`   | `mqtt`                 |
+| ------------------------------------------------------------ | :--------: | -------------------------- | :------------: | :--------------------: |
+| **`un-http`**                                                |     No     | `/tmp/mqttbroker-un-http`  |  `/` or `/ws`  |         `mqtt`         |
+| **`un-https`**                                               |    Yes     | `/tmp/mqttbroker-un-https` |  `/` or `/ws`  |         `mqtt`         |
 
 ## Web Interface
 
@@ -585,21 +585,21 @@ For local (same-host) communication, the broker also supports WebSockets over UN
 
 The *MQTTBroker Web Interface* provides real-time visibility into active client connections.
 
-| [Instance](https://github.com/SNodeC/snode.c?tab=readme-ov-file#instance-configuration) | Protocol | Encryption | Local Port | Request Target    |
-| ------------------------------------------------------------ | -------- | ---------- | ---------- | ----------------- |
-| **`in-http`**                                                | IPv4     | No         | `8080`     | `/` or `/clients` |
-| **`in-https`**                                               | IPv4     | Yes        | `8088`     | `/` or `/clients` |
-| **`in6-http`**                                               | IPv6     | No         | `8080`     | `/` or `/clients` |
-| **`in6-https`**                                              | IPv6     | Yes        | `8088`     | `/` or `/clients` |
+| [Instance](https://github.com/SNodeC/snode.c?tab=readme-ov-file#instance-configuration) | Protocol | Encryption | Local Port |  Request Target   |
+| ------------------------------------------------------------ | :------: | :--------: | :--------: | :---------------: |
+| **`in-http`**                                                |   IPv4   |     No     |   `8080`   | `/` or `/clients` |
+| **`in-https`**                                               |   IPv4   |    Yes     |   `8088`   | `/` or `/clients` |
+| **`in6-http`**                                               |   IPv6   |     No     |   `8080`   | `/` or `/clients` |
+| **`in6-https`**                                              |   IPv6   |    Yes     |   `8088`   | `/` or `/clients` |
 
 ### Web Interface over UNIX Domain Sockets
 
 For local (same-host) communication, the broker also supports WebSockets over UNIX domain sockets.
 
-| [Instance](https://github.com/SNodeC/snode.c?tab=readme-ov-file#instance-configuration) | Encryption | Local Sun Path             | Request Target    |
-| ------------------------------------------------------------ | ---------- | -------------------------- | ----------------- |
-| **`un-http`**                                                | No         | `/tmp/mqttbroker-un-http`  | `/` or `/clients` |
-| **`un-https`**                                               | Yes        | `/tmp/mqttbroker-un-https` | `/` or `/client`  |
+| [Instance](https://github.com/SNodeC/snode.c?tab=readme-ov-file#instance-configuration) | Encryption | Local Sun Path             |  Request Target   |
+| ------------------------------------------------------------ | :--------: | -------------------------- | :---------------: |
+| **`un-http`**                                                |     No     | `/tmp/mqttbroker-un-http`  | `/` or `/clients` |
+| **`un-https`**                                               |    Yes     | `/tmp/mqttbroker-un-https` | `/` or `/client`  |
 
 ## Additions & Field-Tested Guidance
 
@@ -798,17 +798,17 @@ A mapping description has three top-level objects:
 
 ### `connection` options (summary)
 
-| Field           | Type    | Default | Notes                                     |
-| --------------- | ------- | ------- | ----------------------------------------- |
-| `keep_alive`    | integer | `60`    | Seconds between PINGREQs.                 |
-| `client_id`     | string  | `""`    | Logical client name.                      |
+| Field           |  Type   | Default | Notes                                     |
+| --------------- | :-----: | :-----: | ----------------------------------------- |
+| `keep_alive`    | integer |  `60`   | Seconds between PINGREQs.                 |
+| `client_id`     | string  |  `""`   | Logical client name.                      |
 | `clean_session` | boolean | `true`  | Start clean or resume a retained session. |
-| `will_topic`    | string  | `""`    | Last Will topic.                          |
-| `will_message`  | string  | `""`    | Last Will payload.                        |
-| `will_qos`      | integer | `0`     | `0…2`.                                    |
+| `will_topic`    | string  |  `""`   | Last Will topic.                          |
+| `will_message`  | string  |  `""`   | Last Will payload.                        |
+| `will_qos`      | integer |   `0`   | `0…2`.                                    |
 | `will_retain`   | boolean | `false` | Retain Last Will.                         |
-| `username`      | string  | `""`    | Username (optional).                      |
-| `password`      | string  | `""`    | Password (optional).                      |
+| `username`      | string  |  `""`   | Username (optional).                      |
+| `password`      | string  |  `""`   | Password (optional).                      |
 
 > The integrator uses these as **client** settings to connect to the broker it will subscribe to and republish on.
 
@@ -1279,34 +1279,34 @@ Disable unused instances with `--disabled`.
 ### MQTT over TCP/IP
 
 | [Instance](https://github.com/SNodeC/snode.c?tab=readme-ov-file#instance-configuration) | Protocol | Encryption | Remote Port |
-| ------------------------------------------------------------ | -------- | ---------- | ----------- |
-| **`in-mqtt`**                                                | IPv4     | No         | `1883`      |
-| **`in-mqtts`**                                               | IPv4     | Yes        | `8883`      |
-| **`in6-mqtt`**                                               | IPv6     | No         | `1883`      |
-| **`in6-mqtts`**                                              | IPv6     | Yes        | `8883`      |
+| ------------------------------------------------------------ | :------: | :--------: | :---------: |
+| **`in-mqtt`**                                                |   IPv4   |     No     |   `1883`    |
+| **`in-mqtts`**                                               |   IPv4   |    Yes     |   `8883`    |
+| **`in6-mqtt`**                                               |   IPv6   |     No     |   `1883`    |
+| **`in6-mqtts`**                                              |   IPv6   |    Yes     |   `8883`    |
 
 ### MQTT over UNIX Domain Sockets
 
 | [Instance](https://github.com/SNodeC/snode.c?tab=readme-ov-file#instance-configuration) | Encryption | Remote Sun Path            |
-| ------------------------------------------------------------ | ---------- | -------------------------- |
-| **`un-mqtt`**                                                | No         | `/tmp/mqttbroker-un-mqtt`  |
-| **`un-mqtts`**                                               | Yes        | `/tmp/mqttbroker-un-mqtts` |
+| ------------------------------------------------------------ | :--------: | -------------------------- |
+| **`un-mqtt`**                                                |     No     | `/tmp/mqttbroker-un-mqtt`  |
+| **`un-mqtts`**                                               |    Yes     | `/tmp/mqttbroker-un-mqtts` |
 
 ### MQTT over WebSockets
 
 | [Instance](https://github.com/SNodeC/snode.c?tab=readme-ov-file#instance-configuration) | Protocol | Encryption | Remote Port | Request Target | Sec-WebSocket-Protocol |
-| ------------------------------------------------------------ | -------- | ---------- | ----------- | -------------- | ---------------------- |
-| **`in-wsmqtt`**                                              | IPv4     | No         | `8080`      | `/ws`          | `mqtt`                 |
-| **`in-wsmqtts`**                                             | IPv4     | Yes        | `8088`      | `/ws`          | `mqtt`                 |
-| **`in6-wsmqtt`**                                             | IPv6     | No         | `8080`      | `/ws`          | `mqtt`                 |
-| **`in6-wsmqtts`**                                            | IPv6     | Yes        | `8088`      | `/ws`          | `mqtt`                 |
+| ------------------------------------------------------------ | :------: | :--------: | :---------: | :------------: | :--------------------: |
+| **`in-wsmqtt`**                                              |   IPv4   |     No     |   `8080`    |     `/ws`      |         `mqtt`         |
+| **`in-wsmqtts`**                                             |   IPv4   |    Yes     |   `8088`    |     `/ws`      |         `mqtt`         |
+| **`in6-wsmqtt`**                                             |   IPv6   |     No     |   `8080`    |     `/ws`      |         `mqtt`         |
+| **`in6-wsmqtts`**                                            |   IPv6   |    Yes     |   `8088`    |     `/ws`      |         `mqtt`         |
 
 ### MQTT over UNIX Domain WebSockets
 
-| [Instance](https://github.com/SNodeC/snode.c?tab=readme-ov-file#instance-configuration) | Encryption | Remote Sun Path            | Request Target | Sec-WebSocket-Protocol |
-| ------------------------------------------------------------ | ---------- | -------------------------- | -------------- | ---------------------- |
-| **`un-wsmqtt`**                                              | No         | `/tmp/mqttbroker-un-http`  | `/ws`          | `mqtt`                 |
-| **`un-wsmqtts`**                                             | Yes        | `/tmp/mqttbroker-un-https` | `/ws`          | `mqtt`                 |
+| [Instance](https://github.com/SNodeC/snode.c?tab=readme-ov-file#instance-configuration) | Encryption |      Remote Sun Path       | Request Target | Sec-WebSocket-Protocol |
+| ------------------------------------------------------------ | :--------: | :------------------------: | :------------: | :--------------------: |
+| **`un-wsmqtt`**                                              |     No     | `/tmp/mqttbroker-un-http`  |     `/ws`      |         `mqtt`         |
+| **`un-wsmqtts`**                                             |    Yes     | `/tmp/mqttbroker-un-https` |     `/ws`      |         `mqtt`         |
 
 ### Notes
 
@@ -1679,53 +1679,53 @@ Looping is mitigated with `mqtt.loop_prevention: true` (per broker) plus sensibl
 #### Root Object
 
 | Field     | Type  | Required | Default | Notes                                                        |
-| --------- | ----- | -------: | ------: | ------------------------------------------------------------ |
-| `bridges` | array |        ✅ |       — | Must contain **≥ 1** `bridge` objects. Unknown keys rejected. |
+| --------- | :---: | :------: | :-----: | ------------------------------------------------------------ |
+| `bridges` | array |    ✅     |    —    | Must contain **≥ 1** `bridge` objects. Unknown keys rejected. |
 
 #### `bridge` (each item in `bridges`)
 
-| Field      | Type    | Required | Default | Notes                                                       |
-| ---------- | ------- | -------: | ------: | ----------------------------------------------------------- |
-| `disabled` | boolean |        ✖ | `false` | If `true`, this whole bridge is ignored.                    |
-| `name`     | string  |        ✅ |       — | Logical name for logs/metrics.                              |
-| `prefix`   | string  |        ✖ |    `""` | Optional **bridge-wide** prefix added before forwarding.    |
-| `brokers`  | array   |        ✅ |       — | **≥ 1** broker definitions that participate in this bridge. |
+| Field      |  Type   | Required | Default | Notes                                                       |
+| ---------- | :-----: | :------: | :-----: | ----------------------------------------------------------- |
+| `disabled` | boolean |    ✖     | `false` | If `true`, this whole bridge is ignored.                    |
+| `name`     | string  |    ✅     |    —    | Logical name for logs/metrics.                              |
+| `prefix`   | string  |    ✖     |  `""`   | Optional **bridge-wide** prefix added before forwarding.    |
+| `brokers`  |  array  |    ✅     |    —    | **≥ 1** broker definitions that participate in this bridge. |
 
 #### `broker` (each item in `brokers`)
 
 | Field           | Type    | Required |                       Default | Notes                                                        |
-| --------------- | ------- | -------: | ----------------------------: | ------------------------------------------------------------ |
+| --------------- | :-----: | :------: | :---------------------------: | ------------------------------------------------------------ |
 | `disabled`      | boolean |        ✖ |                       `false` | If `true`, this broker does not connect/forward.             |
 | `session_store` | string  |        ✖ |                          `""` | Optional path to persist client session (useful with `clean_session: false`). |
 | `network`       | object  |        ✅ |                             — | **Transport selection** and concrete address (see **`network`** below). |
 | `mqtt`          | object  |        ✖ |                      defaults | MQTT client opts (credentials, last will, **loop prevention**). |
 | `prefix`        | string  |        ✖ |                          `""` | Optional **source-broker** prefix added when forwarding **from this broker** to others. |
-| `topics`        | array   |        ✖ | `[{ "topic":"#", "qos":0 }]` | Subscription filters **towards this broker** (SUBSCRIBE QoS per item). Must be ≥1 if present. |
+| `topics`        | array   |        ✖ | defaults | Subscription filters **towards this broker** (SUBSCRIBE QoS per item). Must be ≥1 if present. |
 
 > **Subscribe QoS** is taken from `topics[].qos` toward the *source* broker.  
 > **Publish QoS** used when forwarding is chosen by the bridge’s policy; align deployment for consistency (QoS 0/1 are common).
 
 #### `mqtt` (client options)
 
-| Field             | Type    | Required | Default | Constraints / Notes                                        |
-| ----------------- | ------- | -------: | ------: | ---------------------------------------------------------- |
-| `client_id`       | string  |        ✖ |    `""` | Let the broker assign if empty, or set explicitly.         |
-| `keep_alive`      | integer |        ✖ |    `60` | Seconds between pings.                                     |
-| `clean_session`   | boolean |        ✖ |  `true` | Set `false` to resume session (pair with `session_store`). |
-| `will_topic`      | string  |        ✖ |    `""` | Optional Last Will topic.                                  |
-| `will_message`    | string  |        ✖ |    `""` | Optional Last Will payload.                                |
-| `will_qos`        | integer |        ✖ |     `0` | `0..2`.                                                    |
-| `will_retain`     | boolean |        ✖ | `false` | —                                                          |
-| `username`        | string  |        ✖ |    `""` | Broker auth (if required).                                 |
-| `password`        | string  |        ✖ |    `""` | Broker auth (if required).                                 |
-| `loop_prevention` | boolean |        ✖ | `false` | Enable to mitigate echo loops. Combine with origin prefix. |
+| Field             |  Type   | Required | Default | Constraints / Notes                                        |
+| :---------------- | :-----: | :------: | :-----: | ---------------------------------------------------------- |
+| `client_id`       | string  |    ✖     |  `""`   | Let the broker assign if empty, or set explicitly.         |
+| `keep_alive`      | integer |    ✖     |  `60`   | Seconds between pings.                                     |
+| `clean_session`   | boolean |    ✖     | `true`  | Set `false` to resume session (pair with `session_store`). |
+| `will_topic`      | string  |    ✖     |  `""`   | Optional Last Will topic.                                  |
+| `will_message`    | string  |    ✖     |  `""`   | Optional Last Will payload.                                |
+| `will_qos`        | integer |    ✖     |   `0`   | `0..2`.                                                    |
+| `will_retain`     | boolean |    ✖     | `false` | —                                                          |
+| `username`        | string  |    ✖     |  `""`   | Broker auth (if required).                                 |
+| `password`        | string  |    ✖     |  `""`   | Broker auth (if required).                                 |
+| `loop_prevention` | boolean |    ✖     | `false` | Enable to mitigate echo loops. Combine with origin prefix. |
 
 #### `topics` (subscriptions for a broker)
 
 Each item is a `topic` object:
 
 | Field   | Type    | Required | Default | Constraints / Notes                   |
-| ------- | ------- | -------: | ------: | ------------------------------------- |
+| ------- | :-----: | :------: | :-----: | ------------------------------------- |
 | `topic` | string  |        ✅ |  `"#"` | MQTT filter (`#`, `+` allowed).      |
 | `qos`   | integer |        ✖ |     `0` | One of `0`, `1`, `2` (SUBSCRIBE QoS). |
 
@@ -1733,17 +1733,17 @@ Each item is a `topic` object:
 
 #### `network` (transport selection + addressing)
 
-| Field           | Type   |             Required | Values / Example                               | Notes                              |
-| --------------- | ------ | -------------------: | ---------------------------------------------- | ---------------------------------- |
-| `instance_name` | string |                    ✅ | `"local-ws"`                                   | Logical name; shows in logs.       |
-| `protocol`      | string |                    ✅ | `in` \| `in6` \| `un` \| `rc` \| `l2`          | Selects address object below.      |
-| `encryption`    | string |                    ✅ | `legacy` \| `tls`                              | `tls` for TLS (MQTTS/WSS).         |
-| `transport`     | string |                    ✅ | `stream` \| `websocket`                        | MQTT over TCP vs WebSockets.       |
-| `in`            | object |  *if `protocol: in`* | `{ "host": "127.0.0.1", "port": 1883 }`        | IPv4 host/port.                    |
+| Field           | Type   |       Required       | Values / Example                               | Notes                              |
+| --------------- | ------ | :------------------: | ---------------------------------------------- | ---------------------------------- |
+| `instance_name` | string |          ✅           | `"local-ws"`                                   | Logical name; shows in logs.       |
+| `protocol`      | string |          ✅           | `in` \| `in6` \| `un` \| `rc` \| `l2`          | Selects address object below.      |
+| `encryption`    | string |          ✅           | `legacy` \| `tls`                              | `tls` for TLS (MQTTS/WSS).         |
+| `transport`     | string |          ✅           | `stream` \| `websocket`                        | MQTT over TCP vs WebSockets.       |
+| `in`            | object | *if `protocol: in`*  | `{ "host": "127.0.0.1", "port": 1883 }`        | IPv4 host/port.                    |
 | `in6`           | object | *if `protocol: in6`* | `{ "host": "::1", "port": 1883 }`              | IPv6 host/port.                    |
-| `un`            | object |  *if `protocol: un`* | `{ "path": "/run/mqtt.sock" }`                 | Unix domain path (max ~107 chars). |
-| `rc`            | object |  *if `protocol: rc`* | `{ "host":"AA:BB:CC:DD:EE:FF", "channel": 1 }` | Bluetooth RFCOMM.                  |
-| `l2`            | object |  *if `protocol: l2`* | `{ "host":"AA:BB:CC:DD:EE:FF", "psm": 25 }`    | Bluetooth L2CAP.                   |
+| `un`            | object | *if `protocol: un`*  | `{ "path": "/run/mqtt.sock" }`                 | Unix domain path (max ~107 chars). |
+| `rc`            | object | *if `protocol: rc`*  | `{ "host":"AA:BB:CC:DD:EE:FF", "channel": 1 }` | Bluetooth RFCOMM.                  |
+| `l2`            | object | *if `protocol: l2`*  | `{ "host":"AA:BB:CC:DD:EE:FF", "psm": 25 }`    | Bluetooth L2CAP.                   |
 
 Exactly **one** address object (`in`/`in6`/`un`/`rc`/`l2`) must be present, consistent with `protocol`.
 
@@ -1857,35 +1857,35 @@ mqttcli <instance> [tls …] remote|local <endpoint-options> (sub …)? (pub …
 
 ### MQTT over TCP/IP
 
-| **Instance**    | Protocol | Encryption | Default Port |
-| --------------- | -------- | ---------: | -----------: |
-| **`in-mqtt`**   | IPv4     |         No |       `1883` |
-| **`in-mqtts`**  | IPv4     |        Yes |       `8883` |
-| **`in6-mqtt`**  | IPv6     |         No |       `1883` |
-| **`in6-mqtts`** | IPv6     |        Yes |       `8883` |
+| **Instance**    | Protocol | Encryption |  Port  |
+| --------------- | :------: | :--------: | :----: |
+| **`in-mqtt`**   |   IPv4   |     No     | `1883` |
+| **`in-mqtts`**  |   IPv4   |    Yes     | `8883` |
+| **`in6-mqtt`**  |   IPv6   |     No     | `1883` |
+| **`in6-mqtts`** |   IPv6   |    Yes     | `8883` |
 
 ### MQTT over UNIX Domain Sockets
 
 | **Instance**   | Encryption | Path Example               |
-| -------------- | ---------: | -------------------------- |
-| **`un-mqtt`**  |         No | `/tmp/mqttbroker-un-mqtt`  |
-| **`un-mqtts`** |        Yes | `/tmp/mqttbroker-un-mqtts` |
+| -------------- | :--------: | -------------------------- |
+| **`un-mqtt`**  |     No     | `/tmp/mqttbroker-un-mqtt`  |
+| **`un-mqtts`** |    Yes     | `/tmp/mqttbroker-un-mqtts` |
 
 ### MQTT over WebSockets
 
-| **Instance**      | Protocol | Encryption | Port | Request Target | Sec-WebSocket-Protocol |
-| ----------------- | -------- | ---------: | ---: | -------------- | ---------------------- |
-| **`in-wsmqtt`**   | IPv4     |         No | 8080 | `/` or `/ws`   | `mqtt`                 |
-| **`in-wsmqtts`**  | IPv4     |        Yes | 8088 | `/` or `/ws`   | `mqtt`                 |
-| **`in6-wsmqtt`**  | IPv6     |         No | 8080 | `/` or `/ws`   | `mqtt`                 |
-| **`in6-wsmqtts`** | IPv6     |        Yes | 8088 | `/` or `/ws`   | `mqtt`                 |
+| **Instance**      | Protocol | Encryption | Port | Default Request Target | Sec-WebSocket-Protocol |
+| ----------------- | :------: | :--------: | :--: | :--------------------: | :--------------------: |
+| **`in-wsmqtt`**   |   IPv4   |     No     | 8080 |         `/ws`          |         `mqtt`         |
+| **`in-wsmqtts`**  |   IPv4   |    Yes     | 8088 |         `/ws`          |         `mqtt`         |
+| **`in6-wsmqtt`**  |   IPv6   |     No     | 8080 |         `/ws`          |         `mqtt`         |
+| **`in6-wsmqtts`** |   IPv6   |    Yes     | 8088 |         `/ws`          |         `mqtt`         |
 
 ### MQTT over UNIX Domain WebSockets
 
-| **Instance**     | Encryption | Path Example               | Request Target | Sec-WebSocket-Protocol |
-| ---------------- | ---------: | -------------------------- | -------------- | ---------------------- |
-| **`un-wsmqtt`**  |         No | `/tmp/mqttbroker-un-http`  | `/` or `/ws`   | `mqtt`                 |
-| **`un-wsmqtts`** |        Yes | `/tmp/mqttbroker-un-https` | `/` or `/ws`   | `mqtt`                 |
+| **Instance**     | Encryption | Path Example               | Default Request Target | Sec-WebSocket-Protocol |
+| :--------------- | ---------: | -------------------------- | :--------------------: | :--------------------: |
+| **`un-wsmqtt`**  |         No | `/tmp/mqttbroker-un-http`  |         `/ws`          |         `mqtt`         |
+| **`un-wsmqtts`** |        Yes | `/tmp/mqttbroker-un-https` |         `/ws`          |         `mqtt`         |
 
 ## Additions & Field-Tested Guidance
 
@@ -1925,7 +1925,7 @@ mqttcli <instance> [tls …] remote|local <endpoint-options> (sub …)? (pub …
               -w
   ```
 
-  Thereafter, a plain `mqttcli sub --topic 'sensors/#'` may reuse the stored configuration.
+  Thereafter, a plain `mqttcli` may reuse the stored configuration.
 
 ## Handy Patterns
 
