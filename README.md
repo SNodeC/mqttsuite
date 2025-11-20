@@ -21,7 +21,7 @@ The [**MQTTSuite**](https://snodec.github.io/mqttsuite-doc/html/index.html) is a
 
 ## License
 
-**SNode.C** is dual-licensed under **MIT** and **GPL-3.0-or-later**. You may choose either license when using the framework.
+**MQTTSuite** is dual-licensed under **MIT** and **GPL-3.0-or-later**. You may choose either license when using the framework.
 
 `SPDX-License-Identifier: MIT OR GPL-3.0-or-later`
 
@@ -222,7 +222,7 @@ Known good targets:
 
 ## Minimum Required Compiler Versions
 
-SNode.C leverages C++20 features; therefore recent compilers are required.
+SNode.C and MQTTSuite leverage C++20 features; therefore recent compilers are required.
 
 - **GCC ≥ 12.2**
 - **Clang ≥ 13.0**
@@ -386,7 +386,7 @@ What happens:
 2. All direct/indirect dependencies are fetched and built as needed.
 3. MQTTSuite is cloned and cross-compiled.
 
-> After building, the `.ipk` packages for **MQTTSuite** and **SNode.C** are usually found under:  
+> After building, the `.ipk` packages for **MQTTSuite** and **SNode.C** are usually found under:
 > `<SDK_DIR>/bin/packages/<architecture>/snodec/`
 
 ### Deploy MQTTSuite
@@ -537,7 +537,7 @@ mqttbroker --mqtt-mapping-file /etc/mqttsuite/mappings/mqtt-mapping.json
 mqttbroker --html-dir /var/www/mqttsuite/mqttbroker
 ```
 
-## Connection Methods
+## Supported Transports
 
 ### MQTT over TCP/IP
 
@@ -1271,7 +1271,7 @@ Per default, all supported connection instances are **enabled**. Disable what yo
                       tls --ca-cert /etc/ssl/mqttsuite/ca.crt
    ```
 
-## Connection Methods
+## Supported Transports
 
 The *MQTTIntegrator* uses a **client** connection to a single broker. All tables show **remote** endpoints (not local listeners).  
 Disable unused instances with `--disabled`.
@@ -1957,6 +1957,7 @@ mqttcli <instance> [tls …] remote|local <endpoint-options> (sub …)? (pub …
               remote --host 127.0.0.1
                      --port 8080
               sub --topic '#'
+              http --target /ws
   ```
 
 ## Notes
