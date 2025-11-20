@@ -42,6 +42,8 @@
 #include "SocketContextFactory.h" // IWYU pragma: keep
 #include "config.h"
 
+#include <web/http/http_utils.h>
+
 #ifdef LINK_SUBPROTOCOL_STATIC
 
 #include "websocket/SubProtocolFactory.h"
@@ -100,6 +102,21 @@ reportState(const std::string& instanceName, const core::socket::SocketAddress& 
     }
 }
 
+static void logResponse(const std::shared_ptr<web::http::client::Request>& req, const std::shared_ptr<web::http::client::Response>& res) {
+    VLOG(1) << req->getSocketContext()->getSocketConnection()->getConnectionName() << " HTTP response for: " << req->method << " "
+            << req->url << " HTTP/" << req->httpMajor << "." << req->httpMinor << "\n"
+            << httputils::toString(req->method,
+                                   req->url,
+                                   "HTTP/" + std::to_string(req->httpMajor) + "." + std::to_string(req->httpMinor),
+                                   req->getQueries(),
+                                   req->getHeaders(),
+                                   req->getTrailer(),
+                                   req->getCookies(),
+                                   {})
+            << "\n"
+            << httputils::toString(res->httpVersion, res->statusCode, res->reason, res->headers, res->cookies, res->body);
+}
+
 template <typename HttpClient>
 void startClient(const std::string& name, const std::function<void(typename HttpClient::Config&)>& configurator) {
     using SocketAddress = typename HttpClient::SocketAddress;
@@ -108,22 +125,38 @@ void startClient(const std::string& name, const std::function<void(typename Http
         name,
         [](const std::shared_ptr<web::http::client::MasterRequest>& req) {
             const std::string connectionName = req->getSocketContext()->getSocketConnection()->getConnectionName();
+            const std::string target =
+                req->getSocketContext()->getSocketConnection()->getConfig()->getSection("http")->get_option("--target")->as<std::string>();
 
             req->set("Sec-WebSocket-Protocol", "mqtt");
 
             req->upgrade(
-                "/ws",
+                target,
                 "websocket",
                 [connectionName](bool success) {
                     VLOG(1) << connectionName << ": HTTP Upgrade (http -> websocket||"
                             << "mqtt" << ") start " << (success ? "success" : "failed");
                 },
-                []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req,
-                   [[maybe_unused]] const std::shared_ptr<web::http::client::Response>& res,
-                   [[maybe_unused]] bool success) {
+                [connectionName](const std::shared_ptr<web::http::client::Request>& req,
+                                 const std::shared_ptr<web::http::client::Response>& res,
+                                 bool success) {
+                    logResponse(req, res);
+
+                    VLOG(1) << connectionName << ": HTTP Upgrade " << (success ? "success" : "failed");
                 },
                 [connectionName]([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req, const std::string& message) {
-                    VLOG(1) << connectionName << ": Request parse error: " << message;
+                    VLOG(1) << connectionName << ": Response parse error: " << message;
+                    VLOG(1) << "  Request was: " << req->method << " " << req->url << " HTTP/" << req->httpMajor << "." << req->httpMinor
+                            << "\n"
+                            << httputils::toString(req->method,
+                                                   req->url,
+                                                   "HTTP/" + std::to_string(req->httpMajor) + "." + std::to_string(req->httpMinor),
+                                                   req->getQueries(),
+                                                   req->getHeaders(),
+                                                   req->getTrailer(),
+                                                   req->getCookies(),
+                                                   {})
+                            << "\n";
                 });
         },
         []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req) {
@@ -294,8 +327,17 @@ static void createConfig(net::config::ConfigInstance& config) {
             }
         }
     });
+}
 
-    std::vector<std::string> a = {"asdf", "asf"};
+static void createWSConfig(net::config::ConfigInstance& config) {
+    createConfig(config);
+
+    CLI::App* http = config.getSection("http");
+    http->add_option("--target", "Websocket endpoint")
+        ->group(http->get_formatter()->get_label("Persistent Options"))
+        ->type_name("string")
+        ->default_str("/ws")
+        ->configurable();
 }
 
 int main(int argc, char* argv[]) {
@@ -414,7 +456,7 @@ int main(int argc, char* argv[]) {
         config.setDisableNagleAlgorithm();
         config.setDisabled();
 
-        createConfig(config);
+        createWSConfig(config);
     });
 #endif
 
@@ -427,7 +469,7 @@ int main(int argc, char* argv[]) {
         config.setDisableNagleAlgorithm();
         config.setDisabled();
 
-        createConfig(config);
+        createWSConfig(config);
     });
 #endif
 
@@ -440,7 +482,7 @@ int main(int argc, char* argv[]) {
         config.setDisableNagleAlgorithm();
         config.setDisabled();
 
-        createConfig(config);
+        createWSConfig(config);
     });
 #endif
 
@@ -454,7 +496,7 @@ int main(int argc, char* argv[]) {
         config.setDisableNagleAlgorithm();
         config.setDisabled();
 
-        createConfig(config);
+        createWSConfig(config);
     });
 #endif
 
@@ -465,7 +507,7 @@ int main(int argc, char* argv[]) {
         config.setReconnect();
         config.setDisabled();
 
-        createConfig(config);
+        createWSConfig(config);
     });
 #endif
 
@@ -476,7 +518,7 @@ int main(int argc, char* argv[]) {
         config.setReconnect();
         config.setDisabled();
 
-        createConfig(config);
+        createWSConfig(config);
     });
 #endif
 
