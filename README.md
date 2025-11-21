@@ -6,17 +6,37 @@
 
 # Overview
 
-The [**MQTTSuite**](https://snodec.github.io/mqttsuite-doc/html/index.html) is a lightweight, production-ready MQTT integration system composed of four focused applications—**MQTTBroker**, **MQTTIntegrator**, **MQTTBridge**, and **MQTTCli**—all powered by [**SNode.C**](https://github.com/SNodeC/snode.c), a single-threaded, single-tasking C++ networking framework. Thanks to its very small footprint, MQTTSuite is especially suitable for resource-constrained systems (embedded Linux, routers, SBCs).
+The [**MQTTSuite**](https://snodec.github.io/mqttsuite-doc/html/index.html) is a lightweight, production-ready MQTT 3.1.1 integration system composed of four focused applications
 
-## Components
+**MQTTBroker**
 
-| Component | Role | Highlights |
-|---|---|---|
-| **MQTTBroker** | Full MQTT broker (MQTT 3.1.1) | Encrypted/unencrypted TCP and WebSockets; IPv4/IPv6 & UNIX domain sockets; built-in Web UI (live clients) |
-| **MQTTIntegrator** | Mapping-driven IoT translator | Subscribes → transforms (INJA templates) → republishes; wildcards (`+`, `#`); fine-grained QoS/retain |
-| **MQTTBridge** | Pure client-side bridge | Multiple logical bridges; connects to multiple brokers; selectively bridges topics among them |
-| **MQTTCli** | Command-line client | Subscribe to topics and publish messages; supports TCP, WebSockets, and UNIX sockets |
+- *Role:* Full MQTT broker (MQTT 3.1.1)
 
+- *Highlights:* Can simultaneously act as *MQTTIntegrator*; built-in Web UI (live clients)
+
+**MQTTIntegrator**
+
+- *Role:* Mapping-driven IoT translator for modelling IoT scenarios
+
+- *Highlights:* Subscribes → transforms (topics and messages via INJA templates or static mappings) → republishes; wildcards (`+`, `#`); fine-grained QoS/retain
+
+**MQTTBridge**
+
+- *Role:* Pure client-side bridge
+
+- *Highlights:* Multiple logical bridges; connects to multiple brokers per bridge; selectively bridges topics among them; loop prevention
+
+**MQTTCli**
+
+- *Role:* Command-line client
+
+- *Highlights:* Subscribe to topics and/or publish messages
+
+powered by [**SNode.C**](https://github.com/SNodeC/snode.c), a single-threaded, single-tasking C++ networking framework. All of these applications have built-in support for encrypted and unencrypted stream sockets and WebSockets over IPv4/IPv6 and UNIX domain sockets.
+
+Thanks to its small footprint, MQTTSuite is especially suitable for resource-constrained systems (embedded Linux, routers, SBCs).
+
+Because these are fully featured tools, they can also be used as foundations for developing specialized MQTT applications. One example is extending *MQTTCli* to persist incoming JSON messages in a database.
 
 
 ## License
@@ -252,19 +272,17 @@ Some tools and libraries must be present. A few libraries are bundled within MQT
 - `cmake-format` — <https://cmake-format.readthedocs.io/>
 - `doxygen` — <https://www.doxygen.nl/>
 
-### Frameworks
+### Mandatory Libraries and Frameworks
 
-#### Mandatory
+#### Frameworks
 
 - **SNode.C** – Simple NODE in C++: <https://github.com/SNodeC/snode.c>
 
-### Libraries
-
-#### Mandatory
+#### Libraries
 
 - **libfmt** (≥ 11.0.0) development files — <https://github.com/fmtlib/fmt>
 
-#### Bundled (no separate installation required)
+### Bundled (no separate installation required)
 
 - **JSON Schema Validator for Modern C++** — <https://github.com/pboettch/json-schema-validator>
 - **INJA**: A Template Engine for Modern C++ — <https://github.com/pantor/inja>
@@ -461,6 +479,100 @@ If encrypted access is required, [suitable certificates need to be provided](htt
 ## Quick Start (Recommended Flow)
 
 Per default all supported connection instances are enabled. Unused instances need to be disabled.
+
+Explore the *MQTTBroker* command line by using `mqttbroker --help`.
+
+``````
+mqttbroker --help
+
+Configuration for Application 'mqttbroker' 
+
+Usage: mqttbroker [OPTIONS] [INSTANCES [--help]]
+
+
+Application Options:
+  --mqtt-mapping-file [path] 
+       MQTT mapping file (json format) for integration 
+  --mqtt-session-store [path] 
+       Path to file for the persistent session store 
+  --html-dir [path] [/usr/local/var/www/mqttsuite/mqttbroker] 
+       Path to html source directory 
+
+Options (nonpersistent):
+  -c, --config-file configfile:NOT DIR [/home/voc/.config/snode.c/mqttbroker.conf] 
+       Read a config file 
+  -w, --write-config [configfile]:NOT DIR [/home/voc/.config/snode.c/mqttbroker.conf] 
+       Write config file and exit 
+  -k, --kill 
+       Kill running daemon 
+  -i, --instance-alias instance=instance_alias [instance=instance_alias [...]] 
+       Make an instance also known as an alias in configuration files 
+  -s, --show-config 
+       Show current configuration and exit 
+  --command-line{standard}={standard,required,full,default} 
+       Print a command line 
+       standard (default): View all non-default and required options 
+       required: View required options only 
+       full: View the full set of options with their default or 
+       configured values 
+       default: View the full set of options with their default values 
+  --version 
+       Framework version 
+  -h{exact}, --help{exact}={standard,exact,expanded} {exact} 
+       Print help message and exit 
+
+Options (persistent):
+  -l, --log-level level:INT in [0 - 6] [4] 
+       Log level 
+  -v, --verbose-level level:INT in [0 - 10] [2] 
+       Verbose level 
+  -q{true}, -u{false}, --quiet{true}={true,false} [false] 
+       Quiet mode 
+  --log-file logfile:NOT DIR [/home/voc/.local/log/snode.c/mqttbroker.log] 
+       Log file path 
+  -e{true}, -n{false}, --enforce-log-file{true}={true,false} [false] 
+       Enforce writing of logs to file for foreground applications 
+  -d{true}, -f{false}, --daemonize{true}={true,false} [false] 
+       Start application as daemon 
+  --user-name username [voc] Needs: --daemonize 
+       Run daemon under specific user permissions 
+  --group-name groupname [voc] Needs: --daemonize 
+       Run daemon under specific group permissions 
+
+Instances:
+  in-mqtt
+       Configuration for server instance 'in-mqtt' 
+  in-mqtts
+       Configuration for server instance 'in-mqtts' 
+  in6-mqtt
+       Configuration for server instance 'in6-mqtt' 
+  in6-mqtts
+       Configuration for server instance 'in6-mqtts' 
+  un-mqtt
+       Configuration for server instance 'un-mqtt' 
+  un-mqtts
+       Configuration for server instance 'un-mqtts' 
+  in-http
+       Configuration for server instance 'in-http' 
+  in-https
+       Configuration for server instance 'in-https' 
+  in6-http
+       Configuration for server instance 'in6-http' 
+  in6-https
+       Configuration for server instance 'in6-https' 
+  un-http
+       Configuration for server instance 'un-http' 
+  un-https
+       Configuration for server instance 'un-https' 
+
+Application 'mqttbroker' powered by SNode.C 
+(C) 2020-2025 Volker Christian <me@vchrist.at> 
+https://github.com/SNodeC/snode.c
+``````
+
+This help output outlines the various connection instances provided by the application: `in-mqtt`, `in-mqtts`, `in6-mqtt`, `in6-mqtts`, `un-mqtt`, `un-mqtts`, `in-http`, `in-https`, `in6-http`, `in6-https`, `un-http` and `un-https`.
+
+All of these are enabled (active) by default and can be selectively disabled.
 
 ### Disable all but the `in-mqtt` instance
 
@@ -709,6 +821,7 @@ mqttcli in-mqtt \
 
 - The broker can embed the **MQTTIntegrator** to transform/normalize payloads and remap topics without touching devices.
 - Typical uses:
+  - Define and execute complex processing logic for heterogeneous IoT systems, e.g., Smart Home orchestration or device-to-device rule sets.
   - Convert vendor-specific JSON into a normalized schema.
   - Scale/rename fields (e.g., `temp` → `temperature`, multiply by 0.1).
   - Route subsets of topics to dashboards or database consumers.
@@ -717,7 +830,7 @@ mqttcli in-mqtt \
 
 ### Extending transports
 
-- Thanks to SNode.C’s layered network design, adding transports (e.g., Bluetooth RFCOMM/L2CAP) follows the same **instance** pattern as TCP/IPv6/UNIX.
+- Thanks to SNode.C’s layered network design, adding transports (e.g., Bluetooth RFCOMM/L2CAP) follows the same **instance** pattern as IPv4/IPv6 and UNIX.
 - Define endpoint parameters (address/port, channel, or path), optionally layer TLS (where applicable), and expose configuration via the broker’s CLI/config.
 
 ### Diagnostics, hardening & tips
