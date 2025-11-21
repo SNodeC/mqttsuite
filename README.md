@@ -476,8 +476,6 @@ If encrypted access is required, [suitable certificates need to be provided](htt
 
 ## Quick Start (Recommended Flow)
 
-Per default all supported connection instances are enabled. Unused instances need to be disabled.
-
 Explore the *MQTTBroker* command line by using `mqttbroker --help`.
 
 ``````
