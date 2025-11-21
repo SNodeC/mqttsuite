@@ -57,7 +57,6 @@ Volker Christian ([me@vchrist.at](mailto:me@vchrist.at), [volker.christian@fh-ha
 
 <!--ts-->
 * [Overview](#overview)
-   * [Components](#components)
    * [License](#license)
    * [Copyright](#copyright)
 * [Table of Content](#table-of-content)
@@ -68,11 +67,10 @@ Volker Christian ([me@vchrist.at](mailto:me@vchrist.at), [volker.christian@fh-ha
       * [Tools](#tools)
          * [Mandatory](#mandatory)
          * [Optional (useful for development/QA)](#optional-useful-for-developmentqa)
-      * [Frameworks](#frameworks)
-         * [Mandatory](#mandatory-1)
-      * [Libraries](#libraries)
-         * [Mandatory](#mandatory-2)
-         * [Bundled (no separate installation required)](#bundled-no-separate-installation-required)
+      * [Mandatory Libraries and Frameworks](#mandatory-libraries-and-frameworks)
+         * [Frameworks](#frameworks)
+         * [Libraries](#libraries)
+      * [Bundled (no separate installation required)](#bundled-no-separate-installation-required)
    * [Installation on Debian-Style Systems (x86-64, ARM)](#installation-on-debian-style-systems-x86-64-arm)
       * [Install SNode.C](#install-snodec)
       * [Install system packages](#install-system-packages)
@@ -213,7 +211,7 @@ Volker Christian ([me@vchrist.at](mailto:me@vchrist.at), [volker.christian@fh-ha
    * [Notes](#notes-3)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: runner, at: Thu Nov 20 18:54:27 UTC 2025 -->
+<!-- Added by: runner, at: Fri Nov 21 08:02:18 UTC 2025 -->
 
 <!--te-->
 
