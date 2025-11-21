@@ -60,12 +60,12 @@
 namespace mqtt::mqttcli {
 
     core::socket::stream::SocketContext* SocketContextFactory::create(core::socket::stream::SocketConnection* socketConnection) {
-        const CLI::App* sessionApp = socketConnection->getConfig()->getSection("session", true, true);
-        const CLI::App* subApp = socketConnection->getConfig()->getSection("sub", true, true);
-        const CLI::App* pubApp = socketConnection->getConfig()->getSection("pub", true, true);
+        const CLI::App* sessionApp = socketConnection->getConfigInstance()->getSection("session", true, true);
+        const CLI::App* subApp = socketConnection->getConfigInstance()->getSection("sub", true, true);
+        const CLI::App* pubApp = socketConnection->getConfigInstance()->getSection("pub", true, true);
 
         subApp = (subApp != nullptr && (*subApp)["--topic"]->count() > 0) ? subApp : nullptr;
-        pubApp = (pubApp != nullptr && (*pubApp)["--topic"]->count() > 0) ? pubApp : nullptr;
+        pubApp = (pubApp != nullptr && (*pubApp)["--topic"]->count() > 0 && (*pubApp)["--message"]->count() > 0) ? pubApp : nullptr;
 
         core::socket::stream::SocketContext* socketContext = nullptr;
 

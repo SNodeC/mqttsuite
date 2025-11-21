@@ -65,12 +65,12 @@ namespace mqtt::mqttcli::websocket {
     }
 
     iot::mqtt::client::SubProtocol* SubProtocolFactory::create(web::websocket::SubProtocolContext* subProtocolContext) {
-        const CLI::App* sessionApp = subProtocolContext->getSocketConnection()->getConfig()->getSection("session", true, true);
-        const CLI::App* subApp = subProtocolContext->getSocketConnection()->getConfig()->getSection("sub", true, true);
-        const CLI::App* pubApp = subProtocolContext->getSocketConnection()->getConfig()->getSection("pub", true, true);
+        const CLI::App* sessionApp = subProtocolContext->getSocketConnection()->getConfigInstance()->getSection("session", true, true);
+        const CLI::App* subApp = subProtocolContext->getSocketConnection()->getConfigInstance()->getSection("sub", true, true);
+        const CLI::App* pubApp = subProtocolContext->getSocketConnection()->getConfigInstance()->getSection("pub", true, true);
 
         subApp = (subApp != nullptr && (*subApp)["--topic"]->count() > 0) ? subApp : nullptr;
-        pubApp = (pubApp != nullptr && (*pubApp)["--topic"]->count() > 0) ? pubApp : nullptr;
+        pubApp = (pubApp != nullptr && (*pubApp)["--topic"]->count() > 0 && (*pubApp)["--message"]->count() > 0) ? pubApp : nullptr;
 
         iot::mqtt::client::SubProtocol* subProtocol = nullptr;
 

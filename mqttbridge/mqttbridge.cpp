@@ -174,7 +174,7 @@ int main(int argc, char* argv[]) {
     bridgeApp->needs(bridgeApp->add_option("--definition", bridgeDefinitionFile, "MQTT bridge definition file (JSON format)")
                          ->capture_default_str()
                          ->group(bridgeApp->get_formatter()->get_label("Persistent Options"))
-                         ->type_name("[path]")
+                         ->type_name("path")
                          ->configurable()
                          ->required());
 

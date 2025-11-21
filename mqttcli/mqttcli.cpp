@@ -125,8 +125,12 @@ void startClient(const std::string& name, const std::function<void(typename Http
         name,
         [](const std::shared_ptr<web::http::client::MasterRequest>& req) {
             const std::string connectionName = req->getSocketContext()->getSocketConnection()->getConnectionName();
-            const std::string target =
-                req->getSocketContext()->getSocketConnection()->getConfig()->getSection("http")->get_option("--target")->as<std::string>();
+            const std::string target = req->getSocketContext()
+                                           ->getSocketConnection()
+                                           ->getConfigInstance()
+                                           ->getSection("http")
+                                           ->get_option("--target")
+                                           ->as<std::string>();
 
             req->set("Sec-WebSocket-Protocol", "mqtt");
 
@@ -177,17 +181,17 @@ static void createConfig(CLI::App* sessionApp, CLI::App* subApp, CLI::App* pubAp
 
     CLI::Option* clientIdOpt = sessionApp->add_option("--client-id", "MQTT Client-ID")
                                    ->group(sessionApp->get_formatter()->get_label("Persistent Options"))
-                                   ->type_name("[string]");
+                                   ->type_name("string");
 
     sessionApp->add_option("--qos", "Quality of service")
         ->group(sessionApp->get_formatter()->get_label("Persistent Options"))
-        ->type_name("[uint8_t]")
+        ->type_name("uint8_t")
         ->default_val(0)
         ->configurable();
 
     sessionApp->add_flag("--retain-session{true},-r{true}", "Clean session")
         ->group(sessionApp->get_formatter()->get_label("Persistent Options"))
-        ->type_name("[bool]")
+        ->type_name("bool")
         ->default_str("false")
         ->check(CLI::IsMember({"true", "false"}))
         ->configurable()
@@ -195,41 +199,41 @@ static void createConfig(CLI::App* sessionApp, CLI::App* subApp, CLI::App* pubAp
 
     sessionApp->add_option("--keep-alive", "Quality of service")
         ->group(sessionApp->get_formatter()->get_label("Persistent Options"))
-        ->type_name("[uint8_t]")
+        ->type_name("uint8_t")
         ->default_val(60)
         ->configurable();
 
     sessionApp->add_option("--will-topic", "MQTT will topic")
         ->group(sessionApp->get_formatter()->get_label("Persistent Options"))
-        ->type_name("[string]")
+        ->type_name("string")
         ->configurable();
 
     sessionApp->add_option("--will-message", "MQTT will message")
         ->group(sessionApp->get_formatter()->get_label("Persistent Options"))
-        ->type_name("[string]")
+        ->type_name("string")
         ->configurable();
 
     sessionApp->add_option("--will-qos", "MQTT will quality of service")
         ->group(sessionApp->get_formatter()->get_label("Persistent Options"))
-        ->type_name("[uint8_t]")
+        ->type_name("uint8_t")
         ->default_val(0)
         ->configurable();
 
     sessionApp->add_flag("--will-retain{true}", "MQTT will message retain")
         ->group(sessionApp->get_formatter()->get_label("Persistent Options"))
         ->default_str("false")
-        ->type_name("[bool]")
+        ->type_name("bool")
         ->check(CLI::IsMember({"true", "false"}))
         ->configurable();
 
     sessionApp->add_option("--username", "MQTT username")
         ->group(sessionApp->get_formatter()->get_label("Persistent Options"))
-        ->type_name("[string]")
+        ->type_name("string")
         ->configurable();
 
     sessionApp->add_option("--password", "MQTT password")
         ->group(sessionApp->get_formatter()->get_label("Persistent Options"))
-        ->type_name("[string]")
+        ->type_name("string")
         ->configurable();
 
     subApp->needs(subApp
@@ -244,7 +248,7 @@ static void createConfig(CLI::App* sessionApp, CLI::App* subApp, CLI::App* pubAp
                           },
                           "List of topics subscribing to")
                       ->group(subApp->get_formatter()->get_label("Persistent Options"))
-                      ->type_name("[string list]")
+                      ->type_name("string list")
                       ->take_all()
                       ->required()
                       ->allow_extra_args()
@@ -266,7 +270,7 @@ static void createConfig(CLI::App* sessionApp, CLI::App* subApp, CLI::App* pubAp
                           },
                           "Topic publishing to")
                       ->group(pubApp->get_formatter()->get_label("Persistent Options"))
-                      ->type_name("[string]")
+                      ->type_name("string")
                       ->required()
                       ->configurable());
 
@@ -286,14 +290,14 @@ static void createConfig(CLI::App* sessionApp, CLI::App* subApp, CLI::App* pubAp
                           },
                           "Message to publish")
                       ->group(pubApp->get_formatter()->get_label("Persistent Options"))
-                      ->type_name("[string]")
+                      ->type_name("string")
                       ->required()
                       ->configurable());
 
     pubApp->add_flag("--retain{true},-r{true}", "Retain message")
         ->group(pubApp->get_formatter()->get_label("Persistent Options"))
         ->default_str("false")
-        ->type_name("[bool]")
+        ->type_name("bool")
         ->check(CLI::IsMember({"true", "false"}))
         ->configurable();
 }
