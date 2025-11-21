@@ -358,9 +358,9 @@ int main(int argc, char* argv[]) {
     utils::Config::app->get_formatter()->label("SUBCOMMAND", "APPLICATION | CONNECTION | INSTANCE");
     utils::Config::app->get_formatter()->label("SUBCOMMANDS", "APPLICATION | CONNECTION | INSTANCES");
 
-    createConfig(utils::Config::addInstance("session", "MQTT session behavior", "Connection"),
-                 utils::Config::addInstance("sub", "Configuration for application mqttsub", "Applications"),
-                 utils::Config::addInstance("pub", "Configuration for application mqttpub", "Applications"));
+    createConfig(utils::Config::addInstance("session", "MQTT session behavior", "Connection", true),
+                 utils::Config::addInstance("sub", "Configuration for application mqttsub", "Applications", true),
+                 utils::Config::addInstance("pub", "Configuration for application mqttpub", "Applications", true));
 
     // Start of application
 
