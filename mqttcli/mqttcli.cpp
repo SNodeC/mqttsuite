@@ -242,7 +242,6 @@ static void createConfig(CLI::App* sessionApp, CLI::App* subApp, CLI::App* pubAp
                           [subApp](const std::string& value) {
                               if (value == "") {
                                   subApp->get_option("--topic")->required(false)->clear();
-                                  subApp->get_option("--topic")->default_str("<REQUIRED>");
                                   subApp->remove_needs(subApp->get_option("--topic"));
                               }
                           },
@@ -260,11 +259,9 @@ static void createConfig(CLI::App* sessionApp, CLI::App* subApp, CLI::App* pubAp
                           [pubApp](const std::string& value) {
                               if (value == "") {
                                   pubApp->get_option("--topic")->required(false)->clear();
-                                  pubApp->get_option("--topic")->default_str("<REQUIRED>");
                                   pubApp->remove_needs(pubApp->get_option("--topic"));
 
                                   pubApp->get_option("--message")->required(false)->clear();
-                                  pubApp->get_option("--message")->default_str("<REQUIRED>");
                                   pubApp->remove_needs(pubApp->get_option("--message"));
                               }
                           },
@@ -280,11 +277,9 @@ static void createConfig(CLI::App* sessionApp, CLI::App* subApp, CLI::App* pubAp
                           [pubApp](const std::string& value) {
                               if (value == "") {
                                   pubApp->get_option("--topic")->required(false)->clear();
-                                  pubApp->get_option("--topic")->default_str("<REQUIRED>");
                                   pubApp->remove_needs(pubApp->get_option("--topic"));
 
                                   pubApp->get_option("--message")->required(false)->clear();
-                                  pubApp->get_option("--message")->default_str("<REQUIRED>");
                                   pubApp->remove_needs(pubApp->get_option("--message"));
                               }
                           },
