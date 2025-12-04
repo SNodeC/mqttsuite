@@ -132,6 +132,7 @@ endif()
 if(CONFIG_MQTTSUITE_INTEGRATOR_WS OR CONFIG_MQTTSUITE_INTEGRATOR_WSS)
     list(APPEND MQTTINTEGRATOR_COMPONENTS http-client)
 endif()
+list(APPEND MQTTINTEGRATOR_COMPONENTS http-server-express-legacy-in)
 list(REMOVE_DUPLICATES MQTTINTEGRATOR_COMPONENTS)
 
 set(MQTTINTEGRATOR_LINK_LIBS "")
@@ -172,3 +173,8 @@ target_link_libraries(
 )
 
 install(TARGETS mqttintegrator RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+target_sources(mqttintegrator PRIVATE
+  admin/AdminRouter.cpp
+  admin/MappingStore.cpp
+)

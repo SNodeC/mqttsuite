@@ -112,4 +112,10 @@ namespace mqtt::lib {
         return mapFileJsons[mapFilePath];
     }
 
+    void JsonMappingReader::invalidate(const std::string& mapFilePath) {
+        if (mapFileJsons.contains(mapFilePath)) {
+            mapFileJsons.erase(mapFilePath);
+        }
+    }
+
 } // namespace mqtt::lib
