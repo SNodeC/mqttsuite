@@ -4,6 +4,8 @@
 #include "express/Router.h"
 #include "express/middleware/BasicAuthentication.h"
 #include "express/middleware/JsonMiddleware.h"
+#include "lib/JsonMappingReader.h"
+#include "lib/Mqtt.h"
 
 #include <iostream>
 #include <nlohmann/json.hpp>
@@ -15,9 +17,11 @@ express::Router makeAdminRouter(std::shared_ptr<MappingStore> store, const Admin
     api.use(express::middleware::JsonMiddleware());
     api.use(express::middleware::BasicAuthentication(opt.user, opt.pass, opt.realm));
 
-    // POST /config/deploy (stub)
-    api.post("/config/deploy", [] APPLICATION(req, res) {
-        res->status(200).json({{"status", "deploy-ack"}, {"note", "hot-reload hook to be wired"}});
+    // POST /config/deploy
+    api.post("/config/deploy", [store] APPLICATION(req, res) {
+        mqtt::lib::JsonMappingReader::invalidate(store->path());
+        mqtt::mqttintegrator::lib::Mqtt::reloadAll();
+        res->status(200).json({{"status", "deploy-ack"}, {"note", "hot-reload triggered"}});
     });
 
     // GET /config
@@ -28,7 +32,7 @@ express::Router makeAdminRouter(std::shared_ptr<MappingStore> store, const Admin
             res->status(500).json({{"error", "Failed to load configuration"}, {"details", e.what()}});
         }
     });
-    
+
     // PATCH /config
     api.patch("/config", [store] APPLICATION(req, res) {
         try {

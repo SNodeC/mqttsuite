@@ -57,6 +57,7 @@ namespace mqtt::lib {
         JsonMappingReader() = delete;
 
         static nlohmann::json& readMappingFromFile(const std::string& mapFilePath);
+        static void invalidate(const std::string& mapFilePath);
 
     private:
         static nlohmann::json mappingJsonSchema;
