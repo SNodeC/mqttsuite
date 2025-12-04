@@ -29,11 +29,8 @@ function disconnectClient(clientId) {
         console.error("There was a problem with the fetch operation:", error)
         alert(error)
     }).finally(() => {
-        window.location.reload()
-        if (window.opener && !window.opener.closed) {
-            window.opener.location.reload()
-        } else {
-            // alert('Parent window is closed or not available.')
+        if (typeof hideSpinner === 'function') {
+            hideSpinner?.()
         }
     })
 }

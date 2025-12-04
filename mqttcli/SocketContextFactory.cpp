@@ -57,37 +57,37 @@
 
 #endif
 
-namespace mqtt::mqtt {
+namespace mqtt::mqttcli {
 
     core::socket::stream::SocketContext* SocketContextFactory::create(core::socket::stream::SocketConnection* socketConnection) {
-        const CLI::App* sessionApp = socketConnection->getConfig()->getSection("session", true, true);
-        const CLI::App* subApp = socketConnection->getConfig()->getSection("sub", true, true);
-        const CLI::App* pubApp = socketConnection->getConfig()->getSection("pub", true, true);
+        const CLI::App* sessionApp = socketConnection->getConfigInstance()->getSection("session", true, true);
+        const CLI::App* subApp = socketConnection->getConfigInstance()->getSection("sub", true, true);
+        const CLI::App* pubApp = socketConnection->getConfigInstance()->getSection("pub", true, true);
 
         subApp = (subApp != nullptr && (*subApp)["--topic"]->count() > 0) ? subApp : nullptr;
-        pubApp = (pubApp != nullptr && (*pubApp)["--topic"]->count() > 0) ? pubApp : nullptr;
+        pubApp = (pubApp != nullptr && (*pubApp)["--topic"]->count() > 0 && (*pubApp)["--message"]->count() > 0) ? pubApp : nullptr;
 
         core::socket::stream::SocketContext* socketContext = nullptr;
 
         if (subApp != nullptr || pubApp != nullptr) {
             socketContext = new iot::mqtt::SocketContext(
                 socketConnection,
-                new ::mqtt::mqtt::lib::Mqtt(socketConnection->getConnectionName(),
-                                            sessionApp != nullptr ? sessionApp->get_option("--client-id")->as<std::string>() : "",
-                                            sessionApp != nullptr ? sessionApp->get_option("--qos")->as<uint8_t>() : 0,
-                                            sessionApp != nullptr ? sessionApp->get_option("--keep-alive")->as<uint16_t>() : 60,
-                                            sessionApp != nullptr ? !sessionApp->get_option("--retain-session")->as<bool>() : true,
-                                            sessionApp != nullptr ? sessionApp->get_option("--will-topic")->as<std::string>() : "",
-                                            sessionApp != nullptr ? sessionApp->get_option("--will-message")->as<std::string>() : "",
-                                            sessionApp != nullptr ? sessionApp->get_option("--will-qos")->as<uint8_t>() : 0,
-                                            sessionApp != nullptr ? sessionApp->get_option("--will-retain")->as<bool>() : false,
-                                            sessionApp != nullptr ? sessionApp->get_option("--username")->as<std::string>() : "",
-                                            sessionApp != nullptr ? sessionApp->get_option("--password")->as<std::string>() : "",
-                                            subApp != nullptr ? subApp->get_option("--topic")->as<std::list<std::string>>()
-                                                              : std::list<std::string>(),
-                                            pubApp != nullptr ? pubApp->get_option("--topic")->as<std::string>() : "",
-                                            pubApp != nullptr ? pubApp->get_option("--message")->as<std::string>() : "",
-                                            pubApp != nullptr ? pubApp->get_option("--retain")->as<bool>() : false));
+                new ::mqtt::mqttcli::lib::Mqtt(socketConnection->getConnectionName(),
+                                               sessionApp != nullptr ? sessionApp->get_option("--client-id")->as<std::string>() : "",
+                                               sessionApp != nullptr ? sessionApp->get_option("--qos")->as<uint8_t>() : 0,
+                                               sessionApp != nullptr ? sessionApp->get_option("--keep-alive")->as<uint16_t>() : 60,
+                                               sessionApp != nullptr ? !sessionApp->get_option("--retain-session")->as<bool>() : true,
+                                               sessionApp != nullptr ? sessionApp->get_option("--will-topic")->as<std::string>() : "",
+                                               sessionApp != nullptr ? sessionApp->get_option("--will-message")->as<std::string>() : "",
+                                               sessionApp != nullptr ? sessionApp->get_option("--will-qos")->as<uint8_t>() : 0,
+                                               sessionApp != nullptr ? sessionApp->get_option("--will-retain")->as<bool>() : false,
+                                               sessionApp != nullptr ? sessionApp->get_option("--username")->as<std::string>() : "",
+                                               sessionApp != nullptr ? sessionApp->get_option("--password")->as<std::string>() : "",
+                                               subApp != nullptr ? subApp->get_option("--topic")->as<std::list<std::string>>()
+                                                                 : std::list<std::string>(),
+                                               pubApp != nullptr ? pubApp->get_option("--topic")->as<std::string>() : "",
+                                               pubApp != nullptr ? pubApp->get_option("--message")->as<std::string>() : "",
+                                               pubApp != nullptr ? pubApp->get_option("--retain")->as<bool>() : false));
         } else {
             VLOG(0) << "[" << Color::Code::FG_RED << "Error" << Color::Code::FG_DEFAULT << "] " << socketConnection->getConnectionName()
                     << ": one of 'sub' or 'pub' is required";
@@ -96,4 +96,4 @@ namespace mqtt::mqtt {
         return socketContext;
     }
 
-} // namespace mqtt::mqtt
+} // namespace mqtt::mqttcli

@@ -174,7 +174,7 @@ int main(int argc, char* argv[]) {
     bridgeApp->needs(bridgeApp->add_option("--definition", bridgeDefinitionFile, "MQTT bridge definition file (JSON format)")
                          ->capture_default_str()
                          ->group(bridgeApp->get_formatter()->get_label("Persistent Options"))
-                         ->type_name("[path]")
+                         ->type_name("path")
                          ->configurable()
                          ->required());
 
@@ -182,10 +182,21 @@ int main(int argc, char* argv[]) {
 
     if (mqtt::bridge::lib::BridgeStore::instance().loadAndValidate(bridgeDefinitionFile)) {
         for (const auto& [instanceName, broker] : mqtt::bridge::lib::BridgeStore::instance().getBrokers()) {
-            VLOG(1) << "  Creating Broker instance '" << instanceName << "' of Bridge '" << broker.getBridge().getName() << "'";
-            VLOG(1) << "    Broker client id: " << broker.getClientId();
+            VLOG(1) << "  Creating client instance: " << instanceName << "' of Bridge '" << broker.getBridge().getName() << "'";
             VLOG(1) << "    Broker prefix: " << broker.getPrefix();
+            VLOG(1) << "    Broker client id: " << broker.getClientId();
             VLOG(1) << "    Broker disabled: " << broker.getDisabled();
+            VLOG(1) << "    Broker address: " << broker.getAddress();
+            VLOG(1) << "    Broker prefix: " << broker.getPrefix();
+            VLOG(1) << "    Broker username: " << broker.getUsername();
+            VLOG(1) << "    Broker password: " << broker.getPassword();
+            VLOG(1) << "    Broker client-id: " << broker.getClientId();
+            VLOG(1) << "    Broker clean session: " << broker.getCleanSession();
+            VLOG(1) << "    Broker will-topic: " << broker.getWillTopic();
+            VLOG(1) << "    Broker will-message: " << broker.getWillMessage();
+            VLOG(1) << "    Broker will-qos: " << static_cast<int>(broker.getWillQoS());
+            VLOG(1) << "    Broker will-retain: " << broker.getWillRetain();
+            VLOG(1) << "    Broker loop prevention: " << broker.getLoopPrevention();
             VLOG(1) << "    Bridge disabled: " << broker.getBridge().getDisabled();
             VLOG(1) << "    Bridge prefix: " << broker.getBridge().getPrefix();
             VLOG(1) << "    Bridge Transport: " << broker.getTransport();

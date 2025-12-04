@@ -48,7 +48,7 @@
 
 #endif
 
-namespace mqtt::mqtt {
+namespace mqtt::mqttcli {
 
     class SocketContextFactory : public core::socket::stream::SocketContextFactory {
     public:
@@ -57,6 +57,6 @@ namespace mqtt::mqtt {
         core::socket::stream::SocketContext* create(core::socket::stream::SocketConnection* socketConnection) final;
     };
 
-} // namespace mqtt::mqtt
+} // namespace mqtt::mqttcli
 
 #endif // APPS_MQTTBROKER_MQTT_SOCKETCONTEXTFACTORY_H

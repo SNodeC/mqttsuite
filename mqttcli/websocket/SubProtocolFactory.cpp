@@ -56,7 +56,7 @@
 
 #endif
 
-namespace mqtt::mqtt::websocket {
+namespace mqtt::mqttcli::websocket {
 
 #define NAME "mqtt"
 
@@ -65,12 +65,12 @@ namespace mqtt::mqtt::websocket {
     }
 
     iot::mqtt::client::SubProtocol* SubProtocolFactory::create(web::websocket::SubProtocolContext* subProtocolContext) {
-        const CLI::App* sessionApp = subProtocolContext->getSocketConnection()->getConfig()->getSection("session", true, true);
-        const CLI::App* subApp = subProtocolContext->getSocketConnection()->getConfig()->getSection("sub", true, true);
-        const CLI::App* pubApp = subProtocolContext->getSocketConnection()->getConfig()->getSection("pub", true, true);
+        const CLI::App* sessionApp = subProtocolContext->getSocketConnection()->getConfigInstance()->getSection("session", true, true);
+        const CLI::App* subApp = subProtocolContext->getSocketConnection()->getConfigInstance()->getSection("sub", true, true);
+        const CLI::App* pubApp = subProtocolContext->getSocketConnection()->getConfigInstance()->getSection("pub", true, true);
 
         subApp = (subApp != nullptr && (*subApp)["--topic"]->count() > 0) ? subApp : nullptr;
-        pubApp = (pubApp != nullptr && (*pubApp)["--topic"]->count() > 0) ? pubApp : nullptr;
+        pubApp = (pubApp != nullptr && (*pubApp)["--topic"]->count() > 0 && (*pubApp)["--message"]->count() > 0) ? pubApp : nullptr;
 
         iot::mqtt::client::SubProtocol* subProtocol = nullptr;
 
@@ -78,22 +78,22 @@ namespace mqtt::mqtt::websocket {
             subProtocol = new iot::mqtt::client::SubProtocol(
                 subProtocolContext,
                 getName(),
-                new ::mqtt::mqtt::lib::Mqtt(subProtocolContext->getSocketConnection()->getConnectionName(),
-                                            sessionApp != nullptr ? sessionApp->get_option("--client-id")->as<std::string>() : "",
-                                            sessionApp != nullptr ? sessionApp->get_option("--qos")->as<uint8_t>() : 0,
-                                            sessionApp != nullptr ? sessionApp->get_option("--keep-alive")->as<uint16_t>() : 60,
-                                            sessionApp != nullptr ? !sessionApp->get_option("--retain-session")->as<bool>() : true,
-                                            sessionApp != nullptr ? sessionApp->get_option("--will-topic")->as<std::string>() : "",
-                                            sessionApp != nullptr ? sessionApp->get_option("--will-message")->as<std::string>() : "",
-                                            sessionApp != nullptr ? sessionApp->get_option("--will-qos")->as<uint8_t>() : 0,
-                                            sessionApp != nullptr ? sessionApp->get_option("--will-retain")->as<bool>() : false,
-                                            sessionApp != nullptr ? sessionApp->get_option("--username")->as<std::string>() : "",
-                                            sessionApp != nullptr ? sessionApp->get_option("--password")->as<std::string>() : "",
-                                            subApp != nullptr ? subApp->get_option("--topic")->as<std::list<std::string>>()
-                                                              : std::list<std::string>(),
-                                            pubApp != nullptr ? pubApp->get_option("--topic")->as<std::string>() : "",
-                                            pubApp != nullptr ? pubApp->get_option("--message")->as<std::string>() : "",
-                                            pubApp != nullptr ? pubApp->get_option("--retain")->as<bool>() : false));
+                new ::mqtt::mqttcli::lib::Mqtt(subProtocolContext->getSocketConnection()->getConnectionName(),
+                                               sessionApp != nullptr ? sessionApp->get_option("--client-id")->as<std::string>() : "",
+                                               sessionApp != nullptr ? sessionApp->get_option("--qos")->as<uint8_t>() : 0,
+                                               sessionApp != nullptr ? sessionApp->get_option("--keep-alive")->as<uint16_t>() : 60,
+                                               sessionApp != nullptr ? !sessionApp->get_option("--retain-session")->as<bool>() : true,
+                                               sessionApp != nullptr ? sessionApp->get_option("--will-topic")->as<std::string>() : "",
+                                               sessionApp != nullptr ? sessionApp->get_option("--will-message")->as<std::string>() : "",
+                                               sessionApp != nullptr ? sessionApp->get_option("--will-qos")->as<uint8_t>() : 0,
+                                               sessionApp != nullptr ? sessionApp->get_option("--will-retain")->as<bool>() : false,
+                                               sessionApp != nullptr ? sessionApp->get_option("--username")->as<std::string>() : "",
+                                               sessionApp != nullptr ? sessionApp->get_option("--password")->as<std::string>() : "",
+                                               subApp != nullptr ? subApp->get_option("--topic")->as<std::list<std::string>>()
+                                                                 : std::list<std::string>(),
+                                               pubApp != nullptr ? pubApp->get_option("--topic")->as<std::string>() : "",
+                                               pubApp != nullptr ? pubApp->get_option("--message")->as<std::string>() : "",
+                                               pubApp != nullptr ? pubApp->get_option("--retain")->as<bool>() : false));
         } else {
             VLOG(0) << "[" << Color::Code::FG_RED << "Error" << Color::Code::FG_DEFAULT << "] "
                     << subProtocolContext->getSocketConnection()->getConnectionName() << ": one of 'sub' or 'pub' is required";
@@ -102,8 +102,8 @@ namespace mqtt::mqtt::websocket {
         return subProtocol;
     }
 
-} // namespace mqtt::mqtt::websocket
+} // namespace mqtt::mqttcli::websocket
 
-extern "C" mqtt::mqtt::websocket::SubProtocolFactory* mqttClientSubProtocolFactory() {
-    return new mqtt::mqtt::websocket::SubProtocolFactory();
+extern "C" mqtt::mqttcli::websocket::SubProtocolFactory* mqttClientSubProtocolFactory() {
+    return new mqtt::mqttcli::websocket::SubProtocolFactory();
 }

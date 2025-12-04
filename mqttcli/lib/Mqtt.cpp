@@ -215,7 +215,7 @@ static const std::string formatAsLogString(const std::string& prefix, const std:
     return formatStr;
 }
 
-namespace mqtt::mqtt::lib {
+namespace mqtt::mqttcli::lib {
 
     Mqtt::Mqtt(const std::string& connectionName,
                const std::string& clientId,
@@ -383,4 +383,4 @@ namespace mqtt::mqtt::lib {
         }
     }
 
-} // namespace mqtt::mqtt::lib
+} // namespace mqtt::mqttcli::lib

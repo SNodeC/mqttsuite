@@ -69,7 +69,9 @@ function attach(tableSel, url) {
     const connectHandle = (ev) => {
         try {
             const arr = JSON.parse(ev.data);
-            if (Array.isArray(arr)) insertSorted(makeRow(arr));
+            if (Array.isArray(arr)) {
+                insertSorted(makeRow(arr));
+            }
         } catch (e) {
             console.error("Bad SSE payload:", e, ev.data);
         }
@@ -80,9 +82,11 @@ function attach(tableSel, url) {
             const parsed = JSON.parse(ev.data);
             needle = parsed.key ?? parsed.s ?? parsed; // pick your field name
         } catch (e) {
-            console.log("Not a JSON: ", e, ev.data);
         }
-        if (typeof needle !== "string" || !needle) return;
+        if (typeof needle !== "string" || !needle) {
+            return;
+        }
+        console.log("Needle is: " + needle);
         for (const tbody of table.tBodies) {
             for (const row of Array.from(tbody.rows)) {
                 const cell0 = row.cells[0];

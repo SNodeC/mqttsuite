@@ -42,6 +42,8 @@
 #include "SocketContextFactory.h" // IWYU pragma: keep
 #include "config.h"
 
+#include <web/http/http_utils.h>
+
 #ifdef LINK_SUBPROTOCOL_STATIC
 
 #include "websocket/SubProtocolFactory.h"
@@ -100,6 +102,21 @@ reportState(const std::string& instanceName, const core::socket::SocketAddress& 
     }
 }
 
+static void logResponse(const std::shared_ptr<web::http::client::Request>& req, const std::shared_ptr<web::http::client::Response>& res) {
+    VLOG(1) << req->getSocketContext()->getSocketConnection()->getConnectionName() << " HTTP response for: " << req->method << " "
+            << req->url << " HTTP/" << req->httpMajor << "." << req->httpMinor << "\n"
+            << httputils::toString(req->method,
+                                   req->url,
+                                   "HTTP/" + std::to_string(req->httpMajor) + "." + std::to_string(req->httpMinor),
+                                   req->getQueries(),
+                                   req->getHeaders(),
+                                   req->getTrailer(),
+                                   req->getCookies(),
+                                   {})
+            << "\n"
+            << httputils::toString(res->httpVersion, res->statusCode, res->reason, res->headers, res->cookies, res->body);
+}
+
 template <typename HttpClient>
 void startClient(const std::string& name, const std::function<void(typename HttpClient::Config&)>& configurator) {
     using SocketAddress = typename HttpClient::SocketAddress;
@@ -108,22 +125,42 @@ void startClient(const std::string& name, const std::function<void(typename Http
         name,
         [](const std::shared_ptr<web::http::client::MasterRequest>& req) {
             const std::string connectionName = req->getSocketContext()->getSocketConnection()->getConnectionName();
+            const std::string target = req->getSocketContext()
+                                           ->getSocketConnection()
+                                           ->getConfigInstance()
+                                           ->getSection("http")
+                                           ->get_option("--target")
+                                           ->as<std::string>();
 
             req->set("Sec-WebSocket-Protocol", "mqtt");
 
             req->upgrade(
-                "/ws",
+                target,
                 "websocket",
                 [connectionName](bool success) {
                     VLOG(1) << connectionName << ": HTTP Upgrade (http -> websocket||"
                             << "mqtt" << ") start " << (success ? "success" : "failed");
                 },
-                []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req,
-                   [[maybe_unused]] const std::shared_ptr<web::http::client::Response>& res,
-                   [[maybe_unused]] bool success) {
+                [connectionName](const std::shared_ptr<web::http::client::Request>& req,
+                                 const std::shared_ptr<web::http::client::Response>& res,
+                                 bool success) {
+                    logResponse(req, res);
+
+                    VLOG(1) << connectionName << ": HTTP Upgrade " << (success ? "success" : "failed");
                 },
                 [connectionName]([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req, const std::string& message) {
-                    VLOG(1) << connectionName << ": Request parse error: " << message;
+                    VLOG(1) << connectionName << ": Response parse error: " << message;
+                    VLOG(1) << "  Request was: " << req->method << " " << req->url << " HTTP/" << req->httpMajor << "." << req->httpMinor
+                            << "\n"
+                            << httputils::toString(req->method,
+                                                   req->url,
+                                                   "HTTP/" + std::to_string(req->httpMajor) + "." + std::to_string(req->httpMinor),
+                                                   req->getQueries(),
+                                                   req->getHeaders(),
+                                                   req->getTrailer(),
+                                                   req->getCookies(),
+                                                   {})
+                            << "\n";
                 });
         },
         []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req) {
@@ -144,17 +181,17 @@ static void createConfig(CLI::App* sessionApp, CLI::App* subApp, CLI::App* pubAp
 
     CLI::Option* clientIdOpt = sessionApp->add_option("--client-id", "MQTT Client-ID")
                                    ->group(sessionApp->get_formatter()->get_label("Persistent Options"))
-                                   ->type_name("[string]");
+                                   ->type_name("string");
 
     sessionApp->add_option("--qos", "Quality of service")
         ->group(sessionApp->get_formatter()->get_label("Persistent Options"))
-        ->type_name("[uint8_t]")
+        ->type_name("uint8_t")
         ->default_val(0)
         ->configurable();
 
     sessionApp->add_flag("--retain-session{true},-r{true}", "Clean session")
         ->group(sessionApp->get_formatter()->get_label("Persistent Options"))
-        ->type_name("[bool]")
+        ->type_name("bool")
         ->default_str("false")
         ->check(CLI::IsMember({"true", "false"}))
         ->configurable()
@@ -162,41 +199,41 @@ static void createConfig(CLI::App* sessionApp, CLI::App* subApp, CLI::App* pubAp
 
     sessionApp->add_option("--keep-alive", "Quality of service")
         ->group(sessionApp->get_formatter()->get_label("Persistent Options"))
-        ->type_name("[uint8_t]")
+        ->type_name("uint8_t")
         ->default_val(60)
         ->configurable();
 
     sessionApp->add_option("--will-topic", "MQTT will topic")
         ->group(sessionApp->get_formatter()->get_label("Persistent Options"))
-        ->type_name("[string]")
+        ->type_name("string")
         ->configurable();
 
     sessionApp->add_option("--will-message", "MQTT will message")
         ->group(sessionApp->get_formatter()->get_label("Persistent Options"))
-        ->type_name("[string]")
+        ->type_name("string")
         ->configurable();
 
     sessionApp->add_option("--will-qos", "MQTT will quality of service")
         ->group(sessionApp->get_formatter()->get_label("Persistent Options"))
-        ->type_name("[uint8_t]")
+        ->type_name("uint8_t")
         ->default_val(0)
         ->configurable();
 
     sessionApp->add_flag("--will-retain{true}", "MQTT will message retain")
         ->group(sessionApp->get_formatter()->get_label("Persistent Options"))
         ->default_str("false")
-        ->type_name("[bool]")
+        ->type_name("bool")
         ->check(CLI::IsMember({"true", "false"}))
         ->configurable();
 
     sessionApp->add_option("--username", "MQTT username")
         ->group(sessionApp->get_formatter()->get_label("Persistent Options"))
-        ->type_name("[string]")
+        ->type_name("string")
         ->configurable();
 
     sessionApp->add_option("--password", "MQTT password")
         ->group(sessionApp->get_formatter()->get_label("Persistent Options"))
-        ->type_name("[string]")
+        ->type_name("string")
         ->configurable();
 
     subApp->needs(subApp
@@ -205,13 +242,12 @@ static void createConfig(CLI::App* sessionApp, CLI::App* subApp, CLI::App* pubAp
                           [subApp](const std::string& value) {
                               if (value == "") {
                                   subApp->get_option("--topic")->required(false)->clear();
-                                  subApp->get_option("--topic")->default_str("<REQUIRED>");
                                   subApp->remove_needs(subApp->get_option("--topic"));
                               }
                           },
                           "List of topics subscribing to")
                       ->group(subApp->get_formatter()->get_label("Persistent Options"))
-                      ->type_name("[string list]")
+                      ->type_name("string list")
                       ->take_all()
                       ->required()
                       ->allow_extra_args()
@@ -223,17 +259,15 @@ static void createConfig(CLI::App* sessionApp, CLI::App* subApp, CLI::App* pubAp
                           [pubApp](const std::string& value) {
                               if (value == "") {
                                   pubApp->get_option("--topic")->required(false)->clear();
-                                  pubApp->get_option("--topic")->default_str("<REQUIRED>");
                                   pubApp->remove_needs(pubApp->get_option("--topic"));
 
                                   pubApp->get_option("--message")->required(false)->clear();
-                                  pubApp->get_option("--message")->default_str("<REQUIRED>");
                                   pubApp->remove_needs(pubApp->get_option("--message"));
                               }
                           },
                           "Topic publishing to")
                       ->group(pubApp->get_formatter()->get_label("Persistent Options"))
-                      ->type_name("[string]")
+                      ->type_name("string")
                       ->required()
                       ->configurable());
 
@@ -243,24 +277,22 @@ static void createConfig(CLI::App* sessionApp, CLI::App* subApp, CLI::App* pubAp
                           [pubApp](const std::string& value) {
                               if (value == "") {
                                   pubApp->get_option("--topic")->required(false)->clear();
-                                  pubApp->get_option("--topic")->default_str("<REQUIRED>");
                                   pubApp->remove_needs(pubApp->get_option("--topic"));
 
                                   pubApp->get_option("--message")->required(false)->clear();
-                                  pubApp->get_option("--message")->default_str("<REQUIRED>");
                                   pubApp->remove_needs(pubApp->get_option("--message"));
                               }
                           },
                           "Message to publish")
                       ->group(pubApp->get_formatter()->get_label("Persistent Options"))
-                      ->type_name("[string]")
+                      ->type_name("string")
                       ->required()
                       ->configurable());
 
     pubApp->add_flag("--retain{true},-r{true}", "Retain message")
         ->group(pubApp->get_formatter()->get_label("Persistent Options"))
         ->default_str("false")
-        ->type_name("[bool]")
+        ->type_name("bool")
         ->check(CLI::IsMember({"true", "false"}))
         ->configurable();
 }
@@ -294,8 +326,17 @@ static void createConfig(net::config::ConfigInstance& config) {
             }
         }
     });
+}
 
-    std::vector<std::string> a = {"asdf", "asf"};
+static void createWSConfig(net::config::ConfigInstance& config) {
+    createConfig(config);
+
+    CLI::App* http = config.getSection("http");
+    http->add_option("--target", "Websocket endpoint")
+        ->group(http->get_formatter()->get_label("Persistent Options"))
+        ->type_name("string")
+        ->default_str("/ws")
+        ->configurable();
 }
 
 int main(int argc, char* argv[]) {
@@ -312,14 +353,14 @@ int main(int argc, char* argv[]) {
     utils::Config::app->get_formatter()->label("SUBCOMMAND", "APPLICATION | CONNECTION | INSTANCE");
     utils::Config::app->get_formatter()->label("SUBCOMMANDS", "APPLICATION | CONNECTION | INSTANCES");
 
-    createConfig(utils::Config::addInstance("session", "MQTT session behavior", "Connection"),
-                 utils::Config::addInstance("sub", "Configuration for application mqttsub", "Applications"),
-                 utils::Config::addInstance("pub", "Configuration for application mqttpub", "Applications"));
+    createConfig(utils::Config::addInstance("session", "MQTT session behavior", "Connection", true),
+                 utils::Config::addInstance("sub", "Configuration for application mqttsub", "Applications", true),
+                 utils::Config::addInstance("pub", "Configuration for application mqttpub", "Applications", true));
 
     // Start of application
 
 #if defined(CONFIG_MQTTSUITE_CLI_TCP_IPV4)
-    net::in::stream::legacy::Client<mqtt::mqtt::SocketContextFactory>("in-mqtt", [](auto& config) {
+    net::in::stream::legacy::Client<mqtt::mqttcli::SocketContextFactory>("in-mqtt", [](auto& config) {
         config.Remote::setPort(1883);
 
         config.setRetry();
@@ -333,7 +374,7 @@ int main(int argc, char* argv[]) {
 #endif
 
 #if defined(CONFIG_MQTTSUITE_CLI_TLS_IPV4)
-    net::in::stream::tls::Client<mqtt::mqtt::SocketContextFactory>("in-mqtts", [](auto& config) {
+    net::in::stream::tls::Client<mqtt::mqttcli::SocketContextFactory>("in-mqtts", [](auto& config) {
         config.Remote::setPort(1883);
 
         config.setRetry();
@@ -348,7 +389,7 @@ int main(int argc, char* argv[]) {
 #endif
 
 #if defined(CONFIG_MQTTSUITE_CLI_TCP_IPV6)
-    net::in6::stream::legacy::Client<mqtt::mqtt::SocketContextFactory>("in6-mqtt", [](auto& config) {
+    net::in6::stream::legacy::Client<mqtt::mqttcli::SocketContextFactory>("in6-mqtt", [](auto& config) {
         config.Remote::setPort(1883);
 
         config.setRetry();
@@ -363,7 +404,7 @@ int main(int argc, char* argv[]) {
 #endif
 
 #if defined(CONFIG_MQTTSUITE_CLI_TLS_IPV6)
-    net::in6::stream::tls::Client<mqtt::mqtt::SocketContextFactory>("in6-mqtts", [](auto& config) {
+    net::in6::stream::tls::Client<mqtt::mqttcli::SocketContextFactory>("in6-mqtts", [](auto& config) {
         config.Remote::setPort(1883);
 
         config.setRetry();
@@ -378,7 +419,7 @@ int main(int argc, char* argv[]) {
 #endif
 
 #if defined(CONFIG_MQTTSUITE_CLI_UNIX)
-    net::un::stream::legacy::Client<mqtt::mqtt::SocketContextFactory>("un-mqtt", [](auto& config) {
+    net::un::stream::legacy::Client<mqtt::mqttcli::SocketContextFactory>("un-mqtt", [](auto& config) {
         config.Remote::setSunPath("/var/mqttbroker-un-mqtt");
 
         config.setRetry();
@@ -392,7 +433,7 @@ int main(int argc, char* argv[]) {
 #endif
 
 #if defined(CONFIG_MQTTSUITE_CLI_UNIX_TLS)
-    net::un::stream::tls::Client<mqtt::mqtt::SocketContextFactory>("un-mqtts", [](auto& config) {
+    net::un::stream::tls::Client<mqtt::mqttcli::SocketContextFactory>("un-mqtts", [](auto& config) {
         config.Remote::setSunPath("/var/mqttbroker-un-mqtts");
 
         config.setRetry();
@@ -414,7 +455,7 @@ int main(int argc, char* argv[]) {
         config.setDisableNagleAlgorithm();
         config.setDisabled();
 
-        createConfig(config);
+        createWSConfig(config);
     });
 #endif
 
@@ -427,7 +468,7 @@ int main(int argc, char* argv[]) {
         config.setDisableNagleAlgorithm();
         config.setDisabled();
 
-        createConfig(config);
+        createWSConfig(config);
     });
 #endif
 
@@ -440,7 +481,7 @@ int main(int argc, char* argv[]) {
         config.setDisableNagleAlgorithm();
         config.setDisabled();
 
-        createConfig(config);
+        createWSConfig(config);
     });
 #endif
 
@@ -454,7 +495,7 @@ int main(int argc, char* argv[]) {
         config.setDisableNagleAlgorithm();
         config.setDisabled();
 
-        createConfig(config);
+        createWSConfig(config);
     });
 #endif
 
@@ -465,7 +506,7 @@ int main(int argc, char* argv[]) {
         config.setReconnect();
         config.setDisabled();
 
-        createConfig(config);
+        createWSConfig(config);
     });
 #endif
 
@@ -476,7 +517,7 @@ int main(int argc, char* argv[]) {
         config.setReconnect();
         config.setDisabled();
 
-        createConfig(config);
+        createWSConfig(config);
     });
 #endif
 
