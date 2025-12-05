@@ -81,8 +81,7 @@ function attach(tableSel, url) {
         try {
             const parsed = JSON.parse(ev.data);
             needle = parsed.key ?? parsed.s ?? parsed; // pick your field name
-        } catch (e) {
-        }
+        } catch (e) {}
         if (typeof needle !== "string" || !needle) {
             return;
         }
