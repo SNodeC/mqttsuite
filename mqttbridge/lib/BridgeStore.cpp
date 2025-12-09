@@ -112,10 +112,13 @@ namespace mqtt::bridge::lib {
                                                 const nlohmann::json& mqtt = brokerConfigJson["mqtt"];
                                                 const nlohmann::json& network = brokerConfigJson["network"];
 
-                                                brokers.emplace(network["instance_name"],
+                                                const std::string fullInstanceName =
+                                                    bridge.getName() + "+" + network["instance_name"].get<std::string>();
+
+                                                brokers.emplace(fullInstanceName,
                                                                 Broker(bridge,
                                                                        brokerConfigJson["session_store"],
-                                                                       network["instance_name"],
+                                                                       fullInstanceName,
                                                                        network["protocol"],
                                                                        network["encryption"],
                                                                        network["transport"],

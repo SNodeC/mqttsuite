@@ -41,12 +41,18 @@
 
 #include "SocketContextFactory.h"
 
+#include "lib/Bridge.h"
+#include "lib/Broker.h"
 #include "lib/Mqtt.h"
 
 #include <core/socket/stream/SocketConnection.h>
 #include <iot/mqtt/SocketContext.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
+
+#include <cstdint>
+#include <list>
+#include <log/Logger.h>
 
 #endif
 
@@ -57,6 +63,18 @@ namespace mqtt::bridge {
     }
 
     core::socket::stream::SocketContext* SocketContextFactory::create(core::socket::stream::SocketConnection* socketConnection) {
+        VLOG(1) << "  Creating Broker instance '" << broker.getName() << "' of Bridge '" << broker.getBridge().getName() << "'";
+        VLOG(1) << "    Bridge client id : " << broker.getClientId();
+        VLOG(1) << "    Transport: " << broker.getTransport();
+        VLOG(1) << "    Protocol: " << broker.getProtocol();
+        VLOG(1) << "    Encryption: " << broker.getEncryption();
+
+        VLOG(1) << "    Topics:";
+        const std::list<iot::mqtt::Topic>& topics = broker.getTopics();
+        for (const iot::mqtt::Topic& topic : topics) {
+            VLOG(1) << "      " << static_cast<uint16_t>(topic.getQoS()) << ":" << topic.getName();
+        }
+
         return new iot::mqtt::SocketContext(socketConnection, new mqtt::bridge::lib::Mqtt(socketConnection->getConnectionName(), broker));
     }
 

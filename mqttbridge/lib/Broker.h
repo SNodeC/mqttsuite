@@ -101,7 +101,7 @@ namespace mqtt::bridge::lib {
         const std::string& getPassword() const;
         bool getLoopPrevention() const;
 
-        const std::string& getInstanceName() const;
+        const std::string& getName() const;
         const std::string& getProtocol() const;
         const std::string& getEncryption() const;
         const std::string& getTransport() const;

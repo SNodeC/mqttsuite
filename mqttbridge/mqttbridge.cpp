@@ -108,7 +108,7 @@ static std::map<std::string, std::map<std::string, core::socket::stream::SocketC
 static void addBridgeBrokerConnection(const mqtt::bridge::lib::Broker& broker, core::socket::stream::SocketConnection* socketConnection) {
     const std::string& bridgeName(broker.getBridge().getName());
 
-    VLOG(1) << "Add bridge broker: " << bridgeName << "::" << socketConnection->getInstanceName();
+    VLOG(1) << "Add bridge broker: " << socketConnection->getInstanceName();
 
     bridges[bridgeName][socketConnection->getInstanceName()] = socketConnection;
 }
@@ -116,7 +116,7 @@ static void addBridgeBrokerConnection(const mqtt::bridge::lib::Broker& broker, c
 static void delBridgeBrokerConnection(const mqtt::bridge::lib::Broker& broker, core::socket::stream::SocketConnection* socketConnection) {
     const std::string& bridgeName(broker.getBridge().getName());
 
-    VLOG(1) << "Del bridge broker: " << bridgeName << "::" << socketConnection->getInstanceName();
+    VLOG(1) << "Del bridge broker: " << socketConnection->getInstanceName();
 
     if (bridges.contains(bridgeName) && bridges[bridgeName].contains(socketConnection->getInstanceName())) {
         bridges[bridgeName].erase(socketConnection->getInstanceName());
@@ -129,7 +129,7 @@ static void delBridgeBrokerConnection(const mqtt::bridge::lib::Broker& broker, c
 [[maybe_unused]] static void closeBridgeBrokerConnection(const mqtt::bridge::lib::Broker& broker, const std::string& instanceName) {
     const std::string& bridgeName(broker.getBridge().getName());
 
-    VLOG(1) << "Force close bridge broker: " << bridgeName << "::" << instanceName;
+    VLOG(1) << "Force close bridge broker: " << instanceName;
 
     if (bridges.contains(bridgeName) && bridges[bridgeName].contains(instanceName)) {
         bridges[bridgeName][instanceName]->getSocketContext()->shutdownWrite();
@@ -223,8 +223,8 @@ int main(int argc, char* argv[]) {
     core::SNodeC::init(argc, argv);
 
     if (mqtt::bridge::lib::BridgeStore::instance().loadAndValidate(bridgeDefinitionFile)) {
-        for (const auto& [instanceName, broker] : mqtt::bridge::lib::BridgeStore::instance().getBrokers()) {
-            VLOG(1) << "  Creating client instance: " << instanceName << "' of Bridge '" << broker.getBridge().getName() << "'";
+        for (const auto& [fullInstanceName, broker] : mqtt::bridge::lib::BridgeStore::instance().getBrokers()) {
+            VLOG(1) << "  Creating broker instance: " << fullInstanceName;
             VLOG(1) << "    Broker prefix: " << broker.getPrefix();
             VLOG(1) << "    Broker client id: " << broker.getClientId();
             VLOG(1) << "    Broker disabled: " << broker.getDisabled();
@@ -260,7 +260,7 @@ int main(int argc, char* argv[]) {
                     if (encryption == "legacy") {
 #if defined(CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4)
                         net::in::stream::legacy::Client<mqtt::bridge::SocketContextFactory>(
-                            instanceName,
+                            fullInstanceName,
                             [&broker](auto& config) {
                                 config.setRetry();
                                 config.setRetryBase(1);
@@ -279,8 +279,8 @@ int main(int argc, char* argv[]) {
                             .setOnDisconnect([&broker](core::socket::stream::SocketConnection* socketConnection) {
                                 delBridgeBrokerConnection(broker, socketConnection);
                             })
-                            .connect([instanceName](const auto& socketAddress, const core::socket::State& state) {
-                                reportState(instanceName, socketAddress, state);
+                            .connect([&broker, fullInstanceName](const auto& socketAddress, const core::socket::State& state) {
+                                reportState(broker.getBridge().getName() + "+" + fullInstanceName, socketAddress, state);
                             });
 #else  // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4
                         VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
@@ -289,7 +289,7 @@ int main(int argc, char* argv[]) {
                     } else if (encryption == "tls") {
 #if defined(CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4)
                         net::in::stream::tls::Client<mqtt::bridge::SocketContextFactory>(
-                            instanceName,
+                            fullInstanceName,
                             [&broker](auto& config) {
                                 config.setRetry();
                                 config.setRetryBase(1);
@@ -308,8 +308,8 @@ int main(int argc, char* argv[]) {
                             .setOnDisconnect([&broker](core::socket::stream::SocketConnection* socketConnection) {
                                 delBridgeBrokerConnection(broker, socketConnection);
                             })
-                            .connect([instanceName](const auto& socketAddress, const core::socket::State& state) {
-                                reportState(instanceName, socketAddress, state);
+                            .connect([fullInstanceName](const auto& socketAddress, const core::socket::State& state) {
+                                reportState(fullInstanceName, socketAddress, state);
                             });
 #else  // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4
                         VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
@@ -320,7 +320,7 @@ int main(int argc, char* argv[]) {
                     if (encryption == "legacy") {
 #if defined(CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6)
                         net::in6::stream::legacy::Client<mqtt::bridge::SocketContextFactory>(
-                            instanceName,
+                            fullInstanceName,
                             [&broker](auto& config) {
                                 config.setRetry();
                                 config.setRetryBase(1);
@@ -339,8 +339,8 @@ int main(int argc, char* argv[]) {
                             .setOnDisconnect([&broker](core::socket::stream::SocketConnection* socketConnection) {
                                 delBridgeBrokerConnection(broker, socketConnection);
                             })
-                            .connect([instanceName](const auto& socketAddress, const core::socket::State& state) {
-                                reportState(instanceName, socketAddress, state);
+                            .connect([fullInstanceName](const auto& socketAddress, const core::socket::State& state) {
+                                reportState(fullInstanceName, socketAddress, state);
                             });
 #else  // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6
                         VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
@@ -349,7 +349,7 @@ int main(int argc, char* argv[]) {
                     } else if (encryption == "tls") {
 #if defined(CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6)
                         net::in6::stream::tls::Client<mqtt::bridge::SocketContextFactory>(
-                            instanceName,
+                            fullInstanceName,
                             [&broker](auto& config) {
                                 config.setRetry();
                                 config.setRetryBase(1);
@@ -368,8 +368,8 @@ int main(int argc, char* argv[]) {
                             .setOnDisconnect([&broker](core::socket::stream::SocketConnection* socketConnection) {
                                 delBridgeBrokerConnection(broker, socketConnection);
                             })
-                            .connect([instanceName](const auto& socketAddress, const core::socket::State& state) {
-                                reportState(instanceName, socketAddress, state);
+                            .connect([fullInstanceName](const auto& socketAddress, const core::socket::State& state) {
+                                reportState(fullInstanceName, socketAddress, state);
                             });
 #else  // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6
                         VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
@@ -380,7 +380,7 @@ int main(int argc, char* argv[]) {
                     if (encryption == "legacy") {
 #if defined(CONFIG_MQTTSUITE_BRIDGE_UNIX)
                         net::un::stream::legacy::Client<mqtt::bridge::SocketContextFactory>(
-                            instanceName,
+                            fullInstanceName,
                             [&broker](auto& config) {
                                 config.setRetry();
                                 config.setRetryBase(1);
@@ -397,8 +397,8 @@ int main(int argc, char* argv[]) {
                             .setOnDisconnect([&broker](core::socket::stream::SocketConnection* socketConnection) {
                                 delBridgeBrokerConnection(broker, socketConnection);
                             })
-                            .connect([instanceName](const auto& socketAddress, const core::socket::State& state) {
-                                reportState(instanceName, socketAddress, state);
+                            .connect([fullInstanceName](const auto& socketAddress, const core::socket::State& state) {
+                                reportState(fullInstanceName, socketAddress, state);
                             });
 #else  // CONFIG_MQTTSUITE_BRIDGE_UNIX
                         VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
@@ -407,7 +407,7 @@ int main(int argc, char* argv[]) {
                     } else if (encryption == "tls") {
 #if defined(CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS)
                         net::un::stream::tls::Client<mqtt::bridge::SocketContextFactory>(
-                            instanceName,
+                            fullInstanceName,
                             [&broker](auto& config) {
                                 config.setRetry();
                                 config.setRetryBase(1);
@@ -424,8 +424,8 @@ int main(int argc, char* argv[]) {
                             .setOnDisconnect([&broker](core::socket::stream::SocketConnection* socketConnection) {
                                 delBridgeBrokerConnection(broker, socketConnection);
                             })
-                            .connect([instanceName](const auto& socketAddress, const core::socket::State& state) {
-                                reportState(instanceName, socketAddress, state);
+                            .connect([fullInstanceName](const auto& socketAddress, const core::socket::State& state) {
+                                reportState(fullInstanceName, socketAddress, state);
                             });
 #else  // CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS
                         VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
@@ -437,7 +437,7 @@ int main(int argc, char* argv[]) {
                 if (protocol == "in") {
                     if (encryption == "legacy") {
 #if defined(CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4) && defined(CONFIG_MQTTSUITE_BRIDGE_WS)
-                        startClient<web::http::legacy::in::Client>(broker.getInstanceName(), broker, [&broker](auto& config) {
+                        startClient<web::http::legacy::in::Client>(fullInstanceName, broker, [&broker](auto& config) {
                             config.Remote::setPort(8080);
 
                             config.setRetry();
@@ -456,7 +456,7 @@ int main(int argc, char* argv[]) {
 #endif // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4 && CONFIG_MQTTSUITE_BRIDGE_WS
                     } else if (encryption == "tls") {
 #if defined(CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4) && defined(CONFIG_MQTTSUITE_BRIDGE_WSS)
-                        startClient<web::http::tls::in::Client>(broker.getInstanceName(), broker, [&broker](auto& config) {
+                        startClient<web::http::tls::in::Client>(fullInstanceName, broker, [&broker](auto& config) {
                             config.Remote::setPort(8088);
 
                             config.setRetry();
@@ -477,7 +477,7 @@ int main(int argc, char* argv[]) {
                 } else if (protocol == "in6") {
                     if (encryption == "legacy") {
 #if defined(CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6) && defined(CONFIG_MQTTSUITE_BRIDGE_WS)
-                        startClient<web::http::legacy::in6::Client>(broker.getInstanceName(), broker, [&broker](auto& config) {
+                        startClient<web::http::legacy::in6::Client>(fullInstanceName, broker, [&broker](auto& config) {
                             config.Remote::setPort(8080);
 
                             config.setRetry();
@@ -496,7 +496,7 @@ int main(int argc, char* argv[]) {
 #endif // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6&&  CONFIG_MQTTSUITE_BRIDGE_WS
                     } else if (encryption == "tls") {
 #if defined(CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6) && defined(CONFIG_MQTTSUITE_BRIDGE_WSS)
-                        startClient<web::http::tls::in6::Client>(broker.getInstanceName(), broker, [&broker](auto& config) {
+                        startClient<web::http::tls::in6::Client>(fullInstanceName, broker, [&broker](auto& config) {
                             config.Remote::setPort(8088);
 
                             config.setRetry();
@@ -517,7 +517,7 @@ int main(int argc, char* argv[]) {
                 } else if (protocol == "un") {
                     if (encryption == "legacy") {
 #if defined(CONFIG_MQTTSUITE_BRIDGE_UNIX) && defined(CONFIG_MQTTSUITE_BRIDGE_WS)
-                        startClient<web::http::legacy::un::Client>(broker.getInstanceName(), broker, [&broker](auto& config) {
+                        startClient<web::http::legacy::un::Client>(fullInstanceName, broker, [&broker](auto& config) {
                             config.setRetry();
                             config.setRetryBase(1);
                             config.setReconnect();
@@ -532,7 +532,7 @@ int main(int argc, char* argv[]) {
 #endif // CONFIG_MQTTSUITE_BRIDGE_UNIX &&  CONFIG_MQTTSUITE_BRIDGE_WS
                     } else if (encryption == "tls") {
 #if defined(CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS) && defined(CONFIG_MQTTSUITE_BRIDGE_WSS)
-                        startClient<web::http::tls::un::Client>(broker.getInstanceName(), broker, [&broker](auto& config) {
+                        startClient<web::http::tls::un::Client>(fullInstanceName, broker, [&broker](auto& config) {
                             config.setRetry();
                             config.setRetryBase(1);
                             config.setReconnect();
