@@ -39,7 +39,8 @@
 
 function(make_includable INPUT_FILE OUTPUT_FILE VAR_NAME)
     file(READ ${INPUT_FILE} CONTENT)
-    string(REGEX REPLACE "[ \t\r\n]" "" CONTENT "${CONTENT}")
+    string(REGEX REPLACE "(^|[\r\n])[ \t]+" "\\1" CONTENT "${CONTENT}")
+    string(REGEX REPLACE "[ \t]*\r?\n" "" CONTENT "${CONTENT}")
     set(CONTENT "const std::string ${VAR_NAME} = R\"JSON(${CONTENT})JSON\";\n")
     file(WRITE ${OUTPUT_FILE} "${CONTENT}")
 endfunction(make_includable)
