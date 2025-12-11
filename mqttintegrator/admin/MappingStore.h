@@ -7,13 +7,13 @@
 class MappingStore {
 public:
   explicit MappingStore(std::string path);
-  
+
   nlohmann::json load();
   void save(const nlohmann::json& j);
 
   /**
    * @brief Atomically loads, modifies, and saves the configuration.
-   * 
+   *
    * @param modifier A function that takes the current JSON state and modifies it in-place.
    *                 If this function throws, the file is not updated.
    */

@@ -7,8 +7,12 @@
 #include "lib/JsonMappingReader.h"
 #include "lib/Mqtt.h"
 
+#include <exception>
 #include <iostream>
+#include <nlohmann/detail/json_ref.hpp>
 #include <nlohmann/json.hpp>
+#include <vector>
+
 using nlohmann::json;
 
 express::Router makeAdminRouter(std::shared_ptr<MappingStore> store, const AdminOptions& opt) {

@@ -1,6 +1,6 @@
 #pragma once
 #include "express/Router.h"
-#include <memory>
+#include <string>
 
 class MappingStore;
 
