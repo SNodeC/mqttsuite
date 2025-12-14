@@ -50,6 +50,9 @@
 #if __has_warning("-Wcovered-switch-default")
 #pragma GCC diagnostic ignored "-Wcovered-switch-default"
 #endif
+#if __has_warning("-Wnrvo")
+#pragma GCC diagnostic ignored "-Wnrvo"
+#endif
 #endif
 #endif
 #include "lib/inja.hpp"
@@ -317,7 +320,7 @@ static std::string urlDecode(const std::string& encoded) {
 static express::Router getRouter(const inja::Environment& environment, std::shared_ptr<iot::mqtt::server::broker::Broker> broker) {
     const express::Router& jsonRouter = express::middleware::JsonMiddleware();
 
-    jsonRouter.post("/disconnect", [] APPLICATION(req, res) {
+    jsonRouter.post("/disconnect", [] APPLICATION(req, res) { // cppcheck-suppress unknownMacro
         VLOG(1) << "POST /disconnect";
 
         req->getAttribute<nlohmann::json>(
