@@ -50,14 +50,12 @@
 #include <core/socket/stream/SocketConnection.h>
 #include <express/Response.h>
 #include <iot/mqtt/MqttContext.h>
-#include <iot/mqtt/packets/Publish.h>
+// #include <iot/mqtt/packets/Publish.h>
 #include <nlohmann/json.hpp>
 #include <nlohmann/json_fwd.hpp>
 #include <web/http/server/SocketContext.h>
 
 // IWYU pragma: no_include <nlohmann/detail/json_ref.hpp>
-
-//
 
 #include <ctime>
 #include <functional>
@@ -181,8 +179,12 @@ namespace mqtt::mqttbroker::lib {
         }
     }
 
-    void MqttModel::publish(const iot::mqtt::packets::Publish& publish) {
-        sendEvent(publish.getTopic() + " : " + publish.getMessage(), "publish", std::to_string(id++));
+    void MqttModel::publish([[maybe_unused]] const iot::mqtt::packets::Publish& publish) {
+        /*
+        if (publish.getRetain()) {
+            sendEvent(publish.getTopic() + " : " + publish.getMessage(), "retain", std::to_string(id++));
+        }
+        */
     }
 
     MqttModel::MqttModelEntry::MqttModelEntry(const Mqtt* mqtt)
