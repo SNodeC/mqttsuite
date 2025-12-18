@@ -45,7 +45,9 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include <chrono>
 #include <exception>
+#include <filesystem>
 #include <fstream>
 #include <log/Logger.h>
 #include <nlohmann/json.hpp>
@@ -53,6 +55,8 @@
 #endif
 
 namespace mqtt::lib {
+
+    namespace fs = std::filesystem;
 
 #include "mapping-schema.json.h" // definition of mappingJsonSchemaString
 
@@ -115,6 +119,73 @@ namespace mqtt::lib {
     void JsonMappingReader::invalidate(const std::string& mapFilePath) {
         if (mapFileJsons.contains(mapFilePath)) {
             mapFileJsons.erase(mapFilePath);
+        }
+    }
+
+    const nlohmann::json& JsonMappingReader::getSchema() {
+        return mappingJsonSchema;
+    }
+
+    std::string JsonMappingReader::getDraftPath(const std::string& mapFilePath) {
+        return mapFilePath + ".draft";
+    }
+
+    void JsonMappingReader::saveDraft(const std::string& mapFilePath, const nlohmann::json& content) {
+        std::ofstream out(getDraftPath(mapFilePath), std::ios::trunc);
+        if (!out) {
+            throw std::runtime_error("Cannot open draft file for writing: " + getDraftPath(mapFilePath));
+        }
+        out << content.dump(4) << std::endl;
+    }
+
+    nlohmann::json JsonMappingReader::readDraftOrActive(const std::string& mapFilePath) {
+        std::string draftPath = getDraftPath(mapFilePath);
+        if (fs::exists(draftPath)) {
+            std::ifstream f(draftPath);
+            if (f) {
+                nlohmann::json j;
+                f >> j;
+                return j;
+            }
+        }
+        // Fallback to active file
+        std::ifstream f(mapFilePath);
+        if (!f) throw std::runtime_error("Cannot open mapping file: " + mapFilePath);
+        nlohmann::json j;
+        f >> j;
+        return j;
+    }
+
+    void JsonMappingReader::deployDraft(const std::string& mapFilePath) {
+        std::string draftPath = getDraftPath(mapFilePath);
+        if (!fs::exists(draftPath)) return;
+
+        // Backup current active file
+        if (fs::exists(mapFilePath)) {
+            fs::path versionDir = fs::path(mapFilePath).parent_path() / "versions";
+            if (!fs::exists(versionDir)) {
+                fs::create_directories(versionDir);
+            }
+
+            auto now = std::chrono::system_clock::now();
+            auto timestamp = std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count();
+            std::string filename = fs::path(mapFilePath).filename().string();
+            std::string backupPath = versionDir / (filename + "." + std::to_string(timestamp));
+            
+            fs::copy_file(mapFilePath, backupPath, fs::copy_options::overwrite_existing);
+        }
+
+        // Promote draft to active
+        fs::rename(draftPath, mapFilePath);
+        
+        // Invalidate cache so next readMappingFromFile reloads it
+        invalidate(mapFilePath);
+    }
+
+    void JsonMappingReader::discardDraft(const std::string& mapFilePath) {
+        std::string draftPath = getDraftPath(mapFilePath);
+        if (fs::exists(draftPath)) {
+            fs::remove(draftPath);
         }
     }
 

@@ -175,6 +175,4 @@ target_link_libraries(
 install(TARGETS mqttintegrator RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 target_sources(mqttintegrator PRIVATE
-  admin/AdminRouter.cpp
-  admin/MappingStore.cpp
 )
