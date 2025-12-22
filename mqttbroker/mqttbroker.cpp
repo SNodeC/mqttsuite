@@ -358,7 +358,7 @@ static express::Router getRouter(const inja::Environment& environment, std::shar
                 std::string clientId = json["client_id"].get<std::string>();
                 std::string topic = json["topic"].get<std::string>();
 
-                const mqtt::mqttbroker::lib::Mqtt* mqtt = mqtt::mqttbroker::lib::MqttModel::instance().getMqtt(clientId);
+                mqtt::mqttbroker::lib::Mqtt* mqtt = mqtt::mqttbroker::lib::MqttModel::instance().getMqtt(clientId);
 
                 if (mqtt != nullptr) {
                     mqtt->unsubscribe(topic);
@@ -409,7 +409,7 @@ static express::Router getRouter(const inja::Environment& environment, std::shar
                 std::string topic = json["topic"].get<std::string>();
                 uint8_t qoS = json["qos"].get<uint8_t>();
 
-                const mqtt::mqttbroker::lib::Mqtt* mqtt = mqtt::mqttbroker::lib::MqttModel::instance().getMqtt(clientId);
+                mqtt::mqttbroker::lib::Mqtt* mqtt = mqtt::mqttbroker::lib::MqttModel::instance().getMqtt(clientId);
 
                 if (mqtt != nullptr) {
                     mqtt->subscribe(topic, qoS);

@@ -62,6 +62,7 @@ namespace iot::mqtt::packets {
 #include <list>
 #include <map>
 #include <memory>
+#include <nlohmann/json_fwd.hpp>
 #include <string>
 
 #endif
@@ -72,19 +73,19 @@ namespace mqtt::mqttbroker::lib {
     private:
         class MqttModelEntry {
         public:
-            MqttModelEntry(const Mqtt* mqtt);
+            MqttModelEntry(Mqtt* mqtt);
 
             ~MqttModelEntry();
 
             MqttModelEntry(MqttModelEntry&&) noexcept = default;
 
-            const Mqtt* getMqtt() const;
+            Mqtt* getMqtt();
 
             std::string onlineSince() const;
             std::string onlineDuration() const;
 
         private:
-            const Mqtt* mqtt = nullptr;
+            Mqtt* mqtt = nullptr;
         };
 
         class EventReceiver {
@@ -106,12 +107,14 @@ namespace mqtt::mqttbroker::lib {
     public:
         static MqttModel& instance();
 
-        void addClient(const std::string& clientId, Mqtt* mqtt);
-        void delClient(const std::string& clientId);
+        void connectClient(const std::string& clientId, Mqtt* mqtt);
+        void disconnectClient(const std::string& clientId);
+        void subscribeClient(const std::string& clientId, const std::string& topic, const uint8_t qos);
+        void unsubscribeClient(const std::string& clientId, const std::string& topic);
 
         std::map<std::string, MqttModelEntry>& getClients();
 
-        const Mqtt* getMqtt(const std::string& clientId);
+        Mqtt* getMqtt(const std::string& clientId);
 
         std::string onlineSince();
         std::string onlineDuration();
@@ -122,6 +125,7 @@ namespace mqtt::mqttbroker::lib {
 
     private:
         void sendEvent(const std::string& data, const std::string& event = "", const std::string& id = "");
+        void sendEvent(const nlohmann::json& json, const std::string& event = "", const std::string& id = "");
 
         static std::string timePointToString(const std::chrono::time_point<std::chrono::system_clock>& timePoint);
         static std::string

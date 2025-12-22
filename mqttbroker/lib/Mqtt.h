@@ -68,10 +68,15 @@ namespace mqtt::mqttbroker::lib {
                       const std::shared_ptr<iot::mqtt::server::broker::Broker>& broker,
                       const nlohmann::json& mappingJson);
 
+        void subscribe(const std::string& topic, uint8_t qoS);
+        void unsubscribe(const std::string& topic);
+
     private:
         // inherited from iot::mqtt::server::SocketContext - the plain and base MQTT broker
         void onConnect(const iot::mqtt::packets::Connect& connect) final;
         void onPublish(const iot::mqtt::packets::Publish& publish) final;
+        void onSubscribe(const iot::mqtt::packets::Subscribe& subscribe) final;
+        void onUnsubscribe(const iot::mqtt::packets::Unsubscribe& unsubscribe) final;
 
         // inherited from core::socket::SocketContext (the root class of all SocketContext classes) via iot::mqtt::server::SocketContext
         void onDisconnected() final;

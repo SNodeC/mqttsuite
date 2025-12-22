@@ -44,10 +44,13 @@
 #include "mqttbroker/lib/MqttModel.h"
 
 #include <iot/mqtt/packets/Publish.h>
+#include <iot/mqtt/packets/Subscribe.h>
+#include <iot/mqtt/packets/Unsubscribe.h>
 #include <iot/mqtt/server/broker/Broker.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include <list>
 #include <log/Logger.h>
 
 #endif
@@ -61,20 +64,58 @@ namespace mqtt::mqttbroker::lib {
         , mqtt::lib::MqttMapper(mappingJson) {
     }
 
+    void Mqtt::subscribe(const std::string& topic, uint8_t qoS) {
+        broker->subscribe(clientId, topic, qoS);
+
+        onSubscribe(iot::mqtt::packets::Subscribe(0, {{topic, qoS}}));
+    }
+
+    void Mqtt::unsubscribe(const std::string& topic) {
+        broker->unsubscribe(clientId, topic);
+
+        onUnsubscribe(iot::mqtt::packets::Unsubscribe(0, {{topic, 0}}));
+    }
+
     void Mqtt::onConnect([[maybe_unused]] const iot::mqtt::packets::Connect& connect) {
         VLOG(1) << "MQTT: Connected";
 
-        MqttModel::instance().addClient(clientId, this);
+        MqttModel::instance().connectClient(clientId, this);
     }
 
     void Mqtt::onPublish(const iot::mqtt::packets::Publish& publish) {
+        VLOG(1) << "MQTT: Publish";
+
+        publish.getDup();
+        publish.getMessage();
+        publish.getPacketIdentifier();
+        publish.getQoS();
+        publish.getRetain();
+        publish.getTopic();
+        publish.getName();
+
         MqttModel::instance().publish(publish);
 
         publishMappings(publish);
     }
 
+    void Mqtt::onSubscribe(const iot::mqtt::packets::Subscribe& subscribe) {
+        VLOG(1) << "MQTT: Subscribe";
+
+        for (const iot::mqtt::Topic& topic : subscribe.getTopics()) {
+            MqttModel::instance().subscribeClient(clientId, topic.getName(), topic.getQoS());
+        }
+    }
+
+    void Mqtt::onUnsubscribe(const iot::mqtt::packets::Unsubscribe& unsubscribe) {
+        VLOG(1) << "MQTT: Unsubscribe";
+
+        for (const std::string& topic : unsubscribe.getTopics()) {
+            MqttModel::instance().unsubscribeClient(clientId, topic);
+        }
+    }
+
     void Mqtt::onDisconnected() {
-        MqttModel::instance().delClient(clientId);
+        MqttModel::instance().disconnectClient(clientId);
 
         VLOG(1) << "MQTT: Disconnected";
     }

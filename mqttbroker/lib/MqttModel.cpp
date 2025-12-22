@@ -52,7 +52,6 @@
 #include <iot/mqtt/MqttContext.h>
 // #include <iot/mqtt/packets/Publish.h>
 #include <nlohmann/json.hpp>
-#include <nlohmann/json_fwd.hpp>
 #include <web/http/server/SocketContext.h>
 
 // IWYU pragma: no_include <nlohmann/detail/json_ref.hpp>
@@ -113,7 +112,7 @@ namespace mqtt::mqttbroker::lib {
                text + "</a>";
     }
 
-    void MqttModel::addClient(const std::string& clientId, Mqtt* mqtt) {
+    void MqttModel::connectClient(const std::string& clientId, Mqtt* mqtt) {
         MqttModelEntry mqttModelEntry(mqtt);
 
         nlohmann::json json({href(mqtt->getClientId(), "/client?" + mqtt->getClientId(), windowId(mqtt->getClientId()), 450, 900),
@@ -129,18 +128,32 @@ namespace mqtt::mqttbroker::lib {
         modelMap.emplace(clientId, std::move(mqttModelEntry));
     }
 
-    void MqttModel::delClient(const std::string& clientId) {
+    void MqttModel::disconnectClient(const std::string& clientId) {
         sendEvent(clientId, "disconnect", std::to_string(id++));
 
         modelMap.erase(clientId);
+    }
+
+    void MqttModel::subscribeClient([[maybe_unused]] const std::string& clientId,
+                                    [[maybe_unused]] const std::string& topic,
+                                    [[maybe_unused]] const uint8_t qos) {
+        /*
+            sendEvent("{\"client_id\": \"" + clientId + "\", \"topic\", \"" + topic + "\", \"qos\" : " + std::to_string(qos) + "}",
+                      "subscribe",
+                      std::to_string(id++));
+        */
+    }
+
+    void MqttModel::unsubscribeClient([[maybe_unused]] const std::string& clientId, [[maybe_unused]] const std::string& topic) {
+        //    sendEvent("{\"client_id\": \"" + clientId + "\", \"topic\", \"" + topic + "\"}", "unsubscribe", std::to_string(id++));
     }
 
     std::map<std::string, MqttModel::MqttModelEntry>& MqttModel::getClients() {
         return modelMap;
     }
 
-    const Mqtt* MqttModel::getMqtt(const std::string& clientId) {
-        const Mqtt* mqtt = nullptr;
+    Mqtt* MqttModel::getMqtt(const std::string& clientId) {
+        Mqtt* mqtt = nullptr;
 
         auto modelIt = modelMap.find(clientId);
         if (modelIt != modelMap.end()) {
@@ -187,7 +200,7 @@ namespace mqtt::mqttbroker::lib {
         */
     }
 
-    MqttModel::MqttModelEntry::MqttModelEntry(const Mqtt* mqtt)
+    MqttModel::MqttModelEntry::MqttModelEntry(Mqtt* mqtt)
         : mqtt(mqtt) {
     }
 
@@ -202,7 +215,7 @@ namespace mqtt::mqttbroker::lib {
         return mqtt->getMqttContext()->getSocketConnection()->getSocketContext()->getOnlineDuration();
     }
 
-    const Mqtt* MqttModel::MqttModelEntry::getMqtt() const {
+    Mqtt* MqttModel::MqttModelEntry::getMqtt() {
         return mqtt;
     }
 
@@ -221,6 +234,10 @@ namespace mqtt::mqttbroker::lib {
                 }
             }
         }
+    }
+
+    void MqttModel::sendEvent(const nlohmann::json& json, const std::string& event, const std::string& id) {
+        sendEvent(json.dump(), event, id);
     }
 
     std::string MqttModel::timePointToString(const std::chrono::time_point<std::chrono::system_clock>& timePoint) {
