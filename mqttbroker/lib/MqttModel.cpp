@@ -71,63 +71,61 @@ struct tm;
 
 namespace mqtt::mqttbroker::lib {
 
+    /*
+        {
+            "clientId": "sensor-01",
+            "protocol": "MQTT",
+            "since": "2025-12-25 10:30:00 UTC",
+            "duration": "2 days, 03:45:12",
+            "connectionName": "mqtt_connection_12345",
+            "localAddress": "127.0.0.1:1883",
+            "remoteAddress": "192.168.1.45:54321",
+            "cleanSession": true,
+            "connectFlags": 194,
+            "username": "sensor_user",
+            "usernameFlag": true,
+            "password": "secret123",
+            "passwordFlag": true,
+            "keepAlive": 60,
+            "protocolLevel": 4,
+            "loopPrevention": true,
+            "willMessage": "sensor-01 disconnected unexpectedly",
+            "willTopic": "sensors/status/sensor-01",
+            "willQoS": 1,
+            "willFlag": true,
+            "willRetain": true
+        }
+    */
     void to_json(nlohmann::json& j, const MqttModel::MqttModelEntry& mqttModelEntry) {
-        /*
-             {
-               *"clientId": "sensor-01",
-               *"protocol": "MQTT",
-               "since": "2025-12-25 10:30:00 UTC",
-               "duration": "2 days, 03:45:12",
-               *"connectionName": "mqtt_connection_12345",
-               "localAddress": "127.0.0.1:1883",
-               "remoteAddress": "192.168.1.45:54321",
-               *"cleanSession": true,
-               *"connectFlags": 194,
-               *"username": "sensor_user",
-               *"usernameFlag": true,
-               *"password": "secret123",
-               *"passwordFlag": true,
-               *"keepAlive": 60,
-               *"protocolLevel": 4,
-               *"loopPrevention": true,
-               *"willMessage": "sensor-01 disconnected unexpectedly",
-               *"willTopic": "sensors/status/sensor-01",
-               *"willQoS": 1,
-               *"willFlag": true,
-               *"willRetain": true
-             }
-        */
-
-        Mqtt* mqtt = mqttModelEntry.getMqtt();
-
+        const Mqtt* mqtt = mqttModelEntry.getMqtt();
         const core::socket::stream::SocketConnection* socketConnection = mqtt->getMqttContext()->getSocketConnection();
 
-        j = nlohmann::json::object({{"clientId", mqtt->getClientId()},
-                                    {"since", mqttModelEntry.onlineSince()},
-                                    {"duration", mqttModelEntry.onlineDuration()},
-                                    {"connectionName", mqtt->getConnectionName()},
-                                    {"cleanSession", mqtt->getCleanSession()},
-                                    {"connectFlags", mqtt->getConnectFlags()},
-                                    {"username", mqtt->getUsername()},
-                                    {"usernameFlag", mqtt->getUsernameFlag()},
-                                    {"password", mqtt->getPassword()},
-                                    {"passwordFlag", mqtt->getPasswordFlag()},
-                                    {"keepAlive", mqtt->getKeepAlive()},
-                                    {"protocol", mqtt->getProtocol()},
-                                    {"protocolLevel", mqtt->getLevel()},
-                                    {"loopPrevention", !mqtt->getReflect()},
-                                    {"willMessage", mqtt->getWillMessage()},
-                                    {"willTopic", mqtt->getWillTopic()},
-                                    {"willQoS", mqtt->getWillQoS()},
-                                    {"willFlag", mqtt->getWillFlag()},
-                                    {"willRetain", mqtt->getWillRetain()},
-                                    {"localAddress", socketConnection->getLocalAddress().toString()},
-                                    {"remoteAddress", socketConnection->getRemoteAddress().toString()}});
+        j = {{"clientId", mqtt->getClientId()},
+             {"since", mqttModelEntry.onlineSince()},
+             {"duration", mqttModelEntry.onlineDuration()},
+             {"connectionName", mqtt->getConnectionName()},
+             {"cleanSession", mqtt->getCleanSession()},
+             {"connectFlags", mqtt->getConnectFlags()},
+             {"username", mqtt->getUsername()},
+             {"usernameFlag", mqtt->getUsernameFlag()},
+             {"password", mqtt->getPassword()},
+             {"passwordFlag", mqtt->getPasswordFlag()},
+             {"keepAlive", mqtt->getKeepAlive()},
+             {"protocol", mqtt->getProtocol()},
+             {"protocolLevel", mqtt->getLevel()},
+             {"loopPrevention", !mqtt->getReflect()},
+             {"willMessage", mqtt->getWillMessage()},
+             {"willTopic", mqtt->getWillTopic()},
+             {"willQoS", mqtt->getWillQoS()},
+             {"willFlag", mqtt->getWillFlag()},
+             {"willRetain", mqtt->getWillRetain()},
+             {"localAddress", socketConnection->getLocalAddress().toString()},
+             {"remoteAddress", socketConnection->getRemoteAddress().toString()}};
     }
 
     struct subscribe {
-        const std::string& clientId;
         const std::string& topic;
+        const std::string& clientId;
         uint8_t qoS;
     };
 
@@ -217,74 +215,50 @@ namespace mqtt::mqttbroker::lib {
         response->getSocketContext()->onDisconnected([this, &eventReceiver]() {
             eventReceiverList.remove(eventReceiver);
         });
+
         /*
             {
-              "title": "MQTTBroker",
-              "creator": {
-                "name": "Volker Christian",
-                "url": "https://github.com/VolkerChristian/"
-              },
-              "broker": {
-                "name": "MQTTBroker",
-                "url": "https://github.com/SNodeC/mqttsuite/tree/master/mqttbroker"
-              },
-              "suite": {
-                "name": "MQTTSuite",
-                "url": "https://github.com/SNodeC/mqttsuite"
-              },
-              "snodec": {
-                "name": "SNode.C",
-                "url": "https://github.com/SNodeC/snode.c"
-              },
-              "since": "2025-12-25 10:30:00 UTC",
-              "duration": "2 days, 03:45:12"
+                "title": "MQTTBroker",
+                "creator": {
+                    "name": "Volker Christian",
+                    "url": "https://github.com/VolkerChristian/"
+                },
+                "broker": {
+                    "name": "MQTTBroker",
+                    "url": "https://github.com/SNodeC/mqttsuite/tree/master/mqttbroker"
+                },
+                "suite": {
+                    "name": "MQTTSuite",
+                    "url": "https://github.com/SNodeC/mqttsuite"
+                },
+                "snodec": {
+                    "name": "SNode.C",
+                    "url": "https://github.com/SNodeC/snode.c"
+                },
+                "since": "2025-12-25 10:30:00 UTC",
+                "duration": "2 days, 03:45:12"
             }
         */
+        sendJsonEvent(response,
+                      {
+                          {"title", "MQTTBroker"},
+                          {"creator", {{"name", "Volker Christian"}, {"url", "https://github.com/VolkerChristian"}}},
+                          {"broker", {{"name", "MQTTBroker"}, {"url", "https://github.com/SNodeC/mqttsuite/tree/master/mqttbroker"}}},
+                          {"suite", {{"name", "MQTTSuite"}, {"url", "https://github.com/SNodeC/mqttsuite"}}},
+                          {"snodec", {{"name", "SNode.C"}, {"url", "https://github.com/SNodeC/snode.c"}}},
+                          {"since", onlineSince()},
+                          {"duration", onlineDuration()},
+                      },
+                      "ui-initialize",
+                      std::to_string(id++));
 
-        nlohmann::json uiInitializeJson({
-            {"title", "MQTTBroker"},
-            {
-                "creator",
-                {
-                    {"name", "Volker Christian"},                 //
-                    {"url", "https://github.com/VolkerChristian"} //
-                } //
-            },
-            {
-                "broker",
-                {
-                    {"name", "MQTTBroker"} //
-                    ,
-                    {"url", "https://github.com/SNodeC/mqttsuite/tree/master/mqttbroker"} //
-                } //
-            },
-            {
-                "suite",
-                {
-                    {"name", "MQTTSuite"},                         //
-                    {"url", "https://github.com/SNodeC/mqttsuite"} //
-                } //
-            },
-            {
-                "snodec",
-                {
-                    {"name", "SNode.C"},                         //
-                    {"url", "https://github.com/SNodeC/snode.c"} //
-                } //
-            },
-            {"since", onlineSince()},
-            {"duration", onlineDuration()},
-        });
-
-        sendJsonEvent(response, uiInitializeJson, "ui-initialize", std::to_string(id++));
-
-        for (auto& mqttModelEntry : modelMap) {
-            sendJsonEvent(response, mqttModelEntry.second, "client-connected", std::to_string(id++));
+        for (const auto& modelMapEntry : modelMap) {
+            sendJsonEvent(response, modelMapEntry.second, "client-connected", std::to_string(id++));
         }
 
         for (const auto& [topic, clients] : broker->getSubscriptionTree()) {
             for (const auto& client : clients) {
-                sendJsonEvent(response, subscribe{client.first, topic, client.second}, "client-subscribed", std::to_string(id++));
+                sendJsonEvent(response, subscribe{topic, client.first, client.second}, "client-subscribed", std::to_string(id++));
             }
         }
 
@@ -308,7 +282,7 @@ namespace mqtt::mqttbroker::lib {
     }
 
     void MqttModel::subscribeClient(const std::string& clientId, const std::string& topic, const uint8_t qos) {
-        sendJsonEvent(subscribe{clientId, topic, qos}, "client-subscribed", std::to_string(id++));
+        sendJsonEvent(subscribe{topic, clientId, qos}, "client-subscribed", std::to_string(id++));
     }
 
     void MqttModel::unsubscribeClient(const std::string& clientId, const std::string& topic) {
