@@ -56,6 +56,9 @@
 #if __has_warning("-Wcovered-switch-default")
 #pragma GCC diagnostic ignored "-Wcovered-switch-default"
 #endif
+#if __has_warning("-Wnrvo")
+#pragma GCC diagnostic ignored "-Wnrvo"
+#endif
 #endif
 #endif
 #include "inja.hpp"

@@ -139,7 +139,7 @@ namespace mqtt::bridge::lib {
         return loopPrevention;
     }
 
-    const std::string& Broker::getInstanceName() const {
+    const std::string& Broker::getName() const {
         return instanceName;
     }
 

@@ -42,7 +42,21 @@
 #ifndef MQTT_LIB_PLUGINS_STORAGE_PLUGIN_STORAGE_H
 #define MQTT_LIB_PLUGINS_STORAGE_PLUGIN_STORAGE_H
 
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#ifdef __has_warning
+#if __has_warning("-Wcovered-switch-default")
+#pragma GCC diagnostic ignored "-Wcovered-switch-default"
+#endif
+#if __has_warning("-Wnrvo")
+#pragma GCC diagnostic ignored "-Wnrvo"
+#endif
+#endif
+#endif
 #include "lib/inja.hpp"
+#ifdef __GNUC_
+#pragma GCC diagnostic pop
+#endif
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 

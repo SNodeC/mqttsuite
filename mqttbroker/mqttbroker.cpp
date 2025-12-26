@@ -50,6 +50,9 @@
 #if __has_warning("-Wcovered-switch-default")
 #pragma GCC diagnostic ignored "-Wcovered-switch-default"
 #endif
+#if __has_warning("-Wnrvo")
+#pragma GCC diagnostic ignored "-Wnrvo"
+#endif
 #endif
 #endif
 #include "lib/inja.hpp"
@@ -110,6 +113,7 @@
 #include <web/http/http_utils.h>
 //
 #include <express/middleware/JsonMiddleware.h>
+#include <express/middleware/StaticMiddleware.h>
 #include <iot/mqtt/server/broker/Broker.h>
 //
 #include <log/Logger.h>
@@ -118,15 +122,9 @@
 // IWYU pragma: no_include <nlohmann/json_fwd.hpp>
 // IWYU pragma: no_include <nlohmann/detail/json_ref.hpp>
 //
-#include <cctype>
-#include <cstdlib>
-#include <iomanip>
-#include <iterator>
-#include <list>
-#include <sstream>
 #include <string>
 #include <utility>
-
+//
 #endif
 
 static void upgrade APPLICATION(req, res) {
@@ -165,159 +163,23 @@ static void upgrade APPLICATION(req, res) {
     }
 }
 
-static std::string href(const std::string& text, const std::string& link) {
-    return "<a href=\"" + link + "\" style=\"color:inherit;\">" + text + "</a>";
-}
-
-static std::string href(const std::string& text, const std::string& url, const std::string& windowId, uint16_t width, uint16_t height) {
-    return "<a href=\"#\" onClick=\""
-           "let key = '" +
-           windowId +
-           "'; "
-           "if (!localStorage.getItem(key)) "
-           "  localStorage.setItem(key, key + '-' + Math.random().toString(36).substr(2, 6)); "
-           "let uniqueId = localStorage.getItem(key); "
-           "if (!window._openWindows) window._openWindows = {}; "
-           "if (!window._openWindows[uniqueId] || window._openWindows[uniqueId].closed) { "
-           "  window._openWindows[uniqueId] = window.open('" +
-           url + "', uniqueId, 'width=" + std::to_string(width) + ", height=" + std::to_string(height) +
-           ",location=no, menubar=no, status=no, toolbar=no'); "
-           "} else { "
-           "  window._openWindows[uniqueId].focus(); "
-           "} return false;\" "
-           "style=\"color:inherit;\">" +
-           text + "</a>";
-}
-
-static std::string getOverviewPage(inja::Environment environment,
-                                   std::shared_ptr<iot::mqtt::server::broker::Broker> broker,
-                                   mqtt::mqttbroker::lib::MqttModel& mqttModel) {
-    inja::json json;
-
-    json["table-id"] = "overview";
-    json["title"] = "MQTTBroker | Active Clients";
-    json["voc"] = href("Volker Christian", "https://github.com/VolkerChristian/");
-    json["broker"] = href("MQTTBroker", "https://github.com/SNodeC/mqttsuite/tree/master/mqttbroker");
-    json["suite"] = href("MQTTSuite", "https://github.com/SNodeC/mqttsuite");
-    json["snodec"] = "Powered by " + href("SNode.C", "https://github.com/SNodeC/snode.c");
-    json["since"] = mqttModel.onlineSince();
-    json["duration"] = mqttModel.onlineDuration();
-    json["header_row"] = {"Client ID", "Online Since", "Duration", "Connection", "Local Address", "Remote Address", "Action"};
-    json["data_rows"] = inja::json::array();
-    json["subscribed_topics"] = inja::json::array();
-    json["retained_topics"] = inja::json::array();
-
-    const std::map<std::string, std::list<std::pair<std::string, uint8_t>>>& subscribedTopics = broker->getSubscriptionTree();
-
-    inja::json& subscribedTopicsJson = json["subscribed_topics"];
-    for (const auto& [topic, clients] : subscribedTopics) {
-        inja::json topicJson;
-
-        topicJson["key"] = topic;
-        for (const auto& client : clients) {
-            std::ostringstream windowId("window");
-            for (char ch : client.first) {
-                if (std::isalnum(static_cast<unsigned char>(ch))) {
-                    windowId << ch;
-                } else {
-                    windowId << std::hex << std::uppercase << std::setw(2) << std::setfill('0')
-                             << static_cast<int>(static_cast<unsigned char>(ch));
-                }
-            }
-
-            topicJson["values"].push_back({{"client_id", client.first},
-                                           {"link", href(client.first, "/client?" + client.first, windowId.str(), 450, 900)},
-                                           {"topic", topic},
-                                           {"qos", std::to_string(static_cast<int>(client.second))}});
-        }
-
-        subscribedTopicsJson.push_back(topicJson);
-    }
-
-    std::list<std::pair<std::string, std::string>> retainTree = broker->getRetainTree();
-
-    inja::json& retainedTopicsJson = json["retained_topics"];
-    for (const auto& [topic, message] : retainTree) {
-        inja::json topicJson;
-
-        topicJson["key"] = topic;
-        topicJson["values"].push_back(message);
-
-        retainedTopicsJson.push_back(topicJson);
-    }
-
-    return environment.render_file("OverviewPage.html", json);
-}
-
-static std::string getDetailedPage(inja::Environment environment, const mqtt::mqttbroker::lib::Mqtt* mqtt) {
-    return environment.render_file("DetailPage.html",
-                                   {{"table-id", "detail"},
-                                    {"client_id", mqtt->getClientId()},
-                                    {"title", mqtt->getClientId()},
-                                    {"header_row", {"Attribute", "Value"}},
-                                    {"data_rows",
-                                     inja::json::array({{"Client ID", mqtt->getClientId()},
-                                                        {"Connection", mqtt->getConnectionName()},
-                                                        {"Clean Session", mqtt->getCleanSession() ? "true" : "false"},
-                                                        {"Connect Flags", std::to_string(mqtt->getConnectFlags())},
-                                                        {"Username", mqtt->getUsername()},
-                                                        {"Username Flag", mqtt->getUsernameFlag() ? "true" : "false"},
-                                                        {"Password", mqtt->getPassword()},
-                                                        {"Password Flag", mqtt->getPasswordFlag() ? "true" : "false"},
-                                                        {"Keep Alive", std::to_string(mqtt->getKeepAlive())},
-                                                        {"Protocol", mqtt->getProtocol()},
-                                                        {"Protocol Level", std::to_string(mqtt->getLevel())},
-                                                        {"Loop Prevention", !mqtt->getReflect() ? "true" : "false"},
-                                                        {"Will Message", mqtt->getWillMessage()},
-                                                        {"Will Topic", mqtt->getWillTopic()},
-                                                        {"Will QoS", std::to_string(mqtt->getWillQoS())},
-                                                        {"Will Flag", mqtt->getWillFlag() ? "true" : "false"},
-                                                        {"Will Retain", mqtt->getWillRetain() ? "true" : "false"}})},
-                                    {"client_id", mqtt->getClientId()},
-                                    {"topics", mqtt->getSubscriptions()}});
-}
-
-static std::string getRedirectSpinnerPage(inja::Environment environment, const std::string& location) {
-    return environment.render_file("Spinner.html", {{"location", location}});
-}
-
-static std::string urlDecode(const std::string& encoded) {
-    std::string decoded;
-    size_t i = 0;
-
-    while (i < encoded.length()) {
-        char ch = encoded[i];
-        if (ch == '%') {
-            // Make sure there are at least two characters after '%'
-            if (i + 2 < encoded.length() && std::isxdigit(encoded[i + 1]) && std::isxdigit(encoded[i + 2])) {
-                // Convert the two hex digits to a character
-                std::string hexValue = encoded.substr(i + 1, 2);
-                char decodedChar = static_cast<char>(std::stoi(hexValue, nullptr, 16));
-                decoded.push_back(decodedChar);
-                i += 3; // Skip over the % and the two hex digits
-            } else {
-                // Malformed encoding, just add the '%' as is.
-                decoded.push_back(ch);
-                ++i;
-            }
-        } else if (ch == '+') {
-            // Convert '+' to space (common in URL encoding)
-            decoded.push_back(' ');
-            ++i;
-        } else {
-            // Regular character, just append it.
-            decoded.push_back(ch);
-            ++i;
-        }
-    }
-
-    return decoded;
-}
-
-static express::Router getRouter(const inja::Environment& environment, std::shared_ptr<iot::mqtt::server::broker::Broker> broker) {
+static express::Router getRouter([[maybe_unused]] const inja::Environment& environment,
+                                 std::shared_ptr<iot::mqtt::server::broker::Broker> broker) {
     const express::Router& jsonRouter = express::middleware::JsonMiddleware();
 
-    jsonRouter.post("/disconnect", [] APPLICATION(req, res) {
+    /*
+     * /api/mqtt/disconnect
+     * JSON.stringify({ clientId })
+     */
+    jsonRouter.use("/api/mqtt", [] MIDDLEWARE(req, res, next) { // cppcheck-suppress unknownMacro
+        res->set({{"Access-Control-Allow-Origin", "*"},
+                  {"Access-Control-Allow-Headers", "Content-Type"},
+                  {"Access-Control-Allow-Methods", "GET, OPTIONS, POST"},
+                  {"Access-Control-Allow-Private-Network", "true"}});
+        next();
+    });
+
+    jsonRouter.post("/api/mqtt/disconnect", [] APPLICATION(req, res) {
         VLOG(1) << "POST /disconnect";
 
         req->getAttribute<nlohmann::json>(
@@ -326,7 +188,7 @@ static express::Router getRouter(const inja::Environment& environment, std::shar
 
                 VLOG(1) << jsonString;
 
-                std::string clientId = json["client_id"].get<std::string>();
+                std::string clientId = json["clientId"].get<std::string>();
                 const mqtt::mqttbroker::lib::Mqtt* mqtt = mqtt::mqttbroker::lib::MqttModel::instance().getMqtt(clientId);
 
                 if (mqtt != nullptr) {
@@ -343,7 +205,11 @@ static express::Router getRouter(const inja::Environment& environment, std::shar
             });
     });
 
-    jsonRouter.post("/unsubscribe", [] APPLICATION(req, res) {
+    /*
+     * /api/mqtt/unsubscribe
+     * JSON.stringify({clientId, topic})
+     */
+    jsonRouter.post("/api/mqtt/unsubscribe", [] APPLICATION(req, res) {
         VLOG(1) << "POST /unsubscribe";
 
         req->getAttribute<nlohmann::json>(
@@ -352,10 +218,10 @@ static express::Router getRouter(const inja::Environment& environment, std::shar
 
                 VLOG(1) << jsonString;
 
-                std::string clientId = json["client_id"].get<std::string>();
+                std::string clientId = json["clientId"].get<std::string>();
                 std::string topic = json["topic"].get<std::string>();
 
-                const mqtt::mqttbroker::lib::Mqtt* mqtt = mqtt::mqttbroker::lib::MqttModel::instance().getMqtt(clientId);
+                mqtt::mqttbroker::lib::Mqtt* mqtt = mqtt::mqttbroker::lib::MqttModel::instance().getMqtt(clientId);
 
                 if (mqtt != nullptr) {
                     mqtt->unsubscribe(topic);
@@ -371,7 +237,11 @@ static express::Router getRouter(const inja::Environment& environment, std::shar
             });
     });
 
-    jsonRouter.post("/release", [broker] APPLICATION(req, res) {
+    /*
+     * /api/mqtt/release
+     * JSON.stringify({ topic })
+     */
+    jsonRouter.post("/api/mqtt/release", [broker] APPLICATION(req, res) {
         VLOG(1) << "POST /release";
 
         req->getAttribute<nlohmann::json>(
@@ -382,7 +252,8 @@ static express::Router getRouter(const inja::Environment& environment, std::shar
 
                 std::string topic = json["topic"].get<std::string>();
 
-                broker->release(topic);
+                broker->publish("", topic, "", 0, true);
+                mqtt::mqttbroker::lib::MqttModel::instance().publishMessage(topic, "", 0, true);
 
                 res->send(jsonString);
             },
@@ -393,7 +264,11 @@ static express::Router getRouter(const inja::Environment& environment, std::shar
             });
     });
 
-    jsonRouter.post("/subscribe", [] APPLICATION(req, res) {
+    /*
+     * /api/mqtt/subscribe
+     * JSON.stringify({ clientId, topic, qos })
+     */
+    jsonRouter.post("/api/mqtt/subscribe", [] APPLICATION(req, res) {
         VLOG(1) << "POST /subscribe";
 
         req->getAttribute<nlohmann::json>(
@@ -402,11 +277,11 @@ static express::Router getRouter(const inja::Environment& environment, std::shar
 
                 VLOG(1) << jsonString;
 
-                std::string clientId = json["client_id"].get<std::string>();
+                std::string clientId = json["clientId"].get<std::string>();
                 std::string topic = json["topic"].get<std::string>();
                 uint8_t qoS = json["qos"].get<uint8_t>();
 
-                const mqtt::mqttbroker::lib::Mqtt* mqtt = mqtt::mqttbroker::lib::MqttModel::instance().getMqtt(clientId);
+                mqtt::mqttbroker::lib::Mqtt* mqtt = mqtt::mqttbroker::lib::MqttModel::instance().getMqtt(clientId);
 
                 if (mqtt != nullptr) {
                     mqtt->subscribe(topic, qoS);
@@ -425,74 +300,36 @@ static express::Router getRouter(const inja::Environment& environment, std::shar
 
     router.use(jsonRouter);
 
-    router.get("/clients", [environment, broker] APPLICATION(req, res) {
-        std::string responseString;
-        int responseStatus = 200;
+    router.get("/api/mqtt/events", [broker] APPLICATION(req, res) {
+        if (web::http::ciContains(req->get("Accept"), "text/event-stream")) {
+            res->set({{"Content-Type", "text/event-stream"},
+                      {"Cache-Control", "no-cache"},
+                      {"Connection", "keep-alive"},
+                      {"Access-Control-Allow-Origin", "*"}});
 
-        try {
-            responseString = getOverviewPage(environment, broker, mqtt::mqttbroker::lib::MqttModel::instance());
-        } catch (const inja::InjaError& error) {
-            responseStatus = 500;
-            responseString = "Internal Server Error\n";
-            responseString += std::string(error.what()) + " " + error.type + " " + error.message + " " +
-                              std::to_string(error.location.line) + ":" + std::to_string(error.location.column);
-        }
+            res->set("Content-Type", "text/event-stream") //
+                .set("Cache-Control", "no-cache")
+                .set("Connection", "keep-alive");
+            res->sendHeader();
 
-        res->status(responseStatus).send(responseString);
-    });
-
-    router.get("/client", [environment] APPLICATION(req, res) {
-        std::string responseString;
-        int responseStatus = 200;
-
-        if (req->queries.size() == 1) {
-            const mqtt::mqttbroker::lib::Mqtt* mqtt =
-                mqtt::mqttbroker::lib::MqttModel::instance().getMqtt(urlDecode(req->queries.begin()->first));
-
-            if (mqtt != nullptr) {
-                VLOG(1) << "Subscriptions for client " << mqtt->getClientId();
-                for (const std::string& subscription : mqtt->getSubscriptions()) {
-                    VLOG(1) << "  " << subscription;
-                }
-
-                try {
-                    responseString = getDetailedPage(environment, mqtt);
-                } catch (const inja::InjaError& error) {
-                    responseStatus = 500;
-                    responseString = "Internal Server Error\n";
-                    responseString += std::string(error.what()) + " " + error.type + " " + error.message + " " +
-                                      std::to_string(error.location.line) + ":" + std::to_string(error.location.column);
-                }
-            } else {
-                responseStatus = 404;
-                responseString = "Not Found: " + urlDecode(req->queries.begin()->first);
-            }
+            mqtt::mqttbroker::lib::MqttModel::instance().addEventReceiver(res, req->get("Last-Event-ID"), broker);
         } else {
-            responseStatus = 400;
-            responseString = "Bad Request: No Client requested";
+            res->redirect("/clients");
         }
-
-        res->status(responseStatus).send(responseString);
     });
 
-    router.get("/spinner", [environment] APPLICATION(req, res) {
-        std::string responseString;
-        int responseStatus = 200;
-
-        if (req->queries.size() == 1) {
-            responseString = getRedirectSpinnerPage(environment, req->queries.begin()->first);
-        } else {
-            responseStatus = 400;
-            responseString = "Bad Request: No Client requested";
-        }
-        res->status(responseStatus).send(responseString);
+    router.setStrictRouting();
+    router.get("/clients", [] APPLICATION(req, res) {
+        res->redirect("/clients/index.html");
     });
+
+    router.get("/clients", express::middleware::StaticMiddleware(utils::Config::getStringOptionValue("--html-dir")));
 
     router.get("/ws", [] APPLICATION(req, res) {
         if (req->headers.contains("upgrade")) {
             upgrade(req, res);
         } else {
-            res->redirect("/spinner?/clients");
+            res->redirect("/clients");
         }
     });
 
@@ -500,7 +337,7 @@ static express::Router getRouter(const inja::Environment& environment, std::shar
         if (req->headers.contains("upgrade")) {
             upgrade(req, res);
         } else {
-            res->redirect("/spinner?/clients");
+            res->redirect("/clients");
         }
     });
 
@@ -508,20 +345,20 @@ static express::Router getRouter(const inja::Environment& environment, std::shar
         if (req->headers.contains("upgrade")) {
             upgrade(req, res);
         } else {
-            res->redirect("/spinner?/clients");
+            res->redirect("/clients");
         }
     });
 
-    router.get("/sse", [] APPLICATION(req, res) {
+    router.get("/sse", [broker] APPLICATION(req, res) {
         if (web::http::ciContains(req->get("Accept"), "text/event-stream")) {
             res->set("Content-Type", "text/event-stream") //
                 .set("Cache-Control", "no-cache")
                 .set("Connection", "keep-alive");
             res->sendHeader();
 
-            mqtt::mqttbroker::lib::MqttModel::instance().addEventReceiver(res, req->get("Last-Event-ID"));
+            mqtt::mqttbroker::lib::MqttModel::instance().addEventReceiver(res, req->get("Last-Event-ID"), broker);
         } else {
-            res->redirect("/spinner?/clients");
+            res->redirect("/clients");
         }
     });
 

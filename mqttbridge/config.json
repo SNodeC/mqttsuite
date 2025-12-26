@@ -1,7 +1,7 @@
 {
   "bridges": [
     {
-      "name": "Local IoT",
+      "name": "Local-IoT",
       "brokers": [
         {
           "network": {
@@ -173,7 +173,7 @@
       ]
     },
     {
-      "name": "TTN IoT",
+      "name": "TTN-IoT",
       "brokers": [
         {
           "network": {
