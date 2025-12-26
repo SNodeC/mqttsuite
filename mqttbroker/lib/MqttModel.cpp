@@ -263,7 +263,7 @@ namespace mqtt::mqttbroker::lib {
         }
 
         for (const auto& [topic, retained] : broker->getRetainTree()) {
-            sendJsonEvent(response, retaine(topic, retained.first, retained.second), "retained-message-set", std::to_string(id++));
+            sendJsonEvent(response, retaine{topic, retained.first, retained.second}, "retained-message-set", std::to_string(id++));
         }
     }
 
