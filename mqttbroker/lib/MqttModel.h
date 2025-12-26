@@ -50,9 +50,11 @@ namespace express {
     class Response;
 }
 
-namespace iot::mqtt::packets {
-    class Publish;
-}
+namespace iot::mqtt {
+    namespace server::broker {
+        class Broker;
+    }
+} // namespace iot::mqtt
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
@@ -73,13 +75,14 @@ namespace mqtt::mqttbroker::lib {
     private:
         class MqttModelEntry {
         public:
+            MqttModelEntry() = default;
             MqttModelEntry(Mqtt* mqtt);
 
             ~MqttModelEntry();
 
             MqttModelEntry(MqttModelEntry&&) noexcept = default;
 
-            Mqtt* getMqtt();
+            Mqtt* getMqtt() const;
 
             std::string onlineSince() const;
             std::string onlineDuration() const;
@@ -107,39 +110,46 @@ namespace mqtt::mqttbroker::lib {
     public:
         static MqttModel& instance();
 
-        void connectClient(const std::string& clientId, Mqtt* mqtt);
+        void addEventReceiver(const std::shared_ptr<express::Response>& response,
+                              const std::string& lastEventId,
+                              const std::shared_ptr<iot::mqtt::server::broker::Broker>& broker);
+
+        void connectClient(Mqtt* mqtt);
         void disconnectClient(const std::string& clientId);
         void subscribeClient(const std::string& clientId, const std::string& topic, const uint8_t qos);
         void unsubscribeClient(const std::string& clientId, const std::string& topic);
+        void publishMessage(const std::string& topic, const std::string& message, uint8_t qoS, bool retain);
 
-        std::map<std::string, MqttModelEntry>& getClients();
+        const std::map<std::string, MqttModelEntry>& getClients() const;
 
-        Mqtt* getMqtt(const std::string& clientId);
+        Mqtt* getMqtt(const std::string& clientId) const;
 
-        std::string onlineSince();
-        std::string onlineDuration();
-
-        void addEventReceiver(const std::shared_ptr<express::Response>& response, const std::string& lastEventId);
-
-        void publish(const iot::mqtt::packets::Publish& publish);
+        std::string onlineSince() const;
+        std::string onlineDuration() const;
 
     private:
-        void sendEvent(const std::string& data, const std::string& event = "", const std::string& id = "");
-        void sendEvent(const nlohmann::json& json, const std::string& event = "", const std::string& id = "");
+        static void sendEvent(const std::shared_ptr<express::Response>& response,
+                              const std::string& data,
+                              const std::string& event,
+                              const std::string& id);
+        static void sendJsonEvent(const std::shared_ptr<express::Response>& response,
+                                  const nlohmann::json& json,
+                                  const std::string& event = "",
+                                  const std::string& id = "");
+        void sendEvent(const std::string& data, const std::string& event = "", const std::string& id = "") const;
+        void sendJsonEvent(const nlohmann::json& json, const std::string& event = "", const std::string& id = "") const;
 
         static std::string timePointToString(const std::chrono::time_point<std::chrono::system_clock>& timePoint);
         static std::string
         durationToString(const std::chrono::time_point<std::chrono::system_clock>& bevore,
                          const std::chrono::time_point<std::chrono::system_clock>& later = std::chrono::system_clock::now());
 
-    protected:
         std::map<std::string, MqttModelEntry> modelMap;
-
         std::list<EventReceiver> eventReceiverList;
-
         std::chrono::time_point<std::chrono::system_clock> onlineSinceTimePoint;
-
         uint64_t id = 0;
+
+        friend void to_json(nlohmann::json& j, const MqttModel::MqttModelEntry& mqttModelEntry);
     };
 
 } // namespace mqtt::mqttbroker::lib

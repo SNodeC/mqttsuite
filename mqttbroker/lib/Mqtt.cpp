@@ -79,21 +79,13 @@ namespace mqtt::mqttbroker::lib {
     void Mqtt::onConnect([[maybe_unused]] const iot::mqtt::packets::Connect& connect) {
         VLOG(1) << "MQTT: Connected";
 
-        MqttModel::instance().connectClient(clientId, this);
+        MqttModel::instance().connectClient(this);
     }
 
     void Mqtt::onPublish(const iot::mqtt::packets::Publish& publish) {
         VLOG(1) << "MQTT: Publish";
 
-        publish.getDup();
-        publish.getMessage();
-        publish.getPacketIdentifier();
-        publish.getQoS();
-        publish.getRetain();
-        publish.getTopic();
-        publish.getName();
-
-        MqttModel::instance().publish(publish);
+        MqttModel::instance().publishMessage(publish.getTopic(), publish.getMessage(), publish.getQoS(), publish.getRetain());
 
         publishMappings(publish);
     }
