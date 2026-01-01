@@ -193,7 +193,7 @@ static express::Router getRouter([[maybe_unused]] const inja::Environment& envir
 
                 if (mqtt != nullptr) {
                     mqtt->getMqttContext()->getSocketConnection()->close();
-                    res->send(jsonString);
+                    res->send(R"({"success": true, "message": "Client disconnected successfully"})"_json.dump());
                 } else {
                     res->status(404).send("MQTT client has never existed or already gone away: '" + clientId + "'");
                 }
@@ -225,7 +225,7 @@ static express::Router getRouter([[maybe_unused]] const inja::Environment& envir
 
                 if (mqtt != nullptr) {
                     mqtt->unsubscribe(topic);
-                    res->send(jsonString);
+                    res->send(R"({"success": true, "message": "Client unsubscribed successfully"})"_json.dump());
                 } else {
                     res->status(404).send("MQTT client has never existed or already gone away: '" + clientId + "'");
                 }
@@ -255,7 +255,7 @@ static express::Router getRouter([[maybe_unused]] const inja::Environment& envir
                 broker->publish("", topic, "", 0, true);
                 mqtt::mqttbroker::lib::MqttModel::instance().publishMessage(topic, "", 0, true);
 
-                res->send(jsonString);
+                res->send(R"({"success": true, "message": "Retained message released successfully"})"_json.dump());
             },
             [&res](const std::string& key) {
                 VLOG(1) << "Attribute type not found: " << key;
@@ -285,7 +285,8 @@ static express::Router getRouter([[maybe_unused]] const inja::Environment& envir
 
                 if (mqtt != nullptr) {
                     mqtt->subscribe(topic, qoS);
-                    res->send(jsonString);
+
+                    res->send(R"({"success": true, "message": "Client subscribed successfully"})"_json.dump());
                 } else {
                     res->status(404).send("MQTT client has never existed or already gone away: '" + clientId + "'");
                 }
@@ -307,9 +308,6 @@ static express::Router getRouter([[maybe_unused]] const inja::Environment& envir
                       {"Connection", "keep-alive"},
                       {"Access-Control-Allow-Origin", "*"}});
 
-            res->set("Content-Type", "text/event-stream") //
-                .set("Cache-Control", "no-cache")
-                .set("Connection", "keep-alive");
             res->sendHeader();
 
             mqtt::mqttbroker::lib::MqttModel::instance().addEventReceiver(res, req->get("Last-Event-ID"), broker);
