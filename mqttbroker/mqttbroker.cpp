@@ -195,7 +195,7 @@ static express::Router getRouter([[maybe_unused]] const inja::Environment& envir
                     mqtt->getMqttContext()->getSocketConnection()->close();
                     res->send(R"({"success": true, "message": "Client disconnected successfully"})"_json.dump());
                 } else {
-                    res->status(404).send("MQTT client has never existed or already gone away: '" + clientId + "'");
+                    res->status(404).send(R"({"success": false, "error": "Client not found"})"_json.dump());
                 }
             },
             [&res](const std::string& key) {
@@ -227,7 +227,7 @@ static express::Router getRouter([[maybe_unused]] const inja::Environment& envir
                     mqtt->unsubscribe(topic);
                     res->send(R"({"success": true, "message": "Client unsubscribed successfully"})"_json.dump());
                 } else {
-                    res->status(404).send("MQTT client has never existed or already gone away: '" + clientId + "'");
+                    res->status(404).send(R"({"success": false, "error": "Client not found"})"_json.dump());
                 }
             },
             [&res](const std::string& key) {
@@ -288,7 +288,7 @@ static express::Router getRouter([[maybe_unused]] const inja::Environment& envir
 
                     res->send(R"({"success": true, "message": "Client subscribed successfully"})"_json.dump());
                 } else {
-                    res->status(404).send("MQTT client has never existed or already gone away: '" + clientId + "'");
+                    res->status(404).send(R"({"success": false, "error": "Client not found"})"_json.dump());
                 }
             },
             [&res](const std::string& key) {
