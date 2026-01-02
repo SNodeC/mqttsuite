@@ -45,6 +45,7 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <map>
+#include <vector>
 #include <nlohmann/json_fwd.hpp> // IWYU pragma: export
 #include <string>
 
@@ -66,6 +67,16 @@ namespace mqtt::lib {
         static void deployDraft(const std::string& mapFilePath);
         static void discardDraft(const std::string& mapFilePath);
         static std::string getDraftPath(const std::string& mapFilePath);
+
+        struct VersionEntry {
+            std::string id;
+            std::string filename;
+            std::string comment;
+            std::string date;
+        };
+
+        static std::vector<VersionEntry> getHistory(const std::string& mapFilePath);
+        static void rollbackTo(const std::string& mapFilePath, const std::string& versionId);
 
     private:
         static nlohmann::json mappingJsonSchema;

@@ -14,7 +14,7 @@ namespace mqtt::lib::admin {
                                            ReloadCallback onDeploy) {
         express::Router api;
         const auto& schema = JsonMappingReader::getSchema();
-        auto validator = std::make_shared<nlohmann::json_schema::json_validator>(schema);
+        auto validator = std::make_shared<nlohmann::json_schema::json_validator>(schema, nullptr, nlohmann::json_schema::default_string_format_check);
 
         api.use(express::middleware::JsonMiddleware());
         api.use(express::middleware::BasicAuthentication(opt.user, opt.pass, opt.realm));
@@ -79,6 +79,46 @@ namespace mqtt::lib::admin {
                 }
             } catch (const std::exception& e) {
                 res->status(400).json({{"error", "Validation exception"}, {"details", e.what()}});
+            }
+        });
+
+        // POST /config/rollback
+        api.post("/config/rollback", [mappingFilePath, onDeploy] APPLICATION(req, res) {
+            try {
+                const std::string bodyStr(req->body.begin(), req->body.end());
+                auto jsonBody = nlohmann::json::parse(bodyStr);
+                
+                if (!jsonBody.contains("version_id")) {
+                    res->status(400).json({{"error", "Missing version_id"}});
+                    return;
+                }
+
+                std::string versionId = jsonBody["version_id"];
+                JsonMappingReader::rollbackTo(mappingFilePath, versionId);
+                
+                if (onDeploy) onDeploy(); // Trigger hot-reload
+                
+                res->status(200).json({{"status", "rolled_back"}, {"version", versionId}});
+            } catch (const std::exception& e) {
+                res->status(500).json({{"error", "Rollback failed"}, {"details", e.what()}});
+            }
+        });
+
+        // GET /config/history
+        api.get("/config/history", [mappingFilePath] APPLICATION(req, res) {
+            try {
+                auto history = JsonMappingReader::getHistory(mappingFilePath);
+                nlohmann::json list = nlohmann::json::array();
+                for(const auto& h : history) {
+                    list.push_back({
+                        {"id", h.id},
+                        {"comment", h.comment},
+                        {"date", h.date}
+                    });
+                }
+                res->status(200).json(list);
+            } catch (const std::exception& e) {
+                res->status(500).json({{"error", "Failed to fetch history"}});
             }
         });
 
