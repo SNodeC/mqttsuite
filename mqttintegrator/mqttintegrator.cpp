@@ -80,6 +80,12 @@
 
 #endif
 
+// admin API
+#include "express/legacy/in/Server.h"
+#include "lib/JsonMappingReader.h"
+#include "lib/MappingAdminRouter.h"
+#include "lib/Mqtt.h"
+
 static void
 reportState(const std::string& instanceName, const core::socket::SocketAddress& socketAddress, const core::socket::State& state) {
     switch (state) {
@@ -150,6 +156,19 @@ int main(int argc, char* argv[]) {
     utils::Config::addStringOption("--mqtt-session-store", "Path to file for the persistent session store", "[path]", "");
 
     core::SNodeC::init(argc, argv);
+
+    const std::string mappingPath = utils::Config::getStringOptionValue("--mqtt-mapping-file");
+
+    // Instanciate Admin Router for Mapping Management
+    express::Router router = mqtt::lib::admin::makeMappingAdminRouter(mappingPath, mqtt::lib::admin::AdminOptions{}, []() {
+        mqtt::mqttintegrator::lib::Mqtt::reloadAll();
+    });
+
+    express::legacy::in::Server("in-https", router, reportState, [](auto& config) {
+        config.setPort(8085);
+        config.setRetry();
+        config.setDisableNagleAlgorithm();
+    });
 
     std::string sessionStoreFileName = utils::Config::getStringOptionValue("--mqtt-session-store");
 
