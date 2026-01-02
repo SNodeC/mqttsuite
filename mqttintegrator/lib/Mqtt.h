@@ -49,7 +49,6 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <cstdint>
-#include <mutex>
 #include <set>
 #include <string>
 
@@ -82,7 +81,6 @@ namespace mqtt::mqttintegrator::lib {
 
         const nlohmann::json& connectionJson;
 
-        static std::mutex instancesMutex;
         static std::set<Mqtt*> instances;
     };
 

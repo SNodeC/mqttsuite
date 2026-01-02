@@ -80,13 +80,11 @@
 
 #endif
 
-// --- admin API: add these includes ---
-#include "admin/AdminRouter.h"
-#include "admin/MappingStore.h"
-#include "express/legacy/in/WebApp.h"
-#include "express/middleware/JsonMiddleware.h"
-#include "express/middleware/VerboseRequest.h"
-// --- end admin API ---
+// admin API
+#include "express/legacy/in/Server.h"
+#include "lib/JsonMappingReader.h"
+#include "lib/MappingAdminRouter.h"
+#include "lib/Mqtt.h"
 
 static void
 reportState(const std::string& instanceName, const core::socket::SocketAddress& socketAddress, const core::socket::State& state) {
@@ -127,7 +125,7 @@ void startClient(const std::string& name, const std::function<void(typename Http
                 []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req,
                    [[maybe_unused]] const std::shared_ptr<web::http::client::Response>& res,
                    [[maybe_unused]] bool success) {
-                   },
+                },
                 [connectionName](const std::shared_ptr<web::http::client::Request>&, const std::string& message) {
                     VLOG(1) << connectionName << ": Request parse error: " << message;
                 });
@@ -157,63 +155,20 @@ int main(int argc, char* argv[]) {
     utils::Config::addStringOption("--mqtt-mapping-file", "MQTT mapping file (json format) for integration", "[path]");
     utils::Config::addStringOption("--mqtt-session-store", "Path to file for the persistent session store", "[path]", "");
 
-    // --- admin API: CLI options ---
-utils::Config::addStringOption("--admin-port", "Admin HTTP port", "[port]", "8080");
-utils::Config::addStringOption("--admin-user", "Admin username for BasicAuth", "[user]", "admin");
-utils::Config::addStringOption("--admin-pass", "Admin password for BasicAuth", "[pass]", "admin");
-// --- end admin CLI ---
+    core::SNodeC::init(argc, argv);
 
-core::SNodeC::init(argc, argv);
-
-{
-    // Resolve mapping path (same option used elsewhere in the suite)
     const std::string mappingPath = utils::Config::getStringOptionValue("--mqtt-mapping-file");
 
-    // Build store + admin router (from your /admin sources)
-    auto store = std::make_shared<MappingStore>(mappingPath);
-    AdminOptions adminOpt{
-        utils::Config::getStringOptionValue("--admin-user"),
-        utils::Config::getStringOptionValue("--admin-pass"),
-        "mqttsuite-admin"
-    };
+    // Instanciate Admin Router for Mapping Management
+    express::Router router = mqtt::lib::admin::makeMappingAdminRouter(mappingPath, mqtt::lib::admin::AdminOptions{}, []() {
+        mqtt::mqttintegrator::lib::Mqtt::reloadAll();
+    });
 
-    // Create a legacy WebApp (MUST NOT be const if you call listen)
-    express::legacy::in::WebApp adminApp("admin");
-
-    // Middlewares before routes
-    adminApp.use(express::middleware::VerboseRequest());
-    adminApp.use(express::middleware::JsonMiddleware());
-
-    // Mount admin router at /admin
-    const express::Router adminRouter = makeAdminRouter(store, adminOpt);
-    adminApp.use("/admin", adminRouter);
-
-    // Parse and clamp port to uint16_t
-    const std::string adminPortStr = utils::Config::getStringOptionValue("--admin-port");
-    unsigned long portUL = 8080;
-    try {
-        portUL = std::stoul(adminPortStr);
-    } catch (...) {
-        // keep default 8080 if parsing fails
-    }
-    if (portUL > 65535) portUL = 65535;
-    const uint16_t adminPort = static_cast<uint16_t>(portUL);
-
-    // Listen on configurable port
-    adminApp.listen(
-        adminPort,
-        [instanceName = "admin"](
-            const express::legacy::in::WebApp::SocketAddress& sa,
-            const core::socket::State& st
-        ) {
-            switch (st) {
-                case core::socket::State::OK:       VLOG(1) << instanceName << " listening on '" << sa.toString() << "'"; break;
-                case core::socket::State::DISABLED: VLOG(1) << instanceName << " disabled"; break;
-                case core::socket::State::ERROR:    LOG(ERROR) << instanceName << " " << sa.toString() << ": " << st.what(); break;
-                case core::socket::State::FATAL:    LOG(FATAL) << instanceName << " " << sa.toString() << ": " << st.what(); break;
-            }
-        });
-}
+    express::legacy::in::Server("in-https", router, reportState, [](auto& config) {
+        config.setPort(8085);
+        config.setRetry();
+        config.setDisableNagleAlgorithm();
+    });
 
     std::string sessionStoreFileName = utils::Config::getStringOptionValue("--mqtt-session-store");
 

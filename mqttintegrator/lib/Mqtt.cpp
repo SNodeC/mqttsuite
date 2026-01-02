@@ -59,7 +59,6 @@
 
 namespace mqtt::mqttintegrator::lib {
 
-    std::mutex Mqtt::instancesMutex;
     std::set<Mqtt*> Mqtt::instances;
 
     Mqtt::Mqtt(const std::string& connectionName,
@@ -72,17 +71,19 @@ namespace mqtt::mqttintegrator::lib {
                                   sessionStoreFileName)
         , mqtt::lib::MqttMapper(mappingJson)
         , connectionJson(connectionJson) {
-        std::lock_guard<std::mutex> lock(instancesMutex);
         instances.insert(this);
+        
+        VLOG(1) << "  Will QoS: " << static_cast<uint16_t>(connectionJson["will_qos"]);
+        VLOG(1) << "  Will Retain " << connectionJson["will_retain"];
+        VLOG(1) << "  Username: " << connectionJson["username"];
+        VLOG(1) << "  Password: " << connectionJson["password"];
     }
 
     Mqtt::~Mqtt() {
-        std::lock_guard<std::mutex> lock(instancesMutex);
         instances.erase(this);
     }
 
     void Mqtt::reloadAll() {
-        std::lock_guard<std::mutex> lock(instancesMutex);
         for (auto* instance : instances) {
             if (instance->getMqttContext() && instance->getMqttContext()->getSocketConnection()) {
                 instance->getMqttContext()->getSocketConnection()->close();
