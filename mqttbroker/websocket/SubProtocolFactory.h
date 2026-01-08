@@ -52,11 +52,6 @@
 
 namespace mqtt::mqttbroker::websocket {
 
-    // IMPORTANT: The WebSocket plugin boundary expects factories of
-    //   web::websocket::SubProtocolFactory<web::websocket::server::SubProtocol>
-    // (see web::websocket::server::SubProtocolFactorySelector).
-    // Using a factory template instantiated with a *different* SubProtocol type
-    // (even a derived one) breaks the ABI and triggers UBSan vptr/type checks.
     class SubProtocolFactory : public web::websocket::SubProtocolFactory<web::websocket::server::SubProtocol> {
     public:
         SubProtocolFactory();

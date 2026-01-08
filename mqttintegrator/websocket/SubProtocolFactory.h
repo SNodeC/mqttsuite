@@ -52,9 +52,6 @@
 
 namespace mqtt::mqttintegrator::websocket {
 
-    // IMPORTANT: The WebSocket plugin boundary expects factories of
-    //   web::websocket::SubProtocolFactory<web::websocket::client::SubProtocol>
-    // (see web::websocket::client::SubProtocolFactorySelector).
     class SubProtocolFactory : public web::websocket::SubProtocolFactory<web::websocket::client::SubProtocol> {
     public:
         explicit SubProtocolFactory();
