@@ -44,6 +44,7 @@
 
 #include <iot/mqtt/client/SubProtocol.h>
 #include <web/websocket/SubProtocolFactory.h>
+#include <web/websocket/client/SubProtocol.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
@@ -51,7 +52,10 @@
 
 namespace mqtt::mqttbridge::websocket {
 
-    class SubProtocolFactory : public web::websocket::SubProtocolFactory<iot::mqtt::client::SubProtocol> {
+    // IMPORTANT: The WebSocket plugin boundary expects factories of
+    //   web::websocket::SubProtocolFactory<web::websocket::client::SubProtocol>
+    // (see web::websocket::client::SubProtocolFactorySelector).
+    class SubProtocolFactory : public web::websocket::SubProtocolFactory<web::websocket::client::SubProtocol> {
     public:
         explicit SubProtocolFactory();
 
@@ -61,6 +65,6 @@ namespace mqtt::mqttbridge::websocket {
 
 } // namespace mqtt::mqttbridge::websocket
 
-extern "C" mqtt::mqttbridge::websocket::SubProtocolFactory* mqttClientSubProtocolFactory();
+extern "C" web::websocket::SubProtocolFactory<web::websocket::client::SubProtocol>* mqttClientSubProtocolFactory();
 
 #endif // APPS_MQTTBROKER_MQTTINTEGRATOR_WEBSOCKET_SUBPROTOCOLFACTORY_H

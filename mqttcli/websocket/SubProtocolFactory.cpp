@@ -61,7 +61,7 @@ namespace mqtt::mqttcli::websocket {
 #define NAME "mqtt"
 
     SubProtocolFactory::SubProtocolFactory()
-        : web::websocket::SubProtocolFactory<iot::mqtt::client::SubProtocol>::SubProtocolFactory(NAME) {
+        : web::websocket::SubProtocolFactory<web::websocket::client::SubProtocol>::SubProtocolFactory(NAME) {
     }
 
     iot::mqtt::client::SubProtocol* SubProtocolFactory::create(web::websocket::SubProtocolContext* subProtocolContext) {
@@ -104,6 +104,6 @@ namespace mqtt::mqttcli::websocket {
 
 } // namespace mqtt::mqttcli::websocket
 
-extern "C" mqtt::mqttcli::websocket::SubProtocolFactory* mqttClientSubProtocolFactory() {
+extern "C" web::websocket::SubProtocolFactory<web::websocket::client::SubProtocol>* mqttClientSubProtocolFactory() {
     return new mqtt::mqttcli::websocket::SubProtocolFactory();
 }

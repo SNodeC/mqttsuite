@@ -44,6 +44,7 @@
 
 #include <iot/mqtt/server/SubProtocol.h>
 #include <web/websocket/SubProtocolFactory.h>
+#include <web/websocket/server/SubProtocol.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
@@ -51,7 +52,12 @@
 
 namespace mqtt::mqttbroker::websocket {
 
-    class SubProtocolFactory : public web::websocket::SubProtocolFactory<iot::mqtt::server::SubProtocol> {
+    // IMPORTANT: The WebSocket plugin boundary expects factories of
+    //   web::websocket::SubProtocolFactory<web::websocket::server::SubProtocol>
+    // (see web::websocket::server::SubProtocolFactorySelector).
+    // Using a factory template instantiated with a *different* SubProtocol type
+    // (even a derived one) breaks the ABI and triggers UBSan vptr/type checks.
+    class SubProtocolFactory : public web::websocket::SubProtocolFactory<web::websocket::server::SubProtocol> {
     public:
         SubProtocolFactory();
 
@@ -61,6 +67,6 @@ namespace mqtt::mqttbroker::websocket {
 
 } // namespace mqtt::mqttbroker::websocket
 
-extern "C" void* mqttServerSubProtocolFactory();
+extern "C" web::websocket::SubProtocolFactory<web::websocket::server::SubProtocol>* mqttServerSubProtocolFactory();
 
 #endif // WEB_WEBSOCKET_SUBPROTOCOL_SERVER_MQTTSUBPROTOCOLFACTORY_H

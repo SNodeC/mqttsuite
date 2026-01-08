@@ -85,6 +85,10 @@ add_compile_options(
 
 add_link_options(LINKER:--no-undefined)
 
+# add_compile_options(-fsanitize=address,undefined -fno-omit-frame-pointer -g)
+# add_link_options(-fsanitize=address,undefined)
+# export LD_PRELOAD=/usr/lib/gcc/x86_64-linux-gnu/15/libasan.s
+
 add_subdirectory(lib)
 add_subdirectory(mqttbroker)
 add_subdirectory(mqttintegrator)
