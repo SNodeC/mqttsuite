@@ -96,13 +96,8 @@ namespace mqtt::mqttbroker::lib {
             "willRetain": true
         }
     */
-    void to_json(nlohmann::json& j, const MqttModel::MqttModelEntry& mqttModelEntry) {
-        const Mqtt* mqtt = mqttModelEntry.getMqtt();
-        const core::socket::stream::SocketConnection* socketConnection = mqtt->getMqttContext()->getSocketConnection();
-
+    static void to_json(nlohmann::json& j, const Mqtt* mqtt) {
         j = {{"clientId", mqtt->getClientId()},
-             {"since", mqttModelEntry.onlineSince()},
-             {"duration", mqttModelEntry.onlineDuration()},
              {"connectionName", mqtt->getConnectionName()},
              {"cleanSession", mqtt->getCleanSession()},
              {"connectFlags", mqtt->getConnectFlags()},
@@ -119,8 +114,10 @@ namespace mqtt::mqttbroker::lib {
              {"willQoS", mqtt->getWillQoS()},
              {"willFlag", mqtt->getWillFlag()},
              {"willRetain", mqtt->getWillRetain()},
-             {"localAddress", socketConnection->getLocalAddress().toString()},
-             {"remoteAddress", socketConnection->getRemoteAddress().toString()}};
+             {"since", mqtt->getMqttContext()->getSocketConnection()->getSocketContext()->getOnlineSince()},
+             {"duration", mqtt->getMqttContext()->getSocketConnection()->getSocketContext()->getOnlineDuration()},
+             {"localAddress", mqtt->getMqttContext()->getSocketConnection()->getLocalAddress().toString()},
+             {"remoteAddress", mqtt->getMqttContext()->getSocketConnection()->getRemoteAddress().toString()}};
     }
 
     struct subscribe {
@@ -129,7 +126,7 @@ namespace mqtt::mqttbroker::lib {
         uint8_t qoS;
     };
 
-    void to_json(nlohmann::json& j, const subscribe& subscribe) {
+    static void to_json(nlohmann::json& j, const subscribe& subscribe) {
         j = {{"clientId", subscribe.clientId}, {"topic", subscribe.topic}, {"qos", subscribe.qoS}};
     }
 
@@ -138,7 +135,7 @@ namespace mqtt::mqttbroker::lib {
         const std::string& topic;
     };
 
-    void to_json(nlohmann::json& j, const unsubscribe& unsubscribe) {
+    static void to_json(nlohmann::json& j, const unsubscribe& unsubscribe) {
         j = {{"clientId", unsubscribe.clientId}, {"topic", unsubscribe.topic}};
     }
 
@@ -148,7 +145,7 @@ namespace mqtt::mqttbroker::lib {
         uint8_t qoS;
     };
 
-    void to_json(nlohmann::json& j, const retaine& retaine) {
+    static void to_json(nlohmann::json& j, const retaine& retaine) {
         j = {{"topic", retaine.topic}, {"message", retaine.message}, {"qos", retaine.qoS}};
     }
 
@@ -156,27 +153,8 @@ namespace mqtt::mqttbroker::lib {
         const std::string& topic;
     };
 
-    void to_json(nlohmann::json& j, const release& release) {
+    static void to_json(nlohmann::json& j, const release& release) {
         j = {{"topic", release.topic}};
-    }
-
-    MqttModel::MqttModelEntry::MqttModelEntry(Mqtt* mqtt)
-        : mqtt(mqtt) {
-    }
-
-    MqttModel::MqttModelEntry::~MqttModelEntry() {
-    }
-
-    std::string MqttModel::MqttModelEntry::onlineSince() const {
-        return mqtt->getMqttContext()->getSocketConnection()->getSocketContext()->getOnlineSince();
-    }
-
-    std::string MqttModel::MqttModelEntry::onlineDuration() const {
-        return mqtt->getMqttContext()->getSocketConnection()->getSocketContext()->getOnlineDuration();
-    }
-
-    Mqtt* MqttModel::MqttModelEntry::getMqtt() const {
-        return mqtt;
     }
 
     MqttModel::EventReceiver::EventReceiver(const std::shared_ptr<express::Response>& response)
@@ -268,9 +246,9 @@ namespace mqtt::mqttbroker::lib {
     }
 
     void MqttModel::connectClient(Mqtt* mqtt) {
-        MqttModelEntry& mqttModelEntry = modelMap.emplace(mqtt->getClientId(), mqtt).first->second;
+        modelMap.emplace(mqtt->getClientId(), mqtt);
 
-        sendJsonEvent(mqttModelEntry, "client-connected", std::to_string(id++));
+        sendJsonEvent(mqtt, "client-connected", std::to_string(id++));
     }
 
     void MqttModel::disconnectClient(const std::string& clientId) {
@@ -299,7 +277,7 @@ namespace mqtt::mqttbroker::lib {
         }
     }
 
-    const std::map<std::string, MqttModel::MqttModelEntry>& MqttModel::getClients() const {
+    const std::map<std::string, Mqtt*>& MqttModel::getClients() const {
         return modelMap;
     }
 
@@ -308,7 +286,7 @@ namespace mqtt::mqttbroker::lib {
 
         auto modelIt = modelMap.find(clientId);
         if (modelIt != modelMap.end()) {
-            mqtt = modelIt->second.getMqtt();
+            mqtt = modelIt->second;
         }
 
         return mqtt;

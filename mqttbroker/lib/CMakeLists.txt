@@ -50,7 +50,7 @@ find_package(
 add_library(mqtt-broker SHARED Mqtt.cpp Mqtt.h MqttModel.cpp MqttModel.h)
 
 set_source_files_properties(
-    MqttModel.cpp PROPERTIES COMPILE_FLAGS -Wno-exit-time-destructors
+    MqttModel.cpp PROPERTIES COMPILE_OPTIONS -Wno-unneeded-internal-declaration
 )
 
 target_include_directories(mqtt-broker PUBLIC ${PROJECT_SOURCE_DIR})

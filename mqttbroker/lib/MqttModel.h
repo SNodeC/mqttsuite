@@ -73,24 +73,6 @@ namespace mqtt::mqttbroker::lib {
 
     class MqttModel {
     private:
-        class MqttModelEntry {
-        public:
-            MqttModelEntry() = default;
-            MqttModelEntry(Mqtt* mqtt);
-
-            ~MqttModelEntry();
-
-            MqttModelEntry(MqttModelEntry&&) noexcept = default;
-
-            Mqtt* getMqtt() const;
-
-            std::string onlineSince() const;
-            std::string onlineDuration() const;
-
-        private:
-            Mqtt* mqtt = nullptr;
-        };
-
         class EventReceiver {
         public:
             EventReceiver(const std::shared_ptr<express::Response>& response);
@@ -120,7 +102,7 @@ namespace mqtt::mqttbroker::lib {
         void unsubscribeClient(const std::string& clientId, const std::string& topic);
         void publishMessage(const std::string& topic, const std::string& message, uint8_t qoS, bool retain);
 
-        const std::map<std::string, MqttModelEntry>& getClients() const;
+        const std::map<std::string, Mqtt*>& getClients() const;
 
         Mqtt* getMqtt(const std::string& clientId) const;
 
@@ -144,12 +126,10 @@ namespace mqtt::mqttbroker::lib {
         durationToString(const std::chrono::time_point<std::chrono::system_clock>& bevore,
                          const std::chrono::time_point<std::chrono::system_clock>& later = std::chrono::system_clock::now());
 
-        std::map<std::string, MqttModelEntry> modelMap;
+        std::map<std::string, Mqtt*> modelMap;
         std::list<EventReceiver> eventReceiverList;
         std::chrono::time_point<std::chrono::system_clock> onlineSinceTimePoint;
         uint64_t id = 0;
-
-        friend void to_json(nlohmann::json& j, const MqttModel::MqttModelEntry& mqttModelEntry);
     };
 
 } // namespace mqtt::mqttbroker::lib
