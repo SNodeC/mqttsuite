@@ -1,0 +1,258 @@
+blueprint:
+  name: "SofaBaton X2 Key Scraper"
+  description: >
+    ## SofaBaton X2 Key Scraper
+
+    Extracts all KEY_IDs from your hub for both Activities and Devices, so you can use them in your own automations and scripts.
+
+    ### 💡 Why this blueprint:
+
+    With the Sofabaton X2 integration, any command the X2 hub knows about can be triggered from Home Assistant.
+    Using the `remote` entity the integration adds for each configured hub, commands can be called like this:
+
+    ```yaml
+        action: remote.send_command
+        target:
+          entity_id: remote.HUB_NAME
+        data:
+          command:
+            - type:KEY_TYPE
+            - activity_id:ACTIVITY_ID
+            - key_id:KEY_ID
+    ```
+
+    Automations, scripts and UIs looking to implement this will need KEY_TYPE, ACTIVITY_ID and KEY_ID for each command they intend to trigger.
+
+    This blueprint fetches all of these for your Activities and/or Devices, and provides ready to use YAML showing how to use the codes retrieved.
+
+    ### 💡 How to use:
+
+    1. Select your **SofaBaton Remote**.
+
+    2. Choose **Scraper Mode** (Activities or Devices).
+
+    3. **Save** the script, give it a name like "X2 Key Scraper".
+
+    4. Run the script. In the top-right corner, click the 3 dots and in the menu that appears, select "**Run Script**"
+
+    5. Check your **Notifications** sidebar for the results.
+
+    ### 💡 Important:
+
+    - Running this script may take a long time (think minutes), depending on how many Activities, Devices and most importantly; how many Keys there are for each of them. Notifications will come in one Activity or Device at a time (you will receive as many Notifications as you have Activities/Devices). It is highly likely that your hub is less responsive while the script runs.
+
+    - Sofabaton have disabled direct Device support in their current integration (as of January 2026), yet this script still fetches KEYS for them and leverages a quirk in the hub's firmware that enables triggering any command using the `send_favorite_key` command type.
+
+    As it turns out, Sofabaton have not disabled devices without reason. For large key sets such as can be found in AVR devices, the hub can timeout and decide to not return any KEYS at all. After a fresh hub restart, I found that large key sets will be returned once or twice before the hub starts to fail.
+
+  domain: script
+  input:
+    remote_entity:
+      name: SofaBaton Remote
+      description: The remote entity from the SofaBaton integration.
+      selector:
+        entity:
+          filter:
+            - integration: sofabaton_hub
+              domain: remote
+    scraper_mode:
+      name: Scraper Mode
+      description: "Whether to retrieve codes for Activities or Devices"
+      default: "Activities"
+      selector:
+        select:
+          options:
+            - "Activities"
+            - "Devices"
+
+# No trigger needed for scripts
+sequence:
+  - variables:
+      button_map: {
+        174: "Up", 178: "Down", 175: "Left", 177: "Right", 176: "OK",
+        179: "Back", 180: "Home", 181: "Menu", 182: "Vol+", 185: "Vol-",
+        183: "Ch+", 186: "Ch-", 184: "Mute", 157: "Guide", 187: "Rewind",
+        156: "Play", 189: "FF", 155: "DVR", 188: "Pause", 154: "Exit",
+        190: "Red", 191: "Green", 192: "Yellow", 193: "Blue",
+        153: "A", 152: "B", 151: "C"
+      }
+      mode_choice: !input scraper_mode
+      remote_target: !input remote_entity
+
+  # STEP 1: MAC DISCOVERY (Required for Device MQTT Topics)
+  - parallel:
+      - sequence:
+          - wait_for_trigger:
+              - platform: mqtt
+                topic: "activity/+/list"
+            timeout: "00:00:10"
+          - variables:
+              hub_mac: "{{ wait.trigger.topic.split('/')[1] if wait.trigger is not none else 'Unknown' }}"
+              activities: "{{ wait.trigger.payload_json.data if wait.trigger is not none else [] }}"
+
+          - choose:
+              # --- MODE A: ACTIVITIES ---
+              - conditions: "{{ mode_choice == 'Activities' }}"
+                sequence:
+                  - repeat:
+                      for_each: "{{ activities }}"
+                      sequence:
+                        - variables:
+                            curr_id: "{{ repeat.item.activity_id }}"
+                            curr_name: "{{ repeat.item.activity_name }}"
+                        - parallel:
+                            - sequence: # Listener branch
+                                - wait_for_trigger: { platform: mqtt, topic: "activity/+/keys_list" }
+                                  timeout: "00:00:05"
+                                - variables: { k_data: "{{ wait.trigger.payload_json.data if wait.trigger is not none else [] }}" }
+                                - wait_for_trigger: { platform: mqtt, topic: "activity/+/favorites_keys_list" }
+                                  timeout: "00:00:05"
+                                - variables: { f_data: "{{ wait.trigger.payload_json.data if wait.trigger is not none else [] }}" }
+                                - wait_for_trigger: { platform: mqtt, topic: "activity/+/macro_keys_list" }
+                                  timeout: "00:00:05"
+                                - variables: { m_data: "{{ wait.trigger.payload_json.data if wait.trigger is not none else [] }}" }
+                                - service: notify.persistent_notification
+                                  data:
+                                    title: "SofaBaton Activity: {{ curr_name }}"
+                                    message: |
+                                      **MAC:** `{{ hub_mac }}` | **Activity ID:** `{{ curr_id }}`
+
+                                      ### Keys
+                                      | Button | key_id |
+                                      | :--- | :--- |
+                                      {% for k in k_data -%}| {{ button_map.get(k.key_id, "Key") }} | `{{ k.key_id }}` |
+                                      {% endfor %}
+
+                                      **Example Automation Action  (for first key):**
+                                      ```yaml
+                                      action: remote.send_command
+                                      target:
+                                        entity_id: {{ remote_target }}
+                                      data:
+                                        command:
+                                          - type:send_assigned_key
+                                          - activity_id:{{ curr_id }}
+                                          - key_id:{{ k_data[0].key_id if k_data|length > 0 else 'KEY_ID' }}
+                                      ```
+
+                                      {% if m_data|length > 0 %}
+                                      ### Macros
+                                      | Type | Name | key_id |
+                                      | :--- | :--- | :--- |
+                                      {% for mac in m_data -%}| Macro | {{ mac.key_name }} | `{{ mac.key_id }}` |
+                                      {% endfor %}
+
+                                      **Example Automation Action (for first key):**
+                                      ```yaml
+                                      action: remote.send_command
+                                      target:
+                                        entity_id: {{ remote_target }}
+                                      data:
+                                        command:
+                                          - type:send_macro_key
+                                          - activity_id:{{ curr_id }}
+                                          - key_id:{{ m_data[0].key_id if m_data|length > 0 else 'KEY_ID' }}
+                                      ```
+                                      {% endif %}
+
+                                      {% if f_data|length > 0 %}
+                                      ### Favorites
+                                      | Type | Name | key_id | device_id |
+                                      | :--- | :--- | :--- | :--- |
+                                      {% for fav in f_data -%}| Favorite | {{ fav.key_name }} | `{{ fav.key_id }}` | `{{ fav.device_id }}` |
+                                      {% endfor %}
+
+                                      **Example Automation Action (for first key):**
+                                      ```yaml
+                                      action: remote.send_command
+                                      target:
+                                        entity_id: {{ remote_target }}
+                                      data:
+                                        command:
+                                          - type:send_favorite_key
+                                          - device_id:{{ f_data[0].device_id if f_data|length > 0 else 'DEVICE_ID' }}
+                                          - key_id:{{ f_data[0].key_id if f_data|length > 0 else 'KEY_ID' }}
+                                      ```
+                                      {% endif %}
+
+                            - sequence: # Requester branch
+                                - delay: "00:00:00.500"
+                                - service: remote.send_command
+                                  target: { entity_id: !input remote_entity }
+                                  data: { command: ["type:request_assigned_keys", "activity_id:{{ curr_id }}"] }
+                                - delay: "00:00:01.500"
+                                - service: remote.send_command
+                                  target: { entity_id: !input remote_entity }
+                                  data: { command: ["type:request_favorite_keys", "activity_id:{{ curr_id }}"] }
+                                - delay: "00:00:01.500"
+                                - service: remote.send_command
+                                  target: { entity_id: !input remote_entity }
+                                  data: { command: ["type:request_macro_keys", "activity_id:{{ curr_id }}"] }
+
+              # --- MODE B: DEVICES ---
+              - conditions: "{{ mode_choice == 'Devices' }}"
+                sequence:
+                  - parallel:
+                      - sequence: # Device List Listener
+                          - wait_for_trigger: { platform: mqtt, topic: "device/+/list" }
+                            timeout: "00:00:05"
+                          - variables: { device_list: "{{ wait.trigger.payload_json.data if wait.trigger is not none else [] }}" }
+                          - repeat:
+                              for_each: "{{ device_list }}"
+                              sequence:
+                                - variables:
+                                    dev_id: "{{ repeat.item.device_id }}"
+                                    dev_name: "{{ repeat.item.device_name }}"
+                                - parallel:
+                                    - sequence: # Key Listener
+                                        - wait_for_trigger: { platform: mqtt, topic: "device/+/keys_list" }
+                                          timeout: "00:00:30"
+                                        - variables: { dk_data: "{{ wait.trigger.payload_json.data if wait.trigger is not none else [] }}" }
+                                        - service: notify.persistent_notification
+                                          data:
+                                            title: "SofaBaton Device: {{ dev_name }}"
+                                            message: |
+                                              **MAC:** `{{ hub_mac }}` | **Device ID:** `{{ dev_id }}`
+
+                                              | Name | key_id |
+                                              | :--- | :--- |
+                                              {% for k in dk_data -%}| {{ k.key_name }} | `{{ k.key_id }}` |
+                                              {% endfor %}
+
+                                              **Example Automation Action (for first key):**
+                                              ```yaml
+                                              action: remote.send_command
+                                              target:
+                                                entity_id: {{ remote_target }}
+                                              data:
+                                                command:
+                                                  - type:send_favorite_key
+                                                  - device_id:{{ dev_id }}
+                                                  - key_id:{{ dk_data[0].key_id if dk_data|length > 0 else "KEY_ID" }}
+                                              ```
+                                    - sequence: # Key Requester
+                                        - delay: "00:00:00.500"
+                                        - service: mqtt.publish
+                                          data:
+                                            topic: "device/{{ hub_mac }}/keys_request"
+                                            payload: '{"data": {"device_id": {{ dev_id }}}}'
+                                        - delay: "00:00:12.000"
+
+                      - sequence: # Device List Requester
+                          - delay: "00:00:00.500"
+                          - service: mqtt.publish
+                            data:
+                              topic: "device/{{ hub_mac }}/list_request"
+                              payload: '{"data": "device_list"}'
+
+          # Final Step: Notify completion
+          - service: notify.persistent_notification
+            data:
+              title: "SofaBaton Scraper: Finished"
+              message: "All data for {{ mode_choice }} has been processed. Check the sidebar for details."
+
+      - sequence: # Hub Trigger (To get MAC)
+          - delay: "00:00:00.500"
+          - service: remote.send_command
+            target: { entity_id: !input remote_entity }
+            data: { command: ["type:request_basic_data"] }

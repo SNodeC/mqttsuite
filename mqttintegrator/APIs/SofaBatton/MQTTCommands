@@ -1,0 +1,1473 @@
+# Activity-related topics
+TOPIC_ACTIVITY_LIST_REQUEST = "activity/{mac}/list_request"
+TOPIC_ACTIVITY_LIST_RESPONSE = "activity/{mac}/list"
+TOPIC_ACTIVITY_CONTROL_UP = "activity/{mac}/activity_control_up"
+TOPIC_ACTIVITY_CONTROL_DOWN = "activity/{mac}/activity_control_down"
+TOPIC_ACTIVITY_KEYS_REQUEST = "activity/{mac}/keys_request"
+TOPIC_ACTIVITY_KEYS_LIST = "activity/{mac}/keys_list"
+TOPIC_ACTIVITY_FAVORITES_REQUEST = "activity/{mac}/favorites_keys_request"
+TOPIC_ACTIVITY_FAVORITES_LIST = "activity/{mac}/favorites_keys_list"
+TOPIC_ACTIVITY_FAVORITES_CONTROL = "activity/{mac}/favorites_keys_control"
+TOPIC_ACTIVITY_MACRO_REQUEST = "activity/{mac}/macro_keys_request"
+TOPIC_ACTIVITY_MACRO_LIST = "activity/{mac}/macro_keys_list"
+TOPIC_ACTIVITY_ASSIGNED_KEY_CONTROL = "activity/{mac}/keys_control"
+TOPIC_ACTIVITY_MACRO_KEY_CONTROL = "activity/{mac}/macro_keys_control"
+
+# Device-related topics
+TOPIC_DEVICE_LIST_REQUEST = "device/{mac}/list_request"
+TOPIC_DEVICE_LIST_RESPONSE = "device/{mac}/list"
+TOPIC_DEVICE_KEYS_REQUEST = "device/{mac}/keys_request"
+TOPIC_DEVICE_KEYS_LIST = "device/{mac}/keys_list"
+TOPIC_DEVICE_KEY_CONTROL = "device/{mac}/keys_control"
+
+mqttcli in-wsmqtt remote --host iot.vchrist.at sub --topic device/# pub --topic device/80F1B2985A10/list_request --message "{\"data\": \"device_list\"}"
+mqttcli in-wsmqtt remote --host iot.vchrist.at sub --topic device/# pub --topic device/80F1B2985A10/keys_request --message "{\"data\": {\"device_id\": 1}}"
+mqttcli in-wsmqtt remote --host iot.vchrist.at sub --topic device/# pub --topic device/80F1B2985A10/keys_control --message "{\"data\": {\"device_id\": 1, \"key_id\": 1}}"
+mqttcli in-wsmqtt remote --host iot.vchrist.at sub --topic activity/# pub --topic activity/80F1B2985A10/list_request --message "{\"data\": \"activity_list\"}"
+mqttcli in-wsmqtt remote --host iot.vchrist.at sub --topic activity/# pub --topic activity/80F1B2985A10/keys_request --message "{\"data\": {\"activity_id\": 101}}"
+mqttcli in-wsmqtt remote --host iot.vchrist.at sub --topic activity/# pub --topic activity/80F1B2985A10/favorites_keys_request --message "{\"data\": {\"activity_id\": 101}}"
+mqttcli in-wsmqtt remote --host iot.vchrist.at sub --topic activity/# pub --topic activity/80F1B2985A10/macro_keys_request --message "{\"data\": {\"activity_id\": 101}}"
+mqttcli in-wsmqtt remote --host iot.vchrist.at sub --topic activity/# pub --topic activity/80F1B2985A10/keys_control --message "{\"data\": {\"activity_id\": 101, \"key_id\": 181}}"
+mqttcli in-wsmqtt remote --host iot.vchrist.at sub --topic activity/# pub --topic activity/80F1B2985A10/favorites_keys_control --message "{\"data\": {\"activity_id\": 101, \"key_id\": 181}}"
+mqttcli in-wsmqtt remote --host iot.vchrist.at sub --topic activity/# pub --topic activity/80F1B2985A10/macro_keys_control --message "{\"data\": {\"activity_id\": 101, \"key_id\": 181}}"
+mqttcli in-wsmqtt remote --host iot.vchrist.at sub --topic activity/# pub --topic activity/80F1B2985A10/activity_control_down --message "{\"data\": {\"activity_id\": 101, \"state\":\"on\" }}"
+mqttcli in-wsmqtt remote --host iot.vchrist.at sub --topic activity/# pub --topic activity/80F1B2985A10/activity_control_down --message "{\"data\": {\"activity_id\": 101, \"state\":\"off\" }}"
+
+mqttcli in-wsmqtt remote --host iot.vchrist.at sub --topic activity/80F1B2985A10/activity_control_up
+
+
+Watch PC On
+https://app1.sofabaton.com/app/keypress2?node_id=f3dfa0e3-2094-451e-bc14-7014ccf3ef45&id=Watch PC&type=1
+
+Watch PC Off
+https://app1.sofabaton.com/app/keypress2?node_id=f3dfa0e3-2094-451e-bc14-7014ccf3ef45&id=Watch PC&type=0
+
+Watch TV On
+https://app1.sofabaton.com/app/keypress2?node_id=f3dfa0e3-2094-451e-bc14-7014ccf3ef45&id=Watch TV&type=1
+
+Watch TV Off
+https://app1.sofabaton.com/app/keypress2?node_id=f3dfa0e3-2094-451e-bc14-7014ccf3ef45&id=Watch TV&type=0
+
+
+button_map: {
+  174: "Up", 178: "Down", 175: "Left", 177: "Right", 176: "OK",
+  179: "Back", 180: "Home", 181: "Menu", 182: "Vol+", 185: "Vol-",
+  183: "Ch+", 186: "Ch-", 184: "Mute", 157: "Guide", 187: "Rewind",
+  156: "Play", 189: "FF", 155: "DVR", 188: "Pause", 154: "Exit",
+  190: "Red", 191: "Green", 192: "Yellow", 193: "Blue",
+  153: "A", 152: "B", 151: "C"
+}
+
+
+mqttcli in-wsmqtt remote --host iot.vchrist.at sub --topic device/# pub --topic device/80F1B2985A10/list_request --message "{\"data\": \"device_list\"}"
+MQTT Publish: device/80F1B2985A10/list
+{
+  "data": [
+    {
+      "device_id": 1,
+      "device_name": "DreamMultimedia"
+    },
+    {
+      "device_id": 2,
+      "device_name": "Samsung"
+    },
+    {
+      "device_id": 3,
+      "device_name": "Yamaha"
+    }
+  ]
+}
+
+
+mqttcli in-wsmqtt remote --host iot.vchrist.at sub --topic device/# pub --topic device/80F1B2985A10/keys_request --message "{\"data\": {\"device_id\": 1}}"
+MQTT Publish: device/80F1B2985A10/keys_list
+{
+  "data": [
+    {
+      "key_id": 1,
+      "key_name": "Power"
+    },
+    {
+      "key_id": 2,
+      "key_name": "0"
+    },
+    {
+      "key_id": 3,
+      "key_name": "1"
+    },
+    {
+      "key_id": 4,
+      "key_name": "2"
+    },
+    {
+      "key_id": 5,
+      "key_name": "3"
+    },
+    {
+      "key_id": 6,
+      "key_name": "4"
+    },
+    {
+      "key_id": 7,
+      "key_name": "5"
+    },
+    {
+      "key_id": 8,
+      "key_name": "6"
+    },
+    {
+      "key_id": 9,
+      "key_name": "7"
+    },
+    {
+      "key_id": 10,
+      "key_name": "8"
+    },
+    {
+      "key_id": 11,
+      "key_name": "9"
+    },
+    {
+      "key_id": 12,
+      "key_name": "Audio"
+    },
+    {
+      "key_id": 13,
+      "key_name": "Bouquet down"
+    },
+    {
+      "key_id": 14,
+      "key_name": "Bouquet up"
+    },
+    {
+      "key_id": 15,
+      "key_name": "Dvr"
+    },
+    {
+      "key_id": 16,
+      "key_name": "Exit"
+    },
+    {
+      "key_id": 17,
+      "key_name": "Help"
+    },
+    {
+      "key_id": 18,
+      "key_name": "Help"
+    },
+    {
+      "key_id": 19,
+      "key_name": "Info"
+    },
+    {
+      "key_id": 20,
+      "key_name": "Play"
+    },
+    {
+      "key_id": 21,
+      "key_name": "Power toggle"
+    },
+    {
+      "key_id": 22,
+      "key_name": "Pvr"
+    },
+    {
+      "key_id": 23,
+      "key_name": "Radio"
+    },
+    {
+      "key_id": 24,
+      "key_name": "Record"
+    },
+    {
+      "key_id": 25,
+      "key_name": "Stop"
+    },
+    {
+      "key_id": 26,
+      "key_name": "Teletext"
+    },
+    {
+      "key_id": 27,
+      "key_name": "Tv"
+    },
+    {
+      "key_id": 28,
+      "key_name": "Blue"
+    },
+    {
+      "key_id": 29,
+      "key_name": "Channel_down"
+    },
+    {
+      "key_id": 30,
+      "key_name": "Channel_up"
+    },
+    {
+      "key_id": 31,
+      "key_name": "Fast_forward"
+    },
+    {
+      "key_id": 32,
+      "key_name": "Green"
+    },
+    {
+      "key_id": 33,
+      "key_name": "Menu"
+    },
+    {
+      "key_id": 34,
+      "key_name": "Mute"
+    },
+    {
+      "key_id": 35,
+      "key_name": "Navigate_down"
+    },
+    {
+      "key_id": 36,
+      "key_name": "Navigate_left"
+    },
+    {
+      "key_id": 37,
+      "key_name": "Navigate_right"
+    },
+    {
+      "key_id": 38,
+      "key_name": "Navigate_up"
+    },
+    {
+      "key_id": 39,
+      "key_name": "Ok"
+    },
+    {
+      "key_id": 40,
+      "key_name": "Pause"
+    },
+    {
+      "key_id": 41,
+      "key_name": "Red"
+    },
+    {
+      "key_id": 42,
+      "key_name": "Rewind"
+    },
+    {
+      "key_id": 43,
+      "key_name": "Volume_down"
+    },
+    {
+      "key_id": 44,
+      "key_name": "Volume_up"
+    },
+    {
+      "key_id": 45,
+      "key_name": "Yellow"
+    },
+    {
+      "key_id": 46,
+      "key_name": "Back"
+    },
+    {
+      "key_id": 47,
+      "key_name": "Next"
+    },
+    {
+      "key_id": 48,
+      "key_name": "Privious"
+    }
+  ],
+  "device_id": 1,
+  "key_count": 48
+}
+
+
+mqttcli in-wsmqtt remote --host iot.vchrist.at sub --topic device/# pub --topic device/80F1B2985A10/keys_request --message "{\"data\": {\"device_id\": 2}}"
+MQTT Publish: device/80F1B2985A10/keys_list
+{
+  "data": [
+    {
+      "key_id": 1,
+      "key_name": "Power"
+    },
+    {
+      "key_id": 2,
+      "key_name": "Power off"
+    },
+    {
+      "key_id": 3,
+      "key_name": "Power on"
+    },
+    {
+      "key_id": 4,
+      "key_name": "0"
+    },
+    {
+      "key_id": 5,
+      "key_name": "1"
+    },
+    {
+      "key_id": 6,
+      "key_name": "2"
+    },
+    {
+      "key_id": 7,
+      "key_name": "3"
+    },
+    {
+      "key_id": 8,
+      "key_name": "4"
+    },
+    {
+      "key_id": 9,
+      "key_name": "5"
+    },
+    {
+      "key_id": 10,
+      "key_name": "6"
+    },
+    {
+      "key_id": 11,
+      "key_name": "7"
+    },
+    {
+      "key_id": 12,
+      "key_name": "8"
+    },
+    {
+      "key_id": 13,
+      "key_name": "9"
+    },
+    {
+      "key_id": 14,
+      "key_name": "3 speed"
+    },
+    {
+      "key_id": 15,
+      "key_name": "A"
+    },
+    {
+      "key_id": 16,
+      "key_name": "Ad/subt"
+    },
+    {
+      "key_id": 17,
+      "key_name": "Amazon"
+    },
+    {
+      "key_id": 18,
+      "key_name": "Ambient"
+    },
+    {
+      "key_id": 19,
+      "key_name": "Art mode"
+    },
+    {
+      "key_id": 20,
+      "key_name": "B"
+    },
+    {
+      "key_id": 21,
+      "key_name": "Bluetooth"
+    },
+    {
+      "key_id": 22,
+      "key_name": "C"
+    },
+    {
+      "key_id": 23,
+      "key_name": "Channel list"
+    },
+    {
+      "key_id": 24,
+      "key_name": "Clear"
+    },
+    {
+      "key_id": 25,
+      "key_name": "Clock set"
+    },
+    {
+      "key_id": 26,
+      "key_name": "D"
+    },
+    {
+      "key_id": 27,
+      "key_name": "Dts"
+    },
+    {
+      "key_id": 28,
+      "key_name": "E-manual"
+    },
+    {
+      "key_id": 29,
+      "key_name": "Energy savings"
+    },
+    {
+      "key_id": 30,
+      "key_name": "Exit"
+    },
+    {
+      "key_id": 31,
+      "key_name": "Extra"
+    },
+    {
+      "key_id": 32,
+      "key_name": "Factory"
+    },
+    {
+      "key_id": 33,
+      "key_name": "Guide"
+    },
+    {
+      "key_id": 34,
+      "key_name": "Info"
+    },
+    {
+      "key_id": 35,
+      "key_name": "Input"
+    },
+    {
+      "key_id": 36,
+      "key_name": "Input av"
+    },
+    {
+      "key_id": 37,
+      "key_name": "Input component"
+    },
+    {
+      "key_id": 38,
+      "key_name": "Input hdmi1"
+    },
+    {
+      "key_id": 39,
+      "key_name": "Input hdmi2"
+    },
+    {
+      "key_id": 40,
+      "key_name": "Input hdmi3"
+    },
+    {
+      "key_id": 41,
+      "key_name": "Input hdmi4"
+    },
+    {
+      "key_id": 42,
+      "key_name": "Input tv"
+    },
+    {
+      "key_id": 43,
+      "key_name": "List"
+    },
+    {
+      "key_id": 44,
+      "key_name": "More"
+    },
+    {
+      "key_id": 45,
+      "key_name": "Multi link"
+    },
+    {
+      "key_id": 46,
+      "key_name": "Netflix"
+    },
+    {
+      "key_id": 47,
+      "key_name": "Play"
+    },
+    {
+      "key_id": 48,
+      "key_name": "Play/pause"
+    },
+    {
+      "key_id": 49,
+      "key_name": "Power toggle"
+    },
+    {
+      "key_id": 50,
+      "key_name": "Prime video"
+    },
+    {
+      "key_id": 51,
+      "key_name": "Record"
+    },
+    {
+      "key_id": 52,
+      "key_name": "Return"
+    },
+    {
+      "key_id": 53,
+      "key_name": "Search"
+    },
+    {
+      "key_id": 54,
+      "key_name": "Smart hub"
+    },
+    {
+      "key_id": 55,
+      "key_name": "Source"
+    },
+    {
+      "key_id": 56,
+      "key_name": "Sports"
+    },
+    {
+      "key_id": 57,
+      "key_name": "Stop"
+    },
+    {
+      "key_id": 58,
+      "key_name": "Teletext"
+    },
+    {
+      "key_id": 59,
+      "key_name": "Tools"
+    },
+    {
+      "key_id": 60,
+      "key_name": "Web browser"
+    },
+    {
+      "key_id": 61,
+      "key_name": "Back"
+    },
+    {
+      "key_id": 62,
+      "key_name": "Blue"
+    },
+    {
+      "key_id": 63,
+      "key_name": "Channel_down"
+    },
+    {
+      "key_id": 64,
+      "key_name": "Channel_up"
+    },
+    {
+      "key_id": 65,
+      "key_name": "Fast_forward"
+    },
+    {
+      "key_id": 66,
+      "key_name": "Green"
+    },
+    {
+      "key_id": 67,
+      "key_name": "Home"
+    },
+    {
+      "key_id": 68,
+      "key_name": "Menu"
+    },
+    {
+      "key_id": 69,
+      "key_name": "Mute"
+    },
+    {
+      "key_id": 70,
+      "key_name": "Navigate_down"
+    },
+    {
+      "key_id": 71,
+      "key_name": "Navigate_left"
+    },
+    {
+      "key_id": 72,
+      "key_name": "Navigate_right"
+    },
+    {
+      "key_id": 73,
+      "key_name": "Navigate_up"
+    },
+    {
+      "key_id": 74,
+      "key_name": "Ok/select"
+    },
+    {
+      "key_id": 75,
+      "key_name": "Pause"
+    },
+    {
+      "key_id": 76,
+      "key_name": "Red"
+    },
+    {
+      "key_id": 77,
+      "key_name": "Rewind"
+    },
+    {
+      "key_id": 78,
+      "key_name": "Volume_down"
+    },
+    {
+      "key_id": 79,
+      "key_name": "Volume_up"
+    },
+    {
+      "key_id": 80,
+      "key_name": "Yellow"
+    }
+  ],
+  "device_id": 2,
+  "key_count": 80
+}
+
+
+mqttcli in-wsmqtt remote --host iot.vchrist.at sub --topic device/# pub --topic device/80F1B2985A10/keys_request --message "{\"data\": {\"device_id\": 3}}"
+MQTT Publish: device/80F1B2985A10/keys_list
+{
+  "data": [
+    {
+      "key_id": 1,
+      "key_name": "Power"
+    },
+    {
+      "key_id": 2,
+      "key_name": "Power off"
+    },
+    {
+      "key_id": 3,
+      "key_name": "Power on"
+    },
+    {
+      "key_id": 4,
+      "key_name": "0"
+    },
+    {
+      "key_id": 5,
+      "key_name": "1"
+    },
+    {
+      "key_id": 6,
+      "key_name": "2"
+    },
+    {
+      "key_id": 7,
+      "key_name": "3"
+    },
+    {
+      "key_id": 8,
+      "key_name": "4"
+    },
+    {
+      "key_id": 9,
+      "key_name": "5"
+    },
+    {
+      "key_id": 10,
+      "key_name": "6"
+    },
+    {
+      "key_id": 11,
+      "key_name": "7"
+    },
+    {
+      "key_id": 12,
+      "key_name": "8"
+    },
+    {
+      "key_id": 13,
+      "key_name": "9"
+    },
+    {
+      "key_id": 14,
+      "key_name": "Sleep"
+    },
+    {
+      "key_id": 15,
+      "key_name": "Sleep"
+    },
+    {
+      "key_id": 16,
+      "key_name": "Adaptivedrcoff"
+    },
+    {
+      "key_id": 17,
+      "key_name": "Adaptivedrcon"
+    },
+    {
+      "key_id": 18,
+      "key_name": "Band"
+    },
+    {
+      "key_id": 19,
+      "key_name": "Boot"
+    },
+    {
+      "key_id": 20,
+      "key_name": "DSP-Direct"
+    },
+    {
+      "key_id": 21,
+      "key_name": "Dsp-movie"
+    },
+    {
+      "key_id": 22,
+      "key_name": "Dsp-music"
+    },
+    {
+      "key_id": 23,
+      "key_name": "DSP-Stereo/Enhancer"
+    },
+    {
+      "key_id": 24,
+      "key_name": "Dsp-straight"
+    },
+    {
+      "key_id": 25,
+      "key_name": "DSP-SurrDecode"
+    },
+    {
+      "key_id": 26,
+      "key_name": "Enhancer"
+    },
+    {
+      "key_id": 27,
+      "key_name": "Exit"
+    },
+    {
+      "key_id": 28,
+      "key_name": "Guide"
+    },
+    {
+      "key_id": 29,
+      "key_name": "Hdmiout"
+    },
+    {
+      "key_id": 30,
+      "key_name": "Hdmiout1"
+    },
+    {
+      "key_id": 31,
+      "key_name": "Hdmiout1 2"
+    },
+    {
+      "key_id": 32,
+      "key_name": "Hdmiout2"
+    },
+    {
+      "key_id": 33,
+      "key_name": "Help"
+    },
+    {
+      "key_id": 34,
+      "key_name": "Info"
+    },
+    {
+      "key_id": 35,
+      "key_name": "Input"
+    },
+    {
+      "key_id": 36,
+      "key_name": "Input Aux"
+    },
+    {
+      "key_id": 37,
+      "key_name": "Input av1"
+    },
+    {
+      "key_id": 38,
+      "key_name": "Input Av2\n"
+    },
+    {
+      "key_id": 39,
+      "key_name": "Input av3"
+    },
+    {
+      "key_id": 40,
+      "key_name": "Input av4"
+    },
+    {
+      "key_id": 41,
+      "key_name": "Input av5"
+    },
+    {
+      "key_id": 42,
+      "key_name": "Input av6"
+    },
+    {
+      "key_id": 43,
+      "key_name": "Input dock"
+    },
+    {
+      "key_id": 44,
+      "key_name": "Input hdmi6"
+    },
+    {
+      "key_id": 45,
+      "key_name": "Input hdmi7"
+    },
+    {
+      "key_id": 46,
+      "key_name": "Input net"
+    },
+    {
+      "key_id": 47,
+      "key_name": "Input net radio"
+    },
+    {
+      "key_id": 48,
+      "key_name": "Input next"
+    },
+    {
+      "key_id": 49,
+      "key_name": "Input pandora"
+    },
+    {
+      "key_id": 50,
+      "key_name": "Input phono"
+    },
+    {
+      "key_id": 51,
+      "key_name": "Input pre"
+    },
+    {
+      "key_id": 52,
+      "key_name": "Inputaudio1"
+    },
+    {
+      "key_id": 53,
+      "key_name": "Inputaudio2"
+    },
+    {
+      "key_id": 54,
+      "key_name": "Inputaudio3"
+    },
+    {
+      "key_id": 55,
+      "key_name": "Inputaudio4"
+    },
+    {
+      "key_id": 56,
+      "key_name": "Inputaudio5"
+    },
+    {
+      "key_id": 57,
+      "key_name": "Inputbluetooth"
+    },
+    {
+      "key_id": 58,
+      "key_name": "Inputfm"
+    },
+    {
+      "key_id": 59,
+      "key_name": "Inputhdmi1"
+    },
+    {
+      "key_id": 60,
+      "key_name": "Inputhdmi2"
+    },
+    {
+      "key_id": 61,
+      "key_name": "Inputhdmi3"
+    },
+    {
+      "key_id": 62,
+      "key_name": "Inputhdmi4"
+    },
+    {
+      "key_id": 63,
+      "key_name": "Inputhdmi5"
+    },
+    {
+      "key_id": 64,
+      "key_name": "Inputspotify"
+    },
+    {
+      "key_id": 65,
+      "key_name": "Inputtuner"
+    },
+    {
+      "key_id": 66,
+      "key_name": "Inputusb"
+    },
+    {
+      "key_id": 67,
+      "key_name": "iPod Direction Down"
+    },
+    {
+      "key_id": 68,
+      "key_name": "iPod Direction Left"
+    },
+    {
+      "key_id": 69,
+      "key_name": "iPod Direction Right"
+    },
+    {
+      "key_id": 70,
+      "key_name": "iPod Direction Up"
+    },
+    {
+      "key_id": 71,
+      "key_name": "Ipod display"
+    },
+    {
+      "key_id": 72,
+      "key_name": "Ipod enter"
+    },
+    {
+      "key_id": 73,
+      "key_name": "Ipod menu"
+    },
+    {
+      "key_id": 74,
+      "key_name": "Nexttrack"
+    },
+    {
+      "key_id": 75,
+      "key_name": "Ok/select"
+    },
+    {
+      "key_id": 76,
+      "key_name": "Option"
+    },
+    {
+      "key_id": 77,
+      "key_name": "Party"
+    },
+    {
+      "key_id": 78,
+      "key_name": "Play"
+    },
+    {
+      "key_id": 79,
+      "key_name": "Popupmenu"
+    },
+    {
+      "key_id": 80,
+      "key_name": "Power toggle"
+    },
+    {
+      "key_id": 81,
+      "key_name": "Presetnext"
+    },
+    {
+      "key_id": 82,
+      "key_name": "Presetprev"
+    },
+    {
+      "key_id": 83,
+      "key_name": "Previoustrack"
+    },
+    {
+      "key_id": 84,
+      "key_name": "Program"
+    },
+    {
+      "key_id": 85,
+      "key_name": "Programdown"
+    },
+    {
+      "key_id": 86,
+      "key_name": "Puredirect"
+    },
+    {
+      "key_id": 87,
+      "key_name": "Return"
+    },
+    {
+      "key_id": 88,
+      "key_name": "Scene bd/dvd"
+    },
+    {
+      "key_id": 89,
+      "key_name": "Scene radio"
+    },
+    {
+      "key_id": 90,
+      "key_name": "Scene tv"
+    },
+    {
+      "key_id": 91,
+      "key_name": "Scene4"
+    },
+    {
+      "key_id": 92,
+      "key_name": "Scene5"
+    },
+    {
+      "key_id": 93,
+      "key_name": "Scene6"
+    },
+    {
+      "key_id": 94,
+      "key_name": "Scene7"
+    },
+    {
+      "key_id": 95,
+      "key_name": "Setup"
+    },
+    {
+      "key_id": 96,
+      "key_name": "Sf- speaker"
+    },
+    {
+      "key_id": 97,
+      "key_name": "Sf-movie"
+    },
+    {
+      "key_id": 98,
+      "key_name": "Sf-music"
+    },
+    {
+      "key_id": 99,
+      "key_name": "Sf-night"
+    },
+    {
+      "key_id": 100,
+      "key_name": "Sf-standard"
+    },
+    {
+      "key_id": 101,
+      "key_name": "Sf-straight"
+    },
+    {
+      "key_id": 102,
+      "key_name": "Sirius Display"
+    },
+    {
+      "key_id": 103,
+      "key_name": "Sirius Memory"
+    },
+    {
+      "key_id": 104,
+      "key_name": "Sirius Number Enter"
+    },
+    {
+      "key_id": 105,
+      "key_name": "Sirius0"
+    },
+    {
+      "key_id": 106,
+      "key_name": "Sirius1\n"
+    },
+    {
+      "key_id": 107,
+      "key_name": "Sirius2"
+    },
+    {
+      "key_id": 108,
+      "key_name": "Sirius4"
+    },
+    {
+      "key_id": 109,
+      "key_name": "Sirius5"
+    },
+    {
+      "key_id": 110,
+      "key_name": "Sirius6"
+    },
+    {
+      "key_id": 111,
+      "key_name": "Sirius7"
+    },
+    {
+      "key_id": 112,
+      "key_name": "Sirius8"
+    },
+    {
+      "key_id": 113,
+      "key_name": "Sirius9"
+    },
+    {
+      "key_id": 114,
+      "key_name": "Speakera"
+    },
+    {
+      "key_id": 115,
+      "key_name": "Speakerb"
+    },
+    {
+      "key_id": 116,
+      "key_name": "Stop"
+    },
+    {
+      "key_id": 117,
+      "key_name": "Straight"
+    },
+    {
+      "key_id": 118,
+      "key_name": "Surdecode"
+    },
+    {
+      "key_id": 119,
+      "key_name": "Topmenu"
+    },
+    {
+      "key_id": 120,
+      "key_name": "Tuner Category/Band "
+    },
+    {
+      "key_id": 121,
+      "key_name": "Tuner Category/Band-"
+    },
+    {
+      "key_id": 122,
+      "key_name": "Xm Number Enter"
+    },
+    {
+      "key_id": 123,
+      "key_name": "Xm0"
+    },
+    {
+      "key_id": 124,
+      "key_name": "Xm1"
+    },
+    {
+      "key_id": 125,
+      "key_name": "Xm2"
+    },
+    {
+      "key_id": 126,
+      "key_name": "Xm3"
+    },
+    {
+      "key_id": 127,
+      "key_name": "Xm4"
+    },
+    {
+      "key_id": 128,
+      "key_name": "Xm5"
+    },
+    {
+      "key_id": 129,
+      "key_name": "Xm6"
+    },
+    {
+      "key_id": 130,
+      "key_name": "Xm7"
+    },
+    {
+      "key_id": 131,
+      "key_name": "Xm8"
+    },
+    {
+      "key_id": 132,
+      "key_name": "Xm9"
+    },
+    {
+      "key_id": 133,
+      "key_name": "Back"
+    },
+    {
+      "key_id": 134,
+      "key_name": "Channel_down"
+    },
+    {
+      "key_id": 135,
+      "key_name": "Channel_up"
+    },
+    {
+      "key_id": 136,
+      "key_name": "Fast_forward"
+    },
+    {
+      "key_id": 137,
+      "key_name": "Home"
+    },
+    {
+      "key_id": 138,
+      "key_name": "Menu"
+    },
+    {
+      "key_id": 139,
+      "key_name": "Mute"
+    },
+    {
+      "key_id": 140,
+      "key_name": "Navigate_down"
+    },
+    {
+      "key_id": 141,
+      "key_name": "Navigate_left"
+    },
+    {
+      "key_id": 142,
+      "key_name": "Navigate_right"
+    },
+    {
+      "key_id": 143,
+      "key_name": "Navigate_up"
+    },
+    {
+      "key_id": 144,
+      "key_name": "Ok"
+    },
+    {
+      "key_id": 145,
+      "key_name": "Pause"
+    },
+    {
+      "key_id": 146,
+      "key_name": "Rewind"
+    },
+    {
+      "key_id": 147,
+      "key_name": "Volume_down"
+    },
+    {
+      "key_id": 148,
+      "key_name": "Volume_up"
+    }
+  ],
+  "device_id": 3,
+  "key_count": 148
+}
+
+
+mqttcli in-wsmqtt remote --host iot.vchrist.at sub --topic activity/# pub --topic activity/80F1B2985A10/list_request --message "{\"data\": \"activity_list\"}"
+MQTT Publish: activity/80F1B2985A10/list
+{
+  "activity_count": 4,
+  "data": [
+    {
+      "activity_id": 101,
+      "activity_name": "Watch TV",
+      "state": "on"
+    },
+    {
+      "activity_id": 102,
+      "activity_name": "Watch PC",
+      "state": "off"
+    },
+    {
+      "activity_id": 103,
+      "activity_name": "Watch Netflix",
+      "state": "off"
+    },
+    {
+      "activity_id": 104,
+      "activity_name": "Watch Amazon Prime",
+      "state": "off"
+    }
+  ]
+}
+
+
+mqttcli in-wsmqtt remote --host iot.vchrist.at sub --topic activity/# pub --topic activity/80F1B2985A10/keys_request --message "{\"data\": {\"activity_id\": 101}}"
+MQTT Publish: activity/80F1B2985A10/keys_list
+{
+  "activity_id": 101,
+  "data": [
+    {
+      "key_id": 154
+    },
+    {
+      "key_id": 155
+    },
+    {
+      "key_id": 156
+    },
+    {
+      "key_id": 157
+    },
+    {
+      "key_id": 159
+    },
+    {
+      "key_id": 161
+    },
+    {
+      "key_id": 162
+    },
+    {
+      "key_id": 163
+    },
+    {
+      "key_id": 164
+    },
+    {
+      "key_id": 165
+    },
+    {
+      "key_id": 166
+    },
+    {
+      "key_id": 167
+    },
+    {
+      "key_id": 168
+    },
+    {
+      "key_id": 169
+    },
+    {
+      "key_id": 174
+    },
+    {
+      "key_id": 175
+    },
+    {
+      "key_id": 176
+    },
+    {
+      "key_id": 177
+    },
+    {
+      "key_id": 178
+    },
+    {
+      "key_id": 179
+    },
+    {
+      "key_id": 180
+    },
+    {
+      "key_id": 181
+    },
+    {
+      "key_id": 182
+    },
+    {
+      "key_id": 183
+    },
+    {
+      "key_id": 184
+    },
+    {
+      "key_id": 185
+    },
+    {
+      "key_id": 186
+    },
+    {
+      "key_id": 187
+    },
+    {
+      "key_id": 188
+    },
+    {
+      "key_id": 189
+    },
+    {
+      "key_id": 190
+    },
+    {
+      "key_id": 191
+    },
+    {
+      "key_id": 192
+    },
+    {
+      "key_id": 193
+    }
+  ],
+  "key_count": 34
+}
+
+
+mqttcli in-wsmqtt remote --host iot.vchrist.at sub --topic activity/# pub --topic activity/80F1B2985A10/keys_request --message "{\"data\": {\"activity_id\": 102}}"
+MQTT Publish: activity/80F1B2985A10/keys_list
+{
+  "activity_id": 102,
+  "data": [
+    {
+      "key_id": 154
+    },
+    {
+      "key_id": 156
+    },
+    {
+      "key_id": 157
+    },
+    {
+      "key_id": 174
+    },
+    {
+      "key_id": 175
+    },
+    {
+      "key_id": 176
+    },
+    {
+      "key_id": 177
+    },
+    {
+      "key_id": 178
+    },
+    {
+      "key_id": 179
+    },
+    {
+      "key_id": 180
+    },
+    {
+      "key_id": 181
+    },
+    {
+      "key_id": 182
+    },
+    {
+      "key_id": 183
+    },
+    {
+      "key_id": 184
+    },
+    {
+      "key_id": 185
+    },
+    {
+      "key_id": 186
+    },
+    {
+      "key_id": 187
+    },
+    {
+      "key_id": 188
+    },
+    {
+      "key_id": 189
+    },
+    {
+      "key_id": 190
+    },
+    {
+      "key_id": 191
+    },
+    {
+      "key_id": 192
+    },
+    {
+      "key_id": 193
+    }
+  ],
+  "key_count": 23
+}
+
+
+mqttcli in-wsmqtt remote --host iot.vchrist.at sub --topic activity/# pub --topic activity/80F1B2985A10/favorites_keys_request --message "{\"data\": {\"activity_id\": 101}}"
+MQTT Publish: activity/80F1B2985A10/favorites_keys_list
+{
+  "activity_id": 101,
+  "data": [
+    {
+      "device_id": 1,
+      "key_id": 3,
+      "key_name": "1"
+    },
+    {
+      "device_id": 1,
+      "key_id": 5,
+      "key_name": "3"
+    },
+    {
+      "device_id": 1,
+      "key_id": 6,
+      "key_name": "4"
+    },
+    {
+      "device_id": 1,
+      "key_id": 8,
+      "key_name": "6"
+    },
+    {
+      "device_id": 1,
+      "key_id": 9,
+      "key_name": "7"
+    },
+    {
+      "device_id": 1,
+      "key_id": 11,
+      "key_name": "9"
+    }
+  ],
+  "key_count": 6
+}
