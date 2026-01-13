@@ -45,14 +45,21 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include <algorithm>
+#include <chrono>
 #include <exception>
+#include <filesystem>
 #include <fstream>
+#include <iomanip>
+#include <sstream>
 #include <log/Logger.h>
 #include <nlohmann/json.hpp>
 
 #endif
 
 namespace mqtt::lib {
+
+    namespace fs = std::filesystem;
 
 #include "mapping-schema.json.h" // definition of mappingJsonSchemaString
 
@@ -72,7 +79,7 @@ namespace mqtt::lib {
                         mapFile >> mapFileJsons[mapFilePath];
 
                         try {
-                            const nlohmann::json_schema::json_validator validator(mappingJsonSchema);
+                            const nlohmann::json_schema::json_validator validator(mappingJsonSchema, nullptr, nlohmann::json_schema::default_string_format_check);
 
                             try {
                                 const nlohmann::json defaultPatch = validator.validate(mapFileJsons[mapFilePath]);
@@ -109,6 +116,202 @@ namespace mqtt::lib {
         }
 
         return mapFileJsons[mapFilePath];
+    }
+
+    void JsonMappingReader::invalidate(const std::string& mapFilePath) {
+        if (mapFileJsons.contains(mapFilePath)) {
+            mapFileJsons.erase(mapFilePath);
+        }
+    }
+
+    const nlohmann::json& JsonMappingReader::getSchema() {
+        return mappingJsonSchema;
+    }
+
+    std::string JsonMappingReader::getDraftPath(const std::string& mapFilePath) {
+        return mapFilePath + ".draft";
+    }
+
+    void JsonMappingReader::saveDraft(const std::string& mapFilePath, const nlohmann::json& content) {
+        std::ofstream out(getDraftPath(mapFilePath), std::ios::trunc);
+        if (!out) {
+            throw std::runtime_error("Cannot open draft file for writing: " + getDraftPath(mapFilePath));
+        }
+        out << content.dump(4) << std::endl;
+    }
+
+    nlohmann::json JsonMappingReader::readDraftOrActive(const std::string& mapFilePath) {
+        std::string draftPath = getDraftPath(mapFilePath);
+        if (fs::exists(draftPath)) {
+            std::ifstream f(draftPath);
+            if (f) {
+                nlohmann::json j;
+                f >> j;
+                return j;
+            }
+        }
+        // Fallback to active file
+        std::ifstream f(mapFilePath);
+        if (!f) throw std::runtime_error("Cannot open mapping file: " + mapFilePath);
+        nlohmann::json j;
+        f >> j;
+        return j;
+    }
+
+    void JsonMappingReader::deployDraft(const std::string& mapFilePath) {
+        std::string draftPath = getDraftPath(mapFilePath);
+        if (!fs::exists(draftPath)) return;
+
+        // 1. Inject creation timestamp into draft
+        try {
+            std::ifstream f(draftPath);
+            nlohmann::json j;
+            f >> j;
+            f.close();
+
+            auto now = std::chrono::system_clock::now();
+            std::time_t now_c = std::chrono::system_clock::to_time_t(now);
+            std::stringstream ss;
+            ss << std::put_time(std::gmtime(&now_c), "%Y-%m-%dT%H:%M:%SZ");
+            
+            if (!j.contains("meta")) j["meta"] = nlohmann::json::object();
+            j["meta"]["created"] = ss.str();
+            j["meta"]["version"] = std::to_string(std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count());
+
+            std::ofstream out(draftPath, std::ios::trunc);
+            out << j.dump(4);
+            out.close();
+        } catch (const std::exception& e) {
+            VLOG(1) << "Failed to inject metadata into draft: " << e.what();
+        }
+
+        // 2. Backup current active file
+        if (fs::exists(mapFilePath)) {
+            fs::path versionDir = fs::path(mapFilePath).parent_path() / "versions";
+            if (!fs::exists(versionDir)) {
+                fs::create_directories(versionDir);
+            }
+
+            auto now = std::chrono::system_clock::now();
+            auto timestamp = std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count();
+            std::string filename = fs::path(mapFilePath).filename().string();
+            std::string backupPath = versionDir / (filename + "." + std::to_string(timestamp));
+            
+            fs::copy_file(mapFilePath, backupPath, fs::copy_options::overwrite_existing);
+
+            // 3. Prune old versions (Keep last 50)
+            try {
+                std::vector<fs::path> versions;
+                for (const auto& entry : fs::directory_iterator(versionDir)) {
+                    if (entry.path().filename().string().starts_with(filename + ".")) {
+                        versions.push_back(entry.path());
+                    }
+                }
+                if (versions.size() > 50) {
+                    std::sort(versions.begin(), versions.end(), [](const fs::path& a, const fs::path& b) {
+                        return fs::last_write_time(a) < fs::last_write_time(b); // Oldest first
+                    });
+                    for (size_t i = 0; i < versions.size() - 50; ++i) {
+                        fs::remove(versions[i]);
+                    }
+                }
+            } catch (...) {}
+        }
+
+        // 4. Promote draft to active
+        fs::rename(draftPath, mapFilePath);
+        
+        // Invalidate cache so next readMappingFromFile reloads it
+        invalidate(mapFilePath);
+    }
+
+    void JsonMappingReader::discardDraft(const std::string& mapFilePath) {
+        std::string draftPath = getDraftPath(mapFilePath);
+        if (fs::exists(draftPath)) {
+            fs::remove(draftPath);
+        }
+    }
+
+    std::vector<JsonMappingReader::VersionEntry> JsonMappingReader::getHistory(const std::string& mapFilePath) {
+        std::vector<VersionEntry> history;
+        fs::path versionDir = fs::path(mapFilePath).parent_path() / "versions";
+        std::string baseName = fs::path(mapFilePath).filename().string();
+
+        if (!fs::exists(versionDir)) return history;
+
+        for (const auto& entry : fs::directory_iterator(versionDir)) {
+            if (entry.path().filename().string().starts_with(baseName + ".")) {
+                VersionEntry v;
+                v.filename = entry.path().string();
+                // Extract ID (timestamp) from filename extension
+                v.id = entry.path().extension().string().substr(1); 
+                
+                // Peek inside JSON to get the comment
+                try {
+                    std::ifstream f(v.filename);
+                    nlohmann::json j;
+                    f >> j;
+                    if(j.contains("meta")) {
+                        if (j["meta"].contains("comment")) v.comment = j["meta"]["comment"];
+                        if (j["meta"].contains("created")) v.date = j["meta"]["created"];
+                    }
+                } catch (...) {}
+                
+                // Fallback date if not in meta
+                if (v.date.empty()) {
+                    try {
+                        long long ts = std::stoll(v.id);
+                        std::time_t t = (std::time_t)ts;
+                        std::stringstream ss;
+                        ss << std::put_time(std::gmtime(&t), "%Y-%m-%dT%H:%M:%SZ");
+                        v.date = ss.str();
+                    } catch (...) {
+                        v.date = "Unknown";
+                    }
+                }
+
+                history.push_back(v);
+            }
+        }
+        // Sort by ID (descending)
+        std::sort(history.begin(), history.end(), [](const VersionEntry& a, const VersionEntry& b) {
+            // String comparison of timestamps works if they are same length, but better to be safe
+            try {
+                return std::stoll(a.id) > std::stoll(b.id);
+            } catch (...) {
+                return a.id > b.id;
+            }
+        });
+        return history;
+    }
+
+    void JsonMappingReader::rollbackTo(const std::string& mapFilePath, const std::string& versionId) {
+        fs::path versionDir = fs::path(mapFilePath).parent_path() / "versions";
+        std::string baseName = fs::path(mapFilePath).filename().string();
+        fs::path backupPath = versionDir / (baseName + "." + versionId);
+
+        if (!fs::exists(backupPath)) {
+            throw std::runtime_error("Version not found: " + versionId);
+        }
+
+        // Validate before rollback
+        try {
+            std::ifstream f(backupPath);
+            nlohmann::json j;
+            f >> j;
+            const nlohmann::json_schema::json_validator validator(mappingJsonSchema, nullptr, nlohmann::json_schema::default_string_format_check);
+            validator.validate(j);
+        } catch (const std::exception& e) {
+            throw std::runtime_error(std::string("Cannot rollback: Version is invalid against current schema: ") + e.what());
+        }
+
+        // Overwrite active file
+        fs::copy_file(backupPath, mapFilePath, fs::copy_options::overwrite_existing);
+        
+        // Delete any existing draft to avoid confusion
+        discardDraft(mapFilePath);
+
+        invalidate(mapFilePath);
     }
 
 } // namespace mqtt::lib
