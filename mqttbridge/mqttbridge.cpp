@@ -111,6 +111,7 @@
 static std::map<std::string, std::map<std::string, core::socket::stream::SocketConnection*>> bridges;
 
 bool restart = false;
+std::string bridgeDefinitionFile = "<REQUIRED>";
 
 static void addBridgeBrokerConnection(const mqtt::bridge::lib::Broker& broker, core::socket::stream::SocketConnection* socketConnection) {
     const std::string& bridgeName(broker.getBridge().getName());
@@ -136,9 +137,8 @@ static void delBridgeBrokerConnection(const mqtt::bridge::lib::Broker& broker, c
     if (bridges.empty() && restart) {
         core::EventReceiver::atNextTick([]() {
             startBridges("/home/voc/projects/mqttsuite/mqttsuite/mqttbridge/config.json");
+            restart = false;
         });
-
-        restart = false;
     }
 }
 
@@ -601,7 +601,6 @@ int main(int argc, char* argv[]) {
     CLI::App* bridgeApp = utils::Config::addInstance("bridge", "Configuration for Application mqttbridge", "MQTT-Bridge");
     utils::Config::required(bridgeApp);
 
-    std::string bridgeDefinitionFile = "<REQUIRED>";
     bridgeApp->needs(bridgeApp->add_option("--definition", bridgeDefinitionFile, "MQTT bridge definition file (JSON format)")
                          ->capture_default_str()
                          ->group(bridgeApp->get_formatter()->get_label("Persistent Options"))
@@ -613,30 +612,24 @@ int main(int argc, char* argv[]) {
 
     const express::Router router(express::middleware::JsonMiddleware());
 
-    router.get("/api/bridge/config", [&bridgeDefinitionFile] APPLICATION(req, res) {
+    router.get("/api/bridge/config", [] APPLICATION(req, res) {
         res->sendFile(bridgeDefinitionFile, []([[maybe_unused]] int err) {
         });
     });
 
-    router.patch("/api/bridge/config", [&bridgeDefinitionFile] APPLICATION(req, res) {
+    router.patch("/api/bridge/config", [] APPLICATION(req, res) {
         req->getAttribute<nlohmann::json>(
-            [&res, &bridgeDefinitionFile](nlohmann::json& json) {
-                std::string jsonString = json.dump(4);
+            [&res](nlohmann::json& jsonPatch) {
+                std::string jsonString = jsonPatch.dump(4);
 
                 VLOG(1) << jsonString;
 
-                closeBridges();
+                if (!restart && mqtt::bridge::lib::BridgeStore::instance().loadAndValidate(bridgeDefinitionFile, jsonPatch)) {
+                    closeBridges();
 
-                if (mqtt::bridge::lib::BridgeStore::instance().loadAndValidate(bridgeDefinitionFile, json)) {
-                    //                    core::DescriptorEventReceiver::atNextTick([bridgeDefinitionFile]() {
-                    //                        core::DescriptorEventReceiver::atNextTick([bridgeDefinitionFile]() {
-                    //                            startBridges(bridgeDefinitionFile);
-                    //                        });
-                    //                    });
-
-                    res->send(R"({"success": true, "message": "Client disconnected successfully"})"_json.dump());
+                    res->send(R"({"success": true, "message": "Bridge config patch applied"})"_json.dump());
                 } else {
-                    res->status(404).send(R"({"success": false, "error": "Client not found"})"_json.dump());
+                    res->status(404).send(R"({"success": false, "message": "Bridge config patch failed to applie"})"_json.dump());
                 }
             },
             [&res](const std::string& key) {
