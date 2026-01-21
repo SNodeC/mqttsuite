@@ -42,6 +42,7 @@
 #include "SocketContextFactory.h" // IWYU pragma: keep
 #include "config.h"
 #include "lib/BridgeStore.h"
+#include "lib/Mqtt.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
@@ -49,6 +50,7 @@
 #include <core/SNodeC.h>
 #include <express/legacy/in/Server.h>
 #include <express/middleware/JsonMiddleware.h>
+#include <iot/mqtt/MqttContext.h>
 //
 #include <log/Logger.h>
 #include <utils/Config.h>
@@ -104,7 +106,6 @@
 #include <list>
 #include <nlohmann/json.hpp>
 #include <string>
-#include <utility>
 
 #endif
 
@@ -137,6 +138,9 @@ static void delBridgeBrokerConnection(const mqtt::bridge::lib::Broker& broker, c
     if (bridges.empty() && restart) {
         core::EventReceiver::atNextTick([]() {
             startBridges("/home/voc/projects/mqttsuite/mqttsuite/mqttbridge/config.json");
+
+            utils::Config::parse2();
+
             restart = false;
         });
     }
@@ -161,11 +165,15 @@ static void delBridgeBrokerConnection(const mqtt::bridge::lib::Broker& broker, c
 }
 
 static void closeBridges() {
-    for (auto& bridge : bridges) {
-        for (auto& broker : bridge.second) {
-            VLOG(0) << "-------- closing: " << bridge.first << " - " << broker.first;
-            broker.second->getConfigInstance()->getSection("socket")->get_option("--reconnect")->default_str("false");
-            broker.second->shutdownWrite();
+    for (const auto& bridge : mqtt::bridge::lib::BridgeStore::instance().getBridgeList()) {
+        for (const auto& mqtt : bridge.getMqttList()) {
+            mqtt->sendDisconnect();
+            mqtt->getMqttContext()
+                ->getSocketConnection()
+                ->getConfigInstance()
+                ->getSection("socket")
+                ->get_option("--reconnect")
+                ->default_str("false");
         }
     }
 
@@ -585,8 +593,6 @@ static void startBridges(const std::string& bridgeDefinitionFile) {
             }
         }
     }
-
-    utils::Config::parse2();
 }
 
 int main(int argc, char* argv[]) {
@@ -613,8 +619,7 @@ int main(int argc, char* argv[]) {
     const express::Router router(express::middleware::JsonMiddleware());
 
     router.get("/api/bridge/config", [] APPLICATION(req, res) {
-        res->sendFile(bridgeDefinitionFile, []([[maybe_unused]] int err) {
-        });
+        res->send(mqtt::bridge::lib::BridgeStore::instance().getBridgesConfigJson().dump(4));
     });
 
     router.patch("/api/bridge/config", [] APPLICATION(req, res) {
@@ -624,12 +629,16 @@ int main(int argc, char* argv[]) {
 
                 VLOG(1) << jsonString;
 
-                if (!restart && mqtt::bridge::lib::BridgeStore::instance().loadAndValidate(bridgeDefinitionFile, jsonPatch)) {
+                if (!restart) {
                     closeBridges();
 
-                    res->send(R"({"success": true, "message": "Bridge config patch applied"})"_json.dump());
+                    if (mqtt::bridge::lib::BridgeStore::instance().loadAndValidate(bridgeDefinitionFile, jsonPatch)) {
+                        res->send(R"({"success": true, "message": "Bridge config patch applied"})"_json.dump());
+                    } else {
+                        res->status(404).send(R"({"success": false, "message": "Bridge config patch failed to applie"})"_json.dump());
+                    }
                 } else {
-                    res->status(404).send(R"({"success": false, "message": "Bridge config patch failed to applie"})"_json.dump());
+                    res->status(409).send(R"({"success": false, "message": "Bridge is in restarting state"})"_json.dump());
                 }
             },
             [&res](const std::string& key) {

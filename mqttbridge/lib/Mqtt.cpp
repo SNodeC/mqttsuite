@@ -41,8 +41,6 @@
 
 #include "Mqtt.h"
 
-#include "Bridge.h"
-#include "Broker.h"
 #include "lib/BridgeStore.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -124,7 +122,12 @@ namespace mqtt::bridge::lib {
     }
 
     void Mqtt::onPublish(const iot::mqtt::packets::Publish& publish) {
-        broker.getBridge().publish(this, publish);
+        const Broker* broker =
+            mqtt::bridge::lib::BridgeStore::instance().getBroker(getMqttContext()->getSocketConnection()->getInstanceName());
+
+        if (broker != nullptr) {
+            broker->getBridge().publish(this, publish);
+        }
     }
 
 } // namespace mqtt::bridge::lib

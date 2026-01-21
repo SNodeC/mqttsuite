@@ -41,9 +41,7 @@
 
 #include "SocketContextFactory.h"
 
-#include "lib/Bridge.h"
 #include "lib/BridgeStore.h"
-#include "lib/Broker.h"
 #include "lib/Mqtt.h"
 
 #include <core/socket/stream/SocketConnection.h>

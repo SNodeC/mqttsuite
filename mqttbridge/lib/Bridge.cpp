@@ -91,9 +91,9 @@ namespace mqtt::bridge::lib {
     bool Bridge::getDisabled() const {
         return disabled;
     }
-    /*
-        const std::list<const Mqtt*>& Bridge::getMqttList() const {
-            return mqttList;
-        }
-    */
+
+    const std::list<const Mqtt*>& Bridge::getMqttList() const {
+        return mqttList;
+    }
+
 } // namespace mqtt::bridge::lib

@@ -51,7 +51,6 @@
 #include <list>
 #include <log/Logger.h>
 #include <map>
-#include <nlohmann/json.hpp>
 #include <utility>
 
 // IWYU pragma: no_include <nlohmann/json_fwd.hpp>
@@ -85,8 +84,6 @@ namespace mqtt::bridge::lib {
                     VLOG(1) << "Bridge config JSON: " << fileName;
 
                     try {
-                        nlohmann::json bridgesConfigJson;
-
                         bridgeConfigJsonFile >> bridgesConfigJson;
 
                         try {
@@ -190,86 +187,19 @@ namespace mqtt::bridge::lib {
         return success;
     }
 
-    bool BridgeStore::patch(const std::string& fileName, const nlohmann::json& jsonPatch) {
-        bool success = false;
-
-        try {
-            const nlohmann::json bridgeJsonSchema = nlohmann::json::parse(bridgeJsonSchemaString);
-
-            if (!fileName.empty()) {
-                std::ifstream bridgeConfigJsonFile(fileName);
-
-                if (bridgeConfigJsonFile.is_open()) {
-                    VLOG(1) << "Bridge config JSON: " << fileName;
-
-                    try {
-                        nlohmann::json bridgesConfigJson;
-
-                        bridgeConfigJsonFile >> bridgesConfigJson;
-
-                        bridgeConfigJsonFile.close();
-
-                        try {
-                            const nlohmann::json_schema::json_validator validator(bridgeJsonSchema);
-
-                            try {
-                                const nlohmann::json defaultPatch = validator.validate(bridgesConfigJson);
-
-                                try {
-                                    bridgesConfigJson = bridgesConfigJson.patch(defaultPatch);
-
-                                    try {
-                                        bridgesConfigJson = bridgesConfigJson.patch(jsonPatch);
-
-                                        std::ofstream ofs(fileName, std::ios::binary);
-
-                                        ofs << bridgesConfigJson.dump(4);
-
-                                        ofs.close();
-
-                                        success = true;
-                                    } catch (const std::exception& e) {
-                                        VLOG(1) << "  Default Patch:\n" << defaultPatch.dump(4);
-
-                                        VLOG(1) << "  Patching JSON with update failed:\n" << jsonPatch.dump(4);
-                                        VLOG(1) << "    " << e.what();
-                                    }
-                                } catch (const std::exception& e) {
-                                    VLOG(1) << "  Patching JSON with default patch failed:\n" << defaultPatch.dump(4);
-                                    VLOG(1) << "    " << e.what();
-                                }
-                            } catch (const std::exception& e) {
-                                VLOG(1) << "  Validating JSON failed:\n" << bridgesConfigJson.dump(4);
-                                VLOG(1) << "    " << e.what();
-                            }
-                        } catch (const std::exception& e) {
-                            VLOG(1) << "  Setting root json mapping schema failed:\n" << bridgeJsonSchema.dump(4);
-                            VLOG(1) << "    " << e.what();
-                        }
-                    } catch (const std::exception& e) {
-                        VLOG(1) << "  JSON map file parsing failed:" << e.what() << " at " << bridgeConfigJsonFile.tellg();
-                    }
-
-                    bridgeConfigJsonFile.close();
-                } else {
-                    VLOG(1) << "BridgeJsonConfig: " << fileName << " not found";
-                }
-            } else {
-                // Do not log missing path. In regular use this missing option is captured by the command line interface
-            }
-        } catch (const std::exception& e) {
-            VLOG(1) << "Parsing schema failed: " << e.what();
-            VLOG(1) << bridgeJsonSchemaString;
-        }
-
-        return success;
+    const std::list<Bridge>& BridgeStore::getBridgeList() const {
+        return bridgeList;
     }
 
-    const Broker* BridgeStore::getBroker(const std::string& instanceName) {
+    const nlohmann::json& BridgeStore::getBridgesConfigJson() {
+        return bridgesConfigJson;
+    }
+
+    const Broker* BridgeStore::getBroker(const std::string& instanceName) const {
         return &brokers.find(instanceName)->second;
     }
 
-    const std::map<std::string, Broker>& BridgeStore::getBrokers() {
+    const std::map<std::string, Broker>& BridgeStore::getBrokers() const {
         return brokers;
     }
 

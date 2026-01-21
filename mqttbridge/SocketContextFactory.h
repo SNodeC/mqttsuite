@@ -42,10 +42,6 @@
 #ifndef APPS_MQTTBROKER_MQTTBRIDGE_SOCKETCONTEXTFACTORY_H
 #define APPS_MQTTBROKER_MQTTBRIDGE_SOCKETCONTEXTFACTORY_H
 
-namespace mqtt::bridge::lib {
-    class Broker;
-}
-
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <core/socket/stream/SocketContextFactory.h> // IWYU pragma: export

@@ -49,7 +49,8 @@
 
 #include <list>
 #include <map>
-#include <nlohmann/json_fwd.hpp>
+#include <nlohmann/json.hpp>
+// IWYU pragma: no_include <nlohmann/json_fwd.hpp>
 #include <string>
 
 #endif // DOXYGEN_SHOULD_SKIP_THIS
@@ -64,14 +65,19 @@ namespace mqtt::bridge::lib {
         static BridgeStore& instance();
 
         bool loadAndValidate(const std::string& fileName, const nlohmann::json& jsonPatch = nullptr);
-        bool patch(const std::string& filename, const nlohmann::json& jsonPatch);
 
-        const Broker* getBroker(const std::string& instanceName);
-        const std::map<std::string, Broker>& getBrokers();
+        const Broker* getBroker(const std::string& instanceName) const;
+        const std::map<std::string, Broker>& getBrokers() const;
+
+        const std::list<Bridge>& getBridgeList() const;
+
+        const nlohmann::json& getBridgesConfigJson();
 
     private:
         std::list<Bridge> bridgeList;
         std::map<std::string, Broker> brokers;
+
+        nlohmann::json bridgesConfigJson;
     };
 
 } // namespace mqtt::bridge::lib
