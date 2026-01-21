@@ -49,6 +49,7 @@
 
 #include <list>
 #include <map>
+#include <nlohmann/json_fwd.hpp>
 #include <string>
 
 #endif // DOXYGEN_SHOULD_SKIP_THIS
@@ -62,9 +63,10 @@ namespace mqtt::bridge::lib {
     public:
         static BridgeStore& instance();
 
-        bool loadAndValidate(const std::string& fileName);
+        bool loadAndValidate(const std::string& fileName, const nlohmann::json& jsonPatch = nullptr);
+        bool patch(const std::string& filename, const nlohmann::json& jsonPatch);
 
-        const Broker& getBroker(const std::string& instanceName);
+        const Broker* getBroker(const std::string& instanceName);
         const std::map<std::string, Broker>& getBrokers();
 
     private:

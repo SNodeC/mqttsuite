@@ -64,25 +64,31 @@ namespace mqtt::mqttbridge::websocket {
     }
 
     iot::mqtt::client::SubProtocol* SubProtocolFactory::create(web::websocket::SubProtocolContext* subProtocolContext) {
-        const mqtt::bridge::lib::Broker& broker =
+        iot::mqtt::client::SubProtocol* subProtocol = nullptr;
+
+        const mqtt::bridge::lib::Broker* broker =
             mqtt::bridge::lib::BridgeStore::instance().getBroker(subProtocolContext->getSocketConnection()->getInstanceName());
 
-        VLOG(1) << "  Creating Broker instance '" << broker.getName() << "' of Bridge '" << broker.getBridge().getName() << "'";
-        VLOG(1) << "    Bridge client id : " << broker.getClientId();
-        VLOG(1) << "    Transport: " << broker.getTransport();
-        VLOG(1) << "    Protocol: " << broker.getProtocol();
-        VLOG(1) << "    Encryption: " << broker.getEncryption();
+        if (broker != nullptr) {
+            VLOG(1) << "  Creating Broker instance '" << broker->getName() << "' of Bridge '" << broker->getBridge().getName() << "'";
+            VLOG(1) << "    Bridge client id : " << broker->getClientId();
+            VLOG(1) << "    Transport: " << broker->getTransport();
+            VLOG(1) << "    Protocol: " << broker->getProtocol();
+            VLOG(1) << "    Encryption: " << broker->getEncryption();
 
-        VLOG(1) << "    Topics:";
-        const std::list<iot::mqtt::Topic>& topics = broker.getTopics();
-        for (const iot::mqtt::Topic& topic : topics) {
-            VLOG(1) << "      " << static_cast<uint16_t>(topic.getQoS()) << ":" << topic.getName();
+            VLOG(1) << "    Topics:";
+            const std::list<iot::mqtt::Topic>& topics = broker->getTopics();
+            for (const iot::mqtt::Topic& topic : topics) {
+                VLOG(1) << "      " << static_cast<uint16_t>(topic.getQoS()) << ":" << topic.getName();
+            }
+
+            subProtocol = new iot::mqtt::client::SubProtocol(
+                subProtocolContext,
+                getName(),
+                new mqtt::bridge::lib::Mqtt(subProtocolContext->getSocketConnection()->getConnectionName(), *broker));
         }
 
-        return new iot::mqtt::client::SubProtocol(
-            subProtocolContext,
-            getName(),
-            new mqtt::bridge::lib::Mqtt(subProtocolContext->getSocketConnection()->getConnectionName(), broker));
+        return subProtocol;
     }
 
 } // namespace mqtt::mqttbridge::websocket

@@ -42,6 +42,7 @@
 #include "SocketContextFactory.h"
 
 #include "lib/Bridge.h"
+#include "lib/BridgeStore.h"
 #include "lib/Broker.h"
 #include "lib/Mqtt.h"
 
@@ -58,24 +59,29 @@
 
 namespace mqtt::bridge {
 
-    SocketContextFactory::SocketContextFactory(const lib::Broker& broker)
-        : broker(broker) {
-    }
-
     core::socket::stream::SocketContext* SocketContextFactory::create(core::socket::stream::SocketConnection* socketConnection) {
-        VLOG(1) << "  Creating Broker instance '" << broker.getName() << "' of Bridge '" << broker.getBridge().getName() << "'";
-        VLOG(1) << "    Bridge client id : " << broker.getClientId();
-        VLOG(1) << "    Transport: " << broker.getTransport();
-        VLOG(1) << "    Protocol: " << broker.getProtocol();
-        VLOG(1) << "    Encryption: " << broker.getEncryption();
+        iot::mqtt::SocketContext* socketContext = nullptr;
 
-        VLOG(1) << "    Topics:";
-        const std::list<iot::mqtt::Topic>& topics = broker.getTopics();
-        for (const iot::mqtt::Topic& topic : topics) {
-            VLOG(1) << "      " << static_cast<uint16_t>(topic.getQoS()) << ":" << topic.getName();
+        const mqtt::bridge::lib::Broker* broker = mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName());
+
+        if (broker != nullptr) {
+            VLOG(1) << "  Creating Broker instance '" << broker->getName() << "' of Bridge '" << broker->getBridge().getName() << "'";
+            VLOG(1) << "    Bridge client id : " << broker->getClientId();
+            VLOG(1) << "    Transport: " << broker->getTransport();
+            VLOG(1) << "    Protocol: " << broker->getProtocol();
+            VLOG(1) << "    Encryption: " << broker->getEncryption();
+
+            VLOG(1) << "    Topics:";
+            const std::list<iot::mqtt::Topic>& topics = broker->getTopics();
+            for (const iot::mqtt::Topic& topic : topics) {
+                VLOG(1) << "      " << static_cast<uint16_t>(topic.getQoS()) << ":" << topic.getName();
+            }
+
+            socketContext =
+                new iot::mqtt::SocketContext(socketConnection, new mqtt::bridge::lib::Mqtt(socketConnection->getConnectionName(), *broker));
         }
 
-        return new iot::mqtt::SocketContext(socketConnection, new mqtt::bridge::lib::Mqtt(socketConnection->getConnectionName(), broker));
+        return socketContext;
     }
 
 } // namespace mqtt::bridge

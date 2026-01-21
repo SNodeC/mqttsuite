@@ -56,12 +56,7 @@ namespace mqtt::bridge {
 
     class SocketContextFactory : public core::socket::stream::SocketContextFactory {
     public:
-        explicit SocketContextFactory(const mqtt::bridge::lib::Broker& broker);
-
         core::socket::stream::SocketContext* create(core::socket::stream::SocketConnection* socketConnection) final;
-
-    private:
-        const mqtt::bridge::lib::Broker& broker;
     };
 
 } // namespace mqtt::bridge

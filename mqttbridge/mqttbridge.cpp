@@ -45,11 +45,15 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include <core/EventReceiver.h>
 #include <core/SNodeC.h>
+#include <express/legacy/in/Server.h>
+#include <express/middleware/JsonMiddleware.h>
 //
 #include <log/Logger.h>
 #include <utils/Config.h>
 //
+#include <nlohmann/json_fwd.hpp>
 #include <utils/CLI11.hpp>
 //
 
@@ -100,10 +104,13 @@
 #include <list>
 #include <nlohmann/json.hpp>
 #include <string>
+#include <utility>
 
 #endif
 
 static std::map<std::string, std::map<std::string, core::socket::stream::SocketConnection*>> bridges;
+
+bool restart = false;
 
 static void addBridgeBrokerConnection(const mqtt::bridge::lib::Broker& broker, core::socket::stream::SocketConnection* socketConnection) {
     const std::string& bridgeName(broker.getBridge().getName());
@@ -113,6 +120,7 @@ static void addBridgeBrokerConnection(const mqtt::bridge::lib::Broker& broker, c
     bridges[bridgeName][socketConnection->getInstanceName()] = socketConnection;
 }
 
+static void startBridges(const std::string& bridgeDefinitionFile);
 static void delBridgeBrokerConnection(const mqtt::bridge::lib::Broker& broker, core::socket::stream::SocketConnection* socketConnection) {
     const std::string& bridgeName(broker.getBridge().getName());
 
@@ -124,6 +132,14 @@ static void delBridgeBrokerConnection(const mqtt::bridge::lib::Broker& broker, c
             bridges.erase(bridgeName);
         }
     }
+
+    if (bridges.empty() && restart) {
+        core::EventReceiver::atNextTick([]() {
+            startBridges("/home/voc/projects/mqttsuite/mqttsuite/mqttbridge/config.json");
+        });
+
+        restart = false;
+    }
 }
 
 [[maybe_unused]] static void closeBridgeBrokerConnection(const mqtt::bridge::lib::Broker& broker, const std::string& instanceName) {
@@ -132,8 +148,28 @@ static void delBridgeBrokerConnection(const mqtt::bridge::lib::Broker& broker, c
     VLOG(1) << "Force close bridge broker: " << instanceName;
 
     if (bridges.contains(bridgeName) && bridges[bridgeName].contains(instanceName)) {
+        bridges[bridgeName][instanceName]
+            ->getSocketContext()
+            ->getSocketConnection()
+            ->getConfigInstance()
+            ->getSection("socket")
+            ->get_option("--reconnect")
+            ->default_str("false")
+            ->clear();
         bridges[bridgeName][instanceName]->getSocketContext()->shutdownWrite();
     }
+}
+
+static void closeBridges() {
+    for (auto& bridge : bridges) {
+        for (auto& broker : bridge.second) {
+            VLOG(0) << "-------- closing: " << bridge.first << " - " << broker.first;
+            broker.second->getConfigInstance()->getSection("socket")->get_option("--reconnect")->default_str("false");
+            broker.second->shutdownWrite();
+        }
+    }
+
+    restart = true;
 }
 
 static void
@@ -155,9 +191,7 @@ reportState(const std::string& instanceName, const core::socket::SocketAddress& 
 }
 
 template <typename HttpClient>
-void startClient(const std::string& name,
-                 const mqtt::bridge::lib::Broker& broker,
-                 const std::function<void(typename HttpClient::Config&)>& configurator) {
+void startClient(const std::string& name, const std::function<void(typename HttpClient::Config&)>& configurator) {
     using SocketAddress = typename HttpClient::SocketAddress;
 
     HttpClient httpClient(
@@ -189,39 +223,20 @@ void startClient(const std::string& name,
     configurator(httpClient.getConfig());
 
     httpClient
-        .setOnConnected([&broker](core::socket::stream::SocketConnection* socketConnection) {
-            addBridgeBrokerConnection(broker, socketConnection);
+        .setOnConnected([](core::socket::stream::SocketConnection* socketConnection) {
+            addBridgeBrokerConnection(*mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
+                                      socketConnection);
         })
-        .setOnDisconnect([&broker](core::socket::stream::SocketConnection* socketConnection) {
-            delBridgeBrokerConnection(broker, socketConnection);
+        .setOnDisconnect([](core::socket::stream::SocketConnection* socketConnection) {
+            delBridgeBrokerConnection(*mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
+                                      socketConnection);
         })
         .connect([name](const SocketAddress& socketAddress, const core::socket::State& state) {
             reportState(name, socketAddress, state);
         });
 }
 
-int main(int argc, char* argv[]) {
-#if defined(LINK_WEBSOCKET_STATIC) || defined(LINK_SUBPROTOCOL_STATIC)
-    web::websocket::client::SocketContextUpgradeFactory::link();
-#endif
-
-#ifdef LINK_SUBPROTOCOL_STATIC
-    web::websocket::client::SubProtocolFactorySelector::link("mqtt", mqttClientSubProtocolFactory);
-#endif
-
-    CLI::App* bridgeApp = utils::Config::addInstance("bridge", "Configuration for Application mqttbridge", "MQTT-Bridge");
-    utils::Config::required(bridgeApp);
-
-    std::string bridgeDefinitionFile = "<REQUIRED>";
-    bridgeApp->needs(bridgeApp->add_option("--definition", bridgeDefinitionFile, "MQTT bridge definition file (JSON format)")
-                         ->capture_default_str()
-                         ->group(bridgeApp->get_formatter()->get_label("Persistent Options"))
-                         ->type_name("path")
-                         ->configurable()
-                         ->required());
-
-    core::SNodeC::init(argc, argv);
-
+static void startBridges(const std::string& bridgeDefinitionFile) {
     if (mqtt::bridge::lib::BridgeStore::instance().loadAndValidate(bridgeDefinitionFile)) {
         for (const auto& [fullInstanceName, broker] : mqtt::bridge::lib::BridgeStore::instance().getBrokers()) {
             VLOG(1) << "  Creating broker instance: " << fullInstanceName;
@@ -271,13 +286,16 @@ int main(int argc, char* argv[]) {
                                 config.Remote::setPort(broker.getAddress()["port"]);
 
                                 config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
-                            },
-                            broker)
-                            .setOnConnected([&broker](core::socket::stream::SocketConnection* socketConnection) {
-                                addBridgeBrokerConnection(broker, socketConnection);
                             })
-                            .setOnDisconnect([&broker](core::socket::stream::SocketConnection* socketConnection) {
-                                delBridgeBrokerConnection(broker, socketConnection);
+                            .setOnConnected([](core::socket::stream::SocketConnection* socketConnection) {
+                                addBridgeBrokerConnection(
+                                    *mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
+                                    socketConnection);
+                            })
+                            .setOnDisconnect([](core::socket::stream::SocketConnection* socketConnection) {
+                                delBridgeBrokerConnection(
+                                    *mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
+                                    socketConnection);
                             })
                             .connect([&broker, fullInstanceName](const auto& socketAddress, const core::socket::State& state) {
                                 reportState(broker.getBridge().getName() + "+" + fullInstanceName, socketAddress, state);
@@ -300,13 +318,16 @@ int main(int argc, char* argv[]) {
                                 config.Remote::setPort(broker.getAddress()["port"]);
 
                                 config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
-                            },
-                            broker)
-                            .setOnConnected([&broker](core::socket::stream::SocketConnection* socketConnection) {
-                                addBridgeBrokerConnection(broker, socketConnection);
                             })
-                            .setOnDisconnect([&broker](core::socket::stream::SocketConnection* socketConnection) {
-                                delBridgeBrokerConnection(broker, socketConnection);
+                            .setOnConnected([](core::socket::stream::SocketConnection* socketConnection) {
+                                addBridgeBrokerConnection(
+                                    *mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
+                                    socketConnection);
+                            })
+                            .setOnDisconnect([](core::socket::stream::SocketConnection* socketConnection) {
+                                delBridgeBrokerConnection(
+                                    *mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
+                                    socketConnection);
                             })
                             .connect([fullInstanceName](const auto& socketAddress, const core::socket::State& state) {
                                 reportState(fullInstanceName, socketAddress, state);
@@ -331,13 +352,16 @@ int main(int argc, char* argv[]) {
                                 config.Remote::setPort(broker.getAddress()["port"]);
 
                                 config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
-                            },
-                            broker)
-                            .setOnConnected([&broker](core::socket::stream::SocketConnection* socketConnection) {
-                                addBridgeBrokerConnection(broker, socketConnection);
                             })
-                            .setOnDisconnect([&broker](core::socket::stream::SocketConnection* socketConnection) {
-                                delBridgeBrokerConnection(broker, socketConnection);
+                            .setOnConnected([](core::socket::stream::SocketConnection* socketConnection) {
+                                addBridgeBrokerConnection(
+                                    *mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
+                                    socketConnection);
+                            })
+                            .setOnDisconnect([](core::socket::stream::SocketConnection* socketConnection) {
+                                delBridgeBrokerConnection(
+                                    *mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
+                                    socketConnection);
                             })
                             .connect([fullInstanceName](const auto& socketAddress, const core::socket::State& state) {
                                 reportState(fullInstanceName, socketAddress, state);
@@ -360,13 +384,16 @@ int main(int argc, char* argv[]) {
                                 config.Remote::setPort(broker.getAddress()["port"]);
 
                                 config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
-                            },
-                            broker)
-                            .setOnConnected([&broker](core::socket::stream::SocketConnection* socketConnection) {
-                                addBridgeBrokerConnection(broker, socketConnection);
                             })
-                            .setOnDisconnect([&broker](core::socket::stream::SocketConnection* socketConnection) {
-                                delBridgeBrokerConnection(broker, socketConnection);
+                            .setOnConnected([](core::socket::stream::SocketConnection* socketConnection) {
+                                addBridgeBrokerConnection(
+                                    *mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
+                                    socketConnection);
+                            })
+                            .setOnDisconnect([](core::socket::stream::SocketConnection* socketConnection) {
+                                delBridgeBrokerConnection(
+                                    *mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
+                                    socketConnection);
                             })
                             .connect([fullInstanceName](const auto& socketAddress, const core::socket::State& state) {
                                 reportState(fullInstanceName, socketAddress, state);
@@ -389,13 +416,16 @@ int main(int argc, char* argv[]) {
                                 config.Remote::setSunPath(broker.getAddress()["host"]);
 
                                 config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
-                            },
-                            broker)
-                            .setOnConnected([&broker](core::socket::stream::SocketConnection* socketConnection) {
-                                addBridgeBrokerConnection(broker, socketConnection);
                             })
-                            .setOnDisconnect([&broker](core::socket::stream::SocketConnection* socketConnection) {
-                                delBridgeBrokerConnection(broker, socketConnection);
+                            .setOnConnected([](core::socket::stream::SocketConnection* socketConnection) {
+                                addBridgeBrokerConnection(
+                                    *mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
+                                    socketConnection);
+                            })
+                            .setOnDisconnect([](core::socket::stream::SocketConnection* socketConnection) {
+                                delBridgeBrokerConnection(
+                                    *mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
+                                    socketConnection);
                             })
                             .connect([fullInstanceName](const auto& socketAddress, const core::socket::State& state) {
                                 reportState(fullInstanceName, socketAddress, state);
@@ -416,13 +446,16 @@ int main(int argc, char* argv[]) {
                                 config.Remote::setSunPath(broker.getAddress()["host"]);
 
                                 config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
-                            },
-                            broker)
-                            .setOnConnected([&broker](core::socket::stream::SocketConnection* socketConnection) {
-                                addBridgeBrokerConnection(broker, socketConnection);
                             })
-                            .setOnDisconnect([&broker](core::socket::stream::SocketConnection* socketConnection) {
-                                delBridgeBrokerConnection(broker, socketConnection);
+                            .setOnConnected([](core::socket::stream::SocketConnection* socketConnection) {
+                                addBridgeBrokerConnection(
+                                    *mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
+                                    socketConnection);
+                            })
+                            .setOnDisconnect([](core::socket::stream::SocketConnection* socketConnection) {
+                                delBridgeBrokerConnection(
+                                    *mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
+                                    socketConnection);
                             })
                             .connect([fullInstanceName](const auto& socketAddress, const core::socket::State& state) {
                                 reportState(fullInstanceName, socketAddress, state);
@@ -437,7 +470,7 @@ int main(int argc, char* argv[]) {
                 if (protocol == "in") {
                     if (encryption == "legacy") {
 #if defined(CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4) && defined(CONFIG_MQTTSUITE_BRIDGE_WS)
-                        startClient<web::http::legacy::in::Client>(fullInstanceName, broker, [&broker](auto& config) {
+                        startClient<web::http::legacy::in::Client>(fullInstanceName, [&broker](auto& config) {
                             config.Remote::setPort(8080);
 
                             config.setRetry();
@@ -456,7 +489,7 @@ int main(int argc, char* argv[]) {
 #endif // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4 && CONFIG_MQTTSUITE_BRIDGE_WS
                     } else if (encryption == "tls") {
 #if defined(CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4) && defined(CONFIG_MQTTSUITE_BRIDGE_WSS)
-                        startClient<web::http::tls::in::Client>(fullInstanceName, broker, [&broker](auto& config) {
+                        startClient<web::http::tls::in::Client>(fullInstanceName, [&broker](auto& config) {
                             config.Remote::setPort(8088);
 
                             config.setRetry();
@@ -477,7 +510,7 @@ int main(int argc, char* argv[]) {
                 } else if (protocol == "in6") {
                     if (encryption == "legacy") {
 #if defined(CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6) && defined(CONFIG_MQTTSUITE_BRIDGE_WS)
-                        startClient<web::http::legacy::in6::Client>(fullInstanceName, broker, [&broker](auto& config) {
+                        startClient<web::http::legacy::in6::Client>(fullInstanceName, [&broker](auto& config) {
                             config.Remote::setPort(8080);
 
                             config.setRetry();
@@ -496,7 +529,7 @@ int main(int argc, char* argv[]) {
 #endif // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6&&  CONFIG_MQTTSUITE_BRIDGE_WS
                     } else if (encryption == "tls") {
 #if defined(CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6) && defined(CONFIG_MQTTSUITE_BRIDGE_WSS)
-                        startClient<web::http::tls::in6::Client>(fullInstanceName, broker, [&broker](auto& config) {
+                        startClient<web::http::tls::in6::Client>(fullInstanceName, [&broker](auto& config) {
                             config.Remote::setPort(8088);
 
                             config.setRetry();
@@ -517,7 +550,7 @@ int main(int argc, char* argv[]) {
                 } else if (protocol == "un") {
                     if (encryption == "legacy") {
 #if defined(CONFIG_MQTTSUITE_BRIDGE_UNIX) && defined(CONFIG_MQTTSUITE_BRIDGE_WS)
-                        startClient<web::http::legacy::un::Client>(fullInstanceName, broker, [&broker](auto& config) {
+                        startClient<web::http::legacy::un::Client>(fullInstanceName, [&broker](auto& config) {
                             config.setRetry();
                             config.setRetryBase(1);
                             config.setReconnect();
@@ -532,7 +565,7 @@ int main(int argc, char* argv[]) {
 #endif // CONFIG_MQTTSUITE_BRIDGE_UNIX &&  CONFIG_MQTTSUITE_BRIDGE_WS
                     } else if (encryption == "tls") {
 #if defined(CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS) && defined(CONFIG_MQTTSUITE_BRIDGE_WSS)
-                        startClient<web::http::tls::un::Client>(fullInstanceName, broker, [&broker](auto& config) {
+                        startClient<web::http::tls::un::Client>(fullInstanceName, [&broker](auto& config) {
                             config.setRetry();
                             config.setRetryBase(1);
                             config.setReconnect();
@@ -552,6 +585,78 @@ int main(int argc, char* argv[]) {
             }
         }
     }
+
+    utils::Config::parse2();
+}
+
+int main(int argc, char* argv[]) {
+#if defined(LINK_WEBSOCKET_STATIC) || defined(LINK_SUBPROTOCOL_STATIC)
+    web::websocket::client::SocketContextUpgradeFactory::link();
+#endif
+
+#ifdef LINK_SUBPROTOCOL_STATIC
+    web::websocket::client::SubProtocolFactorySelector::link("mqtt", mqttClientSubProtocolFactory);
+#endif
+
+    CLI::App* bridgeApp = utils::Config::addInstance("bridge", "Configuration for Application mqttbridge", "MQTT-Bridge");
+    utils::Config::required(bridgeApp);
+
+    std::string bridgeDefinitionFile = "<REQUIRED>";
+    bridgeApp->needs(bridgeApp->add_option("--definition", bridgeDefinitionFile, "MQTT bridge definition file (JSON format)")
+                         ->capture_default_str()
+                         ->group(bridgeApp->get_formatter()->get_label("Persistent Options"))
+                         ->type_name("path")
+                         ->configurable()
+                         ->required());
+
+    core::SNodeC::init(argc, argv);
+
+    const express::Router router(express::middleware::JsonMiddleware());
+
+    router.get("/api/bridge/config", [&bridgeDefinitionFile] APPLICATION(req, res) {
+        res->sendFile(bridgeDefinitionFile, []([[maybe_unused]] int err) {
+        });
+    });
+
+    router.patch("/api/bridge/config", [&bridgeDefinitionFile] APPLICATION(req, res) {
+        req->getAttribute<nlohmann::json>(
+            [&res, &bridgeDefinitionFile](nlohmann::json& json) {
+                std::string jsonString = json.dump(4);
+
+                VLOG(1) << jsonString;
+
+                closeBridges();
+
+                if (mqtt::bridge::lib::BridgeStore::instance().loadAndValidate(bridgeDefinitionFile, json)) {
+                    //                    core::DescriptorEventReceiver::atNextTick([bridgeDefinitionFile]() {
+                    //                        core::DescriptorEventReceiver::atNextTick([bridgeDefinitionFile]() {
+                    //                            startBridges(bridgeDefinitionFile);
+                    //                        });
+                    //                    });
+
+                    res->send(R"({"success": true, "message": "Client disconnected successfully"})"_json.dump());
+                } else {
+                    res->status(404).send(R"({"success": false, "error": "Client not found"})"_json.dump());
+                }
+            },
+            [&res](const std::string& key) {
+                VLOG(1) << "Attribute type not found: " << key;
+
+                res->status(400).send("Attribute type not found: " + key);
+            });
+    });
+
+    router.get("/api/bridge/sse", [] APPLICATION(req, res) {
+    });
+
+    express::legacy::in::Server("admin", reportState, [](auto& config) {
+        config.setPort(8081);
+        config.setRetry();
+        config.setDisableNagleAlgorithm();
+        config.setReuseAddress();
+    }).use(router);
+
+    startBridges(bridgeDefinitionFile);
 
     return core::SNodeC::start();
 }

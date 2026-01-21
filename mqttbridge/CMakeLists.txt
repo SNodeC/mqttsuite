@@ -149,8 +149,9 @@ find_package(nlohmann_json 3.7.0 REQUIRED)
 find_package(
     snodec 1.0.0 REQUIRED
     COMPONENTS ${MQTTBRIDGE_COMPONENTS} mqtt
-    OPTIONAL_COMPONENTS net-l2-stream-legacy net-rc-stream-legacy
-                        net-l2-stream-tls net-rc-stream-tls
+    OPTIONAL_COMPONENTS
+        net-l2-stream-legacy net-rc-stream-legacy net-l2-stream-tls
+        net-rc-stream-tls http-server-express-legacy-in
 )
 
 configure_file(
@@ -164,6 +165,9 @@ set(MQTTBRIDGE_H SocketContextFactory.h)
 
 add_executable(mqttbridge ${MQTTBRIDGE_CPP} ${MQTTBRIDGE_H})
 
-target_link_libraries(mqttbridge PUBLIC ${MQTTBRIDGE_LINK_LIBS} mqtt-bridge)
+target_link_libraries(
+    mqttbridge PUBLIC ${MQTTBRIDGE_LINK_LIBS}
+                      snodec::http-server-express-legacy-in mqtt-bridge
+)
 
 install(TARGETS mqttbridge RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
