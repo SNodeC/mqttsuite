@@ -50,6 +50,7 @@
 #include <core/SNodeC.h>
 #include <express/legacy/in/Server.h>
 #include <express/middleware/JsonMiddleware.h>
+#include <express/middleware/StaticMiddleware.h>
 #include <express/tls/in/Server.h>
 #include <iot/mqtt/MqttContext.h>
 //
@@ -107,6 +108,7 @@
 #include <list>
 #include <nlohmann/json.hpp>
 #include <string>
+#include <web/http/http_utils.h>
 
 #endif
 
@@ -598,6 +600,9 @@ int main(int argc, char* argv[]) {
                          ->configurable()
                          ->required());
 
+    utils::Config::addStringOption(
+        "--html-dir", "Path to html source directory", "[path]", std::string(CMAKE_INSTALL_PREFIX) + "/var/www/mqttsuite/mqttbridge");
+
     core::SNodeC::init(argc, argv);
 
     const express::Router router(express::middleware::JsonMiddleware());
@@ -633,6 +638,17 @@ int main(int argc, char* argv[]) {
     });
 
     router.get("/api/bridge/sse", [] APPLICATION(req, res) {
+    });
+
+    router.setStrictRouting();
+    router.get("/config", [] APPLICATION(req, res) {
+        res->redirect("/config/index.html");
+    });
+
+    router.get("/config", express::middleware::StaticMiddleware(utils::Config::getStringOptionValue("--html-dir")));
+
+    router.get("/", [] APPLICATION(req, res) {
+        res->redirect("/config/index.html");
     });
 
     express::legacy::in::Server("admin-legacy", router, reportState, [](auto& config) {
