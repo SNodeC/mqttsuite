@@ -641,11 +641,15 @@ int main(int argc, char* argv[]) {
     });
 
     router.setStrictRouting();
-    router.get("/", [] APPLICATION(req, res) {
-        res->redirect("/index.html");
+    router.get("/config", [] APPLICATION(req, res) {
+        res->redirect("/config/index.html");
     });
 
-    router.get("/", express::middleware::StaticMiddleware(utils::Config::getStringOptionValue("--html-dir")));
+    router.get("/config", express::middleware::StaticMiddleware(utils::Config::getStringOptionValue("--html-dir")));
+
+    router.get("/", [] APPLICATION(req, res) {
+        res->redirect("/config");
+    });
 
     express::legacy::in::Server("admin-legacy", router, reportState, [](auto& config) {
         config.setPort(8081);
