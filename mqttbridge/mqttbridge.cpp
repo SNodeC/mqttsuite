@@ -141,6 +141,20 @@ static void delBridgeBrokerConnection(const mqtt::bridge::lib::Broker& broker, c
 
     if (bridges.empty() && restart) {
         core::EventReceiver::atNextTick([]() {
+            // 
+            // Remove old bridge subcommands before reloading
+            const auto& bridgeList = mqtt::bridge::lib::BridgeStore::instance().getBridgeList();
+            for (const auto& bridge : bridgeList) {
+                for (const auto& broker : bridge.getBrokerList()) {
+                    std::string subcommandName = bridge.getName() + "+" + broker.getName();
+                    auto bridgeApp = utils::Config::instance("bridge");
+                    if (bridgeApp && bridgeApp->get_subcommands().count(subcommandName) > 0) {
+                        bridgeApp->remove_subcommand(bridgeApp->get_subcommands()[subcommandName]);
+                    }
+                }
+            }
+            //
+
             mqtt::bridge::lib::BridgeStore::instance().activateStaged();
 
             startBridges();
