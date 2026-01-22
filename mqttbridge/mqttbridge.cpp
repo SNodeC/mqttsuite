@@ -112,8 +112,8 @@
 
 static std::map<std::string, std::map<std::string, core::socket::stream::SocketConnection*>> bridges;
 
-bool restart = false;
-std::string bridgeDefinitionFile = "<REQUIRED>";
+static bool restart = false;
+static std::string bridgeDefinitionFile = "<REQUIRED>";
 
 static void startBridges();
 
