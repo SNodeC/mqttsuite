@@ -163,7 +163,21 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR}/generated)
 set(MQTTBRIDGE_CPP mqttbridge.cpp SocketContextFactory.cpp)
 set(MQTTBRIDGE_H SocketContextFactory.h)
 
+set_property(
+    SOURCE mqttbridge.cpp
+    APPEND
+    PROPERTY COMPILE_DEFINITIONS
+             CMAKE_INSTALL_PREFIX=\"${CMAKE_INSTALL_PREFIX}\"
+)
+
 add_executable(mqttbridge ${MQTTBRIDGE_CPP} ${MQTTBRIDGE_H})
+
+file(GLOB_RECURSE WEB_ASSETS "${CMAKE_CURRENT_SOURCE_DIR}/html/*.html"
+     "${CMAKE_CURRENT_SOURCE_DIR}/html/*.css"
+     "${CMAKE_CURRENT_SOURCE_DIR}/html/*.js"
+)
+
+target_sources(mqttbridge PRIVATE ${WEB_ASSETS})
 
 target_link_libraries(
     mqttbridge
@@ -172,3 +186,12 @@ target_link_libraries(
 )
 
 install(TARGETS mqttbridge RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+install(
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/html/
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/var/www/mqttsuite/mqttbridge
+    FILES_MATCHING
+    PATTERN "*.html"
+    PATTERN "*.css"
+    PATTERN "*.js"
+)
