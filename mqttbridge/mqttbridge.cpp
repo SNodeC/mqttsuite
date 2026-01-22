@@ -50,6 +50,7 @@
 #include <core/SNodeC.h>
 #include <express/legacy/in/Server.h>
 #include <express/middleware/JsonMiddleware.h>
+#include <express/tls/in/Server.h>
 #include <iot/mqtt/MqttContext.h>
 //
 #include <log/Logger.h>
@@ -634,12 +635,19 @@ int main(int argc, char* argv[]) {
     router.get("/api/bridge/sse", [] APPLICATION(req, res) {
     });
 
-    express::legacy::in::Server("admin", reportState, [](auto& config) {
+    express::legacy::in::Server("admin-legacy", router, reportState, [](auto& config) {
         config.setPort(8081);
         config.setRetry();
         config.setDisableNagleAlgorithm();
         config.setReuseAddress();
-    }).use(router);
+    });
+
+    express::tls::in::Server("admin-tls", router, reportState, [](auto& config) {
+        config.setPort(8082);
+        config.setRetry();
+        config.setDisableNagleAlgorithm();
+        config.setReuseAddress();
+    });
 
     if (mqtt::bridge::lib::BridgeStore::instance().loadAndValidate(bridgeDefinitionFile)) {
         startBridges();
