@@ -66,7 +66,7 @@ namespace mqtt::bridge::lib {
         mqttList.push_back(mqtt);
     }
 
-    void Bridge::removeMqtt(mqtt::bridge::lib::Mqtt* mqtt) { // cppcheck-suppress constParameterPointer
+    void Bridge::removeMqtt(mqtt::bridge::lib::Mqtt* mqtt) {
         mqttList.remove(mqtt);
     }
 

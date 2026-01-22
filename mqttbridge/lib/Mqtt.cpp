@@ -41,8 +41,7 @@
 
 #include "Mqtt.h"
 
-#include "Bridge.h"
-#include "Broker.h"
+#include "lib/BridgeStore.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
@@ -94,6 +93,7 @@ namespace mqtt::bridge::lib {
 
     void Mqtt::onDisconnected() {
         broker.getBridge().removeMqtt(this);
+
         VLOG(1) << "MQTT: Disconnected";
     }
 
