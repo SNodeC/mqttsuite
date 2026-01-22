@@ -64,7 +64,9 @@ namespace mqtt::bridge::lib {
     public:
         static BridgeStore& instance();
 
-        bool loadAndValidate(const std::string& fileName, const nlohmann::json& jsonPatch = nullptr);
+        bool loadAndValidate(const std::string& fileName);
+        bool patch(const nlohmann::json& jsonPatch);
+        void activateStaged();
 
         const Broker* getBroker(const std::string& instanceName) const;
         const std::map<std::string, Broker>& getBrokers() const;
@@ -77,7 +79,10 @@ namespace mqtt::bridge::lib {
         std::list<Bridge> bridgeList;
         std::map<std::string, Broker> brokers;
 
-        nlohmann::json bridgesConfigJson;
+        nlohmann::json bridgesConfigJsonActive;
+        nlohmann::json bridgesConfigJsonStaged;
+
+        std::string fileName;
     };
 
 } // namespace mqtt::bridge::lib

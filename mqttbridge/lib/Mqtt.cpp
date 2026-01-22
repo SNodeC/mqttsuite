@@ -45,10 +45,8 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <core/socket/stream/SocketConnection.h>
 #include <cstdint>
 #include <cstring>
-#include <iot/mqtt/MqttContext.h>
 #include <iot/mqtt/packets/Connack.h>
 #include <log/Logger.h>
 #include <utils/system/signal.h>
@@ -94,12 +92,7 @@ namespace mqtt::bridge::lib {
     }
 
     void Mqtt::onDisconnected() {
-        const Broker* broker =
-            mqtt::bridge::lib::BridgeStore::instance().getBroker(getMqttContext()->getSocketConnection()->getInstanceName());
-
-        if (broker != nullptr) {
-            broker->getBridge().removeMqtt(this);
-        }
+        broker.getBridge().removeMqtt(this);
 
         VLOG(1) << "MQTT: Disconnected";
     }
@@ -122,12 +115,7 @@ namespace mqtt::bridge::lib {
     }
 
     void Mqtt::onPublish(const iot::mqtt::packets::Publish& publish) {
-        const Broker* broker =
-            mqtt::bridge::lib::BridgeStore::instance().getBroker(getMqttContext()->getSocketConnection()->getInstanceName());
-
-        if (broker != nullptr) {
-            broker->getBridge().publish(this, publish);
-        }
+        broker.getBridge().publish(this, publish);
     }
 
 } // namespace mqtt::bridge::lib
