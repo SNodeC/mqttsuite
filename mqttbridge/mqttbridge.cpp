@@ -141,22 +141,6 @@ static void delBridgeBrokerConnection(const mqtt::bridge::lib::Broker& broker, c
 
     if (bridges.empty() && restart) {
         core::EventReceiver::atNextTick([]() {
-            // 
-            // Remove old bridge subcommands before reloading
-            // We iterate over the currently active BridgeStore which still has the old config
-            const auto& brokers = mqtt::bridge::lib::BridgeStore::instance().getBrokers();
-            for (const auto& [fullInstanceName, broker] : brokers) {
-                // fullInstanceName is like "BridgeName+BrokerName", which matches what the CLI subcommand is called
-                auto bridgeApp = utils::Config::addInstance("bridge");
-                if (bridgeApp) {
-                    auto subcommands = bridgeApp->get_subcommands();
-                    auto it = subcommands.find(fullInstanceName);
-                    if (it != subcommands.end()) {
-                        bridgeApp->remove_subcommand(it->second);
-                    }
-                }
-            }
-            //
 
             mqtt::bridge::lib::BridgeStore::instance().activateStaged();
 
