@@ -233,7 +233,20 @@ void startClient(const std::string& name, const std::function<void(typename Http
             VLOG(1) << "Session ended";
         });
 
-    configurator(httpClient.getConfig());
+    //
+    try {
+        configurator(httpClient.getConfig());
+    } catch (const std::exception& e) {
+        // Subcommand already registered during a previous startup (reload scenario)
+        // This is expected when reloading configuration - just skip re-registration
+        if (std::string(e.what()).find("already added") != std::string::npos ||
+            std::string(e.what()).find("OptionAlreadyAdded") != std::string::npos) {
+            VLOG(1) << "Subcommand '" << name << "' already registered, skipping reconfiguration: " << e.what();
+        } else {
+            throw; // Re-throw if it's a different exception
+        }
+    }
+    //
 
     httpClient
         .setOnConnected([](core::socket::stream::SocketConnection* socketConnection) {
