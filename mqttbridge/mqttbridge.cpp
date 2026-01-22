@@ -191,60 +191,62 @@ template <typename HttpClient>
 void startClient(const std::string& name, const std::function<void(typename HttpClient::Config&)>& configurator) {
     using SocketAddress = typename HttpClient::SocketAddress;
 
-    HttpClient httpClient(
-        name,
-        [](const std::shared_ptr<web::http::client::MasterRequest>& req) {
-            const std::string connectionName = req->getSocketContext()->getSocketConnection()->getConnectionName();
-
-            req->set("Sec-WebSocket-Protocol", "mqtt");
-
-            req->upgrade(
-                "/ws",
-                "websocket",
-                [connectionName](bool success) {
-                    VLOG(1) << connectionName << ": HTTP Upgrade (http -> websocket||"
-                            << "mqtt" << ") start " << (success ? "success" : "failed");
-                },
-                []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req,
-                   [[maybe_unused]] const std::shared_ptr<web::http::client::Response>& res,
-                   [[maybe_unused]] bool success) {
-                },
-                [connectionName]([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req, const std::string& message) {
-                    VLOG(1) << connectionName << ": Request parse error: " << message;
-                });
-        },
-        []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req) {
-            VLOG(1) << "Session ended";
-        });
-
-    //
     try {
-        configurator(httpClient.getConfig());
-    } catch (const std::exception& e) {
-        // Subcommand already registered during a previous startup (reload scenario)
-        // This is expected when reloading configuration - just skip re-registration
-        if (std::string(e.what()).find("already added") != std::string::npos ||
-            std::string(e.what()).find("OptionAlreadyAdded") != std::string::npos) {
-            VLOG(1) << "Subcommand '" << name << "' already registered, skipping reconfiguration: " << e.what();
-        } else {
-            throw; // Re-throw if it's a different exception
-        }
-    }
-    //
+        HttpClient httpClient(
+            name,
+            [](const std::shared_ptr<web::http::client::MasterRequest>& req) {
+                const std::string connectionName = req->getSocketContext()->getSocketConnection()->getConnectionName();
 
-    httpClient
-        .setOnConnected([](core::socket::stream::SocketConnection* socketConnection) {
-            addBridgeBrokerConnection(*mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
-                                      socketConnection);
-        })
-        .setOnDisconnect([](core::socket::stream::SocketConnection* socketConnection) {
-            delBridgeBrokerConnection(*mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
-                                      socketConnection);
-        })
-        .connect([name](const SocketAddress& socketAddress, const core::socket::State& state) {
-            reportState(name, socketAddress, state);
-        });
+                req->set("Sec-WebSocket-Protocol", "mqtt");
+
+                req->upgrade(
+                    "/ws",
+                    "websocket",
+                    [connectionName](bool success) {
+                        VLOG(1) << connectionName << ": HTTP Upgrade (http -> websocket||"
+                                << "mqtt" << ") start " << (success ? "success" : "failed");
+                    },
+                    []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req,
+                       [[maybe_unused]] const std::shared_ptr<web::http::client::Response>& res,
+                       [[maybe_unused]] bool success) {
+                    },
+                    [connectionName]([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req, const std::string& message) {
+                        VLOG(1) << connectionName << ": Request parse error: " << message;
+                    });
+            },
+            []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req) {
+                VLOG(1) << "Session ended";
+            });
+
+        configurator(httpClient.getConfig());
+
+        httpClient
+            .setOnConnected([](core::socket::stream::SocketConnection* socketConnection) {
+                addBridgeBrokerConnection(*mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
+                                          socketConnection);
+            })
+            .setOnDisconnect([](core::socket::stream::SocketConnection* socketConnection) {
+                delBridgeBrokerConnection(*mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
+                                          socketConnection);
+            })
+            .connect([name](const SocketAddress& socketAddress, const core::socket::State& state) {
+                reportState(name, socketAddress, state);
+            });
+    } catch (const std::exception& e) {
+        // During reload, subcommand might already be registered
+        if (std::string(e.what()).find("already added") != std::string::npos ||
+            std::string(e.what()).find("OptionAlreadyAdded") != std::string::npos ||
+            std::string(e.what()).find("matches existing subcommand") != std::string::npos) {
+            VLOG(1) << "Broker '" << name << "' subcommand already registered (reload scenario): " << e.what();
+            // This is expected - the old connection is still active and the subcommand is already registered
+            // Just continue without creating a new one
+            return;
+        }
+        // Re-throw unexpected exceptions
+        throw;
+    }
 }
+
 
 static void startBridges() {
     for (const auto& [fullInstanceName, broker] : mqtt::bridge::lib::BridgeStore::instance().getBrokers()) {
