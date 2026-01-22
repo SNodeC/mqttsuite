@@ -602,7 +602,7 @@ int main(int argc, char* argv[]) {
 
     const express::Router router(express::middleware::JsonMiddleware());
 
-    router.get("/api/bridge/config", [] APPLICATION(req, res) {
+    router.get("/api/bridge/config", [] APPLICATION(req, res) { // cppcheck-suppress unknownMacro
         res->send(mqtt::bridge::lib::BridgeStore::instance().getBridgesConfigJson().dump(4));
     });
 
