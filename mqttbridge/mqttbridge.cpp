@@ -245,7 +245,7 @@ void startClient(const std::string& name, const std::function<void(typename Http
             delBridgeBrokerConnection(*mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
                                       socketConnection);
         })
-        .setOnInitState([]([[maybe_unused]] core::eventreceiver::ConnectEventReceiver* connectEventReceiver) {
+        .setOnInitState([](core::eventreceiver::ConnectEventReceiver* connectEventReceiver) {
             handleConnector(connectEventReceiver);
         })
         .connect([name](const SocketAddress& socketAddress, const core::socket::State& state) {
@@ -313,7 +313,7 @@ static void startBridges() {
                                 *mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
                                 socketConnection);
                         })
-                        .setOnInitState([]([[maybe_unused]] core::eventreceiver::ConnectEventReceiver* connectEventReceiver) {
+                        .setOnInitState([](core::eventreceiver::ConnectEventReceiver* connectEventReceiver) {
                             handleConnector(connectEventReceiver);
                         })
                         .connect([&broker, fullInstanceName](const auto& socketAddress, const core::socket::State& state) {
@@ -348,7 +348,7 @@ static void startBridges() {
                                 *mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
                                 socketConnection);
                         })
-                        .setOnInitState([]([[maybe_unused]] core::eventreceiver::ConnectEventReceiver* connectEventReceiver) {
+                        .setOnInitState([](core::eventreceiver::ConnectEventReceiver* connectEventReceiver) {
                             handleConnector(connectEventReceiver);
                         })
                         .connect([fullInstanceName](const auto& socketAddress, const core::socket::State& state) {
@@ -385,7 +385,7 @@ static void startBridges() {
                                 *mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
                                 socketConnection);
                         })
-                        .setOnInitState([]([[maybe_unused]] core::eventreceiver::ConnectEventReceiver* connectEventReceiver) {
+                        .setOnInitState([](core::eventreceiver::ConnectEventReceiver* connectEventReceiver) {
                             handleConnector(connectEventReceiver);
                         })
                         .connect([fullInstanceName](const auto& socketAddress, const core::socket::State& state) {
@@ -420,7 +420,7 @@ static void startBridges() {
                                 *mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
                                 socketConnection);
                         })
-                        .setOnInitState([]([[maybe_unused]] core::eventreceiver::ConnectEventReceiver* connectEventReceiver) {
+                        .setOnInitState([](core::eventreceiver::ConnectEventReceiver* connectEventReceiver) {
                             handleConnector(connectEventReceiver);
                         })
                         .connect([fullInstanceName](const auto& socketAddress, const core::socket::State& state) {
@@ -455,7 +455,7 @@ static void startBridges() {
                                 *mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
                                 socketConnection);
                         })
-                        .setOnInitState([]([[maybe_unused]] core::eventreceiver::ConnectEventReceiver* connectEventReceiver) {
+                        .setOnInitState([](core::eventreceiver::ConnectEventReceiver* connectEventReceiver) {
                             handleConnector(connectEventReceiver);
                         })
                         .connect([fullInstanceName](const auto& socketAddress, const core::socket::State& state) {
@@ -488,7 +488,7 @@ static void startBridges() {
                                 *mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
                                 socketConnection);
                         })
-                        .setOnInitState([]([[maybe_unused]] core::eventreceiver::ConnectEventReceiver* connectEventReceiver) {
+                        .setOnInitState([](core::eventreceiver::ConnectEventReceiver* connectEventReceiver) {
                             handleConnector(connectEventReceiver);
                         })
                         .connect([fullInstanceName](const auto& socketAddress, const core::socket::State& state) {
