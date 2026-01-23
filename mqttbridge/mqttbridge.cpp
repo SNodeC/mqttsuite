@@ -1,7 +1,7 @@
 /*
  * MQTTSuite - A lightweight MQTT Integration System
  * Copyright (C) Volker Christian <me@vchrist.at>
- *               2022, 2023, 2024, 2025
+ *               2022, 2023, 2024, 2025, 2026
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -663,7 +663,8 @@ int main(int argc, char* argv[]) {
                         res->status(404).send(R"({"success": false, "message": "Bridge config patch failed to applie"})"_json.dump());
                     }
                 } else {
-                    res->status(409).send(R"({"success": false, "message": "Bridge is in restarting state"})"_json.dump());
+                    res->status(409).send(
+                        R"({"success": false, "message": "Bridge is in restarting state. Patch not applied"})"_json.dump());
                 }
             },
             [&res](const std::string& key) {
