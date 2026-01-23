@@ -109,7 +109,6 @@
 #include <nlohmann/json.hpp>
 #include <set>
 #include <string>
-#include <web/http/http_utils.h>
 
 #endif
 
@@ -210,32 +209,31 @@ template <typename HttpClient>
 void startClient(const std::string& name, const std::function<void(typename HttpClient::Config&)>& configurator) {
     using SocketAddress = typename HttpClient::SocketAddress;
 
-    try {
-        HttpClient httpClient(
-            name,
-            [](const std::shared_ptr<web::http::client::MasterRequest>& req) {
-                const std::string connectionName = req->getSocketContext()->getSocketConnection()->getConnectionName();
+    HttpClient httpClient(
+        name,
+        [](const std::shared_ptr<web::http::client::MasterRequest>& req) {
+            const std::string connectionName = req->getSocketContext()->getSocketConnection()->getConnectionName();
 
-                req->set("Sec-WebSocket-Protocol", "mqtt");
+            req->set("Sec-WebSocket-Protocol", "mqtt");
 
-                req->upgrade(
-                    "/ws",
-                    "websocket",
-                    [connectionName](bool success) {
-                        VLOG(1) << connectionName << ": HTTP Upgrade (http -> websocket||"
-                                << "mqtt" << ") start " << (success ? "success" : "failed");
-                    },
-                    []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req,
-                       [[maybe_unused]] const std::shared_ptr<web::http::client::Response>& res,
-                       [[maybe_unused]] bool success) {
-                    },
-                    [connectionName]([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req, const std::string& message) {
-                        VLOG(1) << connectionName << ": Request parse error: " << message;
-                    });
-            },
-            []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req) {
-                VLOG(1) << "Session ended";
-            });
+            req->upgrade(
+                "/ws",
+                "websocket",
+                [connectionName](bool success) {
+                    VLOG(1) << connectionName << ": HTTP Upgrade (http -> websocket||"
+                            << "mqtt" << ") start " << (success ? "success" : "failed");
+                },
+                []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req,
+                   [[maybe_unused]] const std::shared_ptr<web::http::client::Response>& res,
+                   [[maybe_unused]] bool success) {
+                },
+                [connectionName]([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req, const std::string& message) {
+                    VLOG(1) << connectionName << ": Request parse error: " << message;
+                });
+        },
+        []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req) {
+            VLOG(1) << "Session ended";
+        });
 
     configurator(httpClient.getConfig());
 
@@ -255,7 +253,6 @@ void startClient(const std::string& name, const std::function<void(typename Http
             reportState(name, socketAddress, state);
         });
 }
-
 
 static void startBridges() {
     for (const auto& [fullInstanceName, broker] : mqtt::bridge::lib::BridgeStore::instance().getBrokers()) {
@@ -666,6 +663,8 @@ int main(int argc, char* argv[]) {
 
                     if (mqtt::bridge::lib::BridgeStore::instance().patch(jsonPatch)) {
                         res->send(R"({"success": true, "message": "Bridge config patch applied"})"_json.dump());
+
+                        tryRestartBridges();
                     } else {
                         res->status(404).send(R"({"success": false, "message": "Bridge config patch failed to applie"})"_json.dump());
                     }
