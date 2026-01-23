@@ -50,6 +50,7 @@
 #include <core/eventreceiver/ConnectEventReceiver.h>
 #include <express/legacy/in/Server.h>
 #include <express/middleware/JsonMiddleware.h>
+#include <express/middleware/StaticMiddleware.h>
 #include <express/tls/in/Server.h>
 #include <iot/mqtt/MqttContext.h>
 //
@@ -108,6 +109,7 @@
 #include <nlohmann/json.hpp>
 #include <set>
 #include <string>
+#include <web/http/http_utils.h>
 
 #endif
 
@@ -208,31 +210,32 @@ template <typename HttpClient>
 void startClient(const std::string& name, const std::function<void(typename HttpClient::Config&)>& configurator) {
     using SocketAddress = typename HttpClient::SocketAddress;
 
-    HttpClient httpClient(
-        name,
-        [](const std::shared_ptr<web::http::client::MasterRequest>& req) {
-            const std::string connectionName = req->getSocketContext()->getSocketConnection()->getConnectionName();
+    try {
+        HttpClient httpClient(
+            name,
+            [](const std::shared_ptr<web::http::client::MasterRequest>& req) {
+                const std::string connectionName = req->getSocketContext()->getSocketConnection()->getConnectionName();
 
-            req->set("Sec-WebSocket-Protocol", "mqtt");
+                req->set("Sec-WebSocket-Protocol", "mqtt");
 
-            req->upgrade(
-                "/ws",
-                "websocket",
-                [connectionName](bool success) {
-                    VLOG(1) << connectionName << ": HTTP Upgrade (http -> websocket||"
-                            << "mqtt" << ") start " << (success ? "success" : "failed");
-                },
-                []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req,
-                   [[maybe_unused]] const std::shared_ptr<web::http::client::Response>& res,
-                   [[maybe_unused]] bool success) {
-                },
-                [connectionName]([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req, const std::string& message) {
-                    VLOG(1) << connectionName << ": Request parse error: " << message;
-                });
-        },
-        []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req) {
-            VLOG(1) << "Session ended";
-        });
+                req->upgrade(
+                    "/ws",
+                    "websocket",
+                    [connectionName](bool success) {
+                        VLOG(1) << connectionName << ": HTTP Upgrade (http -> websocket||"
+                                << "mqtt" << ") start " << (success ? "success" : "failed");
+                    },
+                    []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req,
+                       [[maybe_unused]] const std::shared_ptr<web::http::client::Response>& res,
+                       [[maybe_unused]] bool success) {
+                    },
+                    [connectionName]([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req, const std::string& message) {
+                        VLOG(1) << connectionName << ": Request parse error: " << message;
+                    });
+            },
+            []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req) {
+                VLOG(1) << "Session ended";
+            });
 
     configurator(httpClient.getConfig());
 
@@ -252,6 +255,7 @@ void startClient(const std::string& name, const std::function<void(typename Http
             reportState(name, socketAddress, state);
         });
 }
+
 
 static void startBridges() {
     for (const auto& [fullInstanceName, broker] : mqtt::bridge::lib::BridgeStore::instance().getBrokers()) {
@@ -639,6 +643,9 @@ int main(int argc, char* argv[]) {
                          ->configurable()
                          ->required());
 
+    utils::Config::addStringOption(
+        "--html-dir", "Path to html source directory", "[path]", std::string(CMAKE_INSTALL_PREFIX) + "/var/www/mqttsuite/mqttbridge");
+
     core::SNodeC::init(argc, argv);
 
     const express::Router router(express::middleware::JsonMiddleware());
@@ -675,6 +682,17 @@ int main(int argc, char* argv[]) {
     });
 
     router.get("/api/bridge/sse", [] APPLICATION(req, res) {
+    });
+
+    router.setStrictRouting();
+    router.get("/config", [] APPLICATION(req, res) {
+        res->redirect("/config/index.html");
+    });
+
+    router.get("/config", express::middleware::StaticMiddleware(utils::Config::getStringOptionValue("--html-dir")));
+
+    router.get("/", [] APPLICATION(req, res) {
+        res->redirect("/config");
     });
 
     express::legacy::in::Server("admin-legacy", router, reportState, [](auto& config) {
