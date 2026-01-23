@@ -1,7 +1,7 @@
 /*
  * MQTTSuite - A lightweight MQTT Integration System
  * Copyright (C) Volker Christian <me@vchrist.at>
- *               2022, 2023, 2024, 2025
+ *               2022, 2023, 2024, 2025, 2026
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -46,8 +46,8 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <core/EventReceiver.h>
 #include <core/SNodeC.h>
+#include <core/eventreceiver/ConnectEventReceiver.h>
 #include <express/legacy/in/Server.h>
 #include <express/middleware/JsonMiddleware.h>
 #include <express/middleware/StaticMiddleware.h>
@@ -107,17 +107,43 @@
 
 #include <list>
 #include <nlohmann/json.hpp>
+#include <set>
 #include <string>
 #include <web/http/http_utils.h>
 
 #endif
 
 static std::map<std::string, std::map<std::string, core::socket::stream::SocketConnection*>> bridges;
+static std::set<core::eventreceiver::ConnectEventReceiver*> activeConnectors;
 
-bool restart = false;
-std::string bridgeDefinitionFile = "<REQUIRED>";
+static bool restart = false;
+static std::string bridgeDefinitionFile = "<REQUIRED>";
 
 static void startBridges();
+
+static void tryRestartBridges() {
+    if (bridges.empty() && activeConnectors.empty() && restart) {
+        core::EventReceiver::atNextTick([]() {
+            mqtt::bridge::lib::BridgeStore::instance().activateStaged();
+
+            startBridges();
+
+            utils::Config::parse2();
+
+            restart = false;
+        });
+    }
+}
+
+static void handleConnector(core::eventreceiver::ConnectEventReceiver* connectEventReceiver) {
+    if (connectEventReceiver->isEnabled()) {
+        activeConnectors.insert(connectEventReceiver);
+    } else {
+        activeConnectors.erase(connectEventReceiver);
+
+        tryRestartBridges();
+    }
+}
 
 static void addBridgeBrokerConnection(const mqtt::bridge::lib::Broker& broker, core::socket::stream::SocketConnection* socketConnection) {
     const std::string& bridgeName(broker.getBridge().getName());
@@ -139,18 +165,7 @@ static void delBridgeBrokerConnection(const mqtt::bridge::lib::Broker& broker, c
         }
     }
 
-    if (bridges.empty() && restart) {
-        core::EventReceiver::atNextTick([]() {
-
-            mqtt::bridge::lib::BridgeStore::instance().activateStaged();
-
-            startBridges();
-
-            utils::Config::parse2();
-
-            restart = false;
-        });
-    }
+    tryRestartBridges();
 }
 
 static void closeBridges() {
@@ -164,6 +179,10 @@ static void closeBridges() {
                 ->get_option("--reconnect")
                 ->default_str("false");
         }
+    }
+
+    for (auto connectEventReceiver : activeConnectors) {
+        connectEventReceiver->stopConnect();
     }
 
     restart = true;
@@ -218,33 +237,23 @@ void startClient(const std::string& name, const std::function<void(typename Http
                 VLOG(1) << "Session ended";
             });
 
-        configurator(httpClient.getConfig());
+    configurator(httpClient.getConfig());
 
-        httpClient
-            .setOnConnected([](core::socket::stream::SocketConnection* socketConnection) {
-                addBridgeBrokerConnection(*mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
-                                          socketConnection);
-            })
-            .setOnDisconnect([](core::socket::stream::SocketConnection* socketConnection) {
-                delBridgeBrokerConnection(*mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
-                                          socketConnection);
-            })
-            .connect([name](const SocketAddress& socketAddress, const core::socket::State& state) {
-                reportState(name, socketAddress, state);
-            });
-    } catch (const std::exception& e) {
-        // During reload, subcommand might already be registered
-        if (std::string(e.what()).find("already added") != std::string::npos ||
-            std::string(e.what()).find("OptionAlreadyAdded") != std::string::npos ||
-            std::string(e.what()).find("matches existing subcommand") != std::string::npos) {
-            VLOG(1) << "Broker '" << name << "' subcommand already registered (reload scenario): " << e.what();
-            // This is expected - the old connection is still active and the subcommand is already registered
-            // Just continue without creating a new one
-            return;
-        }
-        // Re-throw unexpected exceptions
-        throw;
-    }
+    httpClient
+        .setOnConnected([](core::socket::stream::SocketConnection* socketConnection) {
+            addBridgeBrokerConnection(*mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
+                                      socketConnection);
+        })
+        .setOnDisconnect([](core::socket::stream::SocketConnection* socketConnection) {
+            delBridgeBrokerConnection(*mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
+                                      socketConnection);
+        })
+        .setOnInitState([]([[maybe_unused]] core::eventreceiver::ConnectEventReceiver* connectEventReceiver) {
+            handleConnector(connectEventReceiver);
+        })
+        .connect([name](const SocketAddress& socketAddress, const core::socket::State& state) {
+            reportState(name, socketAddress, state);
+        });
 }
 
 
@@ -308,6 +317,9 @@ static void startBridges() {
                                 *mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
                                 socketConnection);
                         })
+                        .setOnInitState([]([[maybe_unused]] core::eventreceiver::ConnectEventReceiver* connectEventReceiver) {
+                            handleConnector(connectEventReceiver);
+                        })
                         .connect([&broker, fullInstanceName](const auto& socketAddress, const core::socket::State& state) {
                             reportState(broker.getBridge().getName() + "+" + fullInstanceName, socketAddress, state);
                         });
@@ -339,6 +351,9 @@ static void startBridges() {
                             delBridgeBrokerConnection(
                                 *mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
                                 socketConnection);
+                        })
+                        .setOnInitState([]([[maybe_unused]] core::eventreceiver::ConnectEventReceiver* connectEventReceiver) {
+                            handleConnector(connectEventReceiver);
                         })
                         .connect([fullInstanceName](const auto& socketAddress, const core::socket::State& state) {
                             reportState(fullInstanceName, socketAddress, state);
@@ -374,6 +389,9 @@ static void startBridges() {
                                 *mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
                                 socketConnection);
                         })
+                        .setOnInitState([]([[maybe_unused]] core::eventreceiver::ConnectEventReceiver* connectEventReceiver) {
+                            handleConnector(connectEventReceiver);
+                        })
                         .connect([fullInstanceName](const auto& socketAddress, const core::socket::State& state) {
                             reportState(fullInstanceName, socketAddress, state);
                         });
@@ -405,6 +423,9 @@ static void startBridges() {
                             delBridgeBrokerConnection(
                                 *mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
                                 socketConnection);
+                        })
+                        .setOnInitState([]([[maybe_unused]] core::eventreceiver::ConnectEventReceiver* connectEventReceiver) {
+                            handleConnector(connectEventReceiver);
                         })
                         .connect([fullInstanceName](const auto& socketAddress, const core::socket::State& state) {
                             reportState(fullInstanceName, socketAddress, state);
@@ -438,6 +459,9 @@ static void startBridges() {
                                 *mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
                                 socketConnection);
                         })
+                        .setOnInitState([]([[maybe_unused]] core::eventreceiver::ConnectEventReceiver* connectEventReceiver) {
+                            handleConnector(connectEventReceiver);
+                        })
                         .connect([fullInstanceName](const auto& socketAddress, const core::socket::State& state) {
                             reportState(fullInstanceName, socketAddress, state);
                         });
@@ -467,6 +491,9 @@ static void startBridges() {
                             delBridgeBrokerConnection(
                                 *mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
                                 socketConnection);
+                        })
+                        .setOnInitState([]([[maybe_unused]] core::eventreceiver::ConnectEventReceiver* connectEventReceiver) {
+                            handleConnector(connectEventReceiver);
                         })
                         .connect([fullInstanceName](const auto& socketAddress, const core::socket::State& state) {
                             reportState(fullInstanceName, socketAddress, state);
@@ -623,7 +650,7 @@ int main(int argc, char* argv[]) {
 
     const express::Router router(express::middleware::JsonMiddleware());
 
-    router.get("/api/bridge/config", [] APPLICATION(req, res) {
+    router.get("/api/bridge/config", [] APPLICATION(req, res) { // cppcheck-suppress unknownMacro
         res->send(mqtt::bridge::lib::BridgeStore::instance().getBridgesConfigJson().dump(4));
     });
 
@@ -643,7 +670,8 @@ int main(int argc, char* argv[]) {
                         res->status(404).send(R"({"success": false, "message": "Bridge config patch failed to applie"})"_json.dump());
                     }
                 } else {
-                    res->status(409).send(R"({"success": false, "message": "Bridge is in restarting state"})"_json.dump());
+                    res->status(409).send(
+                        R"({"success": false, "message": "Bridge is in restarting state. Patch not applied"})"_json.dump());
                 }
             },
             [&res](const std::string& key) {
