@@ -47,6 +47,8 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include "nlohmann/json-schema.hpp"
+
 #include <list>
 #include <map>
 #include <nlohmann/json.hpp>
@@ -81,6 +83,7 @@ namespace mqtt::bridge::lib {
 
         nlohmann::json bridgesConfigJsonActive;
         nlohmann::json bridgesConfigJsonStaged;
+        nlohmann::json_schema::json_validator validator;
 
         std::string fileName;
     };

@@ -43,8 +43,6 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include "nlohmann/json-schema.hpp"
-
 #include <cmath>
 #include <exception>
 #include <fstream>
@@ -76,6 +74,7 @@ namespace mqtt::bridge::lib {
         if (success) {
             try {
                 const nlohmann::json bridgeJsonSchema = nlohmann::json::parse(bridgeJsonSchemaString);
+                validator.set_root_schema(bridgeJsonSchema);
 
                 if (!fileName.empty()) {
                     std::ifstream bridgeConfigJsonFile(fileName);
@@ -87,8 +86,6 @@ namespace mqtt::bridge::lib {
                             bridgeConfigJsonFile >> bridgesConfigJsonStaged;
 
                             try {
-                                const nlohmann::json_schema::json_validator validator(bridgeJsonSchema);
-
                                 try {
                                     const nlohmann::json defaultPatch = validator.validate(bridgesConfigJsonStaged);
 
@@ -138,7 +135,21 @@ namespace mqtt::bridge::lib {
         try {
             bridgesConfigJsonStaged = bridgesConfigJsonActive.patch(jsonPatch);
 
-            success = true;
+            try {
+                const nlohmann::json defaultPatch = validator.validate(bridgesConfigJsonStaged);
+
+                try {
+                    bridgesConfigJsonStaged = bridgesConfigJsonStaged.patch(defaultPatch);
+
+                    success = true;
+                } catch (const std::exception& e) {
+                    VLOG(1) << "  Patching JSON with default patch failed:\n" << defaultPatch.dump(4);
+                    VLOG(1) << "    " << e.what();
+                }
+            } catch (const std::exception& e) {
+                VLOG(1) << "  Validating JSON failed:\n" << bridgesConfigJsonActive.dump(4);
+                VLOG(1) << "    " << e.what();
+            }
         } catch (const std::exception& e) {
             VLOG(1) << "  Default Patch:\n" << bridgesConfigJsonActive.dump(4);
 
