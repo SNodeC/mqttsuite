@@ -770,11 +770,7 @@ int main(int argc, char* argv[]) {
     });
 
     if (mqtt::bridge::lib::BridgeStore::instance().loadAndValidate(bridgeDefinitionFile)) {
-        core::EventReceiver::atNextTick([]() {
-            if (core::eventLoopState() == core::State::RUNNING) {
-                startBridges();
-            }
-        });
+        startBridges();
     } else {
         VLOG(1) << "Loading bridge definition file failed";
     }
