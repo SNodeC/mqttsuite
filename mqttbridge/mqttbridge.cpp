@@ -48,6 +48,7 @@
 
 #include <core/SNodeC.h>
 #include <core/eventreceiver/ConnectEventReceiver.h>
+#include <core/socket/stream/AutoConnectControl.h>
 #include <express/legacy/in/Server.h>
 #include <express/middleware/JsonMiddleware.h>
 #include <express/middleware/StaticMiddleware.h>
@@ -114,6 +115,7 @@
 
 static std::map<std::string, std::map<std::string, core::socket::stream::SocketConnection*>> bridges;
 static std::set<core::eventreceiver::ConnectEventReceiver*> activeConnectors;
+static std::set<std::shared_ptr<core::socket::stream::AutoConnectControl>> autoConnectControllers;
 
 static bool restart = false;
 static std::string bridgeDefinitionFile = "<REQUIRED>";
@@ -132,6 +134,10 @@ static void tryRestartBridges() {
             restart = false;
         });
     }
+}
+
+static void handleAutoConnectControllers(std::shared_ptr<core::socket::stream::AutoConnectControl>& autoConnectController) {
+    autoConnectControllers.insert(autoConnectController);
 }
 
 static void handleConnector(core::eventreceiver::ConnectEventReceiver* connectEventReceiver) {
@@ -183,6 +189,12 @@ static void closeBridges() {
     for (auto connectEventReceiver : activeConnectors) {
         connectEventReceiver->stopConnect();
     }
+
+    for (auto autoConnectControler : autoConnectControllers) {
+        autoConnectControler->stopAll();
+    }
+
+    autoConnectControllers.clear();
 
     restart = true;
 }
@@ -248,6 +260,9 @@ void startClient(const std::string& name, const std::function<void(typename Http
         })
         .setOnInitState([](core::eventreceiver::ConnectEventReceiver* connectEventReceiver) {
             handleConnector(connectEventReceiver);
+        })
+        .setOnAutoConnectControl([](std::shared_ptr<core::socket::stream::AutoConnectControl> autoConnectControl) {
+            handleAutoConnectControllers(autoConnectControl);
         })
         .connect([name](const SocketAddress& socketAddress, const core::socket::State& state) {
             reportState(name, socketAddress, state);
@@ -317,6 +332,9 @@ static void startBridges() {
                         .setOnInitState([](core::eventreceiver::ConnectEventReceiver* connectEventReceiver) {
                             handleConnector(connectEventReceiver);
                         })
+                        .setOnAutoConnectControl([](std::shared_ptr<core::socket::stream::AutoConnectControl> autoConnectControl) {
+                            handleAutoConnectControllers(autoConnectControl);
+                        })
                         .connect([&broker, fullInstanceName](const auto& socketAddress, const core::socket::State& state) {
                             reportState(broker.getBridge().getName() + "+" + fullInstanceName, socketAddress, state);
                         });
@@ -351,6 +369,9 @@ static void startBridges() {
                         })
                         .setOnInitState([](core::eventreceiver::ConnectEventReceiver* connectEventReceiver) {
                             handleConnector(connectEventReceiver);
+                        })
+                        .setOnAutoConnectControl([](std::shared_ptr<core::socket::stream::AutoConnectControl> autoConnectControl) {
+                            handleAutoConnectControllers(autoConnectControl);
                         })
                         .connect([fullInstanceName](const auto& socketAddress, const core::socket::State& state) {
                             reportState(fullInstanceName, socketAddress, state);
@@ -389,6 +410,9 @@ static void startBridges() {
                         .setOnInitState([](core::eventreceiver::ConnectEventReceiver* connectEventReceiver) {
                             handleConnector(connectEventReceiver);
                         })
+                        .setOnAutoConnectControl([](std::shared_ptr<core::socket::stream::AutoConnectControl> autoConnectControl) {
+                            handleAutoConnectControllers(autoConnectControl);
+                        })
                         .connect([fullInstanceName](const auto& socketAddress, const core::socket::State& state) {
                             reportState(fullInstanceName, socketAddress, state);
                         });
@@ -423,6 +447,9 @@ static void startBridges() {
                         })
                         .setOnInitState([](core::eventreceiver::ConnectEventReceiver* connectEventReceiver) {
                             handleConnector(connectEventReceiver);
+                        })
+                        .setOnAutoConnectControl([](std::shared_ptr<core::socket::stream::AutoConnectControl> autoConnectControl) {
+                            handleAutoConnectControllers(autoConnectControl);
                         })
                         .connect([fullInstanceName](const auto& socketAddress, const core::socket::State& state) {
                             reportState(fullInstanceName, socketAddress, state);
@@ -459,6 +486,9 @@ static void startBridges() {
                         .setOnInitState([](core::eventreceiver::ConnectEventReceiver* connectEventReceiver) {
                             handleConnector(connectEventReceiver);
                         })
+                        .setOnAutoConnectControl([](std::shared_ptr<core::socket::stream::AutoConnectControl> autoConnectControl) {
+                            handleAutoConnectControllers(autoConnectControl);
+                        })
                         .connect([fullInstanceName](const auto& socketAddress, const core::socket::State& state) {
                             reportState(fullInstanceName, socketAddress, state);
                         });
@@ -491,6 +521,9 @@ static void startBridges() {
                         })
                         .setOnInitState([](core::eventreceiver::ConnectEventReceiver* connectEventReceiver) {
                             handleConnector(connectEventReceiver);
+                        })
+                        .setOnAutoConnectControl([](std::shared_ptr<core::socket::stream::AutoConnectControl> autoConnectControl) {
+                            handleAutoConnectControllers(autoConnectControl);
                         })
                         .connect([fullInstanceName](const auto& socketAddress, const core::socket::State& state) {
                             reportState(fullInstanceName, socketAddress, state);
