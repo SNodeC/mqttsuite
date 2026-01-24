@@ -309,6 +309,9 @@ static void startBridges() {
                     net::in::stream::legacy::Client<mqtt::bridge::SocketContextFactory>(
                         fullInstanceName,
                         [&broker](auto& config) {
+                            config.ConfigInstance::configurable(false);
+                            config.Remote::configurable(false);
+
                             config.setRetry();
                             config.setRetryBase(1);
                             config.setReconnect();
@@ -347,6 +350,9 @@ static void startBridges() {
                     net::in::stream::tls::Client<mqtt::bridge::SocketContextFactory>(
                         fullInstanceName,
                         [&broker](auto& config) {
+                            config.ConfigInstance::configurable(false);
+                            config.Remote::configurable(false);
+
                             config.setRetry();
                             config.setRetryBase(1);
                             config.setReconnect();
@@ -387,6 +393,9 @@ static void startBridges() {
                     net::in6::stream::legacy::Client<mqtt::bridge::SocketContextFactory>(
                         fullInstanceName,
                         [&broker](auto& config) {
+                            config.ConfigInstance::configurable(false);
+                            config.Remote::configurable(false);
+
                             config.setRetry();
                             config.setRetryBase(1);
                             config.setReconnect();
@@ -425,6 +434,9 @@ static void startBridges() {
                     net::in6::stream::tls::Client<mqtt::bridge::SocketContextFactory>(
                         fullInstanceName,
                         [&broker](auto& config) {
+                            config.ConfigInstance::configurable(false);
+                            config.Remote::configurable(false);
+
                             config.setRetry();
                             config.setRetryBase(1);
                             config.setReconnect();
@@ -465,6 +477,9 @@ static void startBridges() {
                     net::un::stream::legacy::Client<mqtt::bridge::SocketContextFactory>(
                         fullInstanceName,
                         [&broker](auto& config) {
+                            config.ConfigInstance::configurable(false);
+                            config.Remote::configurable(false);
+
                             config.setRetry();
                             config.setRetryBase(1);
                             config.setReconnect();
@@ -501,6 +516,9 @@ static void startBridges() {
                     net::un::stream::tls::Client<mqtt::bridge::SocketContextFactory>(
                         fullInstanceName,
                         [&broker](auto& config) {
+                            config.ConfigInstance::configurable(false);
+                            config.Remote::configurable(false);
+
                             config.setRetry();
                             config.setRetryBase(1);
                             config.setReconnect();
@@ -539,7 +557,8 @@ static void startBridges() {
                 if (encryption == "legacy") {
 #if defined(CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4) && defined(CONFIG_MQTTSUITE_BRIDGE_WS)
                     startClient<web::http::legacy::in::Client>(fullInstanceName, [&broker](auto& config) {
-                        config.Remote::setPort(8080);
+                        config.ConfigInstance::configurable(false);
+                        config.Remote::configurable(false);
 
                         config.setRetry();
                         config.setRetryBase(1);
@@ -558,7 +577,8 @@ static void startBridges() {
                 } else if (encryption == "tls") {
 #if defined(CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4) && defined(CONFIG_MQTTSUITE_BRIDGE_WSS)
                     startClient<web::http::tls::in::Client>(fullInstanceName, [&broker](auto& config) {
-                        config.Remote::setPort(8088);
+                        config.ConfigInstance::configurable(false);
+                        config.Remote::configurable(false);
 
                         config.setRetry();
                         config.setRetryBase(1);
@@ -579,7 +599,8 @@ static void startBridges() {
                 if (encryption == "legacy") {
 #if defined(CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6) && defined(CONFIG_MQTTSUITE_BRIDGE_WS)
                     startClient<web::http::legacy::in6::Client>(fullInstanceName, [&broker](auto& config) {
-                        config.Remote::setPort(8080);
+                        config.ConfigInstance::configurable(false);
+                        config.Remote::configurable(false);
 
                         config.setRetry();
                         config.setRetryBase(1);
@@ -598,7 +619,8 @@ static void startBridges() {
                 } else if (encryption == "tls") {
 #if defined(CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6) && defined(CONFIG_MQTTSUITE_BRIDGE_WSS)
                     startClient<web::http::tls::in6::Client>(fullInstanceName, [&broker](auto& config) {
-                        config.Remote::setPort(8088);
+                        config.ConfigInstance::configurable(false);
+                        config.Remote::configurable(false);
 
                         config.setRetry();
                         config.setRetryBase(1);
@@ -619,6 +641,9 @@ static void startBridges() {
                 if (encryption == "legacy") {
 #if defined(CONFIG_MQTTSUITE_BRIDGE_UNIX) && defined(CONFIG_MQTTSUITE_BRIDGE_WS)
                     startClient<web::http::legacy::un::Client>(fullInstanceName, [&broker](auto& config) {
+                        config.ConfigInstance::configurable(false);
+                        config.Remote::configurable(false);
+
                         config.setRetry();
                         config.setRetryBase(1);
                         config.setReconnect();
@@ -634,6 +659,9 @@ static void startBridges() {
                 } else if (encryption == "tls") {
 #if defined(CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS) && defined(CONFIG_MQTTSUITE_BRIDGE_WSS)
                     startClient<web::http::tls::un::Client>(fullInstanceName, [&broker](auto& config) {
+                        config.ConfigInstance::configurable(false);
+                        config.Remote::configurable(false);
+
                         config.setRetry();
                         config.setRetryBase(1);
                         config.setReconnect();
@@ -742,7 +770,11 @@ int main(int argc, char* argv[]) {
     });
 
     if (mqtt::bridge::lib::BridgeStore::instance().loadAndValidate(bridgeDefinitionFile)) {
-        startBridges();
+        core::EventReceiver::atNextTick([]() {
+            if (core::eventLoopState() == core::State::RUNNING) {
+                startBridges();
+            }
+        });
     } else {
         VLOG(1) << "Loading bridge definition file failed";
     }
