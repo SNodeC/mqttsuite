@@ -58,6 +58,7 @@
 
 // IWYU pragma: no_include <nlohmann/detail/json_ref.hpp>
 
+#include <cstdint>
 #include <ctime>
 #include <functional>
 #include <iomanip>

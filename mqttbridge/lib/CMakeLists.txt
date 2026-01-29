@@ -44,7 +44,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(nlohmann_json 3.7.0 REQUIRED)
 find_package(
     snodec
-    COMPONENTS mqtt-client
+    COMPONENTS mqtt-client http-server-express
     REQUIRED
 )
 
@@ -69,13 +69,16 @@ add_library(
     Bridge.h
     BridgeStore.cpp
     BridgeStore.h
+    SSEDistributor.cpp
+    SSEDistributor.h
     bridge-schema.json.h
 )
 
 target_include_directories(mqtt-bridge PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 target_link_libraries(
-    mqtt-bridge PUBLIC snodec::mqtt-client nlohmann_json_schema_validator
+    mqtt-bridge PUBLIC snodec::mqtt-client snodec::http-server-express
+                       nlohmann_json_schema_validator
 )
 
 set_target_properties(
