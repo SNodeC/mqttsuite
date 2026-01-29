@@ -3,3 +3,4 @@
 *.kdev4
 /.qtcreator/
 /mqttbroker/mock-up/
+/misc/
