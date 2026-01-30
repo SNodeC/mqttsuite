@@ -1,5 +1,6 @@
-# MQTTSuite - A lightweight MQTT Integration System Copyright (C) Volker
-# Christian <me@vchrist.at> 2022, 2023, 2024, 2025
+# MQTTSuite - A lightweight MQTT Integration System
+# Copyright (C) Volker Christian <me@vchrist.at>
+#               2022, 2023, 2024, 2025, 2026
 #
 # This program is free software: you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -50,7 +51,7 @@ find_package(
 add_library(mqtt-broker SHARED Mqtt.cpp Mqtt.h MqttModel.cpp MqttModel.h)
 
 set_source_files_properties(
-    MqttModel.cpp PROPERTIES COMPILE_FLAGS -Wno-exit-time-destructors
+    MqttModel.cpp PROPERTIES COMPILE_OPTIONS -Wno-unneeded-internal-declaration
 )
 
 target_include_directories(mqtt-broker PUBLIC ${PROJECT_SOURCE_DIR})

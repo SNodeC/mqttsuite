@@ -1,7 +1,7 @@
 /*
  * MQTTSuite - A lightweight MQTT Integration System
  * Copyright (C) Volker Christian <me@vchrist.at>
- *               2022, 2023, 2024, 2025
+ *               2022, 2023, 2024, 2025, 2026
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -60,7 +60,7 @@ namespace mqtt::mqttbroker::websocket {
 #define NAME "mqtt"
 
     SubProtocolFactory::SubProtocolFactory()
-        : web::websocket::SubProtocolFactory<iot::mqtt::server::SubProtocol>::SubProtocolFactory(NAME) {
+        : web::websocket::SubProtocolFactory<web::websocket::server::SubProtocol>::SubProtocolFactory(NAME) {
     }
 
     iot::mqtt::server::SubProtocol* SubProtocolFactory::create(web::websocket::SubProtocolContext* subProtocolContext) {
@@ -76,6 +76,8 @@ namespace mqtt::mqttbroker::websocket {
 
 } // namespace mqtt::mqttbroker::websocket
 
-extern "C" void* mqttServerSubProtocolFactory() {
+extern "C" web::websocket::SubProtocolFactory<web::websocket::server::SubProtocol>* mqttServerSubProtocolFactory() {
+    // Return the *expected* factory type so the compiler can apply any required
+    // pointer adjustment and the host can safely call methods on the object.
     return new mqtt::mqttbroker::websocket::SubProtocolFactory();
 }

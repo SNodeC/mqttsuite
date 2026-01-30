@@ -1,7 +1,7 @@
 /*
  * MQTTSuite - A lightweight MQTT Integration System
  * Copyright (C) Volker Christian <me@vchrist.at>
- *               2022, 2023, 2024, 2025
+ *               2022, 2023, 2024, 2025, 2026
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -45,23 +45,24 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <cctype>
-#include <core/socket/SocketAddress.h>
+// #include <cctype>
+// #include <core/socket/SocketAddress.h>
+
 #include <core/socket/stream/SocketConnection.h>
 #include <express/Response.h>
 #include <iot/mqtt/MqttContext.h>
-#include <iot/mqtt/packets/Publish.h>
+#include <iot/mqtt/server/broker/Broker.h>
+#include <net/SocketAddress.h>
 #include <nlohmann/json.hpp>
-#include <nlohmann/json_fwd.hpp>
 #include <web/http/server/SocketContext.h>
 
 // IWYU pragma: no_include <nlohmann/detail/json_ref.hpp>
 
-//
-
+#include <cstdint>
 #include <ctime>
 #include <functional>
 #include <iomanip>
+#include <log/Logger.h>
 #include <sstream>
 #include <utility>
 
@@ -70,6 +71,110 @@ struct tm;
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
 namespace mqtt::mqttbroker::lib {
+
+    /*
+        {
+            "clientId": "sensor-01",
+            "protocol": "MQTT",
+            "since": "2025-12-25 10:30:00 UTC",
+            "duration": "2 days, 03:45:12",
+            "connectionName": "mqtt_connection_12345",
+            "localAddress": "127.0.0.1:1883",
+            "remoteAddress": "192.168.1.45:54321",
+            "cleanSession": true,
+            "connectFlags": 194,
+            "username": "sensor_user",
+            "usernameFlag": true,
+            "password": "secret123",
+            "passwordFlag": true,
+            "keepAlive": 60,
+            "protocolLevel": 4,
+            "loopPrevention": true,
+            "willMessage": "sensor-01 disconnected unexpectedly",
+            "willTopic": "sensors/status/sensor-01",
+            "willQoS": 1,
+            "willFlag": true,
+            "willRetain": true
+        }
+    */
+    static void to_json(nlohmann::json& j, const Mqtt* mqtt) {
+        j = {{"clientId", mqtt->getClientId()},
+             {"connectionName", mqtt->getConnectionName()},
+             {"cleanSession", mqtt->getCleanSession()},
+             {"connectFlags", mqtt->getConnectFlags()},
+             {"username", mqtt->getUsername()},
+             {"usernameFlag", mqtt->getUsernameFlag()},
+             {"password", mqtt->getPassword()},
+             {"passwordFlag", mqtt->getPasswordFlag()},
+             {"keepAlive", mqtt->getKeepAlive()},
+             {"protocol", mqtt->getProtocol()},
+             {"protocolLevel", mqtt->getLevel()},
+             {"loopPrevention", !mqtt->getReflect()},
+             {"willMessage", mqtt->getWillMessage()},
+             {"willTopic", mqtt->getWillTopic()},
+             {"willQoS", mqtt->getWillQoS()},
+             {"willFlag", mqtt->getWillFlag()},
+             {"willRetain", mqtt->getWillRetain()},
+             {"since", mqtt->getMqttContext()->getSocketConnection()->getSocketContext()->getOnlineSince()},
+             {"duration", mqtt->getMqttContext()->getSocketConnection()->getSocketContext()->getOnlineDuration()},
+             {"localAddress", mqtt->getMqttContext()->getSocketConnection()->getLocalAddress().toString()},
+             {"remoteAddress", mqtt->getMqttContext()->getSocketConnection()->getRemoteAddress().toString()}};
+    }
+
+    struct subscribe {
+        const std::string& topic;
+        const std::string& clientId;
+        uint8_t qoS;
+    };
+
+    static void to_json(nlohmann::json& j, const subscribe& subscribe) {
+        j = {{"clientId", subscribe.clientId}, {"topic", subscribe.topic}, {"qos", subscribe.qoS}};
+    }
+
+    struct unsubscribe {
+        const std::string& clientId;
+        const std::string& topic;
+    };
+
+    static void to_json(nlohmann::json& j, const unsubscribe& unsubscribe) {
+        j = {{"clientId", unsubscribe.clientId}, {"topic", unsubscribe.topic}};
+    }
+
+    struct retaine {
+        const std::string& topic;
+        const std::string& message;
+        uint8_t qoS;
+    };
+
+    static void to_json(nlohmann::json& j, const retaine& retaine) {
+        j = {{"topic", retaine.topic}, {"message", retaine.message}, {"qos", retaine.qoS}};
+    }
+
+    struct release {
+        const std::string& topic;
+    };
+
+    static void to_json(nlohmann::json& j, const release& release) {
+        j = {{"topic", release.topic}};
+    }
+
+    MqttModel::EventReceiver::EventReceiver(const std::shared_ptr<express::Response>& response)
+        : response(response)
+        , heartbeatTimer(core::timer::Timer::intervalTimer(
+              [response] {
+                  response->sendFragment(":keep-alive");
+                  response->sendFragment();
+              },
+              39)) {
+    }
+
+    MqttModel::EventReceiver::~EventReceiver() {
+        heartbeatTimer.cancel();
+    }
+
+    bool MqttModel::EventReceiver::operator==(const EventReceiver& other) {
+        return response.lock() == other.response.lock();
+    }
 
     MqttModel::MqttModel()
         : onlineSinceTimePoint(std::chrono::system_clock::now()) {
@@ -81,144 +186,156 @@ namespace mqtt::mqttbroker::lib {
         return mqttModel;
     }
 
-    static std::string windowId(const std::string& clientId) {
-        std::ostringstream windowId("window");
-        for (char ch : clientId) {
-            if (std::isalnum(static_cast<unsigned char>(ch))) {
-                windowId << ch;
-            } else {
-                windowId << std::hex << std::uppercase << std::setw(2) << std::setfill('0')
-                         << static_cast<int>(static_cast<unsigned char>(ch));
-            }
-        }
-
-        return windowId.str();
-    }
-
-    static std::string href(const std::string& text, const std::string& url, const std::string& windowId, uint16_t width, uint16_t height) {
-        return "<a href=\"#\" onClick=\""
-               "let key = '" +
-               windowId +
-               "'; "
-               "if (!localStorage.getItem(key)) "
-               "  localStorage.setItem(key, key + '-' + Math.random().toString(36).substr(2, 6)); "
-               "let uniqueId = localStorage.getItem(key); "
-               "if (!window._openWindows) window._openWindows = {}; "
-               "if (!window._openWindows[uniqueId] || window._openWindows[uniqueId].closed) { "
-               "  window._openWindows[uniqueId] = window.open('" +
-               url + "', uniqueId, 'width=" + std::to_string(width) + ", height=" + std::to_string(height) +
-               ",location=no, menubar=no, status=no, toolbar=no'); "
-               "} else { "
-               "  window._openWindows[uniqueId].focus(); "
-               "} return false;\" "
-               "style=\"color:inherit;\">" +
-               text + "</a>";
-    }
-
-    void MqttModel::addClient(const std::string& clientId, Mqtt* mqtt) {
-        MqttModelEntry mqttModelEntry(mqtt);
-
-        nlohmann::json json({href(mqtt->getClientId(), "/client?" + mqtt->getClientId(), windowId(mqtt->getClientId()), 450, 900),
-                             mqttModelEntry.onlineSince(),
-                             "<duration>" + mqttModelEntry.onlineDuration() + "</duration>",
-                             mqtt->getConnectionName(),
-                             mqtt->getMqttContext()->getSocketConnection()->getLocalAddress().toString(),
-                             mqtt->getMqttContext()->getSocketConnection()->getRemoteAddress().toString(),
-                             "<button class=\"red-btn\" onClick=\"disconnectClient('" + mqtt->getClientId() + "')\">Disconnect</button>"});
-
-        sendEvent(json.dump(), "connect", std::to_string(id++));
-
-        modelMap.emplace(clientId, std::move(mqttModelEntry));
-    }
-
-    void MqttModel::delClient(const std::string& clientId) {
-        sendEvent(clientId, "disconnect", std::to_string(id++));
-
-        modelMap.erase(clientId);
-    }
-
-    std::map<std::string, MqttModel::MqttModelEntry>& MqttModel::getClients() {
-        return modelMap;
-    }
-
-    const Mqtt* MqttModel::getMqtt(const std::string& clientId) {
-        const Mqtt* mqtt = nullptr;
-
-        auto modelIt = modelMap.find(clientId);
-        if (modelIt != modelMap.end()) {
-            mqtt = modelIt->second.getMqtt();
-        }
-
-        return mqtt;
-    }
-
-    std::string MqttModel::onlineSince() {
-        return timePointToString(onlineSinceTimePoint);
-    }
-
-    std::string MqttModel::onlineDuration() {
-        return durationToString(onlineSinceTimePoint);
-    }
-
-    void MqttModel::addEventReceiver(const std::shared_ptr<express::Response>& response, [[maybe_unused]] const std::string& lastEventId) {
+    void MqttModel::addEventReceiver(const std::shared_ptr<express::Response>& response,
+                                     [[maybe_unused]] const std::string& lastEventId,
+                                     const std::shared_ptr<iot::mqtt::server::broker::Broker>& broker) {
         auto& eventReceiver = eventReceiverList.emplace_back(response);
 
         response->getSocketContext()->onDisconnected([this, &eventReceiver]() {
             eventReceiverList.remove(eventReceiver);
         });
 
-        for (auto& mqttModel : modelMap) {
-            nlohmann::json json({href(mqttModel.first, "/client?" + mqttModel.first, windowId(mqttModel.first), 450, 900),
-                                 mqttModel.second.onlineSince(),
-                                 "<duration>" + mqttModel.second.onlineDuration() + "</duration>",
-                                 mqttModel.second.getMqtt()->getConnectionName(),
-                                 mqttModel.second.getMqtt()->getMqttContext()->getSocketConnection()->getLocalAddress().toString(),
-                                 mqttModel.second.getMqtt()->getMqttContext()->getSocketConnection()->getRemoteAddress().toString(),
-                                 "<button class=\"red-btn\" onClick=\"disconnectClient('" + mqttModel.second.getMqtt()->getClientId() +
-                                     "')\">Disconnect</button>"});
+        /*
+            {
+                "title": "MQTTBroker",
+                "creator": {
+                    "name": "Volker Christian",
+                    "url": "https://github.com/VolkerChristian/"
+                },
+                "broker": {
+                    "name": "MQTTBroker",
+                    "url": "https://github.com/SNodeC/mqttsuite/tree/master/mqttbroker"
+                },
+                "suite": {
+                    "name": "MQTTSuite",
+                    "url": "https://github.com/SNodeC/mqttsuite"
+                },
+                "snodec": {
+                    "name": "SNode.C",
+                    "url": "https://github.com/SNodeC/snode.c"
+                },
+                "since": "2025-12-25 10:30:00 UTC",
+                "duration": "2 days, 03:45:12"
+            }
+        */
+        sendJsonEvent(response,
+                      {
+                          {"title", "MQTTBroker"},
+                          {"creator", {{"name", "Volker Christian"}, {"url", "https://github.com/VolkerChristian"}}},
+                          {"broker", {{"name", "MQTTBroker"}, {"url", "https://github.com/SNodeC/mqttsuite/tree/master/mqttbroker"}}},
+                          {"suite", {{"name", "MQTTSuite"}, {"url", "https://github.com/SNodeC/mqttsuite"}}},
+                          {"snodec", {{"name", "SNode.C"}, {"url", "https://github.com/SNodeC/snode.c"}}},
+                          {"since", onlineSince()},
+                          {"duration", onlineDuration()},
+                      },
+                      "ui-initialize",
+                      std::to_string(id++));
 
-            sendEvent(json.dump(), "connect", std::to_string(id++));
+        for (const auto& modelMapEntry : modelMap) {
+            sendJsonEvent(response, modelMapEntry.second, "client-connected", std::to_string(id++));
+        }
+
+        for (const auto& [topic, clients] : broker->getSubscriptionTree()) {
+            for (const auto& client : clients) {
+                sendJsonEvent(response, subscribe{topic, client.first, client.second}, "client-subscribed", std::to_string(id++));
+            }
+        }
+
+        for (const auto& [topic, retained] : broker->getRetainTree()) {
+            sendJsonEvent(response, retaine{topic, retained.first, retained.second}, "retained-message-set", std::to_string(id++));
         }
     }
 
-    void MqttModel::publish(const iot::mqtt::packets::Publish& publish) {
-        sendEvent(publish.getTopic() + " : " + publish.getMessage(), "publish", std::to_string(id++));
+    void MqttModel::connectClient(Mqtt* mqtt) {
+        modelMap.emplace(mqtt->getClientId(), mqtt);
+
+        sendJsonEvent(mqtt, "client-connected", std::to_string(id++));
     }
 
-    MqttModel::MqttModelEntry::MqttModelEntry(const Mqtt* mqtt)
-        : mqtt(mqtt) {
+    void MqttModel::disconnectClient(const std::string& clientId) {
+        if (modelMap.contains(clientId)) {
+            sendJsonEvent(modelMap[clientId], "client-disconnected", std::to_string(id++));
+
+            modelMap.erase(clientId);
+        }
     }
 
-    MqttModel::MqttModelEntry::~MqttModelEntry() {
+    void MqttModel::subscribeClient(const std::string& clientId, const std::string& topic, const uint8_t qos) {
+        sendJsonEvent(subscribe{topic, clientId, qos}, "client-subscribed", std::to_string(id++));
     }
 
-    std::string MqttModel::MqttModelEntry::onlineSince() const {
-        return mqtt->getMqttContext()->getSocketConnection()->getSocketContext()->getOnlineSince();
+    void MqttModel::unsubscribeClient(const std::string& clientId, const std::string& topic) {
+        sendJsonEvent(unsubscribe{clientId, topic}, "client-unsubscribed", std::to_string(id++));
     }
 
-    std::string MqttModel::MqttModelEntry::onlineDuration() const {
-        return mqtt->getMqttContext()->getSocketConnection()->getSocketContext()->getOnlineDuration();
+    void MqttModel::publishMessage(const std::string& topic, const std::string& message, uint8_t qoS, bool retain) {
+        if (retain) {
+            if (!message.empty()) {
+                sendJsonEvent(retaine{topic, message, qoS}, "retained-message-set", std::to_string(id++));
+            } else {
+                sendJsonEvent(release{topic}, "retained-message-deleted", std::to_string(id++));
+            }
+        }
     }
 
-    const Mqtt* MqttModel::MqttModelEntry::getMqtt() const {
+    const std::map<std::string, Mqtt*>& MqttModel::getClients() const {
+        return modelMap;
+    }
+
+    Mqtt* MqttModel::getMqtt(const std::string& clientId) const {
+        Mqtt* mqtt = nullptr;
+
+        auto modelIt = modelMap.find(clientId);
+        if (modelIt != modelMap.end()) {
+            mqtt = modelIt->second;
+        }
+
         return mqtt;
     }
 
-    void MqttModel::sendEvent(const std::string& data, const std::string& event, const std::string& id) {
+    std::string MqttModel::onlineSince() const {
+        return timePointToString(onlineSinceTimePoint);
+    }
+
+    std::string MqttModel::onlineDuration() const {
+        return durationToString(onlineSinceTimePoint);
+    }
+
+    void MqttModel::sendEvent(const std::shared_ptr<express::Response>& response,
+                              const std::string& data,
+                              const std::string& event,
+                              const std::string& id) {
+        if (response->isConnected()) {
+            if (!event.empty()) {
+                response->sendFragment("event:" + event);
+            }
+            if (!id.empty()) {
+                response->sendFragment("id:" + id);
+            }
+            response->sendFragment("data:" + data);
+            response->sendFragment();
+        }
+    }
+
+    void MqttModel::sendJsonEvent(const std::shared_ptr<express::Response>& response,
+                                  const nlohmann::json& json,
+                                  const std::string& event,
+                                  const std::string& id) {
+        sendEvent(response, json.dump(), event, id);
+    }
+
+    void MqttModel::sendEvent(const std::string& data, const std::string& event, const std::string& id) const {
         for (auto& eventReceiver : eventReceiverList) {
             if (const auto& response = eventReceiver.response.lock()) {
-                if (response->isConnected()) {
-                    if (!event.empty()) {
-                        response->sendFragment("event:" + event);
-                    }
-                    if (!id.empty()) {
-                        response->sendFragment("id:" + id);
-                    }
-                    response->sendFragment("data:" + data);
-                    response->sendFragment();
-                }
+                sendEvent(response, data, event, id);
             }
         }
+    }
+
+    void MqttModel::sendJsonEvent(const nlohmann::json& json, const std::string& event, const std::string& id) const {
+        VLOG(0) << "Server sent event: " << event << "\n" << json.dump(4);
+
+        sendEvent(json.dump(), event, id);
     }
 
     std::string MqttModel::timePointToString(const std::chrono::time_point<std::chrono::system_clock>& timePoint) {
@@ -259,24 +376,6 @@ namespace mqtt::mqttbroker::lib {
             << std::setfill('0') << seconds;
 
         return oss.str();
-    }
-
-    MqttModel::EventReceiver::EventReceiver(const std::shared_ptr<express::Response>& response)
-        : response(response)
-        , heartbeatTimer(core::timer::Timer::intervalTimer(
-              [response] {
-                  response->sendFragment(":keep-alive");
-                  response->sendFragment();
-              },
-              39)) {
-    }
-
-    MqttModel::EventReceiver::~EventReceiver() {
-        heartbeatTimer.cancel();
-    }
-
-    bool MqttModel::EventReceiver::operator==(const EventReceiver& other) {
-        return response.lock() == other.response.lock();
     }
 
 } // namespace mqtt::mqttbroker::lib

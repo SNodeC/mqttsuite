@@ -1,7 +1,7 @@
 /*
  * MQTTSuite - A lightweight MQTT Integration System
  * Copyright (C) Volker Christian <me@vchrist.at>
- *               2022, 2023, 2024, 2025
+ *               2022, 2023, 2024, 2025, 2026
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -139,7 +139,7 @@ namespace mqtt::bridge::lib {
         return loopPrevention;
     }
 
-    const std::string& Broker::getInstanceName() const {
+    const std::string& Broker::getName() const {
         return instanceName;
     }
 

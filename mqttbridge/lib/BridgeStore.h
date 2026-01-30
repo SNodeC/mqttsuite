@@ -1,7 +1,7 @@
 /*
  * MQTTSuite - A lightweight MQTT Integration System
  * Copyright (C) Volker Christian <me@vchrist.at>
- *               2022, 2023, 2024, 2025
+ *               2022, 2023, 2024, 2025, 2026
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -47,8 +47,12 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include "nlohmann/json-schema.hpp"
+
 #include <list>
 #include <map>
+#include <nlohmann/json.hpp>
+// IWYU pragma: no_include <nlohmann/json_fwd.hpp>
 #include <string>
 
 #endif // DOXYGEN_SHOULD_SKIP_THIS
@@ -63,13 +67,25 @@ namespace mqtt::bridge::lib {
         static BridgeStore& instance();
 
         bool loadAndValidate(const std::string& fileName);
+        bool patch(const nlohmann::json& jsonPatch);
+        void activateStaged();
 
-        const Broker& getBroker(const std::string& instanceName);
-        const std::map<std::string, Broker>& getBrokers();
+        const Broker* getBroker(const std::string& instanceName) const;
+        const std::map<std::string, Broker>& getBrokers() const;
+
+        const std::list<Bridge>& getBridgeList() const;
+
+        const nlohmann::json& getBridgesConfigJson();
 
     private:
         std::list<Bridge> bridgeList;
         std::map<std::string, Broker> brokers;
+
+        nlohmann::json bridgesConfigJsonActive;
+        nlohmann::json bridgesConfigJsonStaged;
+        nlohmann::json_schema::json_validator validator;
+
+        std::string fileName;
     };
 
 } // namespace mqtt::bridge::lib

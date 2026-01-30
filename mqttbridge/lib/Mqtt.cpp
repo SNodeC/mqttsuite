@@ -1,7 +1,7 @@
 /*
  * MQTTSuite - A lightweight MQTT Integration System
  * Copyright (C) Volker Christian <me@vchrist.at>
- *               2022, 2023, 2024, 2025
+ *               2022, 2023, 2024, 2025, 2026
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -41,8 +41,7 @@
 
 #include "Mqtt.h"
 
-#include "Bridge.h"
-#include "Broker.h"
+#include "lib/BridgeStore.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
@@ -94,6 +93,7 @@ namespace mqtt::bridge::lib {
 
     void Mqtt::onDisconnected() {
         broker.getBridge().removeMqtt(this);
+
         VLOG(1) << "MQTT: Disconnected";
     }
 

@@ -30,7 +30,8 @@
           "default": false
         },
         "name": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^[^=:{}, ]*$"
         },
         "prefix": {
           "type": "string",
@@ -179,7 +180,8 @@
       "additionalProperties": false,
       "properties": {
         "instance_name": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^[^=:{}, ]*$"
         },
         "protocol": {
           "type": "string",

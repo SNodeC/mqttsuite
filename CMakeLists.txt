@@ -1,5 +1,6 @@
-# MQTTSuite - A lightweight MQTT Integration System Copyright (C) Volker
-# Christian <me@vchrist.at> 2022, 2023, 2024, 2025
+# MQTTSuite - A lightweight MQTT Integration System
+# Copyright (C) Volker Christian <me@vchrist.at>
+#               2022, 2023, 2024, 2025, 2026
 #
 # This program is free software: you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -84,6 +85,10 @@ add_compile_options(
 )
 
 add_link_options(LINKER:--no-undefined)
+
+# add_compile_options(-fsanitize=address,undefined -fno-omit-frame-pointer -g)
+# add_link_options(-fsanitize=address,undefined) export
+# LD_PRELOAD=/usr/lib/gcc/x86_64-linux-gnu/15/libasan.s
 
 add_subdirectory(lib)
 add_subdirectory(mqttbroker)

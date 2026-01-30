@@ -1,5 +1,6 @@
-# MQTTSuite - A lightweight MQTT Integration System Copyright (C) Volker
-# Christian <me@vchrist.at> 2022, 2023, 2024, 2025
+# MQTTSuite - A lightweight MQTT Integration System
+# Copyright (C) Volker Christian <me@vchrist.at>
+#               2022, 2023, 2024, 2025, 2026
 #
 # This program is free software: you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -135,11 +136,9 @@ endif()
 list(APPEND MQTTINTEGRATOR_COMPONENTS http-server-express-legacy-in)
 list(REMOVE_DUPLICATES MQTTINTEGRATOR_COMPONENTS)
 
-set(MQTTINTEGRATOR_LINK_LIBS "")
 foreach(c IN LISTS MQTTINTEGRATOR_COMPONENTS)
     list(APPEND MQTTINTEGRATOR_LINK_LIBS snodec::${c})
 endforeach()
-list(REMOVE_DUPLICATES SNODEC_LINK_LIBS)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

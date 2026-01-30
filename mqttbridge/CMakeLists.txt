@@ -1,5 +1,6 @@
-# MQTTSuite - A lightweight MQTT Integration System Copyright (C) Volker
-# Christian <me@vchrist.at> 2022, 2023, 2024, 2025
+# MQTTSuite - A lightweight MQTT Integration System
+# Copyright (C) Volker Christian <me@vchrist.at>
+#               2022, 2023, 2024, 2025, 2026
 #
 # This program is free software: you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -133,11 +134,9 @@ if(CONFIG_MQTTSUITE_BRIDGE_WS OR CONFIG_MQTTSUITE_BRIDGE_WSS)
 endif()
 list(REMOVE_DUPLICATES MQTTBRIDGE_COMPONENTS)
 
-set(MQTTBRIDGE_LINK_LIBS "")
 foreach(c IN LISTS MQTTBRIDGE_COMPONENTS)
     list(APPEND MQTTBRIDGE_LINK_LIBS snodec::${c})
 endforeach()
-list(REMOVE_DUPLICATES SNODEC_LINK_LIBS)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -150,7 +149,8 @@ add_subdirectory(websocket)
 find_package(nlohmann_json 3.7.0 REQUIRED)
 find_package(
     snodec 1.0.0 REQUIRED
-    COMPONENTS ${MQTTBRIDGE_COMPONENTS} mqtt
+    COMPONENTS ${MQTTBRIDGE_COMPONENTS} http-server-express-legacy-in
+               http-server-express-tls-in mqtt
     OPTIONAL_COMPONENTS net-l2-stream-legacy net-rc-stream-legacy
                         net-l2-stream-tls net-rc-stream-tls
 )
@@ -164,8 +164,37 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR}/generated)
 set(MQTTBRIDGE_CPP mqttbridge.cpp SocketContextFactory.cpp)
 set(MQTTBRIDGE_H SocketContextFactory.h)
 
+set_property(
+    SOURCE mqttbridge.cpp
+    APPEND
+    PROPERTY COMPILE_DEFINITIONS
+             CMAKE_INSTALL_PREFIX=\"${CMAKE_INSTALL_PREFIX}\"
+)
+
 add_executable(mqttbridge ${MQTTBRIDGE_CPP} ${MQTTBRIDGE_H})
 
-target_link_libraries(mqttbridge PUBLIC ${MQTTBRIDGE_LINK_LIBS} mqtt-bridge)
+file(GLOB_RECURSE WEB_ASSETS "${CMAKE_CURRENT_SOURCE_DIR}/html/*.html"
+     "${CMAKE_CURRENT_SOURCE_DIR}/html/*.css"
+     "${CMAKE_CURRENT_SOURCE_DIR}/html/*.js"
+     "${CMAKE_CURRENT_SOURCE_DIR}/html/*.png"
+)
+
+target_sources(mqttbridge PRIVATE ${WEB_ASSETS})
+
+target_link_libraries(
+    mqttbridge
+    PUBLIC ${MQTTBRIDGE_LINK_LIBS} snodec::http-server-express-legacy-in
+           snodec::http-server-express-tls-in mqtt-bridge
+)
 
 install(TARGETS mqttbridge RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+install(
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/html/
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/var/www/mqttsuite/mqttbridge
+    FILES_MATCHING
+    PATTERN "*.html"
+    PATTERN "*.css"
+    PATTERN "*.js"
+    PATTERN "*.png"
+)

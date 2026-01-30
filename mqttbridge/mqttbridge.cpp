@@ -1,7 +1,7 @@
 /*
  * MQTTSuite - A lightweight MQTT Integration System
  * Copyright (C) Volker Christian <me@vchrist.at>
- *               2022, 2023, 2024, 2025
+ *               2022, 2023, 2024, 2025, 2026
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -42,14 +42,24 @@
 #include "SocketContextFactory.h" // IWYU pragma: keep
 #include "config.h"
 #include "lib/BridgeStore.h"
+#include "lib/Mqtt.h"
+#include "lib/SSEDistributor.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <core/SNodeC.h>
+#include <core/eventreceiver/ConnectEventReceiver.h>
+#include <core/socket/stream/AutoConnectControl.h>
+#include <express/legacy/in/Server.h>
+#include <express/middleware/JsonMiddleware.h>
+#include <express/middleware/StaticMiddleware.h>
+#include <express/tls/in/Server.h>
+#include <iot/mqtt/MqttContext.h>
 //
 #include <log/Logger.h>
 #include <utils/Config.h>
 //
+#include <nlohmann/json_fwd.hpp>
 #include <utils/CLI11.hpp>
 //
 
@@ -97,11 +107,106 @@
 #endif
 #endif
 
+#include <concepts>
 #include <list>
 #include <nlohmann/json.hpp>
+#include <set>
 #include <string>
+#include <utility>
 
 #endif
+
+static std::map<std::string, std::map<std::string, core::socket::stream::SocketConnection*>> bridges;
+static std::set<core::eventreceiver::ConnectEventReceiver*> activeConnectors;
+static std::set<std::shared_ptr<core::socket::stream::AutoConnectControl>> autoConnectControllers;
+
+static bool restart = false;
+static std::string bridgeDefinitionFile = "<REQUIRED>";
+
+static void startBridges();
+
+static void tryRestartBridges() {
+    if (bridges.empty() && activeConnectors.empty() && restart) {
+        core::EventReceiver::atNextTick([]() {
+            mqtt::bridge::lib::BridgeStore::instance().activateStaged();
+
+            startBridges();
+
+            utils::Config::parse2();
+
+            restart = false;
+        });
+    }
+}
+
+static void handleAutoConnectControllers(std::shared_ptr<core::socket::stream::AutoConnectControl>& autoConnectController) {
+    autoConnectControllers.insert(autoConnectController);
+}
+
+static void handleConnector(core::eventreceiver::ConnectEventReceiver* connectEventReceiver) {
+    if (connectEventReceiver->isEnabled()) {
+        activeConnectors.insert(connectEventReceiver);
+    } else {
+        activeConnectors.erase(connectEventReceiver);
+
+        tryRestartBridges();
+    }
+}
+
+static void addBridgeBrokerConnection(const mqtt::bridge::lib::Broker& broker, core::socket::stream::SocketConnection* socketConnection) {
+    const std::string& bridgeName(broker.getBridge().getName());
+
+    VLOG(1) << "Add bridge broker: " << socketConnection->getInstanceName();
+
+    mqtt::bridge::lib::SSEDistributor::instance()->brokerConnected(bridgeName, socketConnection->getInstanceName());
+
+    bridges[bridgeName][socketConnection->getInstanceName()] = socketConnection;
+}
+
+static void delBridgeBrokerConnection(const mqtt::bridge::lib::Broker& broker, core::socket::stream::SocketConnection* socketConnection) {
+    const std::string& bridgeName(broker.getBridge().getName());
+
+    VLOG(1) << "Del bridge broker: " << socketConnection->getInstanceName();
+
+    mqtt::bridge::lib::SSEDistributor::instance()->brokerDisconnected(bridgeName, socketConnection->getInstanceName());
+
+    if (bridges.contains(bridgeName) && bridges[bridgeName].contains(socketConnection->getInstanceName())) {
+        bridges[bridgeName].erase(socketConnection->getInstanceName());
+        if (bridges[bridgeName].empty()) {
+            bridges.erase(bridgeName);
+        }
+    }
+
+    tryRestartBridges();
+}
+
+static void closeBridges() {
+    mqtt::bridge::lib::SSEDistributor::instance()->bridgesStopped();
+
+    for (const auto& bridge : mqtt::bridge::lib::BridgeStore::instance().getBridgeList()) {
+        for (const auto& mqtt : bridge.getMqttList()) {
+            mqtt->sendDisconnect();
+            mqtt->getMqttContext()
+                ->getSocketConnection()
+                ->getConfigInstance()
+                ->getSection("socket")
+                ->get_option("--reconnect")
+                ->default_str("false");
+        }
+    }
+
+    for (auto connectEventReceiver : activeConnectors) {
+        connectEventReceiver->stopConnect();
+    }
+
+    for (auto autoConnectControler : autoConnectControllers) {
+        autoConnectControler->stopAll();
+    }
+
+    autoConnectControllers.clear();
+
+    restart = true;
+}
 
 static void
 reportState(const std::string& instanceName, const core::socket::SocketAddress& socketAddress, const core::socket::State& state) {
@@ -121,11 +226,69 @@ reportState(const std::string& instanceName, const core::socket::SocketAddress& 
     }
 }
 
+template <typename T>
+concept HasSocketClientConfig = requires {
+    typename T::Config;
+    typename T::SocketAddress;
+};
+
+template <typename T>
+concept StreamSocketClient = HasSocketClientConfig<T> && std::derived_from<T, core::socket::Socket<typename T::Config>>;
+
+template <template <typename SocketContextFactory, typename... Args> typename SocketClientT>
+    requires StreamSocketClient<SocketClientT<mqtt::bridge::SocketContextFactory>>
+SocketClientT<mqtt::bridge::SocketContextFactory>
+startClient(const std::string& instanceName,
+            const std::function<void(typename SocketClientT<mqtt::bridge::SocketContextFactory>::Config&)>& configurator) {
+    using Client = SocketClientT<mqtt::bridge::SocketContextFactory>;
+    using SocketAddress = typename Client::SocketAddress;
+
+    Client socketClient = core::socket::stream::Client<Client>(instanceName, configurator);
+
+    socketClient
+        .setOnConnected([](core::socket::stream::SocketConnection* socketConnection) {
+            addBridgeBrokerConnection(*mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
+                                      socketConnection);
+        })
+        .setOnDisconnect([](core::socket::stream::SocketConnection* socketConnection) {
+            delBridgeBrokerConnection(*mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
+                                      socketConnection);
+        })
+        .setOnInitState([](core::eventreceiver::ConnectEventReceiver* connectEventReceiver) {
+            handleConnector(connectEventReceiver);
+        })
+        .setOnAutoConnectControl([](std::shared_ptr<core::socket::stream::AutoConnectControl> autoConnectControl) {
+            handleAutoConnectControllers(autoConnectControl);
+        })
+        .connect([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) {
+            reportState(instanceName, socketAddress, state);
+        });
+
+    return socketClient;
+}
+
 template <typename HttpClient>
+    requires requires {
+        typename HttpClient::Config;
+        typename HttpClient::SocketAddress;
+    } &&
+             std::constructible_from<HttpClient,
+                                     const std::string&,
+                                     std::function<void(const std::shared_ptr<web::http::client::MasterRequest>&)>&&,
+                                     std::function<void(const std::shared_ptr<web::http::client::MasterRequest>&)>&&> &&
+             requires(HttpClient& httpClient) {
+                 { httpClient.getConfig() } -> std::same_as<typename HttpClient::Config&>;
+                 httpClient.setOnConnected(std::declval<std::function<void(core::socket::stream::SocketConnection*)>>())
+                     .setOnDisconnect(std::declval<std::function<void(core::socket::stream::SocketConnection*)>>())
+                     .setOnInitState(std::declval<std::function<void(core::eventreceiver::ConnectEventReceiver*)>>())
+                     .setOnAutoConnectControl(
+                         std::declval<std::function<void(std::shared_ptr<core::socket::stream::AutoConnectControl>)>>())
+                     .connect(std::declval<std::function<void(const typename HttpClient::SocketAddress&, const core::socket::State&)>>());
+             }
 void startClient(const std::string& name, const std::function<void(typename HttpClient::Config&)>& configurator) {
     using SocketAddress = typename HttpClient::SocketAddress;
 
-    const HttpClient httpClient(
+    HttpClient httpClient(
         name,
         [](const std::shared_ptr<web::http::client::MasterRequest>& req) {
             const std::string connectionName = req->getSocketContext()->getSocketConnection()->getConnectionName();
@@ -153,9 +316,313 @@ void startClient(const std::string& name, const std::function<void(typename Http
 
     configurator(httpClient.getConfig());
 
-    httpClient.connect([name](const SocketAddress& socketAddress, const core::socket::State& state) {
-        reportState(name, socketAddress, state);
-    });
+    httpClient
+        .setOnConnected([](core::socket::stream::SocketConnection* socketConnection) {
+            addBridgeBrokerConnection(*mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
+                                      socketConnection);
+        })
+        .setOnDisconnect([](core::socket::stream::SocketConnection* socketConnection) {
+            delBridgeBrokerConnection(*mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
+                                      socketConnection);
+        })
+        .setOnInitState([](core::eventreceiver::ConnectEventReceiver* connectEventReceiver) {
+            handleConnector(connectEventReceiver);
+        })
+        .setOnAutoConnectControl([](std::shared_ptr<core::socket::stream::AutoConnectControl> autoConnectControl) {
+            handleAutoConnectControllers(autoConnectControl);
+        })
+        .connect([name](const SocketAddress& socketAddress, const core::socket::State& state) {
+            reportState(name, socketAddress, state);
+        });
+}
+
+static void startBridges() {
+    mqtt::bridge::lib::SSEDistributor::instance()->bridgesStarted();
+
+    for (const auto& [fullInstanceName, broker] : mqtt::bridge::lib::BridgeStore::instance().getBrokers()) {
+        VLOG(1) << "  Creating broker instance: " << fullInstanceName;
+        VLOG(1) << "    Broker prefix: " << broker.getPrefix();
+        VLOG(1) << "    Broker client id: " << broker.getClientId();
+        VLOG(1) << "    Broker disabled: " << broker.getDisabled();
+        VLOG(1) << "    Broker address: " << broker.getAddress();
+        VLOG(1) << "    Broker prefix: " << broker.getPrefix();
+        VLOG(1) << "    Broker username: " << broker.getUsername();
+        VLOG(1) << "    Broker password: " << broker.getPassword();
+        VLOG(1) << "    Broker client-id: " << broker.getClientId();
+        VLOG(1) << "    Broker clean session: " << broker.getCleanSession();
+        VLOG(1) << "    Broker will-topic: " << broker.getWillTopic();
+        VLOG(1) << "    Broker will-message: " << broker.getWillMessage();
+        VLOG(1) << "    Broker will-qos: " << static_cast<int>(broker.getWillQoS());
+        VLOG(1) << "    Broker will-retain: " << broker.getWillRetain();
+        VLOG(1) << "    Broker loop prevention: " << broker.getLoopPrevention();
+        VLOG(1) << "    Bridge disabled: " << broker.getBridge().getDisabled();
+        VLOG(1) << "    Bridge prefix: " << broker.getBridge().getPrefix();
+        VLOG(1) << "    Bridge Transport: " << broker.getTransport();
+        VLOG(1) << "    Bridge Protocol: " << broker.getProtocol();
+        VLOG(1) << "    Bridge Encryption: " << broker.getEncryption();
+
+        VLOG(1) << "    Topics:";
+        const std::list<iot::mqtt::Topic>& topics = broker.getTopics();
+        for (const iot::mqtt::Topic& topic : topics) {
+            VLOG(1) << "      " << topic.getName() << ":" << static_cast<uint16_t>(topic.getQoS());
+        }
+
+        const std::string& transport = broker.getTransport();
+        const std::string& protocol = broker.getProtocol();
+        const std::string& encryption = broker.getEncryption();
+
+        if (transport == "stream") {
+            if (protocol == "in") {
+                if (encryption == "legacy") {
+#if defined(CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4)
+                    startClient<net::in::stream::legacy::SocketClient>(fullInstanceName, [&broker](auto& config) {
+                        config.ConfigInstance::configurable(false);
+                        config.Remote::configurable(false);
+
+                        config.setRetry();
+                        config.setRetryBase(1);
+                        config.setReconnect();
+                        config.setDisableNagleAlgorithm();
+
+                        config.Remote::setHost(broker.getAddress()["host"]);
+                        config.Remote::setPort(broker.getAddress()["port"]);
+
+                        config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
+                    });
+#else  // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4
+                    VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                            << "' not supported.";
+#endif // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4
+                } else if (encryption == "tls") {
+#if defined(CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4)
+                    startClient<net::in::stream::tls::SocketClient>(fullInstanceName, [&broker](auto& config) {
+                        config.ConfigInstance::configurable(false);
+                        config.Remote::configurable(false);
+
+                        config.setRetry();
+                        config.setRetryBase(1);
+                        config.setReconnect();
+                        config.setDisableNagleAlgorithm();
+
+                        config.Remote::setHost(broker.getAddress()["host"]);
+                        config.Remote::setPort(broker.getAddress()["port"]);
+
+                        config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
+                    });
+#else  // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4
+                    VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                            << "' not supported.";
+#endif // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4
+                }
+            } else if (protocol == "in6") {
+                if (encryption == "legacy") {
+#if defined(CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6)
+                    startClient<net::in6::stream::legacy::SocketClient>(fullInstanceName, [&broker](auto& config) {
+                        config.ConfigInstance::configurable(false);
+                        config.Remote::configurable(false);
+
+                        config.setRetry();
+                        config.setRetryBase(1);
+                        config.setReconnect();
+                        config.setDisableNagleAlgorithm();
+
+                        config.Remote::setHost(broker.getAddress()["host"]);
+                        config.Remote::setPort(broker.getAddress()["port"]);
+
+                        config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
+                    });
+#else  // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6
+                    VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                            << "' not supported.";
+#endif // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6
+                } else if (encryption == "tls") {
+#if defined(CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6)
+                    startClient<net::in6::stream::tls::SocketClient>(fullInstanceName, [&broker](auto& config) {
+                        config.ConfigInstance::configurable(false);
+                        config.Remote::configurable(false);
+
+                        config.setRetry();
+                        config.setRetryBase(1);
+                        config.setReconnect();
+                        config.setDisableNagleAlgorithm();
+
+                        config.Remote::setHost(broker.getAddress()["host"]);
+                        config.Remote::setPort(broker.getAddress()["port"]);
+
+                        config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
+                    });
+#else  // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6
+                    VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                            << "' not supported.";
+#endif // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6
+                }
+            } else if (protocol == "un") {
+                if (encryption == "legacy") {
+#if defined(CONFIG_MQTTSUITE_BRIDGE_UNIX)
+                    startClient<net::un::stream::legacy::SocketClient>(fullInstanceName, [&broker](auto& config) {
+                        config.ConfigInstance::configurable(false);
+                        config.Remote::configurable(false);
+
+                        config.setRetry();
+                        config.setRetryBase(1);
+                        config.setReconnect();
+
+                        config.Remote::setSunPath(broker.getAddress()["host"]);
+
+                        config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
+                    });
+#else  // CONFIG_MQTTSUITE_BRIDGE_UNIX
+                    VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                            << "' not supported.";
+#endif // CONFIG_MQTTSUITE_BRIDGE_UNIX
+                } else if (encryption == "tls") {
+#if defined(CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS)
+                    startClient<net::un::stream::tls::SocketClient>(fullInstanceName, [&broker](auto& config) {
+                        config.ConfigInstance::configurable(false);
+                        config.Remote::configurable(false);
+
+                        config.setRetry();
+                        config.setRetryBase(1);
+                        config.setReconnect();
+
+                        config.Remote::setSunPath(broker.getAddress()["host"]);
+
+                        config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
+                    });
+#else  // CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS
+                    VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                            << "' not supported.";
+#endif // CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS
+                }
+            }
+        } else if (transport == "websocket") {
+            if (protocol == "in") {
+                if (encryption == "legacy") {
+#if defined(CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4) && defined(CONFIG_MQTTSUITE_BRIDGE_WS)
+                    startClient<web::http::legacy::in::Client>(fullInstanceName, [&broker](auto& config) {
+                        config.ConfigInstance::configurable(false);
+                        config.Remote::configurable(false);
+
+                        config.setRetry();
+                        config.setRetryBase(1);
+                        config.setReconnect();
+                        config.setDisableNagleAlgorithm();
+
+                        config.Remote::setHost(broker.getAddress()["host"]);
+                        config.Remote::setPort(broker.getAddress()["port"]);
+
+                        config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
+                    });
+#else  // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4 && CONFIG_MQTTSUITE_BRIDGE_WS
+                    VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                            << "' not supported.";
+#endif // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4 && CONFIG_MQTTSUITE_BRIDGE_WS
+                } else if (encryption == "tls") {
+#if defined(CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4) && defined(CONFIG_MQTTSUITE_BRIDGE_WSS)
+                    startClient<web::http::tls::in::Client>(fullInstanceName, [&broker](auto& config) {
+                        config.ConfigInstance::configurable(false);
+                        config.Remote::configurable(false);
+
+                        config.setRetry();
+                        config.setRetryBase(1);
+                        config.setReconnect();
+                        config.setDisableNagleAlgorithm();
+
+                        config.Remote::setHost(broker.getAddress()["host"]);
+                        config.Remote::setPort(broker.getAddress()["port"]);
+
+                        config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
+                    });
+#else  // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4 && CONFIG_MQTTSUITE_BRIDGE_WSS
+                    VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                            << "' not supported.";
+#endif // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4 && CONFIG_MQTTSUITE_BRIDGE_WSS
+                }
+            } else if (protocol == "in6") {
+                if (encryption == "legacy") {
+#if defined(CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6) && defined(CONFIG_MQTTSUITE_BRIDGE_WS)
+                    startClient<web::http::legacy::in6::Client>(fullInstanceName, [&broker](auto& config) {
+                        config.ConfigInstance::configurable(false);
+                        config.Remote::configurable(false);
+
+                        config.setRetry();
+                        config.setRetryBase(1);
+                        config.setReconnect();
+                        config.setDisableNagleAlgorithm();
+
+                        config.Remote::setHost(broker.getAddress()["host"]);
+                        config.Remote::setPort(broker.getAddress()["port"]);
+
+                        config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
+                    });
+#else  // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6 && CONFIG_MQTTSUITE_BRIDGE_WS
+                    VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                            << "' not supported.";
+#endif // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6&&  CONFIG_MQTTSUITE_BRIDGE_WS
+                } else if (encryption == "tls") {
+#if defined(CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6) && defined(CONFIG_MQTTSUITE_BRIDGE_WSS)
+                    startClient<web::http::tls::in6::Client>(fullInstanceName, [&broker](auto& config) {
+                        config.ConfigInstance::configurable(false);
+                        config.Remote::configurable(false);
+
+                        config.setRetry();
+                        config.setRetryBase(1);
+                        config.setReconnect();
+                        config.setDisableNagleAlgorithm();
+
+                        config.Remote::setHost(broker.getAddress()["host"]);
+                        config.Remote::setPort(broker.getAddress()["port"]);
+
+                        config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
+                    });
+#else  // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6 && CONFIG_MQTTSUITE_BRIDGE_WSS
+                    VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                            << "' not supported.";
+#endif // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6 && CONFIG_MQTTSUITE_BRIDGE_WSS
+                }
+            } else if (protocol == "un") {
+                if (encryption == "legacy") {
+#if defined(CONFIG_MQTTSUITE_BRIDGE_UNIX) && defined(CONFIG_MQTTSUITE_BRIDGE_WS)
+                    startClient<web::http::legacy::un::Client>(fullInstanceName, [&broker](auto& config) {
+                        config.ConfigInstance::configurable(false);
+                        config.Remote::configurable(false);
+
+                        config.setRetry();
+                        config.setRetryBase(1);
+                        config.setReconnect();
+
+                        config.Remote::setSunPath(broker.getAddress()["path"]);
+
+                        config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
+                    });
+#else  // CONFIG_MQTTSUITE_BRIDGE_UNIX && CONFIG_MQTTSUITE_BRIDGE_WS
+                    VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                            << "' not supported.";
+#endif // CONFIG_MQTTSUITE_BRIDGE_UNIX &&  CONFIG_MQTTSUITE_BRIDGE_WS
+                } else if (encryption == "tls") {
+#if defined(CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS) && defined(CONFIG_MQTTSUITE_BRIDGE_WSS)
+                    startClient<web::http::tls::un::Client>(fullInstanceName, [&broker](auto& config) {
+                        config.ConfigInstance::configurable(false);
+                        config.Remote::configurable(false);
+
+                        config.setRetry();
+                        config.setRetryBase(1);
+                        config.setReconnect();
+
+                        config.Remote::setSunPath(broker.getAddress()["path"]);
+
+                        config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
+                    });
+#else  // CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS && CONFIG_MQTTSUITE_BRIDGE_WSS
+                    VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                            << "' not supported.";
+#endif // CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS && CONFIG_MQTTSUITE_BRIDGE_WSS
+                }
+            }
+        } else {
+            VLOG(1) << "    Transport '" << transport << "' not supported.";
+        }
+    }
 }
 
 int main(int argc, char* argv[]) {
@@ -170,7 +637,6 @@ int main(int argc, char* argv[]) {
     CLI::App* bridgeApp = utils::Config::addInstance("bridge", "Configuration for Application mqttbridge", "MQTT-Bridge");
     utils::Config::required(bridgeApp);
 
-    std::string bridgeDefinitionFile = "<REQUIRED>";
     bridgeApp->needs(bridgeApp->add_option("--definition", bridgeDefinitionFile, "MQTT bridge definition file (JSON format)")
                          ->capture_default_str()
                          ->group(bridgeApp->get_formatter()->get_label("Persistent Options"))
@@ -178,301 +644,89 @@ int main(int argc, char* argv[]) {
                          ->configurable()
                          ->required());
 
+    utils::Config::addStringOption(
+        "--html-dir", "Path to html source directory", "[path]", std::string(CMAKE_INSTALL_PREFIX) + "/var/www/mqttsuite/mqttbridge");
+
     core::SNodeC::init(argc, argv);
 
-    if (mqtt::bridge::lib::BridgeStore::instance().loadAndValidate(bridgeDefinitionFile)) {
-        for (const auto& [instanceName, broker] : mqtt::bridge::lib::BridgeStore::instance().getBrokers()) {
-            VLOG(1) << "  Creating client instance: " << instanceName << "' of Bridge '" << broker.getBridge().getName() << "'";
-            VLOG(1) << "    Broker prefix: " << broker.getPrefix();
-            VLOG(1) << "    Broker client id: " << broker.getClientId();
-            VLOG(1) << "    Broker disabled: " << broker.getDisabled();
-            VLOG(1) << "    Broker address: " << broker.getAddress();
-            VLOG(1) << "    Broker prefix: " << broker.getPrefix();
-            VLOG(1) << "    Broker username: " << broker.getUsername();
-            VLOG(1) << "    Broker password: " << broker.getPassword();
-            VLOG(1) << "    Broker client-id: " << broker.getClientId();
-            VLOG(1) << "    Broker clean session: " << broker.getCleanSession();
-            VLOG(1) << "    Broker will-topic: " << broker.getWillTopic();
-            VLOG(1) << "    Broker will-message: " << broker.getWillMessage();
-            VLOG(1) << "    Broker will-qos: " << static_cast<int>(broker.getWillQoS());
-            VLOG(1) << "    Broker will-retain: " << broker.getWillRetain();
-            VLOG(1) << "    Broker loop prevention: " << broker.getLoopPrevention();
-            VLOG(1) << "    Bridge disabled: " << broker.getBridge().getDisabled();
-            VLOG(1) << "    Bridge prefix: " << broker.getBridge().getPrefix();
-            VLOG(1) << "    Bridge Transport: " << broker.getTransport();
-            VLOG(1) << "    Bridge Protocol: " << broker.getProtocol();
-            VLOG(1) << "    Bridge Encryption: " << broker.getEncryption();
+    const express::Router router(express::middleware::JsonMiddleware());
 
-            VLOG(1) << "    Topics:";
-            const std::list<iot::mqtt::Topic>& topics = broker.getTopics();
-            for (const iot::mqtt::Topic& topic : topics) {
-                VLOG(1) << "      " << topic.getName() << ":" << static_cast<uint16_t>(topic.getQoS());
-            }
+    router.get("/api/bridge/config", [] APPLICATION(req, res) { // cppcheck-suppress unknownMacro
+        res->send(mqtt::bridge::lib::BridgeStore::instance().getBridgesConfigJson().dump(4));
+    });
 
-            const std::string& transport = broker.getTransport();
-            const std::string& protocol = broker.getProtocol();
-            const std::string& encryption = broker.getEncryption();
+    router.patch("/api/bridge/config", [] APPLICATION(req, res) {
+        req->getAttribute<nlohmann::json>(
+            [&res](nlohmann::json& jsonPatch) {
+                std::string jsonString = jsonPatch.dump(4);
 
-            if (transport == "stream") {
-                if (protocol == "in") {
-                    if (encryption == "legacy") {
-#if defined(CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4)
-                        net::in::stream::legacy::Client<mqtt::bridge::SocketContextFactory>(
-                            instanceName,
-                            [&broker](auto& config) {
-                                config.setRetry();
-                                config.setRetryBase(1);
-                                config.setReconnect();
-                                config.setDisableNagleAlgorithm();
+                VLOG(1) << jsonString;
 
-                                config.Remote::setHost(broker.getAddress()["host"]);
-                                config.Remote::setPort(broker.getAddress()["port"]);
+                if (!restart) {
+                    closeBridges();
 
-                                config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
-                            },
-                            broker)
-                            .connect([instanceName](const auto& socketAddress, const core::socket::State& state) {
-                                reportState(instanceName, socketAddress, state);
-                            });
-#else  // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4
-                        VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
-                                << "' not supported.";
-#endif // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4
-                    } else if (encryption == "tls") {
-#if defined(CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4)
-                        net::in::stream::tls::Client<mqtt::bridge::SocketContextFactory>(
-                            instanceName,
-                            [&broker](auto& config) {
-                                config.setRetry();
-                                config.setRetryBase(1);
-                                config.setReconnect();
-                                config.setDisableNagleAlgorithm();
+                    if (mqtt::bridge::lib::BridgeStore::instance().patch(jsonPatch)) {
+                        res->send(R"({"success": true, "message": "Bridge config patch applied"})"_json.dump());
 
-                                config.Remote::setHost(broker.getAddress()["host"]);
-                                config.Remote::setPort(broker.getAddress()["port"]);
-
-                                config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
-                            },
-                            broker)
-                            .connect([instanceName](const auto& socketAddress, const core::socket::State& state) {
-                                reportState(instanceName, socketAddress, state);
-                            });
-#else  // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4
-                        VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
-                                << "' not supported.";
-#endif // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4
+                        tryRestartBridges();
+                    } else {
+                        res->status(404).send(R"({"success": false, "message": "Bridge config patch failed to applie"})"_json.dump());
                     }
-                } else if (protocol == "in6") {
-                    if (encryption == "legacy") {
-#if defined(CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6)
-                        net::in6::stream::legacy::Client<mqtt::bridge::SocketContextFactory>(
-                            instanceName,
-                            [&broker](auto& config) {
-                                config.setRetry();
-                                config.setRetryBase(1);
-                                config.setReconnect();
-                                config.setDisableNagleAlgorithm();
-
-                                config.Remote::setHost(broker.getAddress()["host"]);
-                                config.Remote::setPort(broker.getAddress()["port"]);
-
-                                config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
-                            },
-                            broker)
-                            .connect([instanceName](const auto& socketAddress, const core::socket::State& state) {
-                                reportState(instanceName, socketAddress, state);
-                            });
-#else  // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6
-                        VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
-                                << "' not supported.";
-#endif // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6
-                    } else if (encryption == "tls") {
-#if defined(CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6)
-                        net::in6::stream::tls::Client<mqtt::bridge::SocketContextFactory>(
-                            instanceName,
-                            [&broker](auto& config) {
-                                config.setRetry();
-                                config.setRetryBase(1);
-                                config.setReconnect();
-                                config.setDisableNagleAlgorithm();
-
-                                config.Remote::setHost(broker.getAddress()["host"]);
-                                config.Remote::setPort(broker.getAddress()["port"]);
-
-                                config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
-                            },
-                            broker)
-                            .connect([instanceName](const auto& socketAddress, const core::socket::State& state) {
-                                reportState(instanceName, socketAddress, state);
-                            });
-#else  // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6
-                        VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
-                                << "' not supported.";
-#endif // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6
-                    }
-                } else if (protocol == "un") {
-                    if (encryption == "legacy") {
-#if defined(CONFIG_MQTTSUITE_BRIDGE_UNIX)
-                        net::un::stream::legacy::Client<mqtt::bridge::SocketContextFactory>(
-                            instanceName,
-                            [&broker](auto& config) {
-                                config.setRetry();
-                                config.setRetryBase(1);
-                                config.setReconnect();
-
-                                config.Remote::setSunPath(broker.getAddress()["host"]);
-
-                                config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
-                            },
-                            broker)
-                            .connect([instanceName](const auto& socketAddress, const core::socket::State& state) {
-                                reportState(instanceName, socketAddress, state);
-                            });
-#else  // CONFIG_MQTTSUITE_BRIDGE_UNIX
-                        VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
-                                << "' not supported.";
-#endif // CONFIG_MQTTSUITE_BRIDGE_UNIX
-                    } else if (encryption == "tls") {
-#if defined(CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS)
-                        net::un::stream::tls::Client<mqtt::bridge::SocketContextFactory>(
-                            instanceName,
-                            [&broker](auto& config) {
-                                config.setRetry();
-                                config.setRetryBase(1);
-                                config.setReconnect();
-
-                                config.Remote::setSunPath(broker.getAddress()["host"]);
-
-                                config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
-                            },
-                            broker)
-                            .connect([instanceName](const auto& socketAddress, const core::socket::State& state) {
-                                reportState(instanceName, socketAddress, state);
-                            });
-#else  // CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS
-                        VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
-                                << "' not supported.";
-#endif // CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS
-                    }
+                } else {
+                    res->status(409).send(
+                        R"({"success": false, "message": "Bridge is in restarting state. Patch not applied"})"_json.dump());
                 }
-            } else if (transport == "websocket") {
-                if (protocol == "in") {
-                    if (encryption == "legacy") {
-#if defined(CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4) && defined(CONFIG_MQTTSUITE_BRIDGE_WS)
-                        startClient<web::http::legacy::in::Client>(broker.getInstanceName(), [&broker](auto& config) {
-                            config.Remote::setPort(8080);
+            },
+            [&res](const std::string& key) {
+                VLOG(1) << "Attribute type not found: " << key;
 
-                            config.setRetry();
-                            config.setRetryBase(1);
-                            config.setReconnect();
-                            config.setDisableNagleAlgorithm();
+                res->status(400).send("Attribute type not found: " + key);
+            });
+    });
 
-                            config.Remote::setHost(broker.getAddress()["host"]);
-                            config.Remote::setPort(broker.getAddress()["port"]);
+    router.get("/api/bridge/sse", [] APPLICATION(req, res) {
+        if (web::http::ciContains(req->get("Accept"), "text/event-stream")) {
+            res->set("Content-Type", "text/event-stream") //
+                .set("Cache-Control", "no-cache")
+                .set("Connection", "keep-alive");
+            res->sendHeader();
 
-                            config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
-                        });
-#else  // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4 && CONFIG_MQTTSUITE_BRIDGE_WS
-                        VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
-                                << "' not supported.";
-#endif // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4 && CONFIG_MQTTSUITE_BRIDGE_WS
-                    } else if (encryption == "tls") {
-#if defined(CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4) && defined(CONFIG_MQTTSUITE_BRIDGE_WSS)
-                        startClient<web::http::tls::in::Client>(broker.getInstanceName(), [&broker](auto& config) {
-                            config.Remote::setPort(8088);
-
-                            config.setRetry();
-                            config.setRetryBase(1);
-                            config.setReconnect();
-                            config.setDisableNagleAlgorithm();
-
-                            config.Remote::setHost(broker.getAddress()["host"]);
-                            config.Remote::setPort(broker.getAddress()["port"]);
-
-                            config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
-                        });
-#else  // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4 && CONFIG_MQTTSUITE_BRIDGE_WSS
-                        VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
-                                << "' not supported.";
-#endif // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4 && CONFIG_MQTTSUITE_BRIDGE_WSS
-                    }
-                } else if (protocol == "in6") {
-                    if (encryption == "legacy") {
-#if defined(CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6) && defined(CONFIG_MQTTSUITE_BRIDGE_WS)
-                        startClient<web::http::legacy::in6::Client>(broker.getInstanceName(), [&broker](auto& config) {
-                            config.Remote::setPort(8080);
-
-                            config.setRetry();
-                            config.setRetryBase(1);
-                            config.setReconnect();
-                            config.setDisableNagleAlgorithm();
-
-                            config.Remote::setHost(broker.getAddress()["host"]);
-                            config.Remote::setPort(broker.getAddress()["port"]);
-
-                            config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
-                        });
-#else  // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6 && CONFIG_MQTTSUITE_BRIDGE_WS
-                        VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
-                                << "' not supported.";
-#endif // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6&&  CONFIG_MQTTSUITE_BRIDGE_WS
-                    } else if (encryption == "tls") {
-#if defined(CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6) && defined(CONFIG_MQTTSUITE_BRIDGE_WSS)
-                        startClient<web::http::tls::in6::Client>(broker.getInstanceName(), [&broker](auto& config) {
-                            config.Remote::setPort(8088);
-
-                            config.setRetry();
-                            config.setRetryBase(1);
-                            config.setReconnect();
-                            config.setDisableNagleAlgorithm();
-
-                            config.Remote::setHost(broker.getAddress()["host"]);
-                            config.Remote::setPort(broker.getAddress()["port"]);
-
-                            config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
-                        });
-#else  // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6 && CONFIG_MQTTSUITE_BRIDGE_WSS
-                        VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
-                                << "' not supported.";
-#endif // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6 && CONFIG_MQTTSUITE_BRIDGE_WSS
-                    }
-                } else if (protocol == "un") {
-                    if (encryption == "legacy") {
-#if defined(CONFIG_MQTTSUITE_BRIDGE_UNIX) && defined(CONFIG_MQTTSUITE_BRIDGE_WS)
-                        startClient<web::http::legacy::un::Client>(broker.getInstanceName(), [&broker](auto& config) {
-                            config.setRetry();
-                            config.setRetryBase(1);
-                            config.setReconnect();
-
-                            config.Remote::setSunPath(broker.getAddress()["path"]);
-
-                            config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
-                        });
-#else  // CONFIG_MQTTSUITE_BRIDGE_UNIX && CONFIG_MQTTSUITE_BRIDGE_WS
-                        VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
-                                << "' not supported.";
-#endif // CONFIG_MQTTSUITE_BRIDGE_UNIX &&  CONFIG_MQTTSUITE_BRIDGE_WS
-                    } else if (encryption == "tls") {
-#if defined(CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS) && defined(CONFIG_MQTTSUITE_BRIDGE_WSS)
-                        startClient<web::http::tls::un::Client>(broker.getInstanceName(), [&broker](auto& config) {
-                            config.setRetry();
-                            config.setRetryBase(1);
-                            config.setReconnect();
-
-                            config.Remote::setSunPath(broker.getAddress()["path"]);
-
-                            config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
-                        });
-#else  // CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS && CONFIG_MQTTSUITE_BRIDGE_WSS
-                        VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
-                                << "' not supported.";
-#endif // CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS && CONFIG_MQTTSUITE_BRIDGE_WSS
-                    }
-                }
-            } else {
-                VLOG(1) << "    Transport '" << transport << "' not supported.";
-            }
+            std::string data{"data"};
+            mqtt::bridge::lib::SSEDistributor::instance()->addEventReceiver(res, req->get("Last-Event-ID"));
+        } else {
+            res->redirect("/clients");
         }
+    });
+
+    router.setStrictRouting();
+    router.get("/config", [] APPLICATION(req, res) {
+        res->redirect("/config/index.html");
+    });
+
+    router.get("/config", express::middleware::StaticMiddleware(utils::Config::getStringOptionValue("--html-dir")));
+
+    router.get("/", [] APPLICATION(req, res) {
+        res->redirect("/config");
+    });
+
+    express::legacy::in::Server("admin-legacy", router, reportState, [](auto& config) {
+        config.setPort(8081);
+        config.setRetry();
+        config.setDisableNagleAlgorithm();
+        config.setReuseAddress();
+    });
+
+    express::tls::in::Server("admin-tls", router, reportState, [](auto& config) {
+        config.setPort(8082);
+        config.setRetry();
+        config.setDisableNagleAlgorithm();
+        config.setReuseAddress();
+    });
+
+    if (mqtt::bridge::lib::BridgeStore::instance().loadAndValidate(bridgeDefinitionFile)) {
+        startBridges();
+    } else {
+        VLOG(1) << "Loading bridge definition file failed";
     }
 
     return core::SNodeC::start();

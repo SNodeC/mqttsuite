@@ -1,7 +1,7 @@
 /*
  * MQTTSuite - A lightweight MQTT Integration System
  * Copyright (C) Volker Christian <me@vchrist.at>
- *               2022, 2023, 2024, 2025
+ *               2022, 2023, 2024, 2025, 2026
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -44,6 +44,7 @@
 
 #include <iot/mqtt/server/SubProtocol.h>
 #include <web/websocket/SubProtocolFactory.h>
+#include <web/websocket/server/SubProtocol.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
@@ -51,7 +52,7 @@
 
 namespace mqtt::mqttbroker::websocket {
 
-    class SubProtocolFactory : public web::websocket::SubProtocolFactory<iot::mqtt::server::SubProtocol> {
+    class SubProtocolFactory : public web::websocket::SubProtocolFactory<web::websocket::server::SubProtocol> {
     public:
         SubProtocolFactory();
 
@@ -61,6 +62,6 @@ namespace mqtt::mqttbroker::websocket {
 
 } // namespace mqtt::mqttbroker::websocket
 
-extern "C" void* mqttServerSubProtocolFactory();
+extern "C" web::websocket::SubProtocolFactory<web::websocket::server::SubProtocol>* mqttServerSubProtocolFactory();
 
 #endif // WEB_WEBSOCKET_SUBPROTOCOL_SERVER_MQTTSUBPROTOCOLFACTORY_H

@@ -1,7 +1,7 @@
 /*
  * MQTTSuite - A lightweight MQTT Integration System
  * Copyright (C) Volker Christian <me@vchrist.at>
- *               2022, 2023, 2024, 2025
+ *               2022, 2023, 2024, 2025, 2026
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -84,14 +84,12 @@ namespace mqtt::lib {
                             try {
                                 const nlohmann::json defaultPatch = validator.validate(mapFileJsons[mapFilePath]);
 
-                                if (!defaultPatch.empty()) {
-                                    try {
-                                        mapFileJsons[mapFilePath] = mapFileJsons[mapFilePath].patch(defaultPatch);
-                                    } catch (const std::exception& e) {
-                                        VLOG(1) << e.what();
-                                        VLOG(1) << "Patching JSON with default patch failed:\n" << defaultPatch.dump(4);
-                                        mapFileJsons[mapFilePath].clear();
-                                    }
+                                try {
+                                    mapFileJsons[mapFilePath] = mapFileJsons[mapFilePath].patch(defaultPatch);
+                                } catch (const std::exception& e) {
+                                    VLOG(1) << e.what();
+                                    VLOG(1) << "Patching JSON with default patch failed:\n" << defaultPatch.dump(4);
+                                    mapFileJsons[mapFilePath].clear();
                                 }
                             } catch (const std::exception& e) {
                                 VLOG(1) << "  Validating JSON failed:\n" << mapFileJsons[mapFilePath].dump(4);
@@ -107,6 +105,7 @@ namespace mqtt::lib {
                         VLOG(1) << "JSON map file parsing failed: " << e.what() << " at " << mapFile.tellg();
                         mapFileJsons[mapFilePath].clear();
                     }
+
                     mapFile.close();
                 } else {
                     VLOG(1) << "MappingFilePath: " << mapFilePath << " not found";

@@ -1,5 +1,6 @@
-# MQTTSuite - A lightweight MQTT Integration System Copyright (C) Volker
-# Christian <me@vchrist.at> 2022, 2023, 2024, 2025
+# MQTTSuite - A lightweight MQTT Integration System
+# Copyright (C) Volker Christian <me@vchrist.at>
+#               2022, 2023, 2024, 2025, 2026
 #
 # This program is free software: you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -46,17 +47,17 @@ unset(CMAKE_CXX_INCLUDE_WHAT_YOU_USE)
 add_subdirectory(json-schema-validator)
 set(CMAKE_CXX_INCLUDE_WHAT_YOU_USE ${TMP_CMAKE_CXX_INCLUDE_WHAT_YOU_USE})
 
+target_compile_options(
+    nlohmann_json_schema_validator
+    PUBLIC -Wno-float-equal -Wno-reserved-macro-identifier -Wno-switch-enum
+           -Wno-weak-vtables -Wno-missing-noreturn
+)
+
 find_package(nlohmann_json 3.7.0 REQUIRED)
 find_package(
     snodec
     COMPONENTS mqtt
     REQUIRED
-)
-
-target_compile_options(
-    nlohmann_json_schema_validator
-    PUBLIC -Wno-float-equal -Wno-reserved-macro-identifier -Wno-switch-enum
-           -Wno-weak-vtables
 )
 
 set_target_properties(

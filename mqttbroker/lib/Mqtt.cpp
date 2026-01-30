@@ -1,7 +1,7 @@
 /*
  * MQTTSuite - A lightweight MQTT Integration System
  * Copyright (C) Volker Christian <me@vchrist.at>
- *               2022, 2023, 2024, 2025
+ *               2022, 2023, 2024, 2025, 2026
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -44,10 +44,13 @@
 #include "mqttbroker/lib/MqttModel.h"
 
 #include <iot/mqtt/packets/Publish.h>
+#include <iot/mqtt/packets/Subscribe.h>
+#include <iot/mqtt/packets/Unsubscribe.h>
 #include <iot/mqtt/server/broker/Broker.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include <list>
 #include <log/Logger.h>
 
 #endif
@@ -61,20 +64,50 @@ namespace mqtt::mqttbroker::lib {
         , mqtt::lib::MqttMapper(mappingJson) {
     }
 
+    void Mqtt::subscribe(const std::string& topic, uint8_t qoS) {
+        broker->subscribe(clientId, topic, qoS);
+
+        onSubscribe(iot::mqtt::packets::Subscribe(0, {{topic, qoS}}));
+    }
+
+    void Mqtt::unsubscribe(const std::string& topic) {
+        broker->unsubscribe(clientId, topic);
+
+        onUnsubscribe(iot::mqtt::packets::Unsubscribe(0, {{topic, 0}}));
+    }
+
     void Mqtt::onConnect([[maybe_unused]] const iot::mqtt::packets::Connect& connect) {
         VLOG(1) << "MQTT: Connected";
 
-        MqttModel::instance().addClient(clientId, this);
+        MqttModel::instance().connectClient(this);
     }
 
     void Mqtt::onPublish(const iot::mqtt::packets::Publish& publish) {
-        MqttModel::instance().publish(publish);
+        VLOG(1) << "MQTT: Publish";
+
+        MqttModel::instance().publishMessage(publish.getTopic(), publish.getMessage(), publish.getQoS(), publish.getRetain());
 
         publishMappings(publish);
     }
 
+    void Mqtt::onSubscribe(const iot::mqtt::packets::Subscribe& subscribe) {
+        VLOG(1) << "MQTT: Subscribe";
+
+        for (const iot::mqtt::Topic& topic : subscribe.getTopics()) {
+            MqttModel::instance().subscribeClient(clientId, topic.getName(), topic.getQoS());
+        }
+    }
+
+    void Mqtt::onUnsubscribe(const iot::mqtt::packets::Unsubscribe& unsubscribe) {
+        VLOG(1) << "MQTT: Unsubscribe";
+
+        for (const std::string& topic : unsubscribe.getTopics()) {
+            MqttModel::instance().unsubscribeClient(clientId, topic);
+        }
+    }
+
     void Mqtt::onDisconnected() {
-        MqttModel::instance().delClient(clientId);
+        MqttModel::instance().disconnectClient(clientId);
 
         VLOG(1) << "MQTT: Disconnected";
     }

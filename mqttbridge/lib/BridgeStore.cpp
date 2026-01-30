@@ -1,7 +1,7 @@
 /*
  * MQTTSuite - A lightweight MQTT Integration System
  * Copyright (C) Volker Christian <me@vchrist.at>
- *               2022, 2023, 2024, 2025
+ *               2022, 2023, 2024, 2025, 2026
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -43,15 +43,12 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include "nlohmann/json-schema.hpp"
-
 #include <cmath>
 #include <exception>
 #include <fstream>
 #include <list>
 #include <log/Logger.h>
 #include <map>
-#include <nlohmann/json.hpp>
 #include <utility>
 
 // IWYU pragma: no_include <nlohmann/json_fwd.hpp>
@@ -61,6 +58,8 @@
 
 namespace mqtt::bridge::lib {
 
+#include "bridge-schema.json.h" // IWYU pragma: keep
+
     BridgeStore& BridgeStore::instance() {
         static BridgeStore bridgeConfigLoader;
 
@@ -68,13 +67,14 @@ namespace mqtt::bridge::lib {
     }
 
     bool BridgeStore::loadAndValidate(const std::string& fileName) {
-        bool success = !brokers.empty();
+        this->fileName = fileName;
 
-#include "bridge-schema.json.h" // IWYU pragma: keep
+        bool success = brokers.empty();
 
-        if (!success) {
+        if (success) {
             try {
                 const nlohmann::json bridgeJsonSchema = nlohmann::json::parse(bridgeJsonSchemaString);
+                validator.set_root_schema(bridgeJsonSchema);
 
                 if (!fileName.empty()) {
                     std::ifstream bridgeConfigJsonFile(fileName);
@@ -83,58 +83,16 @@ namespace mqtt::bridge::lib {
                         VLOG(1) << "Bridge config JSON: " << fileName;
 
                         try {
-                            nlohmann::json bridgesConfigJson;
-
-                            bridgeConfigJsonFile >> bridgesConfigJson;
+                            bridgeConfigJsonFile >> bridgesConfigJsonStaged;
 
                             try {
-                                const nlohmann::json_schema::json_validator validator(bridgeJsonSchema);
-
                                 try {
-                                    const nlohmann::json defaultPatch = validator.validate(bridgesConfigJson);
+                                    const nlohmann::json defaultPatch = validator.validate(bridgesConfigJsonStaged);
 
                                     try {
-                                        bridgesConfigJson = bridgesConfigJson.patch(defaultPatch);
+                                        bridgesConfigJsonStaged = bridgesConfigJsonStaged.patch(defaultPatch);
 
-                                        for (const nlohmann::json& bridgeConfigJson : bridgesConfigJson["bridges"]) {
-                                            Bridge& bridge = bridgeList.emplace_back(
-                                                bridgeConfigJson["name"], bridgeConfigJson["prefix"], bridgeConfigJson["disabled"]);
-
-                                            for (const nlohmann::json& brokerConfigJson : bridgeConfigJson["brokers"]) {
-                                                std::list<iot::mqtt::Topic> topics;
-                                                for (const nlohmann::json& topicJson : brokerConfigJson["topics"]) {
-                                                    if (!topicJson["topic"].get<std::string>().empty()) {
-                                                        topics.emplace_back(topicJson["topic"], // cppcheck-suppress useStlAlgorithm
-                                                                            topicJson["qos"]);
-                                                    }
-                                                }
-
-                                                const nlohmann::json& mqtt = brokerConfigJson["mqtt"];
-                                                const nlohmann::json& network = brokerConfigJson["network"];
-
-                                                brokers.emplace(network["instance_name"],
-                                                                Broker(bridge,
-                                                                       brokerConfigJson["session_store"],
-                                                                       network["instance_name"],
-                                                                       network["protocol"],
-                                                                       network["encryption"],
-                                                                       network["transport"],
-                                                                       network[network["protocol"]],
-                                                                       mqtt["client_id"],
-                                                                       mqtt["keep_alive"],
-                                                                       mqtt["clean_session"],
-                                                                       mqtt["will_topic"],
-                                                                       mqtt["will_message"],
-                                                                       mqtt["will_qos"],
-                                                                       mqtt["will_retain"],
-                                                                       mqtt["username"],
-                                                                       mqtt["password"],
-                                                                       mqtt["loop_prevention"],
-                                                                       brokerConfigJson["prefix"],
-                                                                       brokerConfigJson["disabled"],
-                                                                       topics));
-                                            }
-                                        }
+                                        activateStaged();
 
                                         success = true;
                                     } catch (const std::exception& e) {
@@ -142,7 +100,7 @@ namespace mqtt::bridge::lib {
                                         VLOG(1) << "    " << e.what();
                                     }
                                 } catch (const std::exception& e) {
-                                    VLOG(1) << "  Validating JSON failed:\n" << bridgesConfigJson.dump(4);
+                                    VLOG(1) << "  Validating JSON failed:\n" << bridgesConfigJsonActive.dump(4);
                                     VLOG(1) << "    " << e.what();
                                 }
                             } catch (const std::exception& e) {
@@ -171,11 +129,104 @@ namespace mqtt::bridge::lib {
         return success;
     }
 
-    const Broker& BridgeStore::getBroker(const std::string& instanceName) {
-        return brokers.find(instanceName)->second;
+    bool BridgeStore::patch(const nlohmann::json& jsonPatch) {
+        bool success = false;
+
+        try {
+            bridgesConfigJsonStaged = bridgesConfigJsonActive.patch(jsonPatch);
+
+            try {
+                const nlohmann::json defaultPatch = validator.validate(bridgesConfigJsonStaged);
+
+                try {
+                    bridgesConfigJsonStaged = bridgesConfigJsonStaged.patch(defaultPatch);
+
+                    success = true;
+                } catch (const std::exception& e) {
+                    VLOG(1) << "  Patching JSON with default patch failed:\n" << defaultPatch.dump(4);
+                    VLOG(1) << "    " << e.what();
+                }
+            } catch (const std::exception& e) {
+                VLOG(1) << "  Validating JSON failed:\n" << bridgesConfigJsonActive.dump(4);
+                VLOG(1) << "    " << e.what();
+            }
+        } catch (const std::exception& e) {
+            VLOG(1) << "  Default Patch:\n" << bridgesConfigJsonActive.dump(4);
+
+            VLOG(1) << "  Patching JSON with update failed:\n" << jsonPatch.dump(4);
+            VLOG(1) << "    " << e.what();
+        }
+
+        return success;
     }
 
-    const std::map<std::string, Broker>& BridgeStore::getBrokers() {
+    void BridgeStore::activateStaged() {
+        bridgeList.clear();
+        brokers.clear();
+
+        bridgesConfigJsonActive = bridgesConfigJsonStaged;
+
+        std::ofstream ofs(fileName, std::ios::binary);
+
+        ofs << bridgesConfigJsonActive.dump(4);
+
+        ofs.close();
+
+        for (const nlohmann::json& bridgeConfigJson : bridgesConfigJsonActive["bridges"]) {
+            Bridge& bridge = bridgeList.emplace_back(bridgeConfigJson["name"], bridgeConfigJson["prefix"], bridgeConfigJson["disabled"]);
+
+            for (const nlohmann::json& brokerConfigJson : bridgeConfigJson["brokers"]) {
+                std::list<iot::mqtt::Topic> topics;
+                for (const nlohmann::json& topicJson : brokerConfigJson["topics"]) {
+                    if (!topicJson["topic"].get<std::string>().empty()) {
+                        topics.emplace_back(topicJson["topic"], // cppcheck-suppress useStlAlgorithm
+                                            topicJson["qos"]);
+                    }
+                }
+
+                const nlohmann::json& mqtt = brokerConfigJson["mqtt"];
+                const nlohmann::json& network = brokerConfigJson["network"];
+
+                const std::string fullInstanceName = bridge.getName() + "+" + network["instance_name"].get<std::string>();
+
+                brokers.emplace(fullInstanceName,
+                                Broker(bridge,
+                                       brokerConfigJson["session_store"],
+                                       fullInstanceName,
+                                       network["protocol"],
+                                       network["encryption"],
+                                       network["transport"],
+                                       network[network["protocol"]],
+                                       mqtt["client_id"],
+                                       mqtt["keep_alive"],
+                                       mqtt["clean_session"],
+                                       mqtt["will_topic"],
+                                       mqtt["will_message"],
+                                       mqtt["will_qos"],
+                                       mqtt["will_retain"],
+                                       mqtt["username"],
+                                       mqtt["password"],
+                                       mqtt["loop_prevention"],
+                                       brokerConfigJson["prefix"],
+                                       brokerConfigJson["disabled"],
+                                       topics));
+            }
+        }
+    }
+
+    const std::list<Bridge>& BridgeStore::getBridgeList() const {
+        return bridgeList;
+    }
+
+    const nlohmann::json& BridgeStore::getBridgesConfigJson() {
+        return bridgesConfigJsonActive;
+    }
+
+    const Broker* BridgeStore::getBroker(const std::string& instanceName) const {
+        return &brokers.find(instanceName)->second;
+    }
+
+    const std::map<std::string, Broker>& BridgeStore::getBrokers() const {
         return brokers;
     }
 
