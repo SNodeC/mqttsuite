@@ -123,7 +123,7 @@ namespace mqtt::bridge::lib {
     void SSEDistributor::bridgesStarted() {
         bridgesStartTimePoint = std::chrono::system_clock::now();
 
-        sendJsonEvent({{"at", timePointToString(bridgesStartTimePoint)}}, "bridge_started", std::to_string(id++));
+        sendJsonEvent({{"at", timePointToString(bridgesStartTimePoint)}}, "bridge_start", std::to_string(id++));
     }
 
     void SSEDistributor::brokerConnected(const std::string& bridgeName, const std::string& instanceName) {
