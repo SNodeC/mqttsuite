@@ -117,13 +117,27 @@ namespace mqtt::bridge::lib {
     }
 
     void SSEDistributor::bridgesStopped() {
-        sendJsonEvent({{"at", timePointToString(std::chrono::system_clock::now())}}, "bridge_stopped", std::to_string(id++));
+        sendJsonEvent({{"at", timePointToString(std::chrono::system_clock::now())}}, "bridges_stopped", std::to_string(id++));
     }
 
-    void SSEDistributor::bridgesStarted() {
-        bridgesStartTimePoint = std::chrono::system_clock::now();
+    void SSEDistributor::bridgesStarting() {
+        sendJsonEvent({{"at", timePointToString(std::chrono::system_clock::now())}}, "bridges_starting", std::to_string(id++));
+    }
 
-        sendJsonEvent({{"at", timePointToString(bridgesStartTimePoint)}}, "bridge_start", std::to_string(id++));
+    void SSEDistributor::bridgeStart(const std::string& bridgeName) {
+        sendJsonEvent(
+            {{"at", timePointToString(std::chrono::system_clock::now())}, {"name", bridgeName}}, "bridge_starting", std::to_string(id++));
+    }
+
+    void SSEDistributor::bridgeStoped(const std::string& bridgeName) {
+        sendJsonEvent(
+            {{"at", timePointToString(std::chrono::system_clock::now())}, {"name", bridgeName}}, "bridge_stopped", std::to_string(id++));
+    }
+
+    void SSEDistributor::brokerConnect(const std::string& bridgeName, const std::string& instanceName) {
+        sendJsonEvent({{"at", timePointToString(std::chrono::system_clock::now())}, {"bridge", bridgeName}, {"instance", instanceName}},
+                      "broker_connect",
+                      std::to_string(id++));
     }
 
     void SSEDistributor::brokerConnected(const std::string& bridgeName, const std::string& instanceName) {

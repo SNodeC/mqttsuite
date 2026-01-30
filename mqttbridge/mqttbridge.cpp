@@ -182,19 +182,7 @@ static void delBridgeBrokerConnection(const mqtt::bridge::lib::Broker& broker, c
 
 static void closeBridges() {
     mqtt::bridge::lib::SSEDistributor::instance()->bridgesStopped();
-    /*
-        for (const auto& bridge : mqtt::bridge::lib::BridgeStore::instance().getBridgeList()) {
-            for (const auto& mqtt : bridge.getMqttList()) {
-                mqtt->sendDisconnect();
-                mqtt->getMqttContext()
-                    ->getSocketConnection()
-                    ->getConfigInstance()
-                    ->getSection("socket")
-                    ->get_option("--reconnect")
-                    ->default_str("false");
-            }
-        }
-    */
+
     for (const auto& bridgePair : mqtt::bridge::lib::BridgeStore::instance().getBridgeMap()) {
         for (const auto& mqtt : bridgePair.second.getMqttList()) {
             mqtt->sendDisconnect();
@@ -256,6 +244,13 @@ startClient(const std::string& instanceName,
     using SocketAddress = typename Client::SocketAddress;
 
     Client socketClient = core::socket::stream::Client<Client>(instanceName, configurator);
+
+    socketClient.getConfig().ConfigInstance::configurable(false);
+    socketClient.getConfig().Remote::configurable(false);
+    socketClient.getConfig().setRetry().setRetryBase(1);
+    socketClient.getConfig().setReconnect();
+
+    socketClient.getConfig().getDisabled();
 
     socketClient
         .setOnConnected([](core::socket::stream::SocketConnection* socketConnection) {
@@ -328,6 +323,13 @@ void startClient(const std::string& name, const std::function<void(typename Http
 
     configurator(httpClient.getConfig());
 
+    httpClient.getConfig().ConfigInstance::configurable(false);
+    httpClient.getConfig().Remote::configurable(false);
+    httpClient.getConfig().setRetry().setRetryBase(1);
+    httpClient.getConfig().setReconnect();
+
+    httpClient.getConfig().getDisabled();
+
     httpClient
         .setOnConnected([](core::socket::stream::SocketConnection* socketConnection) {
             addBridgeBrokerConnection(*mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
@@ -349,10 +351,12 @@ void startClient(const std::string& name, const std::function<void(typename Http
 }
 
 static void startBridges() {
-    mqtt::bridge::lib::SSEDistributor::instance()->bridgesStarted();
+    mqtt::bridge::lib::SSEDistributor::instance()->bridgesStarting();
 
     for (const auto& [bridgeName, bridge] : mqtt::bridge::lib::BridgeStore::instance().getBridgeMap()) {
         VLOG(0) << "Starting bridge: " << bridgeName;
+
+        mqtt::bridge::lib::SSEDistributor::instance()->bridgeStart(bridgeName);
 
         for (const auto& [fullInstanceName, broker] : bridge.getBrokerMap()) {
             VLOG(1) << "  Creating broker instance: " << fullInstanceName;
@@ -391,12 +395,6 @@ static void startBridges() {
                     if (encryption == "legacy") {
 #if defined(CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4)
                         startClient<net::in::stream::legacy::SocketClient>(fullInstanceName, [&broker](auto& config) {
-                            config.ConfigInstance::configurable(false);
-                            config.Remote::configurable(false);
-
-                            config.setRetry();
-                            config.setRetryBase(1);
-                            config.setReconnect();
                             config.setDisableNagleAlgorithm();
 
                             config.Remote::setHost(broker.getAddress()["host"]);
@@ -411,12 +409,6 @@ static void startBridges() {
                     } else if (encryption == "tls") {
 #if defined(CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4)
                         startClient<net::in::stream::tls::SocketClient>(fullInstanceName, [&broker](auto& config) {
-                            config.ConfigInstance::configurable(false);
-                            config.Remote::configurable(false);
-
-                            config.setRetry();
-                            config.setRetryBase(1);
-                            config.setReconnect();
                             config.setDisableNagleAlgorithm();
 
                             config.Remote::setHost(broker.getAddress()["host"]);
@@ -433,12 +425,6 @@ static void startBridges() {
                     if (encryption == "legacy") {
 #if defined(CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6)
                         startClient<net::in6::stream::legacy::SocketClient>(fullInstanceName, [&broker](auto& config) {
-                            config.ConfigInstance::configurable(false);
-                            config.Remote::configurable(false);
-
-                            config.setRetry();
-                            config.setRetryBase(1);
-                            config.setReconnect();
                             config.setDisableNagleAlgorithm();
 
                             config.Remote::setHost(broker.getAddress()["host"]);
@@ -453,12 +439,6 @@ static void startBridges() {
                     } else if (encryption == "tls") {
 #if defined(CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6)
                         startClient<net::in6::stream::tls::SocketClient>(fullInstanceName, [&broker](auto& config) {
-                            config.ConfigInstance::configurable(false);
-                            config.Remote::configurable(false);
-
-                            config.setRetry();
-                            config.setRetryBase(1);
-                            config.setReconnect();
                             config.setDisableNagleAlgorithm();
 
                             config.Remote::setHost(broker.getAddress()["host"]);
@@ -475,13 +455,6 @@ static void startBridges() {
                     if (encryption == "legacy") {
 #if defined(CONFIG_MQTTSUITE_BRIDGE_UNIX)
                         startClient<net::un::stream::legacy::SocketClient>(fullInstanceName, [&broker](auto& config) {
-                            config.ConfigInstance::configurable(false);
-                            config.Remote::configurable(false);
-
-                            config.setRetry();
-                            config.setRetryBase(1);
-                            config.setReconnect();
-
                             config.Remote::setSunPath(broker.getAddress()["host"]);
 
                             config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
@@ -493,13 +466,6 @@ static void startBridges() {
                     } else if (encryption == "tls") {
 #if defined(CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS)
                         startClient<net::un::stream::tls::SocketClient>(fullInstanceName, [&broker](auto& config) {
-                            config.ConfigInstance::configurable(false);
-                            config.Remote::configurable(false);
-
-                            config.setRetry();
-                            config.setRetryBase(1);
-                            config.setReconnect();
-
                             config.Remote::setSunPath(broker.getAddress()["host"]);
 
                             config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
@@ -515,12 +481,6 @@ static void startBridges() {
                     if (encryption == "legacy") {
 #if defined(CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4) && defined(CONFIG_MQTTSUITE_BRIDGE_WS)
                         startClient<web::http::legacy::in::Client>(fullInstanceName, [&broker](auto& config) {
-                            config.ConfigInstance::configurable(false);
-                            config.Remote::configurable(false);
-
-                            config.setRetry();
-                            config.setRetryBase(1);
-                            config.setReconnect();
                             config.setDisableNagleAlgorithm();
 
                             config.Remote::setHost(broker.getAddress()["host"]);
@@ -535,12 +495,6 @@ static void startBridges() {
                     } else if (encryption == "tls") {
 #if defined(CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4) && defined(CONFIG_MQTTSUITE_BRIDGE_WSS)
                         startClient<web::http::tls::in::Client>(fullInstanceName, [&broker](auto& config) {
-                            config.ConfigInstance::configurable(false);
-                            config.Remote::configurable(false);
-
-                            config.setRetry();
-                            config.setRetryBase(1);
-                            config.setReconnect();
                             config.setDisableNagleAlgorithm();
 
                             config.Remote::setHost(broker.getAddress()["host"]);
@@ -557,12 +511,6 @@ static void startBridges() {
                     if (encryption == "legacy") {
 #if defined(CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6) && defined(CONFIG_MQTTSUITE_BRIDGE_WS)
                         startClient<web::http::legacy::in6::Client>(fullInstanceName, [&broker](auto& config) {
-                            config.ConfigInstance::configurable(false);
-                            config.Remote::configurable(false);
-
-                            config.setRetry();
-                            config.setRetryBase(1);
-                            config.setReconnect();
                             config.setDisableNagleAlgorithm();
 
                             config.Remote::setHost(broker.getAddress()["host"]);
@@ -577,12 +525,6 @@ static void startBridges() {
                     } else if (encryption == "tls") {
 #if defined(CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6) && defined(CONFIG_MQTTSUITE_BRIDGE_WSS)
                         startClient<web::http::tls::in6::Client>(fullInstanceName, [&broker](auto& config) {
-                            config.ConfigInstance::configurable(false);
-                            config.Remote::configurable(false);
-
-                            config.setRetry();
-                            config.setRetryBase(1);
-                            config.setReconnect();
                             config.setDisableNagleAlgorithm();
 
                             config.Remote::setHost(broker.getAddress()["host"]);
@@ -599,13 +541,6 @@ static void startBridges() {
                     if (encryption == "legacy") {
 #if defined(CONFIG_MQTTSUITE_BRIDGE_UNIX) && defined(CONFIG_MQTTSUITE_BRIDGE_WS)
                         startClient<web::http::legacy::un::Client>(fullInstanceName, [&broker](auto& config) {
-                            config.ConfigInstance::configurable(false);
-                            config.Remote::configurable(false);
-
-                            config.setRetry();
-                            config.setRetryBase(1);
-                            config.setReconnect();
-
                             config.Remote::setSunPath(broker.getAddress()["path"]);
 
                             config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
@@ -617,13 +552,6 @@ static void startBridges() {
                     } else if (encryption == "tls") {
 #if defined(CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS) && defined(CONFIG_MQTTSUITE_BRIDGE_WSS)
                         startClient<web::http::tls::un::Client>(fullInstanceName, [&broker](auto& config) {
-                            config.ConfigInstance::configurable(false);
-                            config.Remote::configurable(false);
-
-                            config.setRetry();
-                            config.setRetryBase(1);
-                            config.setReconnect();
-
                             config.Remote::setSunPath(broker.getAddress()["path"]);
 
                             config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());

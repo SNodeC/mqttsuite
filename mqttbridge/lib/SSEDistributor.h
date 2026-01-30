@@ -99,7 +99,12 @@ namespace mqtt::bridge::lib {
         void sendJsonEvent(const nlohmann::json& json, const std::string& event = "", const std::string& id = "") const;
 
         void bridgesStopped();
-        void bridgesStarted();
+        void bridgesStarting();
+
+        void bridgeStart(const std::string& bridgeName);
+        void bridgeStoped(const std::string& bridgeName);
+
+        void brokerConnect(const std::string& bridgeName, const std::string& instanceName);
         void brokerConnected(const std::string& bridgeName, const std::string& instanceName);
         void brokerDisconnected(const std::string& bridgeName, const std::string& instanceName);
 
