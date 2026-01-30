@@ -268,26 +268,24 @@ startClient(const std::string& instanceName,
 }
 
 template <typename HttpClient>
-    requires
-    // basic shape
-    requires {
+    requires requires {
         typename HttpClient::Config;
         typename HttpClient::SocketAddress;
     } &&
-    std::constructible_from<HttpClient,
-                            const std::string&,
-                            std::function<void(const std::shared_ptr<web::http::client::MasterRequest>&)>&&,
-                            std::function<void(const std::shared_ptr<web::http::client::MasterRequest>&)>&&> &&
-    requires(HttpClient& httpClient) {
-        { httpClient.getConfig() } -> std::same_as<typename HttpClient::Config&>;
-
-        httpClient.setOnConnected(std::declval<std::function<void(core::socket::stream::SocketConnection*)>>())
-            .setOnDisconnect(std::declval<std::function<void(core::socket::stream::SocketConnection*)>>())
-            .setOnInitState(std::declval<std::function<void(core::eventreceiver::ConnectEventReceiver*)>>())
-            .setOnAutoConnectControl(std::declval<std::function<void(std::shared_ptr<core::socket::stream::AutoConnectControl>)>>())
-            .connect(std::declval<std::function<void(const typename HttpClient::SocketAddress&, const core::socket::State&)>>());
-    }
-    void startClient(const std::string& name, const std::function<void(typename HttpClient::Config&)>& configurator) {
+             std::constructible_from<HttpClient,
+                                     const std::string&,
+                                     std::function<void(const std::shared_ptr<web::http::client::MasterRequest>&)>&&,
+                                     std::function<void(const std::shared_ptr<web::http::client::MasterRequest>&)>&&> &&
+             requires(HttpClient& httpClient) {
+                 { httpClient.getConfig() } -> std::same_as<typename HttpClient::Config&>;
+                 httpClient.setOnConnected(std::declval<std::function<void(core::socket::stream::SocketConnection*)>>())
+                     .setOnDisconnect(std::declval<std::function<void(core::socket::stream::SocketConnection*)>>())
+                     .setOnInitState(std::declval<std::function<void(core::eventreceiver::ConnectEventReceiver*)>>())
+                     .setOnAutoConnectControl(
+                         std::declval<std::function<void(std::shared_ptr<core::socket::stream::AutoConnectControl>)>>())
+                     .connect(std::declval<std::function<void(const typename HttpClient::SocketAddress&, const core::socket::State&)>>());
+             }
+void startClient(const std::string& name, const std::function<void(typename HttpClient::Config&)>& configurator) {
     using SocketAddress = typename HttpClient::SocketAddress;
 
     HttpClient httpClient(
