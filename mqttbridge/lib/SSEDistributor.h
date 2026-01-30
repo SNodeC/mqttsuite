@@ -98,10 +98,25 @@ namespace mqtt::bridge::lib {
         void sendEvent(const std::string& data, const std::string& event = "", const std::string& id = "") const;
         void sendJsonEvent(const nlohmann::json& json, const std::string& event = "", const std::string& id = "") const;
 
-        void bridgesStopped();
+        void bridgesStarting(); // *
         void bridgesStarted();
-        void brokerConnected(const std::string& bridgeName, const std::string& instanceName);
-        void brokerDisconnected(const std::string& bridgeName, const std::string& instanceName);
+
+        void bridgesStopping(); // *
+        void bridgesStopped();  // *
+
+        void bridgeDisabled(const std::string& bridgeName); // *
+        void bridgeStarting(const std::string& bridgeName); // *
+        void bridgeStarted(const std::string& bridgeName);
+
+        void bridgeStopping(const std::string& bridgeName); // *
+        void bridgeStopped(const std::string& bridgeName);
+
+        void brokerDisabled(const std::string& bridgeName, const std::string& instanceName);   // *
+        void brokerConnecting(const std::string& bridgeName, const std::string& instanceName); // *
+        void brokerConnected(const std::string& bridgeName, const std::string& instanceName);  // *
+
+        void brokerDisconnecting(const std::string& bridgeName, const std::string& instanceName); // *
+        void brokerDisconnected(const std::string& bridgeName, const std::string& instanceName);  // *
 
     private:
         static std::string timePointToString(const std::chrono::time_point<std::chrono::system_clock>& timePoint);

@@ -41,12 +41,14 @@
 
 #include "lib/Bridge.h"
 
-#include "lib/Broker.h"
 #include "lib/Mqtt.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include <compare>
 #include <iot/mqtt/packets/Publish.h>
+#include <map>
+#include <utility>
 
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
@@ -58,8 +60,20 @@ namespace mqtt::bridge::lib {
         , disabled(disabled) {
     }
 
-    const std::string& Bridge::getName() {
+    const std::string& Bridge::getName() const {
         return name;
+    }
+
+    void Bridge::addBroker(const std::string& fullInstanceName, Broker&& broker) {
+        brokerMap.emplace(fullInstanceName, std::move(broker));
+    }
+
+    const Broker* Bridge::getBroker(const std::string& fullInstanceName) const {
+        return &brokerMap.find(fullInstanceName)->second;
+    }
+
+    const std::map<const std::string, Broker>& Bridge::getBrokerMap() const {
+        return brokerMap;
     }
 
     void Bridge::addMqtt(mqtt::bridge::lib::Mqtt* mqtt) {
@@ -90,6 +104,10 @@ namespace mqtt::bridge::lib {
 
     bool Bridge::getDisabled() const {
         return disabled;
+    }
+
+    bool Bridge::operator<(const Bridge& rhs) const {
+        return name < rhs.name;
     }
 
     const std::list<const Mqtt*>& Bridge::getMqttList() const {

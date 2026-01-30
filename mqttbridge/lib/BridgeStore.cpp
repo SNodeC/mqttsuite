@@ -69,7 +69,7 @@ namespace mqtt::bridge::lib {
     bool BridgeStore::loadAndValidate(const std::string& fileName) {
         this->fileName = fileName;
 
-        bool success = brokers.empty();
+        bool success = bridgeMap.empty();
 
         if (success) {
             try {
@@ -161,8 +161,11 @@ namespace mqtt::bridge::lib {
     }
 
     void BridgeStore::activateStaged() {
-        bridgeList.clear();
-        brokers.clear();
+        for (auto& [fullInstanceName, bridge] : bridgeMap) {
+            bridge.clear();
+        }
+
+        bridgeMap.clear();
 
         bridgesConfigJsonActive = bridgesConfigJsonStaged;
 
@@ -173,7 +176,8 @@ namespace mqtt::bridge::lib {
         ofs.close();
 
         for (const nlohmann::json& bridgeConfigJson : bridgesConfigJsonActive["bridges"]) {
-            Bridge& bridge = bridgeList.emplace_back(bridgeConfigJson["name"], bridgeConfigJson["prefix"], bridgeConfigJson["disabled"]);
+            bridgeMap.emplace(bridgeConfigJson["name"],
+                              Bridge{bridgeConfigJson["name"], bridgeConfigJson["prefix"], bridgeConfigJson["disabled"]});
 
             for (const nlohmann::json& brokerConfigJson : bridgeConfigJson["brokers"]) {
                 std::list<iot::mqtt::Topic> topics;
@@ -187,47 +191,54 @@ namespace mqtt::bridge::lib {
                 const nlohmann::json& mqtt = brokerConfigJson["mqtt"];
                 const nlohmann::json& network = brokerConfigJson["network"];
 
-                const std::string fullInstanceName = bridge.getName() + "+" + network["instance_name"].get<std::string>();
+                const std::string fullInstanceName =
+                    bridgeMap.find(bridgeConfigJson["name"])->second.getName() + "+" + network["instance_name"].get<std::string>();
 
-                brokers.emplace(fullInstanceName,
-                                Broker(bridge,
-                                       brokerConfigJson["session_store"],
-                                       fullInstanceName,
-                                       network["protocol"],
-                                       network["encryption"],
-                                       network["transport"],
-                                       network[network["protocol"]],
-                                       mqtt["client_id"],
-                                       mqtt["keep_alive"],
-                                       mqtt["clean_session"],
-                                       mqtt["will_topic"],
-                                       mqtt["will_message"],
-                                       mqtt["will_qos"],
-                                       mqtt["will_retain"],
-                                       mqtt["username"],
-                                       mqtt["password"],
-                                       mqtt["loop_prevention"],
-                                       brokerConfigJson["prefix"],
-                                       brokerConfigJson["disabled"],
-                                       topics));
+                bridgeMap.find(bridgeConfigJson["name"])
+                    ->second.addBroker(fullInstanceName,
+                                       Broker(bridgeMap.find(bridgeConfigJson["name"])->second,
+                                              brokerConfigJson["session_store"],
+                                              fullInstanceName,
+                                              network["protocol"],
+                                              network["encryption"],
+                                              network["transport"],
+                                              network[network["protocol"]],
+                                              mqtt["client_id"],
+                                              mqtt["keep_alive"],
+                                              mqtt["clean_session"],
+                                              mqtt["will_topic"],
+                                              mqtt["will_message"],
+                                              mqtt["will_qos"],
+                                              mqtt["will_retain"],
+                                              mqtt["username"],
+                                              mqtt["password"],
+                                              mqtt["loop_prevention"],
+                                              brokerConfigJson["prefix"],
+                                              brokerConfigJson["disabled"],
+                                              topics));
             }
         }
     }
 
-    const std::list<Bridge>& BridgeStore::getBridgeList() const {
-        return bridgeList;
+    const std::map<const std::string, Bridge>& BridgeStore::getBridgeMap() {
+        return bridgeMap;
     }
 
     const nlohmann::json& BridgeStore::getBridgesConfigJson() {
         return bridgesConfigJsonActive;
     }
 
-    const Broker* BridgeStore::getBroker(const std::string& instanceName) const {
-        return &brokers.find(instanceName)->second;
-    }
+    static std::pair<std::string, std::string> split_plus(const std::string& s) {
+        const auto pos = s.find('+');
+        if (pos == std::string::npos)
+            return {s, {}};
+        return {s.substr(0, pos), s.substr(pos + 1)};
+    };
 
-    const std::map<std::string, Broker>& BridgeStore::getBrokers() const {
-        return brokers;
+    const Broker* BridgeStore::getBroker(const std::string& fullInstanceName) const {
+        auto [bridgeName, instanceName] = split_plus(fullInstanceName);
+
+        return bridgeMap.find(bridgeName)->second.getBroker(fullInstanceName);
     }
 
 } // namespace mqtt::bridge::lib

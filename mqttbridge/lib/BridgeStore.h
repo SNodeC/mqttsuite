@@ -49,7 +49,6 @@
 
 #include "nlohmann/json-schema.hpp"
 
-#include <list>
 #include <map>
 #include <nlohmann/json.hpp>
 // IWYU pragma: no_include <nlohmann/json_fwd.hpp>
@@ -70,16 +69,15 @@ namespace mqtt::bridge::lib {
         bool patch(const nlohmann::json& jsonPatch);
         void activateStaged();
 
-        const Broker* getBroker(const std::string& instanceName) const;
+        const Broker* getBroker(const std::string& fullInstanceName) const;
         const std::map<std::string, Broker>& getBrokers() const;
 
-        const std::list<Bridge>& getBridgeList() const;
+        const std::map<const std::string, Bridge>& getBridgeMap();
 
         const nlohmann::json& getBridgesConfigJson();
 
     private:
-        std::list<Bridge> bridgeList;
-        std::map<std::string, Broker> brokers;
+        std::map<const std::string, Bridge> bridgeMap;
 
         nlohmann::json bridgesConfigJsonActive;
         nlohmann::json bridgesConfigJsonStaged;
