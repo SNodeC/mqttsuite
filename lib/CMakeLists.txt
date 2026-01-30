@@ -93,6 +93,7 @@ add_library(
     mqtt-mapping STATIC
     JsonMappingReader.cpp MqttMapper.cpp JsonMappingReader.h MqttMapper.h
     mapping-schema.json.h inja.hpp
+    MappingAdminRouter.cpp MappingAdminRouter.h
 )
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
