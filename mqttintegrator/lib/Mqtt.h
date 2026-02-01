@@ -49,6 +49,7 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <cstdint>
+#include <set>
 #include <string>
 
 #endif
@@ -64,6 +65,9 @@ namespace mqtt::mqttintegrator::lib {
                       const nlohmann::json& mappingJson,
                       const std::string& sessionStoreFileName);
 
+        ~Mqtt() override;
+        static void reloadAll();
+
     private:
         using Super = iot::mqtt::client::Mqtt;
 
@@ -76,6 +80,8 @@ namespace mqtt::mqttintegrator::lib {
         void publishMapping(const std::string& topic, const std::string& message, uint8_t qoS, bool retain) final;
 
         const nlohmann::json& connectionJson;
+
+        static std::set<Mqtt*> instances;
     };
 
 } // namespace mqtt::mqttintegrator::lib
