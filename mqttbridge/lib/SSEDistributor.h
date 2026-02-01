@@ -106,10 +106,10 @@ namespace mqtt::bridge::lib {
 
         void bridgeDisabled(const std::string& bridgeName); // *
         void bridgeStarting(const std::string& bridgeName); // *
-        void bridgeStarted(const std::string& bridgeName);
+        void bridgeStarted(const std::string& bridgeName);  // *
 
         void bridgeStopping(const std::string& bridgeName); // *
-        void bridgeStopped(const std::string& bridgeName);
+        void bridgeStopped(const std::string& bridgeName);  // *
 
         void brokerDisabled(const std::string& bridgeName, const std::string& instanceName);   // *
         void brokerConnecting(const std::string& bridgeName, const std::string& instanceName); // *

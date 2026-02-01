@@ -56,6 +56,7 @@ namespace mqtt::bridge::lib {
     class Mqtt;
 } // namespace mqtt::bridge::lib
 
+#include <cstddef>
 #include <list>
 #include <map>
 #include <string>
@@ -94,6 +95,7 @@ namespace mqtt::bridge::lib {
         std::string name;
         std::string prefix;
         bool disabled;
+        std::size_t enabledBroker = 0;
 
         std::map<const std::string, Broker> brokerMap;
         std::list<const mqtt::bridge::lib::Mqtt*> mqttList;

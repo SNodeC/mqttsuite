@@ -42,6 +42,7 @@
 #include "lib/Bridge.h"
 
 #include "lib/Mqtt.h"
+#include "lib/SSEDistributor.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
@@ -65,6 +66,8 @@ namespace mqtt::bridge::lib {
     }
 
     void Bridge::addBroker(const std::string& fullInstanceName, Broker&& broker) {
+        enabledBroker += !broker.getDisabled() ? 1 : 0;
+
         brokerMap.emplace(fullInstanceName, std::move(broker));
     }
 
@@ -78,10 +81,18 @@ namespace mqtt::bridge::lib {
 
     void Bridge::addMqtt(mqtt::bridge::lib::Mqtt* mqtt) {
         mqttList.push_back(mqtt);
+
+        if (mqttList.size() == enabledBroker) {
+            mqtt::bridge::lib::SSEDistributor::instance()->bridgeStarted(name);
+        }
     }
 
     void Bridge::removeMqtt(mqtt::bridge::lib::Mqtt* mqtt) {
         mqttList.remove(mqtt);
+
+        if (mqttList.size() == 0) {
+            mqtt::bridge::lib::SSEDistributor::instance()->bridgeStopped(name);
+        }
     }
 
     void Bridge::publish(const mqtt::bridge::lib::Mqtt* originMqtt, const iot::mqtt::packets::Publish& publish) {
