@@ -75,8 +75,6 @@ namespace mqtt::bridge::lib {
         response->getSocketContext()->onDisconnected([this, &eventReceiver]() {
             eventReceiverList.remove(eventReceiver);
         });
-
-        sendJsonEvent({{"at", timePointToString(bridgesStartTimePoint)}}, "bridge-start", std::to_string(id++));
     }
 
     void SSEDistributor::sendEvent(const std::shared_ptr<express::Response>& response,
