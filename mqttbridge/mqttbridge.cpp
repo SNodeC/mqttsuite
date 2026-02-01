@@ -160,20 +160,12 @@ static void handleConnector(core::eventreceiver::ConnectEventReceiver* connectEv
     }
 }
 
-static void addBridgeBrokerConnection(const mqtt::bridge::lib::Broker& broker, core::socket::stream::SocketConnection* socketConnection) {
-    const std::string& bridgeName(broker.getBridge().getName());
-
-    VLOG(1) << "Add bridge broker: " << socketConnection->getInstanceName();
-
-    mqtt::bridge::lib::SSEDistributor::instance().brokerConnected(bridgeName, socketConnection->getInstanceName());
+static void addBridgeBrokerConnection(core::socket::stream::SocketConnection* socketConnection) {
+    VLOG(1) << "Connection established: " << socketConnection->getInstanceName();
 }
 
-static void delBridgeBrokerConnection(const mqtt::bridge::lib::Broker& broker, core::socket::stream::SocketConnection* socketConnection) {
-    const std::string& bridgeName(broker.getBridge().getName());
-
-    VLOG(1) << "Del bridge broker: " << socketConnection->getInstanceName();
-
-    mqtt::bridge::lib::SSEDistributor::instance().brokerDisconnected(bridgeName, socketConnection->getInstanceName());
+static void delBridgeBrokerConnection(core::socket::stream::SocketConnection* socketConnection) {
+    VLOG(1) << "Connection closed: " << socketConnection->getInstanceName();
 
     tryRestartBridges();
 }
@@ -256,12 +248,10 @@ startClient(const std::string& instanceName,
 
     socketClient
         .setOnConnected([](core::socket::stream::SocketConnection* socketConnection) {
-            addBridgeBrokerConnection(*mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
-                                      socketConnection);
+            addBridgeBrokerConnection(socketConnection);
         })
         .setOnDisconnect([](core::socket::stream::SocketConnection* socketConnection) {
-            delBridgeBrokerConnection(*mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
-                                      socketConnection);
+            delBridgeBrokerConnection(socketConnection);
         })
         .setOnInitState([](core::eventreceiver::ConnectEventReceiver* connectEventReceiver) {
             handleConnector(connectEventReceiver);
@@ -334,12 +324,10 @@ void startClient(const std::string& name, const std::function<void(typename Http
 
     httpClient
         .setOnConnected([](core::socket::stream::SocketConnection* socketConnection) {
-            addBridgeBrokerConnection(*mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
-                                      socketConnection);
+            addBridgeBrokerConnection(socketConnection);
         })
         .setOnDisconnect([](core::socket::stream::SocketConnection* socketConnection) {
-            delBridgeBrokerConnection(*mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
-                                      socketConnection);
+            delBridgeBrokerConnection(socketConnection);
         })
         .setOnInitState([](core::eventreceiver::ConnectEventReceiver* connectEventReceiver) {
             handleConnector(connectEventReceiver);

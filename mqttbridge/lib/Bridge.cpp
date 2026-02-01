@@ -44,6 +44,9 @@
 #include "lib/Mqtt.h"
 #include "lib/SSEDistributor.h"
 
+#include <core/socket/stream/SocketConnection.h>
+#include <iot/mqtt/MqttContext.h>
+
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <compare>
@@ -82,6 +85,9 @@ namespace mqtt::bridge::lib {
     void Bridge::addMqtt(mqtt::bridge::lib::Mqtt* mqtt) {
         mqttList.push_back(mqtt);
 
+        mqtt::bridge::lib::SSEDistributor::instance().brokerConnected(name,
+                                                                      mqtt->getMqttContext()->getSocketConnection()->getInstanceName());
+
         if (mqttList.size() == enabledBroker) {
             mqtt::bridge::lib::SSEDistributor::instance().bridgeStarted(name);
         }
@@ -89,6 +95,9 @@ namespace mqtt::bridge::lib {
 
     void Bridge::removeMqtt(mqtt::bridge::lib::Mqtt* mqtt) {
         mqttList.remove(mqtt);
+
+        mqtt::bridge::lib::SSEDistributor::instance().brokerDisconnected(name,
+                                                                         mqtt->getMqttContext()->getSocketConnection()->getInstanceName());
 
         if (mqttList.size() == 0) {
             mqtt::bridge::lib::SSEDistributor::instance().bridgeStopped(name);

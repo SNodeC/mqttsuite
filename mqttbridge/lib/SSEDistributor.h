@@ -90,18 +90,6 @@ namespace mqtt::bridge::lib {
 
         void addEventReceiver(const std::shared_ptr<express::Response>& response, const std::string& lastEventId);
 
-        static void sendEvent(const std::shared_ptr<express::Response>& response,
-                              const std::string& data,
-                              const std::string& event,
-                              const std::string& id);
-
-        static void sendJsonEvent(const std::shared_ptr<express::Response>& response,
-                                  const nlohmann::json& json,
-                                  const std::string& event = "",
-                                  const std::string& id = "");
-        void sendEvent(const std::string& data, const std::string& event = "", const std::string& id = "") const;
-        void sendJsonEvent(const nlohmann::json& json, const std::string& event = "", const std::string& id = "") const;
-
         void bridgesStarting();
         void bridgesStarted();
 
@@ -123,6 +111,18 @@ namespace mqtt::bridge::lib {
         void brokerDisconnected(const std::string& bridgeName, const std::string& instanceName);
 
     private:
+        static void sendEvent(const std::shared_ptr<express::Response>& response,
+                              const std::string& data,
+                              const std::string& event,
+                              const std::string& id);
+
+        static void sendJsonEvent(const std::shared_ptr<express::Response>& response,
+                                  const nlohmann::json& json,
+                                  const std::string& event = "",
+                                  const std::string& id = "");
+        void sendEvent(const std::string& data, const std::string& event = "", const std::string& id = "") const;
+        void sendJsonEvent(const nlohmann::json& json, const std::string& event = "", const std::string& id = "") const;
+
         static std::string timePointToString(const std::chrono::time_point<std::chrono::system_clock>& timePoint);
         static std::string
         durationToString(const std::chrono::time_point<std::chrono::system_clock>& bevore,
