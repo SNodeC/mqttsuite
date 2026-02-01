@@ -63,18 +63,27 @@ namespace mqtt::bridge::lib {
         BridgeStore() = default;
 
     public:
+        BridgeStore(const BridgeStore&) = delete;
+        BridgeStore(BridgeStore&&) = delete;
+
+        BridgeStore& operator=(const BridgeStore&) = delete;
+        BridgeStore& operator=(const BridgeStore&&) = delete;
+
         static BridgeStore& instance();
 
         bool loadAndValidate(const std::string& fileName);
         bool patch(const nlohmann::json& jsonPatch);
         void activateStaged();
 
-        const Broker* getBroker(const std::string& fullInstanceName) const;
+        Broker* getBroker(const std::string& fullInstanceName);
         const std::map<std::string, Broker>& getBrokers() const;
 
         const std::map<const std::string, Bridge>& getBridgeMap();
 
         const nlohmann::json& getBridgesConfigJson();
+
+        void mqttConnected(Broker& broker, mqtt::bridge::lib::Mqtt* mqtt) const;
+        void mqttDisconnected(Broker& broker, mqtt::bridge::lib::Mqtt* mqtt) const;
 
     private:
         std::map<const std::string, Bridge> bridgeMap;

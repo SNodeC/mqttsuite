@@ -71,7 +71,7 @@ namespace mqtt::bridge::lib {
         brokerMap.emplace(fullInstanceName, std::move(broker));
     }
 
-    const Broker* Bridge::getBroker(const std::string& fullInstanceName) const {
+    Broker* Bridge::getBroker(const std::string& fullInstanceName) {
         return &brokerMap.find(fullInstanceName)->second;
     }
 
@@ -83,7 +83,7 @@ namespace mqtt::bridge::lib {
         mqttList.push_back(mqtt);
 
         if (mqttList.size() == enabledBroker) {
-            mqtt::bridge::lib::SSEDistributor::instance()->bridgeStarted(name);
+            mqtt::bridge::lib::SSEDistributor::instance().bridgeStarted(name);
         }
     }
 
@@ -91,7 +91,7 @@ namespace mqtt::bridge::lib {
         mqttList.remove(mqtt);
 
         if (mqttList.size() == 0) {
-            mqtt::bridge::lib::SSEDistributor::instance()->bridgeStopped(name);
+            mqtt::bridge::lib::SSEDistributor::instance().bridgeStopped(name);
         }
     }
 
@@ -115,6 +115,10 @@ namespace mqtt::bridge::lib {
 
     bool Bridge::getDisabled() const {
         return disabled;
+    }
+
+    bool Bridge::getAllConnected1() const {
+        return mqttList.size() == enabledBroker || disabled;
     }
 
     bool Bridge::operator<(const Bridge& rhs) const {

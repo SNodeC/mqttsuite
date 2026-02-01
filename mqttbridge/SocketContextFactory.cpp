@@ -60,7 +60,7 @@ namespace mqtt::bridge {
     core::socket::stream::SocketContext* SocketContextFactory::create(core::socket::stream::SocketConnection* socketConnection) {
         iot::mqtt::SocketContext* socketContext = nullptr;
 
-        const mqtt::bridge::lib::Broker* broker = mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName());
+        mqtt::bridge::lib::Broker* broker = mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName());
 
         if (broker != nullptr) {
             VLOG(1) << "  Creating Broker instance '" << broker->getName() << "' of Bridge '" << broker->getBridge().getName() << "'";

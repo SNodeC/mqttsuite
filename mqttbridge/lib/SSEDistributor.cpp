@@ -62,10 +62,10 @@ namespace mqtt::bridge::lib {
         : onlineSinceTimePoint(std::chrono::system_clock::now()) {
     }
 
-    SSEDistributor* SSEDistributor::instance() {
+    SSEDistributor& SSEDistributor::instance() {
         static SSEDistributor sseDistributor;
 
-        return &sseDistributor;
+        return sseDistributor;
     }
 
     void SSEDistributor::addEventReceiver(const std::shared_ptr<express::Response>& response,

@@ -41,6 +41,8 @@
 
 #include "BridgeStore.h"
 
+#include "lib/SSEDistributor.h"
+
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <cmath>
@@ -228,6 +230,24 @@ namespace mqtt::bridge::lib {
         return bridgesConfigJsonActive;
     }
 
+    void BridgeStore::mqttConnected(Broker& broker, Mqtt* mqtt) const {
+        broker.getBridge().addMqtt(mqtt);
+
+        bool allConnected = true;
+
+        for (const auto& [bridgeName, bridge] : bridgeMap) {
+            allConnected &= bridge.getAllConnected1();
+        }
+
+        if (allConnected) {
+            mqtt::bridge::lib::SSEDistributor::instance().bridgesStarted();
+        }
+    }
+
+    void BridgeStore::mqttDisconnected(Broker& broker, Mqtt* mqtt) const {
+        broker.getBridge().removeMqtt(mqtt);
+    }
+
     static std::pair<std::string, std::string> split_plus(const std::string& s) {
         const auto pos = s.find('+');
         if (pos == std::string::npos)
@@ -235,7 +255,7 @@ namespace mqtt::bridge::lib {
         return {s.substr(0, pos), s.substr(pos + 1)};
     };
 
-    const Broker* BridgeStore::getBroker(const std::string& fullInstanceName) const {
+    Broker* BridgeStore::getBroker(const std::string& fullInstanceName) {
         auto [bridgeName, instanceName] = split_plus(fullInstanceName);
 
         return bridgeMap.find(bridgeName)->second.getBroker(fullInstanceName);

@@ -53,7 +53,7 @@ namespace iot::mqtt {
 } // namespace iot::mqtt
 
 namespace mqtt::bridge::lib {
-    class Mqtt;
+    class Mqtt; // IWYU pragma: export
 } // namespace mqtt::bridge::lib
 
 #include <cstddef>
@@ -76,8 +76,9 @@ namespace mqtt::bridge::lib {
         const std::string& getName() const;
 
         void addBroker(const std::string& fullInstanceName, Broker&& broker);
-        const Broker* getBroker(const std::string& fullInstanceName) const;
+        Broker* getBroker(const std::string& fullInstanceName);
         const std::map<const std::string, Broker>& getBrokerMap() const;
+
         void addMqtt(mqtt::bridge::lib::Mqtt* mqtt);
         void removeMqtt(mqtt::bridge::lib::Mqtt* mqtt);
 
@@ -88,6 +89,8 @@ namespace mqtt::bridge::lib {
         const std::string& getPrefix() const;
 
         bool getDisabled() const;
+
+        bool getAllConnected1() const;
 
         bool operator<(const Bridge& rhs) const;
 

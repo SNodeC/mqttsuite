@@ -78,10 +78,14 @@ namespace mqtt::bridge::lib {
         SSEDistributor();
 
     public:
-        static SSEDistributor* instance();
+        static SSEDistributor& instance();
 
         SSEDistributor(const SSEDistributor&) = delete;
         SSEDistributor& operator=(const SSEDistributor&) = delete;
+
+        SSEDistributor(SSEDistributor&&) = delete;
+        SSEDistributor& operator=(SSEDistributor&&) = delete;
+
         ~SSEDistributor() = default;
 
         void addEventReceiver(const std::shared_ptr<express::Response>& response, const std::string& lastEventId);
@@ -99,7 +103,7 @@ namespace mqtt::bridge::lib {
         void sendJsonEvent(const nlohmann::json& json, const std::string& event = "", const std::string& id = "") const;
 
         void bridgesStarting(); // *
-        void bridgesStarted();
+        void bridgesStarted();  // *
 
         void bridgesStopping(); // *
         void bridgesStopped();  // *
