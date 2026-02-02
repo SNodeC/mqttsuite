@@ -275,7 +275,7 @@ namespace mqtt::lib {
                 if (v.date.empty()) {
                     try {
                         long long ts = std::stoll(v.id);
-                        std::time_t t = (std::time_t) ts;
+                        std::time_t t = static_cast<std::time_t>(ts);
                         std::stringstream ss;
                         ss << std::put_time(std::gmtime(&t), "%Y-%m-%dT%H:%M:%SZ");
                         v.date = ss.str();

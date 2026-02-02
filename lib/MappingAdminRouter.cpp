@@ -165,7 +165,7 @@ namespace mqtt::lib::admin {
                     list.push_back({{"id", h.id}, {"comment", h.comment}, {"date", h.date}});
                 }
                 res->status(200).json(list);
-            } catch (const std::exception& e) {
+            } catch ([[maybe_unused]] const std::exception& e) {
                 res->status(500).json({{"error", "Failed to fetch history"}});
             }
         });
