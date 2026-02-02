@@ -77,6 +77,10 @@ namespace mqtt::bridge::lib {
         response->getSocketContext()->onDisconnected([this, &eventReceiver]() {
             eventReceiverList.remove(eventReceiver);
         });
+
+        for (const auto& event : replayEvents) {
+            sendEvent(response, event.getData(), event.getEvent(), event.getId());
+        }
     }
 
     void SSEDistributor::sendEvent(const std::shared_ptr<express::Response>& response,
@@ -102,21 +106,25 @@ namespace mqtt::bridge::lib {
         sendEvent(response, json.dump(), event, id);
     }
 
-    void SSEDistributor::sendEvent(const std::string& data, const std::string& event, const std::string& id) const {
+    void SSEDistributor::sendEvent(const std::string& data, const std::string& event, const std::string& id) {
         VLOG(0) << "Server sent event: " << event << "\n" << data;
 
         for (auto& eventReceiver : eventReceiverList) {
-            if (const auto& response = eventReceiver.response.lock()) {
+            if (const auto& response = eventReceiver.getResponse()) {
                 sendEvent(response, data, event, id);
             }
         }
+
+        replayEvents.emplace_back(data, event, id);
     }
 
-    void SSEDistributor::sendJsonEvent(const nlohmann::json& json, const std::string& event, const std::string& id) const {
+    void SSEDistributor::sendJsonEvent(const nlohmann::json& json, const std::string& event, const std::string& id) {
         sendEvent(json.dump(), event, id);
     }
 
     void SSEDistributor::bridgesStarting() {
+        replayEvents.clear();
+
         sendJsonEvent({{"at", timePointToString(std::chrono::system_clock::now())}}, "bridges_starting", std::to_string(id++));
     }
 
@@ -245,8 +253,30 @@ namespace mqtt::bridge::lib {
         heartbeatTimer.cancel();
     }
 
+    std::shared_ptr<express::Response> SSEDistributor::EventReceiver::getResponse() const {
+        return response.lock();
+    }
+
     bool SSEDistributor::EventReceiver::operator==(const EventReceiver& other) {
         return response.lock() == other.response.lock();
+    }
+
+    SSEDistributor::Event::Event(const std::string& data, const std::string& event, const std::string& id)
+        : data(data)
+        , event(event)
+        , id(id) {
+    }
+
+    const std::string& SSEDistributor::Event::getData() const {
+        return data;
+    }
+
+    const std::string& SSEDistributor::Event::getEvent() const {
+        return event;
+    }
+
+    const std::string& SSEDistributor::Event::getId() const {
+        return id;
     }
 
 } // namespace mqtt::bridge::lib
