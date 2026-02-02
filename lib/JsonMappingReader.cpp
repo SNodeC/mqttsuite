@@ -2,6 +2,8 @@
  * MQTTSuite - A lightweight MQTT Integration System
  * Copyright (C) Volker Christian <me@vchrist.at>
  *               2022, 2023, 2024, 2025, 2026
+ *               Tobias Pfeil
+ *               2025, 2026
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -47,13 +49,16 @@
 
 #include <algorithm>
 #include <chrono>
+#include <compare>
+#include <ctime>
 #include <exception>
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
-#include <sstream>
 #include <log/Logger.h>
 #include <nlohmann/json.hpp>
+#include <sstream>
+#include <stdexcept>
 
 #endif
 
@@ -79,7 +84,8 @@ namespace mqtt::lib {
                         mapFile >> mapFileJsons[mapFilePath];
 
                         try {
-                            const nlohmann::json_schema::json_validator validator(mappingJsonSchema, nullptr, nlohmann::json_schema::default_string_format_check);
+                            const nlohmann::json_schema::json_validator validator(
+                                mappingJsonSchema, nullptr, nlohmann::json_schema::default_string_format_check);
 
                             try {
                                 const nlohmann::json defaultPatch = validator.validate(mapFileJsons[mapFilePath]);
@@ -152,7 +158,8 @@ namespace mqtt::lib {
         }
         // Fallback to active file
         std::ifstream f(mapFilePath);
-        if (!f) throw std::runtime_error("Cannot open mapping file: " + mapFilePath);
+        if (!f)
+            throw std::runtime_error("Cannot open mapping file: " + mapFilePath);
         nlohmann::json j;
         f >> j;
         return j;
@@ -160,7 +167,8 @@ namespace mqtt::lib {
 
     void JsonMappingReader::deployDraft(const std::string& mapFilePath) {
         std::string draftPath = getDraftPath(mapFilePath);
-        if (!fs::exists(draftPath)) return;
+        if (!fs::exists(draftPath))
+            return;
 
         // 1. Inject creation timestamp into draft
         try {
@@ -173,8 +181,9 @@ namespace mqtt::lib {
             std::time_t now_c = std::chrono::system_clock::to_time_t(now);
             std::stringstream ss;
             ss << std::put_time(std::gmtime(&now_c), "%Y-%m-%dT%H:%M:%SZ");
-            
-            if (!j.contains("meta")) j["meta"] = nlohmann::json::object();
+
+            if (!j.contains("meta"))
+                j["meta"] = nlohmann::json::object();
             j["meta"]["created"] = ss.str();
             j["meta"]["version"] = std::to_string(std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count());
 
@@ -196,7 +205,7 @@ namespace mqtt::lib {
             auto timestamp = std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count();
             std::string filename = fs::path(mapFilePath).filename().string();
             std::string backupPath = versionDir / (filename + "." + std::to_string(timestamp));
-            
+
             fs::copy_file(mapFilePath, backupPath, fs::copy_options::overwrite_existing);
 
             // 3. Prune old versions (Keep last 50)
@@ -215,12 +224,13 @@ namespace mqtt::lib {
                         fs::remove(versions[i]);
                     }
                 }
-            } catch (...) {}
+            } catch (...) {
+            }
         }
 
         // 4. Promote draft to active
         fs::rename(draftPath, mapFilePath);
-        
+
         // Invalidate cache so next readMappingFromFile reloads it
         invalidate(mapFilePath);
     }
@@ -237,31 +247,35 @@ namespace mqtt::lib {
         fs::path versionDir = fs::path(mapFilePath).parent_path() / "versions";
         std::string baseName = fs::path(mapFilePath).filename().string();
 
-        if (!fs::exists(versionDir)) return history;
+        if (!fs::exists(versionDir))
+            return history;
 
         for (const auto& entry : fs::directory_iterator(versionDir)) {
             if (entry.path().filename().string().starts_with(baseName + ".")) {
                 VersionEntry v;
                 v.filename = entry.path().string();
                 // Extract ID (timestamp) from filename extension
-                v.id = entry.path().extension().string().substr(1); 
-                
+                v.id = entry.path().extension().string().substr(1);
+
                 // Peek inside JSON to get the comment
                 try {
                     std::ifstream f(v.filename);
                     nlohmann::json j;
                     f >> j;
-                    if(j.contains("meta")) {
-                        if (j["meta"].contains("comment")) v.comment = j["meta"]["comment"];
-                        if (j["meta"].contains("created")) v.date = j["meta"]["created"];
+                    if (j.contains("meta")) {
+                        if (j["meta"].contains("comment"))
+                            v.comment = j["meta"]["comment"];
+                        if (j["meta"].contains("created"))
+                            v.date = j["meta"]["created"];
                     }
-                } catch (...) {}
-                
+                } catch (...) {
+                }
+
                 // Fallback date if not in meta
                 if (v.date.empty()) {
                     try {
                         long long ts = std::stoll(v.id);
-                        std::time_t t = (std::time_t)ts;
+                        std::time_t t = (std::time_t) ts;
                         std::stringstream ss;
                         ss << std::put_time(std::gmtime(&t), "%Y-%m-%dT%H:%M:%SZ");
                         v.date = ss.str();
@@ -299,7 +313,8 @@ namespace mqtt::lib {
             std::ifstream f(backupPath);
             nlohmann::json j;
             f >> j;
-            const nlohmann::json_schema::json_validator validator(mappingJsonSchema, nullptr, nlohmann::json_schema::default_string_format_check);
+            const nlohmann::json_schema::json_validator validator(
+                mappingJsonSchema, nullptr, nlohmann::json_schema::default_string_format_check);
             validator.validate(j);
         } catch (const std::exception& e) {
             throw std::runtime_error(std::string("Cannot rollback: Version is invalid against current schema: ") + e.what());
@@ -307,7 +322,7 @@ namespace mqtt::lib {
 
         // Overwrite active file
         fs::copy_file(backupPath, mapFilePath, fs::copy_options::overwrite_existing);
-        
+
         // Delete any existing draft to avoid confusion
         discardDraft(mapFilePath);
 

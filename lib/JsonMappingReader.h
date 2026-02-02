@@ -2,6 +2,8 @@
  * MQTTSuite - A lightweight MQTT Integration System
  * Copyright (C) Volker Christian <me@vchrist.at>
  *               2022, 2023, 2024, 2025, 2026
+ *               Tobias Pfeil
+ *               2025, 2026
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -45,11 +47,11 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <map>
-#include <vector>
 #include <nlohmann/json_fwd.hpp> // IWYU pragma: export
 #include <string>
+#include <vector>
 
-#endif
+#endif // DOXYGEN_SHOULD_SKIP_THIS
 
 namespace mqtt::lib {
 

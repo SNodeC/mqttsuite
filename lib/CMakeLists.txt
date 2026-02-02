@@ -1,6 +1,8 @@
 # MQTTSuite - A lightweight MQTT Integration System
 # Copyright (C) Volker Christian <me@vchrist.at>
 #               2022, 2023, 2024, 2025, 2026
+#               Tobias Pfeil
+#               2025, 2026
 #
 # This program is free software: you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -91,9 +93,14 @@ add_custom_command(
 
 add_library(
     mqtt-mapping STATIC
-    JsonMappingReader.cpp MqttMapper.cpp JsonMappingReader.h MqttMapper.h
-    mapping-schema.json.h inja.hpp
-    MappingAdminRouter.cpp MappingAdminRouter.h
+    JsonMappingReader.cpp
+    MqttMapper.cpp
+    JsonMappingReader.h
+    MqttMapper.h
+    mapping-schema.json.h
+    inja.hpp
+    MappingAdminRouter.cpp
+    MappingAdminRouter.h
 )
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")

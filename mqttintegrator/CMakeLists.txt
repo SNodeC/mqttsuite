@@ -1,6 +1,8 @@
 # MQTTSuite - A lightweight MQTT Integration System
 # Copyright (C) Volker Christian <me@vchrist.at>
 #               2022, 2023, 2024, 2025, 2026
+#               Tobias Pfeil
+#               2025, 2026
 #
 # This program is free software: you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -133,7 +135,6 @@ endif()
 if(CONFIG_MQTTSUITE_INTEGRATOR_WS OR CONFIG_MQTTSUITE_INTEGRATOR_WSS)
     list(APPEND MQTTINTEGRATOR_COMPONENTS http-client)
 endif()
-list(APPEND MQTTINTEGRATOR_COMPONENTS http-server-express-legacy-in)
 list(REMOVE_DUPLICATES MQTTINTEGRATOR_COMPONENTS)
 
 foreach(c IN LISTS MQTTINTEGRATOR_COMPONENTS)
@@ -150,7 +151,9 @@ add_subdirectory(websocket)
 
 find_package(nlohmann_json 3.7.0 REQUIRED)
 find_package(
-    snodec 1.0.0 REQUIRED COMPONENTS ${MQTTINTEGRATOR_COMPONENTS} mqtt-client
+    snodec 1.0.0 REQUIRED
+    COMPONENTS ${MQTTINTEGRATOR_COMPONENTS} http-server-express-legacy-in
+               http-server-express-tls-in
 )
 
 configure_file(
@@ -167,11 +170,12 @@ add_executable(mqttintegrator ${MQTTINTEGRATOR_CPP} ${MQTTINTEGRATOR_H})
 target_include_directories(mqttintegrator PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 
 target_link_libraries(
-    mqttintegrator PUBLIC ${MQTTINTEGRATOR_LINK_LIBS} mqtt-mapping
-                          mqtt-integrator
+    mqttintegrator
+    PUBLIC ${MQTTINTEGRATOR_LINK_LIBS} mqtt-mapping mqtt-integrator
+           snodec::http-server-express-legacy-in
+           snodec::http-server-express-tls-in
 )
 
 install(TARGETS mqttintegrator RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
-target_sources(mqttintegrator PRIVATE
-)
+target_sources(mqttintegrator PRIVATE)

@@ -60,7 +60,7 @@ namespace inja {
 #include <nlohmann/json_fwd.hpp> // IWYU pragma: export
 #include <string>
 
-#endif
+#endif // DOXYGEN_SHOULD_SKIP_THIS
 
 namespace mqtt::lib {
 
