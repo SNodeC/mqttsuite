@@ -46,10 +46,12 @@
 #include <functional>
 #include <iomanip>
 #include <log/Logger.h>
-#include <nlohmann/detail/json_ref.hpp>
 #include <nlohmann/json.hpp>
 #include <sstream>
 #include <web/http/server/SocketContext.h>
+
+// IWYU pragma: no_include <nlohmann/detail/json_ref.hpp>
+
 struct tm;
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
