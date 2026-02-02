@@ -116,7 +116,6 @@
 
 #endif
 
-static std::map<std::string, std::map<std::string, core::socket::stream::SocketConnection*>> bridges;
 static std::set<core::eventreceiver::ConnectEventReceiver*> activeConnectors;
 static std::set<std::shared_ptr<core::socket::stream::AutoConnectControl>> autoConnectControllers;
 
@@ -126,8 +125,14 @@ static std::string bridgeDefinitionFile = "<REQUIRED>";
 static void startBridges();
 
 static void tryRestartBridges() {
-    if (bridges.empty() && activeConnectors.empty() && restart) {
-        mqtt::bridge::lib::SSEDistributor::instance()->bridgesStopped();
+    bool empty = true;
+
+    for (const auto& [bridgeName, bridge] : mqtt::bridge::lib::BridgeStore::instance().getBridgeMap()) {
+        empty &= bridge.getMqttList().empty();
+    }
+
+    if (empty && activeConnectors.empty() && restart) {
+        mqtt::bridge::lib::SSEDistributor::instance().bridgesStopped();
 
         core::EventReceiver::atNextTick([]() {
             mqtt::bridge::lib::BridgeStore::instance().activateStaged();
@@ -155,40 +160,23 @@ static void handleConnector(core::eventreceiver::ConnectEventReceiver* connectEv
     }
 }
 
-static void addBridgeBrokerConnection(const mqtt::bridge::lib::Broker& broker, core::socket::stream::SocketConnection* socketConnection) {
-    const std::string& bridgeName(broker.getBridge().getName());
-
-    VLOG(1) << "Add bridge broker: " << socketConnection->getInstanceName();
-
-    mqtt::bridge::lib::SSEDistributor::instance()->brokerConnected(bridgeName, socketConnection->getInstanceName());
-
-    bridges[bridgeName][socketConnection->getInstanceName()] = socketConnection;
+static void addBridgeBrokerConnection(core::socket::stream::SocketConnection* socketConnection) {
+    VLOG(1) << "Connection established: " << socketConnection->getInstanceName();
 }
 
-static void delBridgeBrokerConnection(const mqtt::bridge::lib::Broker& broker, core::socket::stream::SocketConnection* socketConnection) {
-    const std::string& bridgeName(broker.getBridge().getName());
-
-    VLOG(1) << "Del bridge broker: " << socketConnection->getInstanceName();
-
-    mqtt::bridge::lib::SSEDistributor::instance()->brokerDisconnected(bridgeName, socketConnection->getInstanceName());
-
-    if (bridges.contains(bridgeName) && bridges[bridgeName].contains(socketConnection->getInstanceName())) {
-        bridges[bridgeName].erase(socketConnection->getInstanceName());
-        if (bridges[bridgeName].empty()) {
-            bridges.erase(bridgeName);
-        }
-    }
+static void delBridgeBrokerConnection(core::socket::stream::SocketConnection* socketConnection) {
+    VLOG(1) << "Connection closed: " << socketConnection->getInstanceName();
 
     tryRestartBridges();
 }
 
 static void closeBridges() {
-    mqtt::bridge::lib::SSEDistributor::instance()->bridgesStopping();
+    mqtt::bridge::lib::SSEDistributor::instance().bridgesStopping();
 
     for (const auto& [bridgeName, bridge] : mqtt::bridge::lib::BridgeStore::instance().getBridgeMap()) {
-        mqtt::bridge::lib::SSEDistributor::instance()->bridgeStopping(bridgeName);
+        mqtt::bridge::lib::SSEDistributor::instance().bridgeStopping(bridgeName);
         for (const auto& mqtt : bridge.getMqttList()) {
-            mqtt::bridge::lib::SSEDistributor::instance()->brokerDisconnecting(
+            mqtt::bridge::lib::SSEDistributor::instance().brokerDisconnecting(
                 bridgeName, mqtt->getMqttContext()->getSocketConnection()->getInstanceName());
 
             mqtt->sendDisconnect();
@@ -260,12 +248,10 @@ startClient(const std::string& instanceName,
 
     socketClient
         .setOnConnected([](core::socket::stream::SocketConnection* socketConnection) {
-            addBridgeBrokerConnection(*mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
-                                      socketConnection);
+            addBridgeBrokerConnection(socketConnection);
         })
         .setOnDisconnect([](core::socket::stream::SocketConnection* socketConnection) {
-            delBridgeBrokerConnection(*mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
-                                      socketConnection);
+            delBridgeBrokerConnection(socketConnection);
         })
         .setOnInitState([](core::eventreceiver::ConnectEventReceiver* connectEventReceiver) {
             handleConnector(connectEventReceiver);
@@ -338,12 +324,10 @@ void startClient(const std::string& name, const std::function<void(typename Http
 
     httpClient
         .setOnConnected([](core::socket::stream::SocketConnection* socketConnection) {
-            addBridgeBrokerConnection(*mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
-                                      socketConnection);
+            addBridgeBrokerConnection(socketConnection);
         })
         .setOnDisconnect([](core::socket::stream::SocketConnection* socketConnection) {
-            delBridgeBrokerConnection(*mqtt::bridge::lib::BridgeStore::instance().getBroker(socketConnection->getInstanceName()),
-                                      socketConnection);
+            delBridgeBrokerConnection(socketConnection);
         })
         .setOnInitState([](core::eventreceiver::ConnectEventReceiver* connectEventReceiver) {
             handleConnector(connectEventReceiver);
@@ -357,17 +341,17 @@ void startClient(const std::string& name, const std::function<void(typename Http
 }
 
 static void startBridges() {
-    mqtt::bridge::lib::SSEDistributor::instance()->bridgesStarting();
+    mqtt::bridge::lib::SSEDistributor::instance().bridgesStarting();
 
     for (const auto& [bridgeName, bridge] : mqtt::bridge::lib::BridgeStore::instance().getBridgeMap()) {
         VLOG(0) << "Starting bridge: " << bridgeName;
 
         if (!bridge.getDisabled()) {
-            mqtt::bridge::lib::SSEDistributor::instance()->bridgeStarting(bridgeName);
+            mqtt::bridge::lib::SSEDistributor::instance().bridgeStarting(bridgeName);
 
             for (const auto& [fullInstanceName, broker] : bridge.getBrokerMap()) {
                 if (!broker.getDisabled()) {
-                    mqtt::bridge::lib::SSEDistributor::instance()->brokerConnecting(bridgeName, fullInstanceName);
+                    mqtt::bridge::lib::SSEDistributor::instance().brokerConnecting(bridgeName, fullInstanceName);
 
                     VLOG(1) << "  Creating broker instance: " << fullInstanceName;
                     VLOG(1) << "    Broker prefix: " << broker.getPrefix();
@@ -576,11 +560,11 @@ static void startBridges() {
                         VLOG(1) << "    Transport '" << transport << "' not supported.";
                     }
                 } else {
-                    mqtt::bridge::lib::SSEDistributor::instance()->brokerDisabled(bridgeName, fullInstanceName);
+                    mqtt::bridge::lib::SSEDistributor::instance().brokerDisabled(bridgeName, fullInstanceName);
                 }
             }
         } else {
-            mqtt::bridge::lib::SSEDistributor::instance()->bridgeDisabled(bridgeName);
+            mqtt::bridge::lib::SSEDistributor::instance().bridgeDisabled(bridgeName);
         }
     }
 }
@@ -652,7 +636,7 @@ int main(int argc, char* argv[]) {
             res->sendHeader();
 
             std::string data{"data"};
-            mqtt::bridge::lib::SSEDistributor::instance()->addEventReceiver(res, req->get("Last-Event-ID"));
+            mqtt::bridge::lib::SSEDistributor::instance().addEventReceiver(res, req->get("Last-Event-ID"));
         } else {
             res->redirect("/clients");
         }
@@ -672,14 +656,12 @@ int main(int argc, char* argv[]) {
     express::legacy::in::Server("admin-legacy", router, reportState, [](auto& config) {
         config.setPort(8081);
         config.setRetry();
-        config.setDisableNagleAlgorithm();
         config.setReuseAddress();
     });
 
     express::tls::in::Server("admin-tls", router, reportState, [](auto& config) {
         config.setPort(8082);
         config.setRetry();
-        config.setDisableNagleAlgorithm();
         config.setReuseAddress();
     });
 

@@ -55,7 +55,7 @@
 
 namespace mqtt::bridge::lib {
 
-    Mqtt::Mqtt(const std::string& connectionName, const Broker& broker)
+    Mqtt::Mqtt(const std::string& connectionName, Broker& broker)
         : iot::mqtt::client::Mqtt(connectionName, //
                                   broker.getClientId(),
                                   broker.getKeepAlive(),
@@ -92,7 +92,7 @@ namespace mqtt::bridge::lib {
     }
 
     void Mqtt::onDisconnected() {
-        broker.getBridge().removeMqtt(this);
+        mqtt::bridge::lib::BridgeStore::instance().mqttDisconnected(broker, this);
 
         VLOG(1) << "MQTT: Disconnected";
     }
@@ -108,7 +108,7 @@ namespace mqtt::bridge::lib {
 
     void Mqtt::onConnack(const iot::mqtt::packets::Connack& connack) {
         if (connack.getReturnCode() == 0) {
-            broker.getBridge().addMqtt(this);
+            mqtt::bridge::lib::BridgeStore::instance().mqttConnected(broker, this);
 
             sendSubscribe(broker.getTopics());
         }

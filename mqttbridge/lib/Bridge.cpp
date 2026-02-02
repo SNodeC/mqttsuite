@@ -42,6 +42,10 @@
 #include "lib/Bridge.h"
 
 #include "lib/Mqtt.h"
+#include "lib/SSEDistributor.h"
+
+#include <core/socket/stream/SocketConnection.h>
+#include <iot/mqtt/MqttContext.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
@@ -65,10 +69,12 @@ namespace mqtt::bridge::lib {
     }
 
     void Bridge::addBroker(const std::string& fullInstanceName, Broker&& broker) {
+        enabledBroker += !broker.getDisabled() ? 1 : 0;
+
         brokerMap.emplace(fullInstanceName, std::move(broker));
     }
 
-    const Broker* Bridge::getBroker(const std::string& fullInstanceName) const {
+    Broker* Bridge::getBroker(const std::string& fullInstanceName) {
         return &brokerMap.find(fullInstanceName)->second;
     }
 
@@ -78,10 +84,24 @@ namespace mqtt::bridge::lib {
 
     void Bridge::addMqtt(mqtt::bridge::lib::Mqtt* mqtt) {
         mqttList.push_back(mqtt);
+
+        mqtt::bridge::lib::SSEDistributor::instance().brokerConnected(name,
+                                                                      mqtt->getMqttContext()->getSocketConnection()->getInstanceName());
+
+        if (mqttList.size() == enabledBroker) {
+            mqtt::bridge::lib::SSEDistributor::instance().bridgeStarted(name);
+        }
     }
 
     void Bridge::removeMqtt(mqtt::bridge::lib::Mqtt* mqtt) {
         mqttList.remove(mqtt);
+
+        mqtt::bridge::lib::SSEDistributor::instance().brokerDisconnected(name,
+                                                                         mqtt->getMqttContext()->getSocketConnection()->getInstanceName());
+
+        if (mqttList.size() == 0) {
+            mqtt::bridge::lib::SSEDistributor::instance().bridgeStopped(name);
+        }
     }
 
     void Bridge::publish(const mqtt::bridge::lib::Mqtt* originMqtt, const iot::mqtt::packets::Publish& publish) {
@@ -104,6 +124,10 @@ namespace mqtt::bridge::lib {
 
     bool Bridge::getDisabled() const {
         return disabled;
+    }
+
+    bool Bridge::getAllConnected1() const {
+        return mqttList.size() == enabledBroker || disabled;
     }
 
     bool Bridge::operator<(const Bridge& rhs) const {

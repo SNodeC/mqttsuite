@@ -1,7 +1,7 @@
 /*
  * MQTTSuite - A lightweight MQTT Integration System
- * Copyright (C) Volker Christian <me@vchrist.at>
- *               2022, 2023, 2024, 2025, 2026
+ * Copyright (C) Tobias Pfeil
+ *               2025, 2026
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -39,62 +39,32 @@
  * THE SOFTWARE.
  */
 
-#ifndef BRIDGECONFIGLOADER_H
-#define BRIDGECONFIGLOADER_H
-
-#include "lib/Bridge.h" // IWYU pragma: export
-#include "lib/Broker.h" // IWYU pragma: export
+#ifndef MQTTBROKER_LIB_MAPPINGADMINROUTER_H
+#define MQTTBROKER_LIB_MAPPINGADMINROUTER_H
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include "nlohmann/json-schema.hpp"
-
-#include <map>
-#include <nlohmann/json.hpp>
-// IWYU pragma: no_include <nlohmann/json_fwd.hpp>
+#include <express/Router.h>
+//
+#include <functional>
 #include <string>
 
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
-namespace mqtt::bridge::lib {
+namespace mqtt::lib::admin {
 
-    class BridgeStore {
-    private:
-        BridgeStore() = default;
-
-    public:
-        BridgeStore(const BridgeStore&) = delete;
-        BridgeStore(BridgeStore&&) = delete;
-
-        BridgeStore& operator=(const BridgeStore&) = delete;
-        BridgeStore& operator=(const BridgeStore&&) = delete;
-
-        static BridgeStore& instance();
-
-        bool loadAndValidate(const std::string& fileName);
-        bool patch(const nlohmann::json& jsonPatch);
-        void activateStaged();
-
-        Broker* getBroker(const std::string& fullInstanceName);
-        const std::map<std::string, Broker>& getBrokers() const;
-
-        const std::map<const std::string, Bridge>& getBridgeMap();
-
-        const nlohmann::json& getBridgesConfigJson();
-
-        void mqttConnected(Broker& broker, mqtt::bridge::lib::Mqtt* mqtt) const;
-        void mqttDisconnected(Broker& broker, mqtt::bridge::lib::Mqtt* mqtt) const;
-
-    private:
-        std::map<const std::string, Bridge> bridgeMap;
-
-        nlohmann::json bridgesConfigJsonActive;
-        nlohmann::json bridgesConfigJsonStaged;
-        nlohmann::json_schema::json_validator validator;
-
-        std::string fileName;
+    struct AdminOptions {
+        std::string user{"admin"};
+        std::string pass{"admin"};
+        std::string realm{"mqttsuite-admin"};
     };
 
-} // namespace mqtt::bridge::lib
+    // Callback to trigger reload in the main application
+    using ReloadCallback = std::function<void()>;
 
-#endif // BRIDGECONFIGLOADER_H
+    // Creates and returns a Router that handles /config/* endpoints.
+    express::Router makeMappingAdminRouter(const std::string& mappingFilePath, const AdminOptions& opt, ReloadCallback onDeploy);
+
+} // namespace mqtt::lib::admin
+
+#endif // MQTTBROKER_LIB_MAPPINGADMINROUTER_H

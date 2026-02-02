@@ -57,7 +57,7 @@ namespace mqtt::bridge::lib {
 
     class Mqtt : public iot::mqtt::client::Mqtt {
     public:
-        explicit Mqtt(const std::string& connectionName, const Broker& broker);
+        explicit Mqtt(const std::string& connectionName, Broker& broker);
 
         const Broker& getBroker() const;
 
@@ -71,7 +71,7 @@ namespace mqtt::bridge::lib {
         void onConnack(const iot::mqtt::packets::Connack& connack) final;
         void onPublish(const iot::mqtt::packets::Publish& publish) final;
 
-        const Broker& broker;
+        Broker& broker;
     };
 
 } // namespace mqtt::bridge::lib

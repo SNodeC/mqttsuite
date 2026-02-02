@@ -4,6 +4,15 @@
     "mapping"
   ],
   "properties": {
+    "meta": {
+      "type": "object",
+      "properties": {
+        "version": { "type": "string", "description": "Auto-generated timestamp or ID" },
+        "comment": { "type": "string", "description": "User description of this configuration state" },
+        "author": { "type": "string" },
+        "created": { "type": "string", "format": "date-time" }
+      }
+    },
     "discover_prefix": {
       "type": "string",
       "default": ""
