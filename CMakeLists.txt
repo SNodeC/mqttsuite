@@ -65,7 +65,6 @@ add_compile_options(
     -Wextra
     -Wconversion
     -Wpedantic
-    -Wconversion
     -Wuninitialized
     -Wunreachable-code
     -Wfloat-equal

@@ -44,22 +44,6 @@
 #include "lib/Mqtt.h"
 #include "lib/MqttModel.h"
 
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#ifdef __has_warning
-#if __has_warning("-Wcovered-switch-default")
-#pragma GCC diagnostic ignored "-Wcovered-switch-default"
-#endif
-#if __has_warning("-Wnrvo")
-#pragma GCC diagnostic ignored "-Wnrvo"
-#endif
-#endif
-#endif
-#include "lib/inja.hpp"
-#ifdef __GNUC_
-#pragma GCC diagnostic pop
-#endif
-
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <core/SNodeC.h>
@@ -163,8 +147,7 @@ static void upgrade APPLICATION(req, res) {
     }
 }
 
-static express::Router getRouter([[maybe_unused]] const inja::Environment& environment,
-                                 std::shared_ptr<iot::mqtt::server::broker::Broker> broker) {
+static express::Router getRouter(std::shared_ptr<iot::mqtt::server::broker::Broker> broker) {
     const express::Router& jsonRouter = express::middleware::JsonMiddleware();
 
     /*
@@ -478,8 +461,7 @@ int main(int argc, char* argv[]) {
 #endif
 #endif
 
-    inja::Environment environment{utils::Config::getStringOptionValue("--html-dir") + "/"};
-    express::Router router = getRouter(environment, broker);
+    express::Router router = getRouter(broker);
 
 #ifdef CONFIG_MQTTSUITE_BROKER_TCP_IPV4
     express::legacy::in::Server("in-http", router, reportState, [](auto& config) {
