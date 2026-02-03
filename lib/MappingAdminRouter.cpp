@@ -49,10 +49,11 @@
 #include <express/middleware/JsonMiddleware.h>
 //
 #include <exception>
-#include <nlohmann/detail/json_ref.hpp>
 #include <nlohmann/json-schema.hpp>
 #include <nlohmann/json.hpp>
 #include <vector>
+
+// IWYU pragma: no_include <nlohmann/detail/json_ref.hpp>
 
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
