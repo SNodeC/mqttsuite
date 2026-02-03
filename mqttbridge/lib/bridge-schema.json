@@ -73,15 +73,10 @@
         },
         "topics": {
           "type": "array",
-          "minItems": 1,
           "items": {
             "$ref": "#/$defs/topic"
           },
           "default": [
-            {
-              "topic": "#",
-              "qos": 0
-            }
           ]
         }
       }
