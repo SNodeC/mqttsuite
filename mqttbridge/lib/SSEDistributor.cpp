@@ -46,10 +46,12 @@
 #include <functional>
 #include <iomanip>
 #include <log/Logger.h>
-#include <nlohmann/detail/json_ref.hpp>
 #include <nlohmann/json.hpp>
 #include <sstream>
 #include <web/http/server/SocketContext.h>
+
+// IWYU pragma: no_include <nlohmann/detail/json_ref.hpp>
+
 struct tm;
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -62,10 +64,10 @@ namespace mqtt::bridge::lib {
         : onlineSinceTimePoint(std::chrono::system_clock::now()) {
     }
 
-    SSEDistributor* SSEDistributor::instance() {
+    SSEDistributor& SSEDistributor::instance() {
         static SSEDistributor sseDistributor;
 
-        return &sseDistributor;
+        return sseDistributor;
     }
 
     void SSEDistributor::addEventReceiver(const std::shared_ptr<express::Response>& response,
@@ -76,7 +78,9 @@ namespace mqtt::bridge::lib {
             eventReceiverList.remove(eventReceiver);
         });
 
-        sendJsonEvent({{"at", timePointToString(bridgesStartTimePoint)}}, "bridge-start", std::to_string(id++));
+        for (const auto& event : replayEvents) {
+            sendEvent(response, event.getData(), event.getEvent(), event.getId());
+        }
     }
 
     void SSEDistributor::sendEvent(const std::shared_ptr<express::Response>& response,
@@ -102,33 +106,86 @@ namespace mqtt::bridge::lib {
         sendEvent(response, json.dump(), event, id);
     }
 
-    void SSEDistributor::sendEvent(const std::string& data, const std::string& event, const std::string& id) const {
+    void SSEDistributor::sendEvent(const std::string& data, const std::string& event, const std::string& id) {
         VLOG(0) << "Server sent event: " << event << "\n" << data;
 
         for (auto& eventReceiver : eventReceiverList) {
-            if (const auto& response = eventReceiver.response.lock()) {
+            if (const auto& response = eventReceiver.getResponse()) {
                 sendEvent(response, data, event, id);
             }
         }
+
+        replayEvents.emplace_back(data, event, id);
     }
 
-    void SSEDistributor::sendJsonEvent(const nlohmann::json& json, const std::string& event, const std::string& id) const {
+    void SSEDistributor::sendJsonEvent(const nlohmann::json& json, const std::string& event, const std::string& id) {
         sendEvent(json.dump(), event, id);
     }
 
-    void SSEDistributor::bridgesStopped() {
-        sendJsonEvent({{"at", timePointToString(std::chrono::system_clock::now())}}, "bridge_stopped", std::to_string(id++));
+    void SSEDistributor::bridgesStarting() {
+        replayEvents.clear();
+
+        sendJsonEvent({{"at", timePointToString(std::chrono::system_clock::now())}}, "bridges_starting", std::to_string(id++));
     }
 
     void SSEDistributor::bridgesStarted() {
-        bridgesStartTimePoint = std::chrono::system_clock::now();
+        sendJsonEvent({{"at", timePointToString(std::chrono::system_clock::now())}}, "bridges_started", std::to_string(id++));
+    }
 
-        sendJsonEvent({{"at", timePointToString(bridgesStartTimePoint)}}, "bridge_start", std::to_string(id++));
+    void SSEDistributor::bridgesStopping() {
+        sendJsonEvent({{"at", timePointToString(std::chrono::system_clock::now())}}, "bridges_stopping", std::to_string(id++));
+    }
+
+    void SSEDistributor::bridgesStopped() {
+        sendJsonEvent({{"at", timePointToString(std::chrono::system_clock::now())}}, "bridges_stopped", std::to_string(id++));
+    }
+
+    void SSEDistributor::bridgeDisabled(const std::string& bridgeName) {
+        sendJsonEvent(
+            {{"at", timePointToString(std::chrono::system_clock::now())}, {"name", bridgeName}}, "bridge_disabled", std::to_string(id++));
+    }
+
+    void SSEDistributor::bridgeStarting(const std::string& bridgeName) {
+        sendJsonEvent(
+            {{"at", timePointToString(std::chrono::system_clock::now())}, {"name", bridgeName}}, "bridge_starting", std::to_string(id++));
+    }
+
+    void SSEDistributor::bridgeStarted(const std::string& bridgeName) {
+        sendJsonEvent(
+            {{"at", timePointToString(std::chrono::system_clock::now())}, {"name", bridgeName}}, "bridge_started", std::to_string(id++));
+    }
+
+    void SSEDistributor::bridgeStopping(const std::string& bridgeName) {
+        sendJsonEvent(
+            {{"at", timePointToString(std::chrono::system_clock::now())}, {"name", bridgeName}}, "bridge_stopping", std::to_string(id++));
+    }
+
+    void SSEDistributor::bridgeStopped(const std::string& bridgeName) {
+        sendJsonEvent(
+            {{"at", timePointToString(std::chrono::system_clock::now())}, {"name", bridgeName}}, "bridge_stopped", std::to_string(id++));
+    }
+
+    void SSEDistributor::brokerDisabled(const std::string& bridgeName, const std::string& instanceName) {
+        sendJsonEvent({{"at", timePointToString(std::chrono::system_clock::now())}, {"bridge", bridgeName}, {"instance", instanceName}},
+                      "broker_disabled",
+                      std::to_string(id++));
+    }
+
+    void SSEDistributor::brokerConnecting(const std::string& bridgeName, const std::string& instanceName) {
+        sendJsonEvent({{"at", timePointToString(std::chrono::system_clock::now())}, {"bridge", bridgeName}, {"instance", instanceName}},
+                      "broker_connecting",
+                      std::to_string(id++));
     }
 
     void SSEDistributor::brokerConnected(const std::string& bridgeName, const std::string& instanceName) {
         sendJsonEvent({{"at", timePointToString(std::chrono::system_clock::now())}, {"bridge", bridgeName}, {"instance", instanceName}},
                       "broker_connected",
+                      std::to_string(id++));
+    }
+
+    void SSEDistributor::brokerDisconnecting(const std::string& bridgeName, const std::string& instanceName) {
+        sendJsonEvent({{"at", timePointToString(std::chrono::system_clock::now())}, {"bridge", bridgeName}, {"instance", instanceName}},
+                      "broker_disconnecting",
                       std::to_string(id++));
     }
 
@@ -196,8 +253,30 @@ namespace mqtt::bridge::lib {
         heartbeatTimer.cancel();
     }
 
+    std::shared_ptr<express::Response> SSEDistributor::EventReceiver::getResponse() const {
+        return response.lock();
+    }
+
     bool SSEDistributor::EventReceiver::operator==(const EventReceiver& other) {
         return response.lock() == other.response.lock();
+    }
+
+    SSEDistributor::Event::Event(const std::string& data, const std::string& event, const std::string& id)
+        : data(data)
+        , event(event)
+        , id(id) {
+    }
+
+    const std::string& SSEDistributor::Event::getData() const {
+        return data;
+    }
+
+    const std::string& SSEDistributor::Event::getEvent() const {
+        return event;
+    }
+
+    const std::string& SSEDistributor::Event::getId() const {
+        return id;
     }
 
 } // namespace mqtt::bridge::lib
