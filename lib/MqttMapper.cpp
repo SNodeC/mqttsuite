@@ -222,7 +222,7 @@ namespace mqtt::lib {
     }
 
     void MqttMapper::publishMapping(const std::string& topic, const std::string& message, uint8_t qoS, bool retain, double delay) {
-        if (delay == 0.0) {
+        if (delay <= 0.0) {
             publishMapping(topic, message, qoS, retain);
         } else {
             delayedQueue.delayPublish(delay, topic, message, qoS, retain);
