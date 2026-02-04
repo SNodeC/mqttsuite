@@ -279,8 +279,4 @@ namespace mqtt::bridge::lib {
         return id;
     }
 
-<<<<<<< HEAD
 } // namespace mqtt::bridge::lib
-=======
-} // namespace mqtt::bridge::lib
->>>>>>> 2e51d732122e97d452b5007492989395aeb1a8a7
