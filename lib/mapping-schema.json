@@ -304,6 +304,11 @@
                   "minimum": 0,
                   "maximum": 2,
                   "default": 0
+                },
+                "delay": {
+                  "type": "number",
+                  "minimum": 0,
+                  "default": 0
                 }
               }
             }

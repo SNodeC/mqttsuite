@@ -92,6 +92,7 @@ namespace mqtt::lib {
 
                                 try {
                                     mapFileJsons[mapFilePath] = mapFileJsons[mapFilePath].patch(defaultPatch);
+                                    VLOG(0) << "Patched: \n" << mapFileJsons[mapFilePath].dump(4);
                                 } catch (const std::exception& e) {
                                     VLOG(1) << e.what();
                                     VLOG(1) << "Patching JSON with default patch failed:\n" << defaultPatch.dump(4);
