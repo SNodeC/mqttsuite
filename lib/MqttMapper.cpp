@@ -470,7 +470,7 @@ namespace mqtt::lib {
     void MqttMapper::DelayedQueue::delayPublish(
         const utils::Timeval& timeval, const std::string& topic, const std::string& message, uint8_t qoS, bool retain) {
         minHeap.push(ScheduledPublish{
-            utils::Timeval::currentTime() + timeval, timeval, nextSeq_++, std::move(topic), std::move(message), qoS, retain});
+            utils::Timeval::currentTime() + timeval, timeval, nextSeq++, std::move(topic), std::move(message), qoS, retain});
 
         armDelayTimer();
     }

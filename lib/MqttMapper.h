@@ -142,7 +142,7 @@ namespace mqtt::lib {
 
         private:
             MqttMapper* mqttMapper;
-            std::size_t nextSeq_ = 0;
+            std::size_t nextSeq = 0;
             std::priority_queue<ScheduledPublish, std::vector<ScheduledPublish>, EarlierFirst> minHeap;
 
             core::timer::Timer delayTimer;
