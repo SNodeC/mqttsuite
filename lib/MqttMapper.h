@@ -80,6 +80,7 @@ namespace mqtt::lib {
 
     private:
         virtual void publishMapping(const std::string& topic, const std::string& message, uint8_t qoS, bool retain) = 0;
+        void publishMapping(const std::string& topic, const std::string& message, uint8_t qoS, bool retain, double delay);
 
         static void
         extractSubscription(const nlohmann::json& topicLevelJson, const std::string& topic, std::list<iot::mqtt::Topic>& topicList);
@@ -92,7 +93,7 @@ namespace mqtt::lib {
         void
         publishMappedTemplates(const nlohmann::json& templateMapping, nlohmann::json& json, const iot::mqtt::packets::Publish& publish);
 
-        void publishMappedMessage(const std::string& topic, const std::string& message, uint8_t qoS, bool retain);
+        void publishMappedMessage(const std::string& topic, const std::string& message, uint8_t qoS, bool retain, double delay);
         void publishMappedMessage(const nlohmann::json& staticMapping, const iot::mqtt::packets::Publish& publish);
         void publishMappedMessages(const nlohmann::json& staticMapping, const iot::mqtt::packets::Publish& publish);
 
