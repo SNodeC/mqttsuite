@@ -41,12 +41,18 @@
 
 #include "lib/Bridge.h"
 
-#include "lib/Broker.h"
 #include "lib/Mqtt.h"
+#include "lib/SSEDistributor.h"
+
+#include <core/socket/stream/SocketConnection.h>
+#include <iot/mqtt/MqttContext.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include <compare>
 #include <iot/mqtt/packets/Publish.h>
+#include <map>
+#include <utility>
 
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
@@ -58,16 +64,44 @@ namespace mqtt::bridge::lib {
         , disabled(disabled) {
     }
 
-    const std::string& Bridge::getName() {
+    const std::string& Bridge::getName() const {
         return name;
+    }
+
+    void Bridge::addBroker(const std::string& fullInstanceName, Broker&& broker) {
+        enabledBroker += !broker.getDisabled() ? 1 : 0;
+
+        brokerMap.emplace(fullInstanceName, std::move(broker));
+    }
+
+    Broker* Bridge::getBroker(const std::string& fullInstanceName) {
+        return &brokerMap.find(fullInstanceName)->second;
+    }
+
+    const std::map<const std::string, Broker>& Bridge::getBrokerMap() const {
+        return brokerMap;
     }
 
     void Bridge::addMqtt(mqtt::bridge::lib::Mqtt* mqtt) {
         mqttList.push_back(mqtt);
+
+        mqtt::bridge::lib::SSEDistributor::instance().brokerConnected(name,
+                                                                      mqtt->getMqttContext()->getSocketConnection()->getInstanceName());
+
+        if (mqttList.size() == enabledBroker) {
+            mqtt::bridge::lib::SSEDistributor::instance().bridgeStarted(name);
+        }
     }
 
     void Bridge::removeMqtt(mqtt::bridge::lib::Mqtt* mqtt) {
         mqttList.remove(mqtt);
+
+        mqtt::bridge::lib::SSEDistributor::instance().brokerDisconnected(name,
+                                                                         mqtt->getMqttContext()->getSocketConnection()->getInstanceName());
+
+        if (mqttList.size() == 0) {
+            mqtt::bridge::lib::SSEDistributor::instance().bridgeStopped(name);
+        }
     }
 
     void Bridge::publish(const mqtt::bridge::lib::Mqtt* originMqtt, const iot::mqtt::packets::Publish& publish) {
@@ -90,6 +124,14 @@ namespace mqtt::bridge::lib {
 
     bool Bridge::getDisabled() const {
         return disabled;
+    }
+
+    bool Bridge::getAllConnected1() const {
+        return mqttList.size() == enabledBroker || disabled;
+    }
+
+    bool Bridge::operator<(const Bridge& rhs) const {
+        return name < rhs.name;
     }
 
     const std::list<const Mqtt*>& Bridge::getMqttList() const {

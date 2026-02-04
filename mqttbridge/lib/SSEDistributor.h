@@ -68,24 +68,72 @@ namespace mqtt::bridge::lib {
 
             ~EventReceiver();
 
-            std::weak_ptr<express::Response> response;
+            std::shared_ptr<express::Response> getResponse() const;
 
             bool operator==(const EventReceiver& other);
 
+        private:
+            std::weak_ptr<express::Response> response;
+
             core::timer::Timer heartbeatTimer;
+        };
+
+        class Event {
+        public:
+            Event(const std::string& data, const std::string& event, const std::string& id);
+
+            Event(const Event&) = delete;
+            Event(Event&&) = delete;
+
+            Event& operator=(const Event&) = delete;
+            Event& operator=(Event&&) = delete;
+
+            const std::string& getData() const;
+            const std::string& getEvent() const;
+            const std::string& getId() const;
+
+        private:
+            std::string data;
+            std::string event;
+            std::string id;
         };
 
         SSEDistributor();
 
     public:
-        static SSEDistributor* instance();
+        static SSEDistributor& instance();
 
         SSEDistributor(const SSEDistributor&) = delete;
         SSEDistributor& operator=(const SSEDistributor&) = delete;
+
+        SSEDistributor(SSEDistributor&&) = delete;
+        SSEDistributor& operator=(SSEDistributor&&) = delete;
+
         ~SSEDistributor() = default;
 
         void addEventReceiver(const std::shared_ptr<express::Response>& response, const std::string& lastEventId);
 
+        void bridgesStarting();
+        void bridgesStarted();
+
+        void bridgesStopping();
+        void bridgesStopped();
+
+        void bridgeDisabled(const std::string& bridgeName);
+        void bridgeStarting(const std::string& bridgeName);
+        void bridgeStarted(const std::string& bridgeName);
+
+        void bridgeStopping(const std::string& bridgeName);
+        void bridgeStopped(const std::string& bridgeName);
+
+        void brokerDisabled(const std::string& bridgeName, const std::string& instanceName);
+        void brokerConnecting(const std::string& bridgeName, const std::string& instanceName);
+        void brokerConnected(const std::string& bridgeName, const std::string& instanceName);
+
+        void brokerDisconnecting(const std::string& bridgeName, const std::string& instanceName);
+        void brokerDisconnected(const std::string& bridgeName, const std::string& instanceName);
+
+    private:
         static void sendEvent(const std::shared_ptr<express::Response>& response,
                               const std::string& data,
                               const std::string& event,
@@ -95,15 +143,9 @@ namespace mqtt::bridge::lib {
                                   const nlohmann::json& json,
                                   const std::string& event = "",
                                   const std::string& id = "");
-        void sendEvent(const std::string& data, const std::string& event = "", const std::string& id = "") const;
-        void sendJsonEvent(const nlohmann::json& json, const std::string& event = "", const std::string& id = "") const;
+        void sendEvent(const std::string& data, const std::string& event = "", const std::string& id = "");
+        void sendJsonEvent(const nlohmann::json& json, const std::string& event = "", const std::string& id = "");
 
-        void bridgesStopped();
-        void bridgesStarted();
-        void brokerConnected(const std::string& bridgeName, const std::string& instanceName);
-        void brokerDisconnected(const std::string& bridgeName, const std::string& instanceName);
-
-    private:
         static std::string timePointToString(const std::chrono::time_point<std::chrono::system_clock>& timePoint);
         static std::string
         durationToString(const std::chrono::time_point<std::chrono::system_clock>& bevore,
@@ -115,6 +157,8 @@ namespace mqtt::bridge::lib {
         std::chrono::time_point<std::chrono::system_clock> onlineSinceTimePoint;
         std::chrono::time_point<std::chrono::system_clock> bridgesStartTimePoint;
         uint64_t id = 0;
+
+        std::list<Event> replayEvents;
     };
 
 } // namespace mqtt::bridge::lib

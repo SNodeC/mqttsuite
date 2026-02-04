@@ -2,6 +2,8 @@
  * MQTTSuite - A lightweight MQTT Integration System
  * Copyright (C) Volker Christian <me@vchrist.at>
  *               2022, 2023, 2024, 2025, 2026
+ *               Tobias Pfeil
+ *               2025, 2026
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -49,6 +51,7 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <cstdint>
+#include <set>
 #include <string>
 
 #endif
@@ -64,6 +67,9 @@ namespace mqtt::mqttintegrator::lib {
                       const nlohmann::json& mappingJson,
                       const std::string& sessionStoreFileName);
 
+        ~Mqtt() override;
+        static void reloadAll();
+
     private:
         using Super = iot::mqtt::client::Mqtt;
 
@@ -76,6 +82,8 @@ namespace mqtt::mqttintegrator::lib {
         void publishMapping(const std::string& topic, const std::string& message, uint8_t qoS, bool retain) final;
 
         const nlohmann::json& connectionJson;
+
+        static std::set<Mqtt*> instances;
     };
 
 } // namespace mqtt::mqttintegrator::lib

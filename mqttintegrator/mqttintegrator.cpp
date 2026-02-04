@@ -2,6 +2,8 @@
  * MQTTSuite - A lightweight MQTT Integration System
  * Copyright (C) Volker Christian <me@vchrist.at>
  *               2022, 2023, 2024, 2025, 2026
+ *               Tobias Pfeil
+ *               2025, 2026
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -73,12 +75,19 @@
 #include <web/http/tls/in6/Client.h>
 #include <web/http/tls/un/Client.h>
 //
+#include <express/legacy/in/Server.h>
+#include <express/tls/in/Server.h>
+//
 #include <log/Logger.h>
 #include <utils/Config.h>
 //
 #include <string>
 
 #endif
+
+// admin API
+#include "lib/MappingAdminRouter.h"
+#include "lib/Mqtt.h"
 
 static void
 reportState(const std::string& instanceName, const core::socket::SocketAddress& socketAddress, const core::socket::State& state) {
@@ -150,6 +159,23 @@ int main(int argc, char* argv[]) {
     utils::Config::addStringOption("--mqtt-session-store", "Path to file for the persistent session store", "[path]", "");
 
     core::SNodeC::init(argc, argv);
+
+    const std::string mappingPath = utils::Config::getStringOptionValue("--mqtt-mapping-file");
+
+    // Instanciate Admin Router for Mapping Management
+    express::Router router = mqtt::lib::admin::makeMappingAdminRouter(mappingPath, mqtt::lib::admin::AdminOptions{}, []() {
+        mqtt::mqttintegrator::lib::Mqtt::reloadAll();
+    });
+
+    express::legacy::in::Server("in-http", router, reportState, [](auto& config) {
+        config.setPort(8085);
+        config.setRetry();
+    });
+
+    express::tls::in::Server("in-https", router, reportState, [](auto& config) {
+        config.setPort(8086);
+        config.setRetry();
+    });
 
     std::string sessionStoreFileName = utils::Config::getStringOptionValue("--mqtt-session-store");
 

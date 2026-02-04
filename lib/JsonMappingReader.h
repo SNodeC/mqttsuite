@@ -2,6 +2,8 @@
  * MQTTSuite - A lightweight MQTT Integration System
  * Copyright (C) Volker Christian <me@vchrist.at>
  *               2022, 2023, 2024, 2025, 2026
+ *               Tobias Pfeil
+ *               2025, 2026
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -47,8 +49,9 @@
 #include <map>
 #include <nlohmann/json_fwd.hpp> // IWYU pragma: export
 #include <string>
+#include <vector>
 
-#endif
+#endif // DOXYGEN_SHOULD_SKIP_THIS
 
 namespace mqtt::lib {
 
@@ -57,6 +60,25 @@ namespace mqtt::lib {
         JsonMappingReader() = delete;
 
         static nlohmann::json& readMappingFromFile(const std::string& mapFilePath);
+        static void invalidate(const std::string& mapFilePath);
+        static const nlohmann::json& getSchema();
+
+        // Admin / Live Reload Support
+        static void saveDraft(const std::string& mapFilePath, const nlohmann::json& content);
+        static nlohmann::json readDraftOrActive(const std::string& mapFilePath);
+        static void deployDraft(const std::string& mapFilePath);
+        static void discardDraft(const std::string& mapFilePath);
+        static std::string getDraftPath(const std::string& mapFilePath);
+
+        struct VersionEntry {
+            std::string id;
+            std::string filename;
+            std::string comment;
+            std::string date;
+        };
+
+        static std::vector<VersionEntry> getHistory(const std::string& mapFilePath);
+        static void rollbackTo(const std::string& mapFilePath, const std::string& versionId);
 
     private:
         static nlohmann::json mappingJsonSchema;

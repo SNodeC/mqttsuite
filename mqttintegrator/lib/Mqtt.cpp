@@ -2,6 +2,8 @@
  * MQTTSuite - A lightweight MQTT Integration System
  * Copyright (C) Volker Christian <me@vchrist.at>
  *               2022, 2023, 2024, 2025, 2026
+ *               Tobias Pfeil
+ *               2025, 2026
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -41,6 +43,8 @@
 
 #include "Mqtt.h"
 
+#include <core/socket/stream/SocketConnection.h>
+#include <iot/mqtt/MqttContext.h>
 #include <iot/mqtt/Topic.h>
 #include <iot/mqtt/packets/Connack.h>
 
@@ -49,13 +53,14 @@
 #include <cstring>
 #include <list>
 #include <log/Logger.h>
-#include <map>
 #include <nlohmann/json.hpp>
 #include <utils/system/signal.h>
 
 #endif
 
 namespace mqtt::mqttintegrator::lib {
+
+    std::set<Mqtt*> Mqtt::instances;
 
     Mqtt::Mqtt(const std::string& connectionName,
                const nlohmann::json& connectionJson,
@@ -67,15 +72,24 @@ namespace mqtt::mqttintegrator::lib {
                                   sessionStoreFileName)
         , mqtt::lib::MqttMapper(mappingJson)
         , connectionJson(connectionJson) {
-        VLOG(1) << "Client Id: " << clientId;
-        VLOG(1) << "  Keep Alive: " << keepAlive;
-        VLOG(1) << "  Clean Session: " << connectionJson["clean_session"];
-        VLOG(1) << "  Will Topic: " << connectionJson["will_topic"];
-        VLOG(1) << "  Will Message: " << connectionJson["will_message"];
+        instances.insert(this);
+
         VLOG(1) << "  Will QoS: " << static_cast<uint16_t>(connectionJson["will_qos"]);
         VLOG(1) << "  Will Retain " << connectionJson["will_retain"];
         VLOG(1) << "  Username: " << connectionJson["username"];
         VLOG(1) << "  Password: " << connectionJson["password"];
+    }
+
+    Mqtt::~Mqtt() {
+        instances.erase(this);
+    }
+
+    void Mqtt::reloadAll() {
+        for (auto* instance : instances) {
+            if (instance->getMqttContext() && instance->getMqttContext()->getSocketConnection()) {
+                instance->getMqttContext()->getSocketConnection()->close();
+            }
+        }
     }
 
     void Mqtt::onConnected() {

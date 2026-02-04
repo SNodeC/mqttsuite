@@ -66,7 +66,7 @@ namespace mqtt::mqttbridge::websocket {
     iot::mqtt::client::SubProtocol* SubProtocolFactory::create(web::websocket::SubProtocolContext* subProtocolContext) {
         iot::mqtt::client::SubProtocol* subProtocol = nullptr;
 
-        const mqtt::bridge::lib::Broker* broker =
+        mqtt::bridge::lib::Broker* broker =
             mqtt::bridge::lib::BridgeStore::instance().getBroker(subProtocolContext->getSocketConnection()->getInstanceName());
 
         if (broker != nullptr) {

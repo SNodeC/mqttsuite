@@ -42,6 +42,8 @@
 #ifndef IOT_MQTTBROKER_MQTTBRIDGE_BRIDGE_H
 #define IOT_MQTTBROKER_MQTTBRIDGE_BRIDGE_H
 
+#include "lib/Broker.h"
+
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 namespace iot::mqtt {
@@ -51,10 +53,12 @@ namespace iot::mqtt {
 } // namespace iot::mqtt
 
 namespace mqtt::bridge::lib {
-    class Mqtt;
-}
+    class Mqtt; // IWYU pragma: export
+} // namespace mqtt::bridge::lib
 
+#include <cstddef>
 #include <list>
+#include <map>
 #include <string>
 
 #endif // DOXYGEN_SHOULD_SKIP_THIS
@@ -65,7 +69,15 @@ namespace mqtt::bridge::lib {
     public:
         explicit Bridge(const std::string& name, const std::string& prefix, bool disabled);
 
-        const std::string& getName();
+        void clear() {
+            brokerMap.clear();
+        }
+
+        const std::string& getName() const;
+
+        void addBroker(const std::string& fullInstanceName, Broker&& broker);
+        Broker* getBroker(const std::string& fullInstanceName);
+        const std::map<const std::string, Broker>& getBrokerMap() const;
 
         void addMqtt(mqtt::bridge::lib::Mqtt* mqtt);
         void removeMqtt(mqtt::bridge::lib::Mqtt* mqtt);
@@ -78,11 +90,17 @@ namespace mqtt::bridge::lib {
 
         bool getDisabled() const;
 
+        bool getAllConnected1() const;
+
+        bool operator<(const Bridge& rhs) const;
+
     private:
         std::string name;
         std::string prefix;
         bool disabled;
+        std::size_t enabledBroker = 0;
 
+        std::map<const std::string, Broker> brokerMap;
         std::list<const mqtt::bridge::lib::Mqtt*> mqttList;
     };
 

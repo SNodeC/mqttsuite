@@ -45,10 +45,11 @@
 
 #include <cmath>
 #include <core/DynamicLoader.h>
-#include <iot/mqtt/Topic.h>
-#include <iot/mqtt/packets/Publish.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
+
+#include <iot/mqtt/Topic.h>
+#include <iot/mqtt/packets/Publish.h>
 
 #ifdef __GNUC__
 #pragma GCC diagnostic push
@@ -67,7 +68,6 @@
 #endif
 
 #include <algorithm>
-#include <dlfcn.h>
 #include <log/Logger.h>
 #include <map>
 #include <nlohmann/json.hpp>
@@ -97,7 +97,7 @@ namespace mqtt::lib {
                     VLOG(1) << "  Loading plugin: " << plugin << " ...";
 
                     const std::vector<mqtt::lib::Function>* loadedFunctions =
-                        static_cast<std::vector<mqtt::lib::Function>*>(dlsym(handle, "functions"));
+                        static_cast<std::vector<mqtt::lib::Function>*>(core::DynamicLoader::dlSym(handle, "functions"));
                     if (loadedFunctions != nullptr) {
                         VLOG(1) << "  Registering inja 'none void callbacks'";
                         for (const mqtt::lib::Function& function : *loadedFunctions) {
@@ -115,7 +115,7 @@ namespace mqtt::lib {
                     }
 
                     const std::vector<mqtt::lib::VoidFunction>* loadedVoidFunctions =
-                        static_cast<std::vector<mqtt::lib::VoidFunction>*>(dlsym(handle, "voidFunctions"));
+                        static_cast<std::vector<mqtt::lib::VoidFunction>*>(core::DynamicLoader::dlSym(handle, "voidFunctions"));
                     if (loadedVoidFunctions != nullptr) {
                         VLOG(1) << "  Registering inja 'void callbacks'";
                         for (const mqtt::lib::VoidFunction& voidFunction : *loadedVoidFunctions) {
