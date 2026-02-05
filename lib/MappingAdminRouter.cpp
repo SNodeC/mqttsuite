@@ -47,6 +47,7 @@
 
 #include <express/middleware/BasicAuthentication.h>
 #include <express/middleware/JsonMiddleware.h>
+#include <express/middleware/StaticMiddleware.h>
 //
 #include <exception>
 #include <nlohmann/json-schema.hpp>
@@ -66,6 +67,8 @@ namespace mqtt::lib::admin {
         const auto& schema = JsonMappingReader::getSchema();
         auto validator =
             std::make_shared<nlohmann::json_schema::json_validator>(schema, nullptr, nlohmann::json_schema::default_string_format_check);
+
+        //        api.setStrictRouting();
 
         api.use(express::middleware::JsonMiddleware());
         api.use(express::middleware::BasicAuthentication(opt.user, opt.pass, opt.realm));
@@ -170,6 +173,17 @@ namespace mqtt::lib::admin {
                 res->status(500).json({{"error", "Failed to fetch history"}});
             }
         });
+
+        api.get("/", [] APPLICATION(req, res) {
+            res->redirect("/ui");
+        });
+
+        api.get("/ui", [] APPLICATION(req, res) {
+            res->redirect("/ui/index.html");
+        });
+
+        api.get("/ui",
+                express::middleware::StaticMiddleware("/home/voc/tmp/integrator/mqtt-integrator-ui/dist/mqtt-integrator-ui/browser"));
 
         return api;
     }
