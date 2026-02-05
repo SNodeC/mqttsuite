@@ -43,8 +43,6 @@
 
 #include "Mqtt.h"
 
-#include <core/socket/stream/SocketConnection.h>
-#include <iot/mqtt/MqttContext.h>
 #include <iot/mqtt/Topic.h>
 #include <iot/mqtt/packets/Connack.h>
 
@@ -86,9 +84,7 @@ namespace mqtt::mqttintegrator::lib {
 
     void Mqtt::reloadAll() {
         for (auto* instance : instances) {
-            if (instance->getMqttContext() && instance->getMqttContext()->getSocketConnection()) {
-                instance->getMqttContext()->getSocketConnection()->close();
-            }
+            instance->sendDisconnect(); // We go as friend
         }
     }
 
