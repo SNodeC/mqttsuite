@@ -46,7 +46,6 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <map>
 #include <nlohmann/json_fwd.hpp> // IWYU pragma: export
 #include <string>
 #include <vector>
@@ -59,8 +58,9 @@ namespace mqtt::lib {
     public:
         JsonMappingReader() = delete;
 
+    public:
         static nlohmann::json& readMappingFromFile(const std::string& mapFilePath);
-        static void invalidate(const std::string& mapFilePath);
+
         static const nlohmann::json& getSchema();
 
         // Admin / Live Reload Support
@@ -84,7 +84,8 @@ namespace mqtt::lib {
         static nlohmann::json mappingJsonSchema;
         static const std::string mappingJsonSchemaString;
 
-        static std::map<std::string, nlohmann::json> mapFileJsons;
+        static nlohmann::json mapFileJson;
+        static nlohmann::json mapFileJsonPatched;
     };
 
 } // namespace mqtt::lib
