@@ -72,7 +72,7 @@ namespace mqtt::lib {
     nlohmann::json JsonMappingReader::mappingJsonSchema = nlohmann::json::parse(mappingJsonSchemaString);
 
     nlohmann::json JsonMappingReader::mapFileJson;
-    nlohmann::json JsonMappingReader::mapFileJsonPatched;
+    nlohmann::json JsonMappingReader::mapFileJsonDefaultPatched;
 
     nlohmann::json& JsonMappingReader::readMappingFromFile(const std::string& mapFilePath) {
         if (mapFileJson.empty()) {
@@ -93,7 +93,7 @@ namespace mqtt::lib {
                                 const nlohmann::json defaultPatch = validator.validate(mapFileJson);
 
                                 try {
-                                    mapFileJsonPatched = mapFileJson.patch(defaultPatch);
+                                    mapFileJsonDefaultPatched = mapFileJson.patch(defaultPatch);
                                     VLOG(0) << "Patched: \n" << mapFileJson.dump(4);
                                 } catch (const std::exception& e) {
                                     VLOG(1) << e.what();
@@ -124,7 +124,7 @@ namespace mqtt::lib {
             }
         }
 
-        return mapFileJsonPatched;
+        return mapFileJsonDefaultPatched;
     }
 
     const nlohmann::json& JsonMappingReader::getSchema() {

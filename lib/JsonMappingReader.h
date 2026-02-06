@@ -85,7 +85,7 @@ namespace mqtt::lib {
         static const std::string mappingJsonSchemaString;
 
         static nlohmann::json mapFileJson;
-        static nlohmann::json mapFileJsonPatched;
+        static nlohmann::json mapFileJsonDefaultPatched;
     };
 
 } // namespace mqtt::lib
