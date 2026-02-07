@@ -299,13 +299,6 @@ static express::Router getRouter(std::shared_ptr<iot::mqtt::server::broker::Brok
         }
     });
 
-    router.setStrictRouting();
-    router.get("/clients", [] APPLICATION(req, res) {
-        res->redirect("/clients/index.html");
-    });
-
-    router.get("/clients", express::middleware::StaticMiddleware(utils::Config::getStringOptionValue("--html-dir")));
-
     router.get("/ws", [] APPLICATION(req, res) {
         if (req->headers.contains("upgrade")) {
             upgrade(req, res);
@@ -342,6 +335,12 @@ static express::Router getRouter(std::shared_ptr<iot::mqtt::server::broker::Brok
             res->redirect("/clients");
         }
     });
+
+    router.get("/clients", [] APPLICATION(req, res) {
+        res->redirect("/clients/index.html");
+    });
+
+    router.use("/clients", express::middleware::StaticMiddleware(utils::Config::getStringOptionValue("--html-dir")));
 
     return router;
 }
