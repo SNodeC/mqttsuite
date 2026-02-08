@@ -182,12 +182,12 @@ namespace mqtt::lib::admin {
             res->redirect("/ui/index.html");
         });
 
-        api.use("/ui/edit-topic", [] APPLICATION(req, res) {
-            res->redirect("/ui/index.html");
-        });
-
         api.use("/ui",
                 express::middleware::StaticMiddleware("/home/voc/tmp/integrator/mqtt-integrator-ui/dist/mqtt-integrator-ui/browser"));
+
+        api.get("*", [] APPLICATION(req, res) {
+            res->redirect("/ui/index.html");
+        });
 
         return api;
     }
