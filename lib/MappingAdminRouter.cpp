@@ -53,6 +53,8 @@
 #include <nlohmann/json-schema.hpp>
 #include <nlohmann/json.hpp>
 #include <vector>
+//
+#include <log/Logger.h>
 
 // IWYU pragma: no_include <nlohmann/detail/json_ref.hpp>
 
@@ -62,7 +64,8 @@ using nlohmann::json;
 
 namespace mqtt::lib::admin {
 
-    express::Router makeMappingAdminRouter(const std::string& mappingFilePath, const AdminOptions& opt, ReloadCallback onDeploy) {
+    express::Router
+    makeMappingAdminRouter(const std::string& mappingFilePath, [[maybe_unused]] const AdminOptions& opt, ReloadCallback onDeploy) {
         express::Router api;
         const auto& schema = JsonMappingReader::getSchema();
         auto validator =
@@ -174,20 +177,20 @@ namespace mqtt::lib::admin {
             }
         });
 
-        api.get("/", [] APPLICATION(req, res) {
-            res->redirect("/ui");
-        });
+        api.use("/", express::middleware::StaticMiddleware("/home/voc/tmp/integrator/mqtt-integrator-ui/dist/mqtt-integrator-ui/browser"));
 
-        api.get("/ui", [] APPLICATION(req, res) {
-            res->redirect("/ui/index.html");
-        });
+        api.get("*", [] APPLICATION(req, res) {
+            res->sendFile("/home/voc/tmp/integrator/mqtt-integrator-ui/dist/mqtt-integrator-ui/browser/index.html", [res](int ret) {
+                if (ret == 0) {
+                    LOG(INFO) << "Delivered: " << "/home/voc/tmp/integrator/mqtt-integrator-ui/dist/mqtt-integrator-ui/browser/index.html";
+                } else {
+                    LOG(INFO) << "Not delivered: "
+                              << "/home/voc/tmp/integrator/mqtt-integrator-ui/dist/mqtt-integrator-ui/browser/index.html";
 
-        api.use("/ui/edit-topic", [] APPLICATION(req, res) {
-            res->redirect("/ui/index.html");
+                    res->end();
+                }
+            });
         });
-
-        api.use("/ui",
-                express::middleware::StaticMiddleware("/home/voc/tmp/integrator/mqtt-integrator-ui/dist/mqtt-integrator-ui/browser"));
 
         return api;
     }
