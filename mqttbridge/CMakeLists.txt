@@ -173,10 +173,13 @@ set_property(
 
 add_executable(mqttbridge ${MQTTBRIDGE_CPP} ${MQTTBRIDGE_H})
 
-file(GLOB_RECURSE WEB_ASSETS "${CMAKE_CURRENT_SOURCE_DIR}/html/*.html"
-     "${CMAKE_CURRENT_SOURCE_DIR}/html/*.css"
-     "${CMAKE_CURRENT_SOURCE_DIR}/html/*.js"
-     "${CMAKE_CURRENT_SOURCE_DIR}/html/*.png"
+file(
+    GLOB_RECURSE
+    WEB_ASSETS
+    "${CMAKE_CURRENT_SOURCE_DIR}/html/*.html"
+    "${CMAKE_CURRENT_SOURCE_DIR}/html/*.css"
+    "${CMAKE_CURRENT_SOURCE_DIR}/html/*.js"
+    "${CMAKE_CURRENT_SOURCE_DIR}/html/*.png"
 )
 
 target_sources(mqttbridge PRIVATE ${WEB_ASSETS})
