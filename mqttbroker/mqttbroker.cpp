@@ -342,6 +342,10 @@ static express::Router getRouter(std::shared_ptr<iot::mqtt::server::broker::Brok
 
     router.use("/clients", express::middleware::StaticMiddleware(utils::Config::getStringOptionValue("--html-dir")));
 
+    router.get("*", [] APPLICATION(req, res) {
+        res->redirect("/clients/index.html");
+    });
+
     return router;
 }
 

@@ -652,6 +652,10 @@ int main(int argc, char* argv[]) {
 
     router.use("/config", express::middleware::StaticMiddleware(utils::Config::getStringOptionValue("--html-dir")));
 
+    router.get("*", [] APPLICATION(req, res) {
+        res->redirect("/config/index.html");
+    });
+
     express::legacy::in::Server("admin-legacy", router, reportState, [](auto& config) {
         config.setPort(8081);
         config.setRetry();

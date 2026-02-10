@@ -68,8 +68,6 @@ namespace mqtt::lib::admin {
         auto validator =
             std::make_shared<nlohmann::json_schema::json_validator>(schema, nullptr, nlohmann::json_schema::default_string_format_check);
 
-        api.setStrictRouting();
-
         api.use(express::middleware::JsonMiddleware());
         api.use(express::middleware::BasicAuthentication(opt.user, opt.pass, opt.realm));
 
