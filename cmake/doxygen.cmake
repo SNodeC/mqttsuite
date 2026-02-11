@@ -73,7 +73,6 @@ if(DOXYGEN_FOUND)
         add_custom_target(
             doc-fast
             COMMAND rm -f ${SNODEC_DOC_ROOTDIR}/inline_umlgraph_cache_all.pu
-            COMMAND mkdir -p ${SNODEC_DOC_ROOTDIR}/html/docs/
             COMMAND mkdir -p ${SNODEC_DOC_ROOTDIR}/html/docs/assets/README
             COMMAND cp -a ${CMAKE_SOURCE_DIR}/docs/assets/README
                     ${SNODEC_DOC_ROOTDIR}/html/docs/assets
