@@ -1,0 +1,352 @@
+{
+    "bridges": [
+        {
+            "brokers": [
+                {
+                    "disabled": true,
+                    "mqtt": {
+                        "clean_session": true,
+                        "client_id": "MQTT-Bridge",
+                        "keep_alive": 60,
+                        "loop_prevention": true,
+                        "password": "Password",
+                        "username": "Username",
+                        "will_message": "",
+                        "will_qos": 0,
+                        "will_retain": false,
+                        "will_topic": ""
+                    },
+                    "network": {
+                        "encryption": "legacy",
+                        "in": {
+                            "host": "localhost",
+                            "port": 1883
+                        },
+                        "instance_name": "in-mqtt-1",
+                        "protocol": "in",
+                        "transport": "stream"
+                    },
+                    "prefix": "",
+                    "session_store": "",
+                    "topics": [
+                        {
+                            "qos": 0,
+                            "topic": "#"
+                        }
+                    ]
+                },
+                {
+                    "disabled": true,
+                    "mqtt": {
+                        "clean_session": true,
+                        "client_id": "MQTT-Bridge",
+                        "keep_alive": 60,
+                        "loop_prevention": true,
+                        "password": "Password",
+                        "username": "Username",
+                        "will_message": "",
+                        "will_qos": 0,
+                        "will_retain": false,
+                        "will_topic": ""
+                    },
+                    "network": {
+                        "encryption": "legacy",
+                        "in": {
+                            "host": "localhost",
+                            "port": 1883
+                        },
+                        "instance_name": "in-mqtt-2",
+                        "protocol": "in",
+                        "transport": "stream"
+                    },
+                    "prefix": "",
+                    "session_store": "",
+                    "topics": [
+                        {
+                            "qos": 0,
+                            "topic": "#"
+                        }
+                    ]
+                },
+                {
+                    "disabled": true,
+                    "mqtt": {
+                        "clean_session": true,
+                        "client_id": "MQTT-Bridge",
+                        "keep_alive": 60,
+                        "loop_prevention": true,
+                        "password": "Password",
+                        "username": "Username",
+                        "will_message": "",
+                        "will_qos": 0,
+                        "will_retain": false,
+                        "will_topic": ""
+                    },
+                    "network": {
+                        "encryption": "legacy",
+                        "in": {
+                            "host": "localhost",
+                            "port": 1883
+                        },
+                        "instance_name": "in-mqtt-3",
+                        "protocol": "in",
+                        "transport": "stream"
+                    },
+                    "prefix": "",
+                    "session_store": "",
+                    "topics": [
+                        {
+                            "qos": 2,
+                            "topic": "topic/subtopic"
+                        },
+                        {
+                            "qos": 0,
+                            "topic": "topic1"
+                        }
+                    ]
+                },
+                {
+                    "disabled": true,
+                    "mqtt": {
+                        "clean_session": true,
+                        "client_id": "MQTT-Bridge",
+                        "keep_alive": 60,
+                        "loop_prevention": true,
+                        "password": "Password",
+                        "username": "Username",
+                        "will_message": "",
+                        "will_qos": 0,
+                        "will_retain": false,
+                        "will_topic": ""
+                    },
+                    "network": {
+                        "encryption": "legacy",
+                        "in": {
+                            "host": "localhost",
+                            "port": 1883
+                        },
+                        "instance_name": "in-mqtt-4",
+                        "protocol": "in",
+                        "transport": "stream"
+                    },
+                    "prefix": "",
+                    "session_store": "",
+                    "topics": [
+                        {
+                            "qos": 0,
+                            "topic": "#"
+                        }
+                    ]
+                },
+                {
+                    "disabled": false,
+                    "mqtt": {
+                        "clean_session": true,
+                        "client_id": "MQTT-Bridge",
+                        "keep_alive": 60,
+                        "loop_prevention": true,
+                        "password": "Password",
+                        "username": "Username",
+                        "will_message": "",
+                        "will_qos": 0,
+                        "will_retain": false,
+                        "will_topic": ""
+                    },
+                    "network": {
+                        "encryption": "legacy",
+                        "in": {
+                            "host": "iot.vchrist.at",
+                            "port": 8080
+                        },
+                        "instance_name": "in-wsmqtt-1",
+                        "protocol": "in",
+                        "transport": "websocket"
+                    },
+                    "prefix": "",
+                    "session_store": "",
+                    "topics": [
+                        {
+                            "qos": 2,
+                            "topic": "#"
+                        }
+                    ]
+                },
+                {
+                    "disabled": false,
+                    "mqtt": {
+                        "clean_session": true,
+                        "client_id": "MQTT-Bridge",
+                        "keep_alive": 60,
+                        "loop_prevention": true,
+                        "password": "Password",
+                        "username": "Username",
+                        "will_message": "",
+                        "will_qos": 0,
+                        "will_retain": false,
+                        "will_topic": ""
+                    },
+                    "network": {
+                        "encryption": "legacy",
+                        "in": {
+                            "host": "localhost",
+                            "port": 8080
+                        },
+                        "instance_name": "in-wsmqtt-2",
+                        "protocol": "in",
+                        "transport": "websocket"
+                    },
+                    "prefix": "",
+                    "session_store": "",
+                    "topics": [
+                        {
+                            "qos": 2,
+                            "topic": "#"
+                        }
+                    ]
+                },
+                {
+                    "disabled": true,
+                    "mqtt": {
+                        "clean_session": true,
+                        "client_id": "MQTT-Bridge",
+                        "keep_alive": 60,
+                        "loop_prevention": true,
+                        "password": "Password",
+                        "username": "Username",
+                        "will_message": "",
+                        "will_qos": 0,
+                        "will_retain": false,
+                        "will_topic": ""
+                    },
+                    "network": {
+                        "encryption": "tls",
+                        "in": {
+                            "host": "localhost",
+                            "port": 443
+                        },
+                        "instance_name": "in-wsmqtts",
+                        "protocol": "in",
+                        "transport": "websocket"
+                    },
+                    "prefix": "",
+                    "session_store": "",
+                    "topics": [
+                        {
+                            "qos": 0,
+                            "topic": "#"
+                        }
+                    ]
+                },
+                {
+                    "disabled": true,
+                    "mqtt": {
+                        "clean_session": true,
+                        "client_id": "TTN-Bridge-Shadow",
+                        "keep_alive": 60,
+                        "loop_prevention": true,
+                        "password": "",
+                        "username": "",
+                        "will_message": "",
+                        "will_qos": 0,
+                        "will_retain": false,
+                        "will_topic": ""
+                    },
+                    "network": {
+                        "encryption": "legacy",
+                        "in": {
+                            "host": "localhost",
+                            "port": 1883
+                        },
+                        "instance_name": "ttn-shadow",
+                        "protocol": "in",
+                        "transport": "websocket"
+                    },
+                    "prefix": "",
+                    "session_store": "",
+                    "topics": [
+                        {
+                            "qos": 0,
+                            "topic": ""
+                        }
+                    ]
+                }
+            ],
+            "disabled": false,
+            "name": "Local-IoT",
+            "prefix": ""
+        },
+        {
+            "brokers": [
+                {
+                    "disabled": false,
+                    "mqtt": {
+                        "clean_session": true,
+                        "client_id": "",
+                        "keep_alive": 60,
+                        "loop_prevention": false,
+                        "password": "NNSXS.SOX5JC3PDMP6Q6K6HVWQCXLNQ2JULTKWO3X6KDI.XLHSEVV2RZTL7YWLOP3F6TOXUOGAZA33UPIKSDZ6SRJ2YIM3OXBA",
+                        "username": "test-application-voc@ttn",
+                        "will_message": "",
+                        "will_qos": 0,
+                        "will_retain": false,
+                        "will_topic": ""
+                    },
+                    "network": {
+                        "encryption": "legacy",
+                        "in": {
+                            "host": "localhost",
+                            "port": 1883
+                        },
+                        "instance_name": "ttn-remote",
+                        "protocol": "in",
+                        "transport": "stream"
+                    },
+                    "prefix": "",
+                    "session_store": "",
+                    "topics": [
+                        {
+                            "qos": 0,
+                            "topic": "#"
+                        }
+                    ]
+                },
+                {
+                    "disabled": false,
+                    "mqtt": {
+                        "clean_session": true,
+                        "client_id": "",
+                        "keep_alive": 60,
+                        "loop_prevention": false,
+                        "password": "NNSXS.SOX5JC3PDMP6Q6K6HVWQCXLNQ2JULTKWO3X6KDI.XLHSEVV2RZTL7YWLOP3F6TOXUOGAZA33UPIKSDZ6SRJ2YIM3OXBA",
+                        "username": "test-application-voc@ttn",
+                        "will_message": "",
+                        "will_qos": 0,
+                        "will_retain": false,
+                        "will_topic": ""
+                    },
+                    "network": {
+                        "encryption": "tls",
+                        "in": {
+                            "host": "localhost",
+                            "port": 8883
+                        },
+                        "instance_name": "ttns-remote",
+                        "protocol": "in",
+                        "transport": "stream"
+                    },
+                    "prefix": "",
+                    "session_store": "",
+                    "topics": [
+                        {
+                            "qos": 0,
+                            "topic": "#"
+                        }
+                    ]
+                }
+            ],
+            "disabled": true,
+            "name": "TTN-IoT",
+            "prefix": ""
+        }
+    ]
+}
