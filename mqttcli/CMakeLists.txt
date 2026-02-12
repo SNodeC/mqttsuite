@@ -155,8 +155,8 @@ configure_file(
 )
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/generated)
 
-set(MQTT_CPP mqttcli.cpp SocketContextFactory.cpp)
-set(MQTT_H SocketContextFactory.h)
+set(MQTT_CPP mqttcli.cpp ConfigSections.cpp SocketContextFactory.cpp)
+set(MQTT_H ConfigSections.h SocketContextFactory.h)
 
 add_executable(mqttcli ${MQTT_CPP} ${MQTT_H})
 

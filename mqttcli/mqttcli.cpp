@@ -39,6 +39,7 @@
  * THE SOFTWARE.
  */
 
+#include "ConfigSections.h"
 #include "SocketContextFactory.h" // IWYU pragma: keep
 #include "config.h"
 
@@ -62,6 +63,7 @@
 
 #include <core/SNodeC.h>
 //
+#include <net/config/ConfigSectionAPI.hpp>
 #include <net/in/stream/legacy/SocketClient.h>
 #include <net/in/stream/tls/SocketClient.h>
 #include <net/in6/stream/legacy/SocketClient.h>
@@ -118,18 +120,28 @@ static void logResponse(const std::shared_ptr<web::http::client::Request>& req, 
 }
 
 template <typename HttpClient>
+class CliHttpClient : public HttpClient {
+public:
+    using HttpClient::HttpClient;
+
+    std::shared_ptr<SessionSection> sessionSection = std::make_shared<SessionSection>(&this->getConfig());
+    std::shared_ptr<SubscribeSection> subsecibeSection = std::make_shared<SubscribeSection>(&this->getConfig());
+    std::shared_ptr<PublishSection> publisSection = std::make_shared<PublishSection>(&this->getConfig());
+};
+
+template <typename HttpClient>
 void startClient(const std::string& name, const std::function<void(typename HttpClient::Config&)>& configurator) {
     using SocketAddress = typename HttpClient::SocketAddress;
 
-    const HttpClient httpClient(
+    const CliHttpClient<HttpClient> httpClient(
         name,
         [](const std::shared_ptr<web::http::client::MasterRequest>& req) {
             const std::string connectionName = req->getSocketContext()->getSocketConnection()->getConnectionName();
             const std::string target = req->getSocketContext()
                                            ->getSocketConnection()
                                            ->getConfigInstance()
-                                           ->getSection("http")
-                                           ->get_option("--target")
+                                           ->getSection<web::http::client::ConfigHTTP>("http")
+                                           ->getOption("--target")
                                            ->as<std::string>();
 
             req->set("Sec-WebSocket-Protocol", "mqtt");
@@ -173,7 +185,7 @@ void startClient(const std::string& name, const std::function<void(typename Http
         reportState(name, socketAddress, state);
     });
 }
-
+/*
 static void createConfig(CLI::App* sessionApp, CLI::App* subApp, CLI::App* pubApp) {
     sessionApp->configurable(false);
     subApp->configurable(false);
@@ -296,17 +308,18 @@ static void createConfig(CLI::App* sessionApp, CLI::App* subApp, CLI::App* pubAp
         ->check(CLI::IsMember({"true", "false"}))
         ->configurable();
 }
-
+*/
+/*
 static void createConfig(net::config::ConfigInstance& config) {
-    createConfig(config.addSection("session", "MQTT session behavior", "Connection"),
-                 config.addSection("sub", "Configuration for application mqttsub", "Applications"),
-                 config.addSection("pub", "Configuration for application mqttpub", "Applications"));
+    const std::shared_ptr<SubscribeSection> subscribeSection = std::make_shared<SubscribeSection>(&config);
+    const std::shared_ptr<PublishSection> publishSection = std::make_shared<PublishSection>(&config);
+    const std::shared_ptr<SessionSection> sessionSection = std::make_shared<SessionSection>(&config);
 
     config.get()->require_callback([config = &config]() {
         if (!config->getDisabled() && utils::Config::showConfigTriggerApp == nullptr &&
             utils::Config::app->get_option("--write-config")->count() == 0) {
-            CLI::App* pubApp = config->getSection("pub", true, true);
-            CLI::App* subApp = config->getSection("sub", true, true);
+            CLI::App* pubApp = config->getSection<CLI::App>("pub", true, true);
+            CLI::App* subApp = config->getSection<CLI::App>("sub", true, true);
 
             if ((pubApp == nullptr || (*pubApp)["--topic"]->count() == 0 || (*pubApp)["--message"]->count() == 0) &&
                 (subApp == nullptr || (*subApp)["--topic"]->count() == 0)) {
@@ -327,16 +340,20 @@ static void createConfig(net::config::ConfigInstance& config) {
         }
     });
 }
-
+*/
 static void createWSConfig(net::config::ConfigInstance& config) {
-    createConfig(config);
+    //    createConfig(config);
 
-    CLI::App* http = config.getSection("http");
-    http->add_option("--target", "Websocket endpoint")
-        ->group(http->get_formatter()->get_label("Persistent Options"))
-        ->type_name("string")
-        ->default_str("/ws")
-        ->configurable();
+    web::http::client::ConfigHTTP* http = config.getSection<web::http::client::ConfigHTTP>("http");
+
+    http->addOption("--target", "Websocket endpoint")->type_name("string")->default_str("/ws")->configurable();
+    /*
+        http->add_option("--target", "Websocket endpoint")
+            ->group(http->get_formatter()->get_label("Persistent Options"))
+            ->type_name("string")
+            ->default_str("/ws")
+            ->configurable();
+    */
 }
 
 int main(int argc, char* argv[]) {
@@ -352,11 +369,14 @@ int main(int argc, char* argv[]) {
 
     utils::Config::app->get_formatter()->label("SUBCOMMAND", "APPLICATION | CONNECTION | INSTANCE");
     utils::Config::app->get_formatter()->label("SUBCOMMANDS", "APPLICATION | CONNECTION | INSTANCES");
+    /*
+        int a = 3;
 
-    createConfig(utils::Config::addInstance("session", "MQTT session behavior", "Connection", true),
-                 utils::Config::addInstance("sub", "Configuration for application mqttsub", "Applications", true),
-                 utils::Config::addInstance("pub", "Configuration for application mqttpub", "Applications", true));
-
+        createConfig(
+            utils::Config::addInstance(net::config::Instance("session", "MQTT session behavior", &a), "Connection", true),
+            utils::Config::addInstance(net::config::Instance("sub", "Configuration for application mqttsub", &a), "Applications", true),
+            utils::Config::addInstance(net::config::Instance("pub", "Configuration for application mqttpub", &a), "Applications", true));
+    */
     // Start of application
 
 #if defined(CONFIG_MQTTSUITE_CLI_TCP_IPV4)
@@ -367,7 +387,7 @@ int main(int argc, char* argv[]) {
         config.setRetryBase(1);
         config.setDisableNagleAlgorithm();
 
-        createConfig(config);
+        //        createConfig(config);
     }).connect([](const auto& socketAddress, const core::socket::State& state) {
         reportState("in-mqtt", socketAddress, state);
     });
@@ -382,7 +402,7 @@ int main(int argc, char* argv[]) {
         config.setDisableNagleAlgorithm();
         config.setDisabled();
 
-        createConfig(config);
+        //        createConfig(config);
     }).connect([](const auto& socketAddress, const core::socket::State& state) {
         reportState("in-mqtts", socketAddress, state);
     });
@@ -397,7 +417,7 @@ int main(int argc, char* argv[]) {
         config.setDisableNagleAlgorithm();
         config.setDisabled();
 
-        createConfig(config);
+        //        createConfig(config);
     }).connect([](const auto& socketAddress, const core::socket::State& state) {
         reportState("in6-mqtt", socketAddress, state);
     });
@@ -412,7 +432,7 @@ int main(int argc, char* argv[]) {
         config.setDisableNagleAlgorithm();
         config.setDisabled();
 
-        createConfig(config);
+        //        createConfig(config);
     }).connect([](const auto& socketAddress, const core::socket::State& state) {
         reportState("in6-mqtts", socketAddress, state);
     });
@@ -426,7 +446,7 @@ int main(int argc, char* argv[]) {
         config.setRetryBase(1);
         config.setDisabled();
 
-        createConfig(config);
+        //        createConfig(config);
     }).connect([](const auto& socketAddress, const core::socket::State& state) {
         reportState("un-mqtt", socketAddress, state);
     });
@@ -440,7 +460,7 @@ int main(int argc, char* argv[]) {
         config.setRetryBase(1);
         config.setDisabled();
 
-        createConfig(config);
+        //        createConfig(config);
     }).connect([](const auto& socketAddress, const core::socket::State& state) {
         reportState("un-mqtts", socketAddress, state);
     });
