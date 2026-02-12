@@ -133,7 +133,7 @@ template <typename HttpClient>
 void startClient(const std::string& name, const std::function<void(typename HttpClient::Config&)>& configurator) {
     using SocketAddress = typename HttpClient::SocketAddress;
 
-    const CliHttpClient<HttpClient> httpClient(
+    const HttpClient httpClient(
         name,
         [](const std::shared_ptr<web::http::client::MasterRequest>& req) {
             const std::string connectionName = req->getSocketContext()->getSocketConnection()->getConnectionName();
@@ -395,6 +395,10 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_TLS_IPV4)
     net::in::stream::tls::Client<mqtt::mqttcli::SocketContextFactory>("in-mqtts", [](auto& config) {
+        config.addSection(std::make_shared<SessionSection>(&config));
+        config.addSection(std::make_shared<SubscribeSection>(&config));
+        config.addSection(std::make_shared<PublishSection>(&config));
+
         config.Remote::setPort(1883);
 
         config.setRetry();
@@ -410,6 +414,10 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_TCP_IPV6)
     net::in6::stream::legacy::Client<mqtt::mqttcli::SocketContextFactory>("in6-mqtt", [](auto& config) {
+        config.addSection(std::make_shared<SessionSection>(&config));
+        config.addSection(std::make_shared<SubscribeSection>(&config));
+        config.addSection(std::make_shared<PublishSection>(&config));
+
         config.Remote::setPort(1883);
 
         config.setRetry();
@@ -425,6 +433,10 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_TLS_IPV6)
     net::in6::stream::tls::Client<mqtt::mqttcli::SocketContextFactory>("in6-mqtts", [](auto& config) {
+        config.addSection(std::make_shared<SessionSection>(&config));
+        config.addSection(std::make_shared<SubscribeSection>(&config));
+        config.addSection(std::make_shared<PublishSection>(&config));
+
         config.Remote::setPort(1883);
 
         config.setRetry();
@@ -440,6 +452,10 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_UNIX)
     net::un::stream::legacy::Client<mqtt::mqttcli::SocketContextFactory>("un-mqtt", [](auto& config) {
+        config.addSection(std::make_shared<SessionSection>(&config));
+        config.addSection(std::make_shared<SubscribeSection>(&config));
+        config.addSection(std::make_shared<PublishSection>(&config));
+
         config.Remote::setSunPath("/var/mqttbroker-un-mqtt");
 
         config.setRetry();
@@ -454,6 +470,10 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_UNIX_TLS)
     net::un::stream::tls::Client<mqtt::mqttcli::SocketContextFactory>("un-mqtts", [](auto& config) {
+        config.addSection(std::make_shared<SessionSection>(&config));
+        config.addSection(std::make_shared<SubscribeSection>(&config));
+        config.addSection(std::make_shared<PublishSection>(&config));
+
         config.Remote::setSunPath("/var/mqttbroker-un-mqtts");
 
         config.setRetry();
@@ -468,6 +488,10 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_TCP_IPV4) && defined(CONFIG_MQTTSUITE_CLI_WS)
     startClient<web::http::legacy::in::Client>("in-wsmqtt", [](auto& config) {
+        config.addSection(std::make_shared<SessionSection>(&config));
+        config.addSection(std::make_shared<SubscribeSection>(&config));
+        config.addSection(std::make_shared<PublishSection>(&config));
+
         config.Remote::setPort(8080);
 
         config.setRetry();
@@ -481,6 +505,10 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_TLS_IPV4) && defined(CONFIG_MQTTSUITE_CLI_WSS)
     startClient<web::http::tls::in::Client>("in-wsmqtts", [](auto& config) {
+        config.addSection(std::make_shared<SessionSection>(&config));
+        config.addSection(std::make_shared<SubscribeSection>(&config));
+        config.addSection(std::make_shared<PublishSection>(&config));
+
         config.Remote::setPort(8088);
 
         config.setRetry();
@@ -494,6 +522,10 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_TCP_IPV6) && defined(CONFIG_MQTTSUITE_CLI_WS)
     startClient<web::http::legacy::in6::Client>("in6-wsmqtt", [](auto& config) {
+        config.addSection(std::make_shared<SessionSection>(&config));
+        config.addSection(std::make_shared<SubscribeSection>(&config));
+        config.addSection(std::make_shared<PublishSection>(&config));
+
         config.Remote::setPort(8080);
 
         config.setRetry();
@@ -507,6 +539,10 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_TLS_IPV6) && defined(CONFIG_MQTTSUITE_CLI_WSS)
     startClient<web::http::tls::in6::Client>("in6-wsmqtts", [](auto& config) {
+        config.addSection(std::make_shared<SessionSection>(&config));
+        config.addSection(std::make_shared<SubscribeSection>(&config));
+        config.addSection(std::make_shared<PublishSection>(&config));
+
         config.Remote::setPort(8088);
 
         config.setReconnect();
@@ -521,6 +557,10 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_UNIX) && defined(CONFIG_MQTTSUITE_CLI_WS)
     startClient<web::http::legacy::un::Client>("un-wsmqtt", [](auto& config) {
+        config.addSection(std::make_shared<SessionSection>(&config));
+        config.addSection(std::make_shared<SubscribeSection>(&config));
+        config.addSection(std::make_shared<PublishSection>(&config));
+
         config.setRetry();
         config.setRetryBase(1);
         config.setReconnect();
@@ -532,6 +572,10 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_UNIX_TLS) && defined(CONFIG_MQTTSUITE_CLI_WSS)
     startClient<web::http::tls::un::Client>("un-wsmqtts", [](auto& config) {
+        config.addSection(std::make_shared<SessionSection>(&config));
+        config.addSection(std::make_shared<SubscribeSection>(&config));
+        config.addSection(std::make_shared<PublishSection>(&config));
+
         config.setRetry();
         config.setRetryBase(1);
         config.setReconnect();
