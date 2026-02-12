@@ -61,9 +61,9 @@
 namespace mqtt::mqttcli {
 
     core::socket::stream::SocketContext* SocketContextFactory::create(core::socket::stream::SocketConnection* socketConnection) {
-        const SessionSection* configSession = socketConnection->getConfigInstance()->getSection<SessionSection>("session", true, true);
-        const SubscribeSection* configSubscribe = socketConnection->getConfigInstance()->getSection<SubscribeSection>("sub", true, true);
-        const PublishSection* configPublish = socketConnection->getConfigInstance()->getSection<PublishSection>("pub", true, true);
+        const ConfigSession* configSession = socketConnection->getConfigInstance()->getSection<ConfigSession>("session", true, true);
+        const ConfigSubscribe* configSubscribe = socketConnection->getConfigInstance()->getSection<ConfigSubscribe>("sub", true, true);
+        const ConfigPublish* configPublish = socketConnection->getConfigInstance()->getSection<ConfigPublish>("pub", true, true);
 
         configSubscribe = (configSubscribe != nullptr && configSubscribe->getOption("--topic")->count() > 0) ? configSubscribe : nullptr;
         configPublish = (configPublish != nullptr && configPublish->getOption("--topic")->count() > 0 &&

@@ -68,8 +68,8 @@
 
 #endif
 
-SubscribeSection::SubscribeSection(net::config::ConfigInstance* instanceSc)
-    : net::config::ConfigSection(instanceSc, net::config::Section("sub", "Configuration for application mqttsub", this)) {
+ConfigSubscribe::ConfigSubscribe(net::config::ConfigInstance* instance)
+    : net::config::ConfigSection(instance, net::config::Section("sub", "Configuration for application mqttsub", this)) {
     sectionSc->needs(addOptionFunction<std::string>(
                          "--topic",
                          [subApp = this](const std::string& value) {
@@ -87,8 +87,8 @@ SubscribeSection::SubscribeSection(net::config::ConfigInstance* instanceSc)
                          ->configurable());
 }
 
-PublishSection::PublishSection(net::config::ConfigInstance* instanceSc)
-    : net::config::ConfigSection(instanceSc, net::config::Section("pub", "Configuration for application mqttpub", this)) {
+ConfigPublish::ConfigPublish(net::config::ConfigInstance* instance)
+    : net::config::ConfigSection(instance, net::config::Section("pub", "Configuration for application mqttpub", this)) {
     sectionSc->needs(addOptionFunction<std::string>(
                          "--topic",
                          [pubApp = this](const std::string& value) {
@@ -126,8 +126,8 @@ PublishSection::PublishSection(net::config::ConfigInstance* instanceSc)
                          ->configurable());
 }
 
-SessionSection::SessionSection(net::config::ConfigInstance* instanceSc)
-    : net::config::ConfigSection(instanceSc, net::config::Section("session", "MQTT session behavior", this)) {
+ConfigSession::ConfigSession(net::config::ConfigInstance* instance)
+    : net::config::ConfigSection(instance, net::config::Section("session", "MQTT session behavior", this)) {
     CLI::Option* clientIdOpt =
         addOption("--client-id", "MQTT Client-ID")->group(sectionSc->get_formatter()->get_label("Persistent Options"))->type_name("string");
 

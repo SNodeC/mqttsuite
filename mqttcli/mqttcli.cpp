@@ -124,9 +124,9 @@ class CliHttpClient : public HttpClient {
 public:
     using HttpClient::HttpClient;
 
-    std::shared_ptr<SessionSection> sessionSection = std::make_shared<SessionSection>(&this->getConfig());
-    std::shared_ptr<SubscribeSection> subsecibeSection = std::make_shared<SubscribeSection>(&this->getConfig());
-    std::shared_ptr<PublishSection> publisSection = std::make_shared<PublishSection>(&this->getConfig());
+    std::shared_ptr<ConfigSession> sessionSection = std::make_shared<ConfigSession>(&this->getConfig());
+    std::shared_ptr<ConfigSubscribe> subsecibeSection = std::make_shared<ConfigSubscribe>(&this->getConfig());
+    std::shared_ptr<ConfigPublish> publisSection = std::make_shared<ConfigPublish>(&this->getConfig());
 };
 
 template <typename HttpClient>
@@ -204,15 +204,15 @@ int main(int argc, char* argv[]) {
 #endif
 
     utils::Config::app->get_formatter()->label("SUBCOMMAND", "APPLICATION | CONNECTION | INSTANCE");
-    utils::Config::app->get_formatter()->label("SUBCOMMANDS", "APPLICATION | CONNECTION | INSTANCES");
-    /*
-        int a = 3;
+    utils::Config::app->get_formatter()->label("SUBCOMMANDS", "APPLICATION | CONNECTIONS | INSTANCES");
 
-        createConfig(
-            utils::Config::addInstance(net::config::Instance("session", "MQTT session behavior", &a), "Connection", true),
-            utils::Config::addInstance(net::config::Instance("sub", "Configuration for application mqttsub", &a), "Applications", true),
-            utils::Config::addInstance(net::config::Instance("pub", "Configuration for application mqttpub", &a), "Applications", true));
-    */
+    /*
+    createConfig(
+        utils::Config::addInstance(net::config::Instance("session", "MQTT session behavior", &a), "Connection", true),
+        utils::Config::addInstance(net::config::Instance("sub", "Configuration for application mqttsub", &a), "Applications", true),
+        utils::Config::addInstance(net::config::Instance("pub", "Configuration for application mqttpub", &a), "Applications", true));
+*/
+
     // Start of application
 
 #if defined(CONFIG_MQTTSUITE_CLI_TCP_IPV4)
@@ -237,9 +237,9 @@ int main(int argc, char* argv[]) {
             config.addSection(std::make_shared<PublishSection>(&config));
         */
 
-        config.template addSection<SessionSection>();
-        config.template addSection<SubscribeSection>();
-        config.template addSection<PublishSection>();
+        config.template addSection<ConfigSession>();
+        config.template addSection<ConfigSubscribe>();
+        config.template addSection<ConfigPublish>();
 
         config.Remote::setPort(1883);
 
@@ -262,9 +262,9 @@ int main(int argc, char* argv[]) {
             config.addSection(std::make_shared<PublishSection>(&config));
         */
 
-        config.template addSection<SessionSection>();
-        config.template addSection<SubscribeSection>();
-        config.template addSection<PublishSection>();
+        config.template addSection<ConfigSession>();
+        config.template addSection<ConfigSubscribe>();
+        config.template addSection<ConfigPublish>();
 
         config.Remote::setPort(1883);
 
@@ -287,9 +287,9 @@ int main(int argc, char* argv[]) {
             config.addSection(std::make_shared<PublishSection>(&config));
         */
 
-        config.template addSection<SessionSection>();
-        config.template addSection<SubscribeSection>();
-        config.template addSection<PublishSection>();
+        config.template addSection<ConfigSession>();
+        config.template addSection<ConfigSubscribe>();
+        config.template addSection<ConfigPublish>();
 
         config.Remote::setPort(1883);
 
@@ -312,9 +312,9 @@ int main(int argc, char* argv[]) {
             config.addSection(std::make_shared<PublishSection>(&config));
         */
 
-        config.template addSection<SessionSection>();
-        config.template addSection<SubscribeSection>();
-        config.template addSection<PublishSection>();
+        config.template addSection<ConfigSession>();
+        config.template addSection<ConfigSubscribe>();
+        config.template addSection<ConfigPublish>();
 
         config.Remote::setSunPath("/var/mqttbroker-un-mqtt");
 
@@ -336,9 +336,9 @@ int main(int argc, char* argv[]) {
             config.addSection(std::make_shared<PublishSection>(&config));
         */
 
-        config.template addSection<SessionSection>();
-        config.template addSection<SubscribeSection>();
-        config.template addSection<PublishSection>();
+        config.template addSection<ConfigSession>();
+        config.template addSection<ConfigSubscribe>();
+        config.template addSection<ConfigPublish>();
 
         config.Remote::setSunPath("/var/mqttbroker-un-mqtts");
 
@@ -360,9 +360,9 @@ int main(int argc, char* argv[]) {
             config.addSection(std::make_shared<PublishSection>(&config));
         */
 
-        config.template addSection<SessionSection>();
-        config.template addSection<SubscribeSection>();
-        config.template addSection<PublishSection>();
+        config.template addSection<ConfigSession>();
+        config.template addSection<ConfigSubscribe>();
+        config.template addSection<ConfigPublish>();
 
         config.Remote::setPort(8080);
 
@@ -383,9 +383,9 @@ int main(int argc, char* argv[]) {
             config.addSection(std::make_shared<PublishSection>(&config));
         */
 
-        config.template addSection<SessionSection>();
-        config.template addSection<SubscribeSection>();
-        config.template addSection<PublishSection>();
+        config.template addSection<ConfigSession>();
+        config.template addSection<ConfigSubscribe>();
+        config.template addSection<ConfigPublish>();
 
         config.Remote::setPort(8088);
 
@@ -406,9 +406,9 @@ int main(int argc, char* argv[]) {
             config.addSection(std::make_shared<PublishSection>(&config));
         */
 
-        config.template addSection<SessionSection>();
-        config.template addSection<SubscribeSection>();
-        config.template addSection<PublishSection>();
+        config.template addSection<ConfigSession>();
+        config.template addSection<ConfigSubscribe>();
+        config.template addSection<ConfigPublish>();
 
         config.Remote::setPort(8080);
 
@@ -429,9 +429,9 @@ int main(int argc, char* argv[]) {
             config.addSection(std::make_shared<PublishSection>(&config));
         */
 
-        config.template addSection<SessionSection>();
-        config.template addSection<SubscribeSection>();
-        config.template addSection<PublishSection>();
+        config.template addSection<ConfigSession>();
+        config.template addSection<ConfigSubscribe>();
+        config.template addSection<ConfigPublish>();
 
         config.Remote::setPort(8088);
 
@@ -453,9 +453,9 @@ int main(int argc, char* argv[]) {
             config.addSection(std::make_shared<PublishSection>(&config));
         */
 
-        config.template addSection<SessionSection>();
-        config.template addSection<SubscribeSection>();
-        config.template addSection<PublishSection>();
+        config.template addSection<ConfigSession>();
+        config.template addSection<ConfigSubscribe>();
+        config.template addSection<ConfigPublish>();
 
         config.setRetry();
         config.setRetryBase(1);
@@ -474,9 +474,9 @@ int main(int argc, char* argv[]) {
             config.addSection(std::make_shared<PublishSection>(&config));
         */
 
-        config.template addSection<SessionSection>();
-        config.template addSection<SubscribeSection>();
-        config.template addSection<PublishSection>();
+        config.template addSection<ConfigSession>();
+        config.template addSection<ConfigSubscribe>();
+        config.template addSection<ConfigPublish>();
 
         config.setRetry();
         config.setRetryBase(1);

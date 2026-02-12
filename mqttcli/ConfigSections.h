@@ -48,19 +48,19 @@
 
 #endif
 
-class SubscribeSection : public net::config::ConfigSection {
+class ConfigSubscribe : public net::config::ConfigSection {
 public:
-    SubscribeSection(net::config::ConfigInstance* instanceSc);
+    ConfigSubscribe(net::config::ConfigInstance* instance);
 };
 
-class PublishSection : public net::config::ConfigSection {
+class ConfigPublish : public net::config::ConfigSection {
 public:
-    PublishSection(net::config::ConfigInstance* instanceSc);
+    ConfigPublish(net::config::ConfigInstance* instance);
 };
 
-class SessionSection : public net::config::ConfigSection {
+class ConfigSession : public net::config::ConfigSection {
 public:
-    SessionSection(net::config::ConfigInstance* instanceSc);
+    ConfigSession(net::config::ConfigInstance* instance);
 };
 
 #endif // CONFIG_SECTIONS
