@@ -185,175 +185,11 @@ void startClient(const std::string& name, const std::function<void(typename Http
         reportState(name, socketAddress, state);
     });
 }
-/*
-static void createConfig(CLI::App* sessionApp, CLI::App* subApp, CLI::App* pubApp) {
-    sessionApp->configurable(false);
-    subApp->configurable(false);
-    pubApp->configurable(false);
 
-    CLI::Option* clientIdOpt = sessionApp->add_option("--client-id", "MQTT Client-ID")
-                                   ->group(sessionApp->get_formatter()->get_label("Persistent Options"))
-                                   ->type_name("string");
-
-    sessionApp->add_option("--qos", "Quality of service")
-        ->group(sessionApp->get_formatter()->get_label("Persistent Options"))
-        ->type_name("uint8_t")
-        ->default_val(0)
-        ->configurable();
-
-    sessionApp->add_flag("--retain-session{true},-r{true}", "Clean session")
-        ->group(sessionApp->get_formatter()->get_label("Persistent Options"))
-        ->type_name("bool")
-        ->default_str("false")
-        ->check(CLI::IsMember({"true", "false"}))
-        ->configurable()
-        ->needs(clientIdOpt);
-
-    sessionApp->add_option("--keep-alive", "Quality of service")
-        ->group(sessionApp->get_formatter()->get_label("Persistent Options"))
-        ->type_name("uint8_t")
-        ->default_val(60)
-        ->configurable();
-
-    sessionApp->add_option("--will-topic", "MQTT will topic")
-        ->group(sessionApp->get_formatter()->get_label("Persistent Options"))
-        ->type_name("string")
-        ->configurable();
-
-    sessionApp->add_option("--will-message", "MQTT will message")
-        ->group(sessionApp->get_formatter()->get_label("Persistent Options"))
-        ->type_name("string")
-        ->configurable();
-
-    sessionApp->add_option("--will-qos", "MQTT will quality of service")
-        ->group(sessionApp->get_formatter()->get_label("Persistent Options"))
-        ->type_name("uint8_t")
-        ->default_val(0)
-        ->configurable();
-
-    sessionApp->add_flag("--will-retain{true}", "MQTT will message retain")
-        ->group(sessionApp->get_formatter()->get_label("Persistent Options"))
-        ->default_str("false")
-        ->type_name("bool")
-        ->check(CLI::IsMember({"true", "false"}))
-        ->configurable();
-
-    sessionApp->add_option("--username", "MQTT username")
-        ->group(sessionApp->get_formatter()->get_label("Persistent Options"))
-        ->type_name("string")
-        ->configurable();
-
-    sessionApp->add_option("--password", "MQTT password")
-        ->group(sessionApp->get_formatter()->get_label("Persistent Options"))
-        ->type_name("string")
-        ->configurable();
-
-    subApp->needs(subApp
-                      ->add_option_function<std::string>(
-                          "--topic",
-                          [subApp](const std::string& value) {
-                              if (value == "") {
-                                  subApp->get_option("--topic")->required(false)->clear();
-                                  subApp->remove_needs(subApp->get_option("--topic"));
-                              }
-                          },
-                          "List of topics subscribing to")
-                      ->group(subApp->get_formatter()->get_label("Persistent Options"))
-                      ->type_name("string list")
-                      ->take_all()
-                      ->required()
-                      ->allow_extra_args()
-                      ->configurable());
-
-    pubApp->needs(pubApp
-                      ->add_option_function<std::string>(
-                          "--topic",
-                          [pubApp](const std::string& value) {
-                              if (value == "") {
-                                  pubApp->get_option("--topic")->required(false)->clear();
-                                  pubApp->remove_needs(pubApp->get_option("--topic"));
-
-                                  pubApp->get_option("--message")->required(false)->clear();
-                                  pubApp->remove_needs(pubApp->get_option("--message"));
-                              }
-                          },
-                          "Topic publishing to")
-                      ->group(pubApp->get_formatter()->get_label("Persistent Options"))
-                      ->type_name("string")
-                      ->required()
-                      ->configurable());
-
-    pubApp->needs(pubApp
-                      ->add_option_function<std::string>(
-                          "--message",
-                          [pubApp](const std::string& value) {
-                              if (value == "") {
-                                  pubApp->get_option("--topic")->required(false)->clear();
-                                  pubApp->remove_needs(pubApp->get_option("--topic"));
-
-                                  pubApp->get_option("--message")->required(false)->clear();
-                                  pubApp->remove_needs(pubApp->get_option("--message"));
-                              }
-                          },
-                          "Message to publish")
-                      ->group(pubApp->get_formatter()->get_label("Persistent Options"))
-                      ->type_name("string")
-                      ->required()
-                      ->configurable());
-
-    pubApp->add_flag("--retain{true},-r{true}", "Retain message")
-        ->group(pubApp->get_formatter()->get_label("Persistent Options"))
-        ->default_str("false")
-        ->type_name("bool")
-        ->check(CLI::IsMember({"true", "false"}))
-        ->configurable();
-}
-*/
-/*
-static void createConfig(net::config::ConfigInstance& config) {
-    const std::shared_ptr<SubscribeSection> subscribeSection = std::make_shared<SubscribeSection>(&config);
-    const std::shared_ptr<PublishSection> publishSection = std::make_shared<PublishSection>(&config);
-    const std::shared_ptr<SessionSection> sessionSection = std::make_shared<SessionSection>(&config);
-
-    config.get()->require_callback([config = &config]() {
-        if (!config->getDisabled() && utils::Config::showConfigTriggerApp == nullptr &&
-            utils::Config::app->get_option("--write-config")->count() == 0) {
-            CLI::App* pubApp = config->getSection<CLI::App>("pub", true, true);
-            CLI::App* subApp = config->getSection<CLI::App>("sub", true, true);
-
-            if ((pubApp == nullptr || (*pubApp)["--topic"]->count() == 0 || (*pubApp)["--message"]->count() == 0) &&
-                (subApp == nullptr || (*subApp)["--topic"]->count() == 0)) {
-                throw CLI::RequiresError(config->get()->get_parent()->get_name() + ":" + config->getInstanceName() +
-                                             " requires at least one of {sub | pub}",
-                                         CLI::ExitCodes::RequiresError);
-            }
-
-            if (pubApp != nullptr) {
-                VLOG(0) << "[" << Color::Code::FG_LIGHT_GREEN << "Success" << Color::Code::FG_DEFAULT << "] " << "Bootstrap of "
-                        << config->getInstanceName() << ":pub";
-            }
-
-            if (subApp != nullptr) {
-                VLOG(0) << "[" << Color::Code::FG_LIGHT_GREEN << "Success" << Color::Code::FG_DEFAULT << "] " << "Bootstrap of "
-                        << config->getInstanceName() << ":sub";
-            }
-        }
-    });
-}
-*/
 static void createWSConfig(net::config::ConfigInstance& config) {
-    //    createConfig(config);
-
     web::http::client::ConfigHTTP* http = config.getSection<web::http::client::ConfigHTTP>("http");
 
     http->addOption("--target", "Websocket endpoint")->type_name("string")->default_str("/ws")->configurable();
-    /*
-        http->add_option("--target", "Websocket endpoint")
-            ->group(http->get_formatter()->get_label("Persistent Options"))
-            ->type_name("string")
-            ->default_str("/ws")
-            ->configurable();
-    */
 }
 
 int main(int argc, char* argv[]) {
@@ -395,9 +231,15 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_TLS_IPV4)
     net::in::stream::tls::Client<mqtt::mqttcli::SocketContextFactory>("in-mqtts", [](auto& config) {
-        config.addSection(std::make_shared<SessionSection>(&config));
-        config.addSection(std::make_shared<SubscribeSection>(&config));
-        config.addSection(std::make_shared<PublishSection>(&config));
+        /*
+            config.addSection(std::make_shared<SessionSection>(&config));
+            config.addSection(std::make_shared<SubscribeSection>(&config));
+            config.addSection(std::make_shared<PublishSection>(&config));
+        */
+
+        config.template addSection<SessionSection>();
+        config.template addSection<SubscribeSection>();
+        config.template addSection<PublishSection>();
 
         config.Remote::setPort(1883);
 
@@ -414,9 +256,15 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_TCP_IPV6)
     net::in6::stream::legacy::Client<mqtt::mqttcli::SocketContextFactory>("in6-mqtt", [](auto& config) {
-        config.addSection(std::make_shared<SessionSection>(&config));
-        config.addSection(std::make_shared<SubscribeSection>(&config));
-        config.addSection(std::make_shared<PublishSection>(&config));
+        /*
+            config.addSection(std::make_shared<SessionSection>(&config));
+            config.addSection(std::make_shared<SubscribeSection>(&config));
+            config.addSection(std::make_shared<PublishSection>(&config));
+        */
+
+        config.template addSection<SessionSection>();
+        config.template addSection<SubscribeSection>();
+        config.template addSection<PublishSection>();
 
         config.Remote::setPort(1883);
 
@@ -433,9 +281,15 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_TLS_IPV6)
     net::in6::stream::tls::Client<mqtt::mqttcli::SocketContextFactory>("in6-mqtts", [](auto& config) {
-        config.addSection(std::make_shared<SessionSection>(&config));
-        config.addSection(std::make_shared<SubscribeSection>(&config));
-        config.addSection(std::make_shared<PublishSection>(&config));
+        /*
+            config.addSection(std::make_shared<SessionSection>(&config));
+            config.addSection(std::make_shared<SubscribeSection>(&config));
+            config.addSection(std::make_shared<PublishSection>(&config));
+        */
+
+        config.template addSection<SessionSection>();
+        config.template addSection<SubscribeSection>();
+        config.template addSection<PublishSection>();
 
         config.Remote::setPort(1883);
 
@@ -452,9 +306,15 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_UNIX)
     net::un::stream::legacy::Client<mqtt::mqttcli::SocketContextFactory>("un-mqtt", [](auto& config) {
-        config.addSection(std::make_shared<SessionSection>(&config));
-        config.addSection(std::make_shared<SubscribeSection>(&config));
-        config.addSection(std::make_shared<PublishSection>(&config));
+        /*
+            config.addSection(std::make_shared<SessionSection>(&config));
+            config.addSection(std::make_shared<SubscribeSection>(&config));
+            config.addSection(std::make_shared<PublishSection>(&config));
+        */
+
+        config.template addSection<SessionSection>();
+        config.template addSection<SubscribeSection>();
+        config.template addSection<PublishSection>();
 
         config.Remote::setSunPath("/var/mqttbroker-un-mqtt");
 
@@ -470,9 +330,15 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_UNIX_TLS)
     net::un::stream::tls::Client<mqtt::mqttcli::SocketContextFactory>("un-mqtts", [](auto& config) {
-        config.addSection(std::make_shared<SessionSection>(&config));
-        config.addSection(std::make_shared<SubscribeSection>(&config));
-        config.addSection(std::make_shared<PublishSection>(&config));
+        /*
+            config.addSection(std::make_shared<SessionSection>(&config));
+            config.addSection(std::make_shared<SubscribeSection>(&config));
+            config.addSection(std::make_shared<PublishSection>(&config));
+        */
+
+        config.template addSection<SessionSection>();
+        config.template addSection<SubscribeSection>();
+        config.template addSection<PublishSection>();
 
         config.Remote::setSunPath("/var/mqttbroker-un-mqtts");
 
@@ -488,9 +354,15 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_TCP_IPV4) && defined(CONFIG_MQTTSUITE_CLI_WS)
     startClient<web::http::legacy::in::Client>("in-wsmqtt", [](auto& config) {
-        config.addSection(std::make_shared<SessionSection>(&config));
-        config.addSection(std::make_shared<SubscribeSection>(&config));
-        config.addSection(std::make_shared<PublishSection>(&config));
+        /*
+            config.addSection(std::make_shared<SessionSection>(&config));
+            config.addSection(std::make_shared<SubscribeSection>(&config));
+            config.addSection(std::make_shared<PublishSection>(&config));
+        */
+
+        config.template addSection<SessionSection>();
+        config.template addSection<SubscribeSection>();
+        config.template addSection<PublishSection>();
 
         config.Remote::setPort(8080);
 
@@ -505,9 +377,15 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_TLS_IPV4) && defined(CONFIG_MQTTSUITE_CLI_WSS)
     startClient<web::http::tls::in::Client>("in-wsmqtts", [](auto& config) {
-        config.addSection(std::make_shared<SessionSection>(&config));
-        config.addSection(std::make_shared<SubscribeSection>(&config));
-        config.addSection(std::make_shared<PublishSection>(&config));
+        /*
+            config.addSection(std::make_shared<SessionSection>(&config));
+            config.addSection(std::make_shared<SubscribeSection>(&config));
+            config.addSection(std::make_shared<PublishSection>(&config));
+        */
+
+        config.template addSection<SessionSection>();
+        config.template addSection<SubscribeSection>();
+        config.template addSection<PublishSection>();
 
         config.Remote::setPort(8088);
 
@@ -522,9 +400,15 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_TCP_IPV6) && defined(CONFIG_MQTTSUITE_CLI_WS)
     startClient<web::http::legacy::in6::Client>("in6-wsmqtt", [](auto& config) {
-        config.addSection(std::make_shared<SessionSection>(&config));
-        config.addSection(std::make_shared<SubscribeSection>(&config));
-        config.addSection(std::make_shared<PublishSection>(&config));
+        /*
+            config.addSection(std::make_shared<SessionSection>(&config));
+            config.addSection(std::make_shared<SubscribeSection>(&config));
+            config.addSection(std::make_shared<PublishSection>(&config));
+        */
+
+        config.template addSection<SessionSection>();
+        config.template addSection<SubscribeSection>();
+        config.template addSection<PublishSection>();
 
         config.Remote::setPort(8080);
 
@@ -539,9 +423,15 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_TLS_IPV6) && defined(CONFIG_MQTTSUITE_CLI_WSS)
     startClient<web::http::tls::in6::Client>("in6-wsmqtts", [](auto& config) {
-        config.addSection(std::make_shared<SessionSection>(&config));
-        config.addSection(std::make_shared<SubscribeSection>(&config));
-        config.addSection(std::make_shared<PublishSection>(&config));
+        /*
+            config.addSection(std::make_shared<SessionSection>(&config));
+            config.addSection(std::make_shared<SubscribeSection>(&config));
+            config.addSection(std::make_shared<PublishSection>(&config));
+        */
+
+        config.template addSection<SessionSection>();
+        config.template addSection<SubscribeSection>();
+        config.template addSection<PublishSection>();
 
         config.Remote::setPort(8088);
 
@@ -557,9 +447,15 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_UNIX) && defined(CONFIG_MQTTSUITE_CLI_WS)
     startClient<web::http::legacy::un::Client>("un-wsmqtt", [](auto& config) {
-        config.addSection(std::make_shared<SessionSection>(&config));
-        config.addSection(std::make_shared<SubscribeSection>(&config));
-        config.addSection(std::make_shared<PublishSection>(&config));
+        /*
+            config.addSection(std::make_shared<SessionSection>(&config));
+            config.addSection(std::make_shared<SubscribeSection>(&config));
+            config.addSection(std::make_shared<PublishSection>(&config));
+        */
+
+        config.template addSection<SessionSection>();
+        config.template addSection<SubscribeSection>();
+        config.template addSection<PublishSection>();
 
         config.setRetry();
         config.setRetryBase(1);
@@ -572,9 +468,15 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_UNIX_TLS) && defined(CONFIG_MQTTSUITE_CLI_WSS)
     startClient<web::http::tls::un::Client>("un-wsmqtts", [](auto& config) {
-        config.addSection(std::make_shared<SessionSection>(&config));
-        config.addSection(std::make_shared<SubscribeSection>(&config));
-        config.addSection(std::make_shared<PublishSection>(&config));
+        /*
+            config.addSection(std::make_shared<SessionSection>(&config));
+            config.addSection(std::make_shared<SubscribeSection>(&config));
+            config.addSection(std::make_shared<PublishSection>(&config));
+        */
+
+        config.template addSection<SessionSection>();
+        config.template addSection<SubscribeSection>();
+        config.template addSection<PublishSection>();
 
         config.setRetry();
         config.setRetryBase(1);

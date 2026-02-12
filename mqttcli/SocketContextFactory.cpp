@@ -61,35 +61,38 @@
 namespace mqtt::mqttcli {
 
     core::socket::stream::SocketContext* SocketContextFactory::create(core::socket::stream::SocketConnection* socketConnection) {
-        const SessionSection* sessionApp = socketConnection->getConfigInstance()->getSection<SessionSection>("session", true, true);
-        const SubscribeSection* subApp = socketConnection->getConfigInstance()->getSection<SubscribeSection>("sub", true, true);
-        const PublishSection* pubApp = socketConnection->getConfigInstance()->getSection<PublishSection>("pub", true, true);
+        const SessionSection* configSession = socketConnection->getConfigInstance()->getSection<SessionSection>("session", true, true);
+        const SubscribeSection* configSubscribe = socketConnection->getConfigInstance()->getSection<SubscribeSection>("sub", true, true);
+        const PublishSection* configPublish = socketConnection->getConfigInstance()->getSection<PublishSection>("pub", true, true);
 
-        subApp = (subApp != nullptr && subApp->getOption("--topic")->count() > 0) ? subApp : nullptr;
-        pubApp = (pubApp != nullptr && pubApp->getOption("--topic")->count() > 0 && pubApp->getOption("--message")->count() > 0) ? pubApp
-                                                                                                                                 : nullptr;
+        configSubscribe = (configSubscribe != nullptr && configSubscribe->getOption("--topic")->count() > 0) ? configSubscribe : nullptr;
+        configPublish = (configPublish != nullptr && configPublish->getOption("--topic")->count() > 0 &&
+                         configPublish->getOption("--message")->count() > 0)
+                            ? configPublish
+                            : nullptr;
 
         core::socket::stream::SocketContext* socketContext = nullptr;
 
-        if (subApp != nullptr || pubApp != nullptr) {
+        if (configSubscribe != nullptr || configPublish != nullptr) {
             socketContext = new iot::mqtt::SocketContext(
                 socketConnection,
-                new ::mqtt::mqttcli::lib::Mqtt(socketConnection->getConnectionName(),
-                                               sessionApp != nullptr ? sessionApp->getOption("--client-id")->as<std::string>() : "",
-                                               sessionApp != nullptr ? sessionApp->getOption("--qos")->as<uint8_t>() : 0,
-                                               sessionApp != nullptr ? sessionApp->getOption("--keep-alive")->as<uint16_t>() : 60,
-                                               sessionApp != nullptr ? !sessionApp->getOption("--retain-session")->as<bool>() : true,
-                                               sessionApp != nullptr ? sessionApp->getOption("--will-topic")->as<std::string>() : "",
-                                               sessionApp != nullptr ? sessionApp->getOption("--will-message")->as<std::string>() : "",
-                                               sessionApp != nullptr ? sessionApp->getOption("--will-qos")->as<uint8_t>() : 0,
-                                               sessionApp != nullptr ? sessionApp->getOption("--will-retain")->as<bool>() : false,
-                                               sessionApp != nullptr ? sessionApp->getOption("--username")->as<std::string>() : "",
-                                               sessionApp != nullptr ? sessionApp->getOption("--password")->as<std::string>() : "",
-                                               subApp != nullptr ? subApp->getOption("--topic")->as<std::list<std::string>>()
-                                                                 : std::list<std::string>(),
-                                               pubApp != nullptr ? pubApp->getOption("--topic")->as<std::string>() : "",
-                                               pubApp != nullptr ? pubApp->getOption("--message")->as<std::string>() : "",
-                                               pubApp != nullptr ? pubApp->getOption("--retain")->as<bool>() : false));
+                new ::mqtt::mqttcli::lib::Mqtt(
+                    socketConnection->getConnectionName(),
+                    configSession != nullptr ? configSession->getOption("--client-id")->as<std::string>() : "",
+                    configSession != nullptr ? configSession->getOption("--qos")->as<uint8_t>() : 0,
+                    configSession != nullptr ? configSession->getOption("--keep-alive")->as<uint16_t>() : 60,
+                    configSession != nullptr ? !configSession->getOption("--retain-session")->as<bool>() : true,
+                    configSession != nullptr ? configSession->getOption("--will-topic")->as<std::string>() : "",
+                    configSession != nullptr ? configSession->getOption("--will-message")->as<std::string>() : "",
+                    configSession != nullptr ? configSession->getOption("--will-qos")->as<uint8_t>() : 0,
+                    configSession != nullptr ? configSession->getOption("--will-retain")->as<bool>() : false,
+                    configSession != nullptr ? configSession->getOption("--username")->as<std::string>() : "",
+                    configSession != nullptr ? configSession->getOption("--password")->as<std::string>() : "",
+                    configSubscribe != nullptr ? configSubscribe->getOption("--topic")->as<std::list<std::string>>()
+                                               : std::list<std::string>(),
+                    configPublish != nullptr ? configPublish->getOption("--topic")->as<std::string>() : "",
+                    configPublish != nullptr ? configPublish->getOption("--message")->as<std::string>() : "",
+                    configPublish != nullptr ? configPublish->getOption("--retain")->as<bool>() : false));
         } else {
             VLOG(0) << "[" << Color::Code::FG_RED << "Error" << Color::Code::FG_DEFAULT << "] " << socketConnection->getConnectionName()
                     << ": one of 'sub' or 'pub' is required";

@@ -70,9 +70,6 @@
 
 SubscribeSection::SubscribeSection(net::config::ConfigInstance* instanceSc)
     : net::config::ConfigSection(instanceSc, net::config::Section("sub", "Configuration for application mqttsub", this)) {
-    //        const SubscribeSection* subscribeSection = instanceSc->getSection<SubscribeSection>("sub");
-
-    //        if (subscribeSection->getOption("--topic") == nullptr) {
     sectionSc->needs(addOptionFunction<std::string>(
                          "--topic",
                          [subApp = this](const std::string& value) {
@@ -88,14 +85,10 @@ SubscribeSection::SubscribeSection(net::config::ConfigInstance* instanceSc)
                          ->required()
                          ->allow_extra_args()
                          ->configurable());
-    //        }
 }
 
 PublishSection::PublishSection(net::config::ConfigInstance* instanceSc)
     : net::config::ConfigSection(instanceSc, net::config::Section("pub", "Configuration for application mqttpub", this)) {
-    //        const PublishSection* publishSection = instanceSc->getSection<PublishSection>("pub");
-
-    //        if (publishSection->getOption("--topic") == nullptr) {
     sectionSc->needs(addOptionFunction<std::string>(
                          "--topic",
                          [pubApp = this](const std::string& value) {
@@ -131,14 +124,10 @@ PublishSection::PublishSection(net::config::ConfigInstance* instanceSc)
                          ->take_all()
                          ->required()
                          ->configurable());
-    //        }
 }
 
 SessionSection::SessionSection(net::config::ConfigInstance* instanceSc)
     : net::config::ConfigSection(instanceSc, net::config::Section("session", "MQTT session behavior", this)) {
-    //        const SessionSection* sessionSection = instanceSc->getSection<SessionSection>("session");
-
-    //        if (sessionSection->getOption("--client-id") == nullptr) {
     CLI::Option* clientIdOpt =
         addOption("--client-id", "MQTT Client-ID")->group(sectionSc->get_formatter()->get_label("Persistent Options"))->type_name("string");
 
@@ -192,5 +181,4 @@ SessionSection::SessionSection(net::config::ConfigInstance* instanceSc)
         ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
         ->type_name("string")
         ->configurable();
-    //        }
 }

@@ -67,39 +67,42 @@ namespace mqtt::mqttcli::websocket {
     }
 
     iot::mqtt::client::SubProtocol* SubProtocolFactory::create(web::websocket::SubProtocolContext* subProtocolContext) {
-        const SessionSection* sessionApp =
+        const SessionSection* configSection =
             subProtocolContext->getSocketConnection()->getConfigInstance()->getSection<SessionSection>("session", true, true);
-        const SubscribeSection* subApp =
+        const SubscribeSection* configSubecribe =
             subProtocolContext->getSocketConnection()->getConfigInstance()->getSection<SubscribeSection>("sub", true, true);
-        const PublishSection* pubApp =
+        const PublishSection* configPublish =
             subProtocolContext->getSocketConnection()->getConfigInstance()->getSection<PublishSection>("pub", true, true);
 
-        subApp = (subApp != nullptr && subApp->getOption("--topic")->count() > 0) ? subApp : nullptr;
-        pubApp = (pubApp != nullptr && pubApp->getOption("--topic")->count() > 0 && pubApp->getOption("--message")->count() > 0) ? pubApp
-                                                                                                                                 : nullptr;
+        configSubecribe = (configSubecribe != nullptr && configSubecribe->getOption("--topic")->count() > 0) ? configSubecribe : nullptr;
+        configPublish = (configPublish != nullptr && configPublish->getOption("--topic")->count() > 0 &&
+                         configPublish->getOption("--message")->count() > 0)
+                            ? configPublish
+                            : nullptr;
 
         iot::mqtt::client::SubProtocol* subProtocol = nullptr;
 
-        if (subApp != nullptr || pubApp != nullptr) {
+        if (configSubecribe != nullptr || configPublish != nullptr) {
             subProtocol = new iot::mqtt::client::SubProtocol(
                 subProtocolContext,
                 getName(),
-                new ::mqtt::mqttcli::lib::Mqtt(subProtocolContext->getSocketConnection()->getConnectionName(),
-                                               sessionApp != nullptr ? sessionApp->getOption("--client-id")->as<std::string>() : "",
-                                               sessionApp != nullptr ? sessionApp->getOption("--qos")->as<uint8_t>() : 0,
-                                               sessionApp != nullptr ? sessionApp->getOption("--keep-alive")->as<uint16_t>() : 60,
-                                               sessionApp != nullptr ? !sessionApp->getOption("--retain-session")->as<bool>() : true,
-                                               sessionApp != nullptr ? sessionApp->getOption("--will-topic")->as<std::string>() : "",
-                                               sessionApp != nullptr ? sessionApp->getOption("--will-message")->as<std::string>() : "",
-                                               sessionApp != nullptr ? sessionApp->getOption("--will-qos")->as<uint8_t>() : 0,
-                                               sessionApp != nullptr ? sessionApp->getOption("--will-retain")->as<bool>() : false,
-                                               sessionApp != nullptr ? sessionApp->getOption("--username")->as<std::string>() : "",
-                                               sessionApp != nullptr ? sessionApp->getOption("--password")->as<std::string>() : "",
-                                               subApp != nullptr ? subApp->getOption("--topic")->as<std::list<std::string>>()
-                                                                 : std::list<std::string>(),
-                                               pubApp != nullptr ? pubApp->getOption("--topic")->as<std::string>() : "",
-                                               pubApp != nullptr ? pubApp->getOption("--message")->as<std::string>() : "",
-                                               pubApp != nullptr ? pubApp->getOption("--retain")->as<bool>() : false));
+                new ::mqtt::mqttcli::lib::Mqtt(
+                    subProtocolContext->getSocketConnection()->getConnectionName(),
+                    configSection != nullptr ? configSection->getOption("--client-id")->as<std::string>() : "",
+                    configSection != nullptr ? configSection->getOption("--qos")->as<uint8_t>() : 0,
+                    configSection != nullptr ? configSection->getOption("--keep-alive")->as<uint16_t>() : 60,
+                    configSection != nullptr ? !configSection->getOption("--retain-session")->as<bool>() : true,
+                    configSection != nullptr ? configSection->getOption("--will-topic")->as<std::string>() : "",
+                    configSection != nullptr ? configSection->getOption("--will-message")->as<std::string>() : "",
+                    configSection != nullptr ? configSection->getOption("--will-qos")->as<uint8_t>() : 0,
+                    configSection != nullptr ? configSection->getOption("--will-retain")->as<bool>() : false,
+                    configSection != nullptr ? configSection->getOption("--username")->as<std::string>() : "",
+                    configSection != nullptr ? configSection->getOption("--password")->as<std::string>() : "",
+                    configSubecribe != nullptr ? configSubecribe->getOption("--topic")->as<std::list<std::string>>()
+                                               : std::list<std::string>(),
+                    configPublish != nullptr ? configPublish->getOption("--topic")->as<std::string>() : "",
+                    configPublish != nullptr ? configPublish->getOption("--message")->as<std::string>() : "",
+                    configPublish != nullptr ? configPublish->getOption("--retain")->as<bool>() : false));
         } else {
             VLOG(0) << "[" << Color::Code::FG_RED << "Error" << Color::Code::FG_DEFAULT << "] "
                     << subProtocolContext->getSocketConnection()->getConnectionName() << ": one of 'sub' or 'pub' is required";
