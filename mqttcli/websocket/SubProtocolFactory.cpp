@@ -41,8 +41,8 @@
 
 #include "SubProtocolFactory.h"
 
+#include "lib/ConfigSections.h"
 #include "lib/Mqtt.h"
-#include "mqttcli/ConfigSections.h"
 
 #include <core/socket/stream/SocketConnection.h>
 #include <log/Logger.h>
@@ -65,12 +65,12 @@ namespace mqtt::mqttcli::websocket {
     }
 
     iot::mqtt::client::SubProtocol* SubProtocolFactory::create(web::websocket::SubProtocolContext* subProtocolContext) {
-        const ConfigSession* configSession =
-            subProtocolContext->getSocketConnection()->getConfigInstance()->getSection<ConfigSession>("session", true, true);
-        const ConfigSubscribe* configSubscribe =
-            subProtocolContext->getSocketConnection()->getConfigInstance()->getSection<ConfigSubscribe>("sub", true, true);
-        const ConfigPublish* configPublish =
-            subProtocolContext->getSocketConnection()->getConfigInstance()->getSection<ConfigPublish>("pub", true, true);
+        const lib::ConfigSession* configSession =
+            subProtocolContext->getSocketConnection()->getConfigInstance()->getSection<lib::ConfigSession>("session", true, true);
+        const lib::ConfigSubscribe* configSubscribe =
+            subProtocolContext->getSocketConnection()->getConfigInstance()->getSection<lib::ConfigSubscribe>("sub", true, true);
+        const lib::ConfigPublish* configPublish =
+            subProtocolContext->getSocketConnection()->getConfigInstance()->getSection<lib::ConfigPublish>("pub", true, true);
 
         configSubscribe = (configSubscribe != nullptr && configSubscribe->getOption("--topic")->count() > 0) ? configSubscribe : nullptr;
         configPublish = (configPublish != nullptr && configPublish->getOption("--topic")->count() > 0 &&

@@ -39,9 +39,9 @@
  * THE SOFTWARE.
  */
 
-#include "ConfigSections.h"       // IWYU pragma: keep
 #include "SocketContextFactory.h" // IWYU pragma: keep
 #include "config.h"
+#include "lib/ConfigSections.h" // IWYU pragma: keep
 
 #ifdef LINK_SUBPROTOCOL_STATIC
 
@@ -119,16 +119,6 @@ static void logResponse(const std::shared_ptr<web::http::client::Request>& req, 
             << "\n"
             << httputils::toString(res->httpVersion, res->statusCode, res->reason, res->headers, res->cookies, res->body);
 }
-
-template <typename HttpClient>
-class CliHttpClient : public HttpClient {
-public:
-    using HttpClient::HttpClient;
-
-    std::shared_ptr<ConfigSession> sessionSection = std::make_shared<ConfigSession>(&this->getConfig());
-    std::shared_ptr<ConfigSubscribe> subsecibeSection = std::make_shared<ConfigSubscribe>(&this->getConfig());
-    std::shared_ptr<ConfigPublish> publisSection = std::make_shared<ConfigPublish>(&this->getConfig());
-};
 
 template <typename HttpClient>
 void startClient(const std::string& name, const std::function<void(typename HttpClient::Config&)>& configurator) {
@@ -213,7 +203,8 @@ int main(int argc, char* argv[]) {
         createConfig(
             utils::Config::addInstance(net::config::Instance("session", "MQTT session behavior", &a), "Connection", true),
             utils::Config::addInstance(net::config::Instance("sub", "Configuration for application mqttsub", &a), "Applications", true),
-            utils::Config::addInstance(net::config::Instance("pub", "Configuration for application mqttpub", &a), "Applications", true));
+            utils::Config::addInstance(net::config::Instance("pub", "Configuration for application mqttpub", &a), "Applications",
+       true));
     */
 
     // Start of application
@@ -221,14 +212,14 @@ int main(int argc, char* argv[]) {
 #if defined(CONFIG_MQTTSUITE_CLI_TCP_IPV4)
     net::in::stream::legacy::Client<mqtt::mqttcli::SocketContextFactory>("in-mqtt", [](auto& config) {
         /*
-            config.addSection(std::make_shared<SessionSection>(&config));
-            config.addSection(std::make_shared<SubscribeSection>(&config));
-            config.addSection(std::make_shared<PublishSection>(&config));
+            config.addSection(std::make_shared<lib::ConfigSession>(&config));
+            config.addSection(std::make_shared<lib::ConfigSubscribe>(&config));
+            config.addSection(std::make_shared<lib::ConfigPublish>(&config));
         */
 
-        config.template addSection<ConfigSession>();
-        config.template addSection<ConfigSubscribe>();
-        config.template addSection<ConfigPublish>();
+        config.template addSection<mqtt::mqttcli::lib::ConfigSession>();
+        config.template addSection<mqtt::mqttcli::lib::ConfigSubscribe>();
+        config.template addSection<mqtt::mqttcli::lib::ConfigPublish>();
 
         config.Remote::setPort(1883);
 
@@ -242,9 +233,9 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_TLS_IPV4)
     net::in::stream::tls::Client<mqtt::mqttcli::SocketContextFactory>("in-mqtts", [](auto& config) {
-        config.template addSection<ConfigSession>();
-        config.template addSection<ConfigSubscribe>();
-        config.template addSection<ConfigPublish>();
+        config.template addSection<mqtt::mqttcli::lib::ConfigSession>();
+        config.template addSection<mqtt::mqttcli::lib::ConfigSubscribe>();
+        config.template addSection<mqtt::mqttcli::lib::ConfigPublish>();
 
         config.Remote::setPort(1883);
 
@@ -259,9 +250,9 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_TCP_IPV6)
     net::in6::stream::legacy::Client<mqtt::mqttcli::SocketContextFactory>("in6-mqtt", [](auto& config) {
-        config.template addSection<ConfigSession>();
-        config.template addSection<ConfigSubscribe>();
-        config.template addSection<ConfigPublish>();
+        config.template addSection<mqtt::mqttcli::lib::ConfigSession>();
+        config.template addSection<mqtt::mqttcli::lib::ConfigSubscribe>();
+        config.template addSection<mqtt::mqttcli::lib::ConfigPublish>();
 
         config.Remote::setPort(1883);
 
@@ -276,9 +267,9 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_TLS_IPV6)
     net::in6::stream::tls::Client<mqtt::mqttcli::SocketContextFactory>("in6-mqtts", [](auto& config) {
-        config.template addSection<ConfigSession>();
-        config.template addSection<ConfigSubscribe>();
-        config.template addSection<ConfigPublish>();
+        config.template addSection<mqtt::mqttcli::lib::ConfigSession>();
+        config.template addSection<mqtt::mqttcli::lib::ConfigSubscribe>();
+        config.template addSection<mqtt::mqttcli::lib::ConfigPublish>();
 
         config.Remote::setPort(1883);
 
@@ -293,9 +284,9 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_UNIX)
     net::un::stream::legacy::Client<mqtt::mqttcli::SocketContextFactory>("un-mqtt", [](auto& config) {
-        config.template addSection<ConfigSession>();
-        config.template addSection<ConfigSubscribe>();
-        config.template addSection<ConfigPublish>();
+        config.template addSection<mqtt::mqttcli::lib::ConfigSession>();
+        config.template addSection<mqtt::mqttcli::lib::ConfigSubscribe>();
+        config.template addSection<mqtt::mqttcli::lib::ConfigPublish>();
 
         config.Remote::setSunPath("/var/mqttbroker-un-mqtt");
 
@@ -309,9 +300,9 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_UNIX_TLS)
     net::un::stream::tls::Client<mqtt::mqttcli::SocketContextFactory>("un-mqtts", [](auto& config) {
-        config.template addSection<ConfigSession>();
-        config.template addSection<ConfigSubscribe>();
-        config.template addSection<ConfigPublish>();
+        config.template addSection<mqtt::mqttcli::lib::ConfigSession>();
+        config.template addSection<mqtt::mqttcli::lib::ConfigSubscribe>();
+        config.template addSection<mqtt::mqttcli::lib::ConfigPublish>();
 
         config.Remote::setSunPath("/var/mqttbroker-un-mqtts");
 
@@ -325,9 +316,9 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_TCP_IPV4) && defined(CONFIG_MQTTSUITE_CLI_WS)
     startClient<web::http::legacy::in::Client>("in-wsmqtt", [](auto& config) {
-        config.template addSection<ConfigSession>();
-        config.template addSection<ConfigSubscribe>();
-        config.template addSection<ConfigPublish>();
+        config.template addSection<mqtt::mqttcli::lib::ConfigSession>();
+        config.template addSection<mqtt::mqttcli::lib::ConfigSubscribe>();
+        config.template addSection<mqtt::mqttcli::lib::ConfigPublish>();
 
         config.Remote::setPort(8080);
 
@@ -342,9 +333,9 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_TLS_IPV4) && defined(CONFIG_MQTTSUITE_CLI_WSS)
     startClient<web::http::tls::in::Client>("in-wsmqtts", [](auto& config) {
-        config.template addSection<ConfigSession>();
-        config.template addSection<ConfigSubscribe>();
-        config.template addSection<ConfigPublish>();
+        config.template addSection<mqtt::mqttcli::lib::ConfigSession>();
+        config.template addSection<mqtt::mqttcli::lib::ConfigSubscribe>();
+        config.template addSection<mqtt::mqttcli::lib::ConfigPublish>();
 
         config.Remote::setPort(8088);
 
@@ -359,9 +350,9 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_TCP_IPV6) && defined(CONFIG_MQTTSUITE_CLI_WS)
     startClient<web::http::legacy::in6::Client>("in6-wsmqtt", [](auto& config) {
-        config.template addSection<ConfigSession>();
-        config.template addSection<ConfigSubscribe>();
-        config.template addSection<ConfigPublish>();
+        config.template addSection<mqtt::mqttcli::lib::ConfigSession>();
+        config.template addSection<mqtt::mqttcli::lib::ConfigSubscribe>();
+        config.template addSection<mqtt::mqttcli::lib::ConfigPublish>();
 
         config.Remote::setPort(8080);
 
@@ -376,9 +367,9 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_TLS_IPV6) && defined(CONFIG_MQTTSUITE_CLI_WSS)
     startClient<web::http::tls::in6::Client>("in6-wsmqtts", [](auto& config) {
-        config.template addSection<ConfigSession>();
-        config.template addSection<ConfigSubscribe>();
-        config.template addSection<ConfigPublish>();
+        config.template addSection<mqtt::mqttcli::lib::ConfigSession>();
+        config.template addSection<mqtt::mqttcli::lib::ConfigSubscribe>();
+        config.template addSection<mqtt::mqttcli::lib::ConfigPublish>();
 
         config.Remote::setPort(8088);
 
@@ -394,9 +385,9 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_UNIX) && defined(CONFIG_MQTTSUITE_CLI_WS)
     startClient<web::http::legacy::un::Client>("un-wsmqtt", [](auto& config) {
-        config.template addSection<ConfigSession>();
-        config.template addSection<ConfigSubscribe>();
-        config.template addSection<ConfigPublish>();
+        config.template addSection<mqtt::mqttcli::lib::ConfigSession>();
+        config.template addSection<mqtt::mqttcli::lib::ConfigSubscribe>();
+        config.template addSection<mqtt::mqttcli::lib::ConfigPublish>();
 
         config.setRetry();
         config.setRetryBase(1);
@@ -409,9 +400,9 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_UNIX_TLS) && defined(CONFIG_MQTTSUITE_CLI_WSS)
     startClient<web::http::tls::un::Client>("un-wsmqtts", [](auto& config) {
-        config.template addSection<ConfigSession>();
-        config.template addSection<ConfigSubscribe>();
-        config.template addSection<ConfigPublish>();
+        config.template addSection<mqtt::mqttcli::lib::ConfigSession>();
+        config.template addSection<mqtt::mqttcli::lib::ConfigSubscribe>();
+        config.template addSection<mqtt::mqttcli::lib::ConfigPublish>();
 
         config.setRetry();
         config.setRetryBase(1);

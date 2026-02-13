@@ -41,7 +41,7 @@
 
 #include "SocketContextFactory.h"
 
-#include "ConfigSections.h"
+#include "lib/ConfigSections.h"
 #include "lib/Mqtt.h"
 
 #include <core/socket/stream/SocketConnection.h>
@@ -60,9 +60,11 @@
 namespace mqtt::mqttcli {
 
     core::socket::stream::SocketContext* SocketContextFactory::create(core::socket::stream::SocketConnection* socketConnection) {
-        const ConfigSession* configSession = socketConnection->getConfigInstance()->getSection<ConfigSession>("session", true, true);
-        const ConfigSubscribe* configSubscribe = socketConnection->getConfigInstance()->getSection<ConfigSubscribe>("sub", true, true);
-        const ConfigPublish* configPublish = socketConnection->getConfigInstance()->getSection<ConfigPublish>("pub", true, true);
+        const lib::ConfigSession* configSession =
+            socketConnection->getConfigInstance()->getSection<lib::ConfigSession>("session", true, true);
+        const lib::ConfigSubscribe* configSubscribe =
+            socketConnection->getConfigInstance()->getSection<lib::ConfigSubscribe>("sub", true, true);
+        const lib::ConfigPublish* configPublish = socketConnection->getConfigInstance()->getSection<lib::ConfigPublish>("pub", true, true);
 
         configSubscribe = (configSubscribe != nullptr && configSubscribe->getOption("--topic")->count() > 0) ? configSubscribe : nullptr;
         configPublish = (configPublish != nullptr && configPublish->getOption("--topic")->count() > 0 &&
