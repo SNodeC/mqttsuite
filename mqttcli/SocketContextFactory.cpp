@@ -47,11 +47,10 @@
 #include <core/socket/stream/SocketConnection.h>
 #include <iot/mqtt/SocketContext.h>
 #include <log/Logger.h>
-#include <net/config/ConfigSectionAPI.hpp>
+#include <net/config/ConfigInstanceAPI.hpp>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <cstdint>
 #include <list>
 #include <string>
 #include <utils/CLI11.hpp>

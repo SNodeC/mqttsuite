@@ -42,10 +42,16 @@
 #ifndef CONFIG_SECTIONS
 #define CONFIG_SECTIONS
 
+namespace net::config {
+    class ConfigInstance;
+}
+
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include <cstdint>
 #include <list>
 #include <net/config/ConfigSection.h>
+#include <utils/CLI11.hpp>
 
 #endif
 

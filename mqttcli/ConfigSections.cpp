@@ -43,28 +43,13 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <core/SNodeC.h>
 //
-#include <net/config/ConfigSectionAPI.hpp>
-#include <net/in/stream/legacy/SocketClient.h>
-#include <net/in/stream/tls/SocketClient.h>
-#include <net/in6/stream/legacy/SocketClient.h>
-#include <net/in6/stream/tls/SocketClient.h>
-#include <net/un/stream/legacy/SocketClient.h>
-#include <net/un/stream/tls/SocketClient.h>
-#include <web/http/legacy/in/Client.h>
-#include <web/http/legacy/in6/Client.h>
-#include <web/http/legacy/un/Client.h>
-#include <web/http/tls/in/Client.h>
-#include <web/http/tls/in6/Client.h>
-#include <web/http/tls/un/Client.h>
-//
-#include <log/Logger.h>
-#include <utils/Config.h>
+#include <net/config/ConfigSection.hpp>
 //
 #include <utils/CLI11.hpp>
 //
-#include <string>
+#include <functional>
+#include <memory>
 
 #endif
 
@@ -127,6 +112,12 @@ ConfigPublish::ConfigPublish(net::config::ConfigInstance* instance)
                      ->required()
                      ->configurable();
     sectionSc->needs(messageOpt);
+
+    retainOpt = addFlag("--retain{true}", "Message retain", "bool")
+                    ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
+                    ->default_str("false")
+                    ->check(CLI::IsMember({"true", "false"}))
+                    ->configurable();
 }
 
 ConfigSession::ConfigSession(net::config::ConfigInstance* instance)

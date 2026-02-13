@@ -55,7 +55,7 @@
 #include <express/middleware/StaticMiddleware.h>
 #include <express/tls/in/Server.h>
 #include <iot/mqtt/MqttContext.h>
-#include <net/config/ConfigSectionAPI.hpp>
+#include <net/config/ConfigInstanceAPI.hpp>
 //
 #include <log/Logger.h>
 #include <utils/Config.h>

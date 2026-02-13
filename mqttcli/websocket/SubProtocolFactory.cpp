@@ -46,13 +46,11 @@
 
 #include <core/socket/stream/SocketConnection.h>
 #include <log/Logger.h>
-#include <net/config/ConfigInstance.h>
-#include <net/config/ConfigSectionAPI.hpp>
+#include <net/config/ConfigInstanceAPI.hpp>
 #include <web/websocket/SubProtocolContext.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <cstdint>
 #include <list>
 #include <utils/CLI11.hpp>
 

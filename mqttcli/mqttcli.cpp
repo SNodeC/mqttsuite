@@ -39,11 +39,9 @@
  * THE SOFTWARE.
  */
 
-#include "ConfigSections.h"
+#include "ConfigSections.h"       // IWYU pragma: keep
 #include "SocketContextFactory.h" // IWYU pragma: keep
 #include "config.h"
-
-#include <web/http/http_utils.h>
 
 #ifdef LINK_SUBPROTOCOL_STATIC
 
@@ -62,14 +60,17 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <core/SNodeC.h>
+
 //
-#include <net/config/ConfigSectionAPI.hpp>
+#include <net/config/ConfigInstanceAPI.hpp>
 #include <net/in/stream/legacy/SocketClient.h>
 #include <net/in/stream/tls/SocketClient.h>
 #include <net/in6/stream/legacy/SocketClient.h>
 #include <net/in6/stream/tls/SocketClient.h>
 #include <net/un/stream/legacy/SocketClient.h>
 #include <net/un/stream/tls/SocketClient.h>
+#include <web/http/client/ConfigHTTP.h>
+#include <web/http/http_utils.h>
 #include <web/http/legacy/in/Client.h>
 #include <web/http/legacy/in6/Client.h>
 #include <web/http/legacy/un/Client.h>
