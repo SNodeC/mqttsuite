@@ -70,115 +70,118 @@
 
 ConfigSubscribe::ConfigSubscribe(net::config::ConfigInstance* instance)
     : net::config::ConfigSection(instance, net::config::Section("sub", "Configuration for application mqttsub", this)) {
-    sectionSc->needs(addOptionFunction<std::string>(
-                         "--topic",
-                         [subApp = this](const std::string& value) {
-                             if (value == "") {
-                                 subApp->getOption("--topic")->required(false)->clear();
-                                 subApp->sectionSc->remove_needs(subApp->getOption("--topic"));
-                             }
-                         },
-                         "List of topics subscribing to")
-                         ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
-                         ->type_name("string list")
-                         ->take_all()
-                         ->required()
-                         ->allow_extra_args()
-                         ->configurable());
+    topicOpt = addOptionFunction<std::string>(
+                   "--topic",
+                   [configSubscribe = this](const std::string& value) {
+                       if (value == "") {
+                           configSubscribe->topicOpt->required(false)->clear();
+                           configSubscribe->sectionSc->remove_needs(configSubscribe->topicOpt);
+                       }
+                   },
+                   "List of topics subscribing to")
+                   ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
+                   ->type_name("string list")
+                   ->take_all()
+                   ->required()
+                   ->allow_extra_args()
+                   ->configurable();
+    sectionSc->needs(topicOpt);
 }
 
 ConfigPublish::ConfigPublish(net::config::ConfigInstance* instance)
     : net::config::ConfigSection(instance, net::config::Section("pub", "Configuration for application mqttpub", this)) {
-    sectionSc->needs(addOptionFunction<std::string>(
-                         "--topic",
-                         [pubApp = this](const std::string& value) {
-                             if (value == "") {
-                                 pubApp->getOption("--topic")->required(false)->clear();
-                                 pubApp->sectionSc->remove_needs(pubApp->getOption("--topic"));
+    topicOpt = addOptionFunction<std::string>(
+                   "--topic",
+                   [configPublish = this](const std::string& value) {
+                       if (value == "") {
+                           configPublish->topicOpt->required(false)->clear();
+                           configPublish->sectionSc->remove_needs(configPublish->topicOpt);
 
-                                 pubApp->getOption("--message")->required(false)->clear();
-                                 pubApp->sectionSc->remove_needs(pubApp->getOption("--message"));
-                             }
-                         },
-                         "List of topics subscribing to")
-                         ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
-                         ->type_name("string list")
-                         ->take_all()
-                         ->required()
-                         ->configurable());
+                           configPublish->messageOpt->required(false)->clear();
+                           configPublish->sectionSc->remove_needs(configPublish->messageOpt);
+                       }
+                   },
+                   "List of topics subscribing to")
+                   ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
+                   ->type_name("string list")
+                   ->take_all()
+                   ->required()
+                   ->configurable();
+    sectionSc->needs(topicOpt);
 
-    sectionSc->needs(addOptionFunction<std::string>(
-                         "--message",
-                         [pubApp = this](const std::string& value) {
-                             if (value == "") {
-                                 pubApp->getOption("--topic")->required(false)->clear();
-                                 pubApp->sectionSc->remove_needs(pubApp->getOption("--topic"));
+    messageOpt = addOptionFunction<std::string>(
+                     "--message",
+                     [configPublish = this](const std::string& value) {
+                         if (value == "") {
+                             configPublish->topicOpt->required(false)->clear();
+                             configPublish->sectionSc->remove_needs(configPublish->topicOpt);
 
-                                 pubApp->getOption("--message")->required(false)->clear();
-                                 pubApp->sectionSc->remove_needs(pubApp->getOption("--message"));
-                             }
-                         },
-                         "List of topics subscribing to")
-                         ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
-                         ->type_name("string list")
-                         ->take_all()
-                         ->required()
-                         ->configurable());
+                             configPublish->messageOpt->required(false)->clear();
+                             configPublish->sectionSc->remove_needs(configPublish->messageOpt);
+                         }
+                     },
+                     "List of topics subscribing to")
+                     ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
+                     ->type_name("string list")
+                     ->take_all()
+                     ->required()
+                     ->configurable();
+    sectionSc->needs(messageOpt);
 }
 
 ConfigSession::ConfigSession(net::config::ConfigInstance* instance)
     : net::config::ConfigSection(instance, net::config::Section("session", "MQTT session behavior", this)) {
-    CLI::Option* clientIdOpt =
+    clientIdOpt =
         addOption("--client-id", "MQTT Client-ID")->group(sectionSc->get_formatter()->get_label("Persistent Options"))->type_name("string");
 
-    addOption("--qos", "Quality of service")
-        ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
-        ->type_name("uint8_t")
-        ->default_val(0)
-        ->configurable();
+    qoSOpt = addOption("--qos", "Quality of service")
+                 ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
+                 ->type_name("uint8_t")
+                 ->default_val(0)
+                 ->configurable();
 
-    addFlag("--retain-session{true},-r{true}", "Clean session", "bool")
-        ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
-        ->default_str("false")
-        ->check(CLI::IsMember({"true", "false"}))
-        ->configurable()
-        ->needs(clientIdOpt);
+    retainSessionOpt = addFlag("--retain-session{true},-r{true}", "Clean session", "bool")
+                           ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
+                           ->default_str("false")
+                           ->check(CLI::IsMember({"true", "false"}))
+                           ->configurable()
+                           ->needs(clientIdOpt);
 
-    addOption("--keep-alive", "Quality of service")
-        ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
-        ->type_name("uint8_t")
-        ->default_val(60)
-        ->configurable();
+    keepAliveOpt = addOption("--keep-alive", "Quality of service")
+                       ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
+                       ->type_name("uint16_t")
+                       ->default_val(60)
+                       ->configurable();
 
-    addOption("--will-topic", "MQTT will topic")
-        ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
-        ->type_name("string")
-        ->configurable();
+    willTopicOpt = addOption("--will-topic", "MQTT will topic")
+                       ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
+                       ->type_name("string")
+                       ->configurable();
 
-    addOption("--will-message", "MQTT will message")
-        ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
-        ->type_name("string")
-        ->configurable();
+    willMessageOpt = addOption("--will-message", "MQTT will message")
+                         ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
+                         ->type_name("string")
+                         ->configurable();
 
-    addOption("--will-qos", "MQTT will quality of service")
-        ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
-        ->type_name("uint8_t")
-        ->default_val(0)
-        ->configurable();
+    willQoSOpt = addOption("--will-qos", "MQTT will quality of service")
+                     ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
+                     ->type_name("uint8_t")
+                     ->default_val(0)
+                     ->configurable();
 
-    addFlag("--will-retain{true}", "MQTT will message retain", "bool")
-        ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
-        ->default_str("false")
-        ->check(CLI::IsMember({"true", "false"}))
-        ->configurable();
+    willRetainOpt = addFlag("--will-retain{true}", "MQTT will message retain", "bool")
+                        ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
+                        ->default_str("false")
+                        ->check(CLI::IsMember({"true", "false"}))
+                        ->configurable();
 
-    addOption("--username", "MQTT username")
-        ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
-        ->type_name("string")
-        ->configurable();
+    usernameOpt = addOption("--username", "MQTT username")
+                      ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
+                      ->type_name("string")
+                      ->configurable();
 
-    addOption("--password", "MQTT password")
-        ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
-        ->type_name("string")
-        ->configurable();
+    passwordOpt = addOption("--password", "MQTT password")
+                      ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
+                      ->type_name("string")
+                      ->configurable();
 }

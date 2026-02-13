@@ -76,23 +76,21 @@ namespace mqtt::mqttcli {
         if (configSubscribe != nullptr || configPublish != nullptr) {
             socketContext = new iot::mqtt::SocketContext(
                 socketConnection,
-                new ::mqtt::mqttcli::lib::Mqtt(
-                    socketConnection->getConnectionName(),
-                    configSession != nullptr ? configSession->getOption("--client-id")->as<std::string>() : "",
-                    configSession != nullptr ? configSession->getOption("--qos")->as<uint8_t>() : 0,
-                    configSession != nullptr ? configSession->getOption("--keep-alive")->as<uint16_t>() : 60,
-                    configSession != nullptr ? !configSession->getOption("--retain-session")->as<bool>() : true,
-                    configSession != nullptr ? configSession->getOption("--will-topic")->as<std::string>() : "",
-                    configSession != nullptr ? configSession->getOption("--will-message")->as<std::string>() : "",
-                    configSession != nullptr ? configSession->getOption("--will-qos")->as<uint8_t>() : 0,
-                    configSession != nullptr ? configSession->getOption("--will-retain")->as<bool>() : false,
-                    configSession != nullptr ? configSession->getOption("--username")->as<std::string>() : "",
-                    configSession != nullptr ? configSession->getOption("--password")->as<std::string>() : "",
-                    configSubscribe != nullptr ? configSubscribe->getOption("--topic")->as<std::list<std::string>>()
-                                               : std::list<std::string>(),
-                    configPublish != nullptr ? configPublish->getOption("--topic")->as<std::string>() : "",
-                    configPublish != nullptr ? configPublish->getOption("--message")->as<std::string>() : "",
-                    configPublish != nullptr ? configPublish->getOption("--retain")->as<bool>() : false));
+                new ::mqtt::mqttcli::lib::Mqtt(socketConnection->getConnectionName(),
+                                               configSession != nullptr ? configSession->getClientId() : "",
+                                               configSession != nullptr ? configSession->getQoS() : 0,
+                                               configSession != nullptr ? configSession->getKeepAlive() : 60,
+                                               configSession != nullptr ? !configSession->getRetainSession() : true,
+                                               configSession != nullptr ? configSession->getWillTopic() : "",
+                                               configSession != nullptr ? configSession->getWillMessage() : "",
+                                               configSession != nullptr ? configSession->getWillQoS() : 0,
+                                               configSession != nullptr ? configSession->getWillRetain() : false,
+                                               configSession != nullptr ? configSession->getUsername() : "",
+                                               configSession != nullptr ? configSession->getPassword() : "",
+                                               configSubscribe != nullptr ? configSubscribe->getTopic() : std::list<std::string>(),
+                                               configPublish != nullptr ? configPublish->getTopic() : "",
+                                               configPublish != nullptr ? configPublish->getMessage() : "",
+                                               configPublish != nullptr ? configPublish->getRetain() : false));
         } else {
             VLOG(0) << "[" << Color::Code::FG_RED << "Error" << Color::Code::FG_DEFAULT << "] " << socketConnection->getConnectionName()
                     << ": one of 'sub' or 'pub' is required";
