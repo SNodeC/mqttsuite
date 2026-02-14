@@ -161,11 +161,11 @@ configure_file(
 )
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/generated)
 
-set(MQTTBRIDGE_CPP mqttbridge.cpp SocketContextFactory.cpp)
-set(MQTTBRIDGE_H SocketContextFactory.h)
+set(MQTTBRIDGE_CPP mqttbridge.cpp ConfigBridge.cpp SocketContextFactory.cpp)
+set(MQTTBRIDGE_H ConfigBridge.h SocketContextFactory.h)
 
 set_property(
-    SOURCE mqttbridge.cpp
+    SOURCE ConfigBridge.cpp
     APPEND
     PROPERTY COMPILE_DEFINITIONS
              CMAKE_INSTALL_PREFIX=\"${CMAKE_INSTALL_PREFIX}\"
