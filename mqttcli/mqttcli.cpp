@@ -62,6 +62,8 @@
 #include <core/SNodeC.h>
 
 //
+#include <net/config/ConfigInstanceAPI.hpp>
+//
 #include <net/in/stream/legacy/SocketClient.h>
 #include <net/in/stream/tls/SocketClient.h>
 #include <net/in6/stream/legacy/SocketClient.h>
@@ -78,9 +80,6 @@
 #include <web/http/tls/un/Client.h>
 //
 #include <log/Logger.h>
-#include <utils/Config.h>
-//
-#include <utils/CLI11.hpp>
 //
 #include <string>
 

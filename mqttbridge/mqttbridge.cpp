@@ -57,10 +57,9 @@
 #include <iot/mqtt/MqttContext.h>
 //
 #include <log/Logger.h>
-#include <utils/Config.h>
+#include <net/config/ConfigInstanceAPI.hpp>
 //
 #include <nlohmann/json_fwd.hpp>
-#include <utils/CLI11.hpp>
 //
 
 // Select necessary include files
@@ -182,7 +181,7 @@ static void closeBridges() {
             mqtt->getMqttContext()
                 ->getSocketConnection()
                 ->getConfigInstance()
-                ->getSection<net::config::ConfigPhysicalSocketClient>("socket")
+                ->getSection<net::config::ConfigPhysicalSocketClient>()
                 ->setReconnect(false);
         }
     }
