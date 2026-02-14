@@ -41,18 +41,17 @@
 
 #include "SubProtocolFactory.h"
 
+#include "lib/ConfigSections.h"
 #include "lib/Mqtt.h"
 
 #include <core/socket/stream/SocketConnection.h>
 #include <log/Logger.h>
-#include <net/config/ConfigInstance.h>
+#include <net/config/ConfigInstanceAPI.hpp>
 #include <web/websocket/SubProtocolContext.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <cstdint>
 #include <list>
-#include <utils/CLI11.hpp>
 
 #endif
 
@@ -65,35 +64,40 @@ namespace mqtt::mqttcli::websocket {
     }
 
     iot::mqtt::client::SubProtocol* SubProtocolFactory::create(web::websocket::SubProtocolContext* subProtocolContext) {
-        const CLI::App* sessionApp = subProtocolContext->getSocketConnection()->getConfigInstance()->getSection("session", true, true);
-        const CLI::App* subApp = subProtocolContext->getSocketConnection()->getConfigInstance()->getSection("sub", true, true);
-        const CLI::App* pubApp = subProtocolContext->getSocketConnection()->getConfigInstance()->getSection("pub", true, true);
+        const lib::ConfigSession* configSession =
+            subProtocolContext->getSocketConnection()->getConfigInstance()->getSection<lib::ConfigSession>(true, true);
+        const lib::ConfigSubscribe* configSubscribe =
+            subProtocolContext->getSocketConnection()->getConfigInstance()->getSection<lib::ConfigSubscribe>(true, true);
+        const lib::ConfigPublish* configPublish =
+            subProtocolContext->getSocketConnection()->getConfigInstance()->getSection<lib::ConfigPublish>(true, true);
 
-        subApp = (subApp != nullptr && (*subApp)["--topic"]->count() > 0) ? subApp : nullptr;
-        pubApp = (pubApp != nullptr && (*pubApp)["--topic"]->count() > 0 && (*pubApp)["--message"]->count() > 0) ? pubApp : nullptr;
+        configSubscribe = (configSubscribe != nullptr && configSubscribe->getOption("--topic")->count() > 0) ? configSubscribe : nullptr;
+        configPublish = (configPublish != nullptr && configPublish->getOption("--topic")->count() > 0 &&
+                         configPublish->getOption("--message")->count() > 0)
+                            ? configPublish
+                            : nullptr;
 
         iot::mqtt::client::SubProtocol* subProtocol = nullptr;
 
-        if (subApp != nullptr || pubApp != nullptr) {
+        if (configSubscribe != nullptr || configPublish != nullptr) {
             subProtocol = new iot::mqtt::client::SubProtocol(
                 subProtocolContext,
                 getName(),
                 new ::mqtt::mqttcli::lib::Mqtt(subProtocolContext->getSocketConnection()->getConnectionName(),
-                                               sessionApp != nullptr ? sessionApp->get_option("--client-id")->as<std::string>() : "",
-                                               sessionApp != nullptr ? sessionApp->get_option("--qos")->as<uint8_t>() : 0,
-                                               sessionApp != nullptr ? sessionApp->get_option("--keep-alive")->as<uint16_t>() : 60,
-                                               sessionApp != nullptr ? !sessionApp->get_option("--retain-session")->as<bool>() : true,
-                                               sessionApp != nullptr ? sessionApp->get_option("--will-topic")->as<std::string>() : "",
-                                               sessionApp != nullptr ? sessionApp->get_option("--will-message")->as<std::string>() : "",
-                                               sessionApp != nullptr ? sessionApp->get_option("--will-qos")->as<uint8_t>() : 0,
-                                               sessionApp != nullptr ? sessionApp->get_option("--will-retain")->as<bool>() : false,
-                                               sessionApp != nullptr ? sessionApp->get_option("--username")->as<std::string>() : "",
-                                               sessionApp != nullptr ? sessionApp->get_option("--password")->as<std::string>() : "",
-                                               subApp != nullptr ? subApp->get_option("--topic")->as<std::list<std::string>>()
-                                                                 : std::list<std::string>(),
-                                               pubApp != nullptr ? pubApp->get_option("--topic")->as<std::string>() : "",
-                                               pubApp != nullptr ? pubApp->get_option("--message")->as<std::string>() : "",
-                                               pubApp != nullptr ? pubApp->get_option("--retain")->as<bool>() : false));
+                                               configSession != nullptr ? configSession->getClientId() : "",
+                                               configSession != nullptr ? configSession->getQoS() : 0,
+                                               configSession != nullptr ? configSession->getKeepAlive() : 60,
+                                               configSession != nullptr ? !configSession->getRetainSession() : true,
+                                               configSession != nullptr ? configSession->getWillTopic() : "",
+                                               configSession != nullptr ? configSession->getWillMessage() : "",
+                                               configSession != nullptr ? configSession->getWillQoS() : 0,
+                                               configSession != nullptr ? configSession->getWillRetain() : false,
+                                               configSession != nullptr ? configSession->getUsername() : "",
+                                               configSession != nullptr ? configSession->getPassword() : "",
+                                               configSubscribe != nullptr ? configSubscribe->getTopic() : std::list<std::string>(),
+                                               configPublish != nullptr ? configPublish->getTopic() : "",
+                                               configPublish != nullptr ? configPublish->getMessage() : "",
+                                               configPublish != nullptr ? configPublish->getRetain() : false));
         } else {
             VLOG(0) << "[" << Color::Code::FG_RED << "Error" << Color::Code::FG_DEFAULT << "] "
                     << subProtocolContext->getSocketConnection()->getConnectionName() << ": one of 'sub' or 'pub' is required";

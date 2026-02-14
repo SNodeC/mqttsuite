@@ -1,16 +1,16 @@
 {
-  "discover_prefix": "iotempower",
   "connection": {
-    "keep_alive": 60,
-    "client_id": "MQTT-Integrator",
     "clean_session": true,
-    "will_topic": "will/topic",
+    "client_id": "MQTT-Integrator",
+    "keep_alive": 60,
+    "password": "Password",
+    "username": "Username",
     "will_message": "Last Will",
     "will_qos": 0,
     "will_retain": false,
-    "username": "Username",
-    "password": "Password"
+    "will_topic": "will/topic"
   },
+  "discover_prefix": "iotempower",
   "mapping": {
     "plugins": [
       "libmqtt-mapping-plugin-double.so",
@@ -23,51 +23,51 @@
           {
             "name": "button1",
             "subscription": {
-              "type": "binary_sensor",
               "qos": 2,
               "static": [
                 {
                   "mapped_topic": "mapping/value",
                   "message_mapping": [
                     {
-                      "message": "pressed",
-                      "mapped_message": "on"
+                      "mapped_message": "on",
+                      "message": "pressed"
                     },
                     {
-                      "message": "released",
-                      "mapped_message": "off"
+                      "mapped_message": "off",
+                      "message": "released"
                     }
                   ]
                 },
                 {
                   "mapped_topic": "strip/strip1/rgb/set",
                   "message_mapping": {
-                    "message": "pressed",
-                    "mapped_message": "front red"
+                    "mapped_message": "front red",
+                    "message": "pressed"
                   }
                 },
                 {
                   "mapped_topic": "chain/strip1/rgb/set",
                   "message_mapping": {
-                    "message": "pressed",
-                    "mapped_message": "front red"
+                    "mapped_message": "front red",
+                    "message": "pressed"
                   }
                 },
                 {
                   "mapped_topic": "strip/strip1/brightness/set",
                   "message_mapping": {
-                    "message": "released",
-                    "mapped_message": "0"
+                    "mapped_message": "0",
+                    "message": "released"
                   }
                 },
                 {
                   "mapped_topic": "chain/strip1/brightness/set",
                   "message_mapping": {
-                    "message": "released",
-                    "mapped_message": "0"
+                    "mapped_message": "0",
+                    "message": "released"
                   }
                 }
-              ]
+              ],
+              "type": "binary_sensor"
             }
           },
           {
@@ -119,19 +119,16 @@
             "subscription": {
               "value": {
                 "mapped_topic": "mapping/json",
-                "mapping_template": "{\"state\":\"{{message}}\"}",
-                "mapping_template_also_works": "{% if message == \"on\" %}{\"state\": \"on\"}{% else if message == \"off\" %}{\"state\": \"off\"}{% endif %}"
+                "mapping_template": "{\"state\":\"{{message}}\"}"
               }
             }
           },
           {
             "name": "json",
             "subscription": {
-              "qos": 0,
               "json": {
                 "mapped_topic": "chain/onboard/set",
-                "mapping_template": "{% if message.state == \"on\" %}on{% else if message.state == \"off\" %}off{% endif %}",
-                "retain": false
+                "mapping_template": "{% if message.state == \"on\" %}on{% else if message.state == \"off\" %}off{% endif %}"
               }
             }
           }
@@ -150,20 +147,20 @@
                   {
                     "mapped_topic": "temperature/celsius",
                     "mapping_template": "{{ round(float(message), 2) }}",
-                    "retain": true,
-                    "qos": 2
+                    "qos": 2,
+                    "retain": true
                   },
                   {
                     "mapped_topic": "temperature/kelvin",
                     "mapping_template": "{{ round(float(message) + 273.15, 2) }}",
-                    "retain": true,
-                    "qos": 1
+                    "qos": 1,
+                    "retain": true
                   },
                   {
                     "mapped_topic": "temperature/farenheit",
                     "mapping_template": "{{ round(float(message) * 1.8 + 32, 2) }}",
-                    "retain": true,
-                    "qos": 2
+                    "qos": 2,
+                    "retain": true
                   }
                 ]
               }
@@ -179,20 +176,20 @@
                   {
                     "mapped_topic": "temperature/celsius",
                     "mapping_template": "{{ round(float(message) - 273.15, 2) }}",
-                    "retain": true,
-                    "qos": 2
+                    "qos": 2,
+                    "retain": true
                   },
                   {
                     "mapped_topic": "temperature/kelvin",
                     "mapping_template": "{{ round(float(message), 2) }}",
-                    "retain": true,
-                    "qos": 1
+                    "qos": 1,
+                    "retain": true
                   },
                   {
                     "mapped_topic": "temperature/farenheit",
                     "mapping_template": "{{ round((float(message) - 273.15) * 1.8 + 32, 2) }}",
-                    "retain": true,
-                    "qos": 2
+                    "qos": 2,
+                    "retain": true
                   }
                 ]
               }
@@ -208,20 +205,20 @@
                   {
                     "mapped_topic": "temperature/celsius",
                     "mapping_template": "{{ round((float(message) - 32) / 1.8, 2) }}",
-                    "retain": true,
-                    "qos": 2
+                    "qos": 2,
+                    "retain": true
                   },
                   {
                     "mapped_topic": "temperature/kelvin",
                     "mapping_template": "{{ round((float(message) - 32) / 1.8 + 273.15, 2) }}",
-                    "retain": true,
-                    "qos": 1
+                    "qos": 1,
+                    "retain": true
                   },
                   {
                     "mapped_topic": "temperature/farenheit",
                     "mapping_template": "{{ round(float(message), 2) }}",
-                    "retain": true,
-                    "qos": 2
+                    "qos": 2,
+                    "retain": true
                   }
                 ]
               }
@@ -250,11 +247,9 @@
               "topic_level": {
                 "name": "up",
                 "subscription": {
-                  "qos": 0,
                   "json": {
                     "mapped_topic": "ttn/{{message.end_device_ids.device_id}}",
-                    "mapping_template": "{\"application\":\"{{message.end_device_ids.application_ids.application_id}}\",\"device\":\"{{message.end_device_ids.device_id}}\",\"data\":{{ message.uplink_message.decoded_payload }}}",
-                    "retain": false
+                    "mapping_template": "{\"application\":\"{{message.end_device_ids.application_ids.application_id}}\",\"device\":\"{{message.end_device_ids.device_id}}\",\"data\":{{ message.uplink_message.decoded_payload }}}"
                   }
                 }
               }
@@ -264,42 +259,56 @@
       },
       {
         "name": "zigbee2mqtt",
-        "topic_level": [{
-          "name" : "Philips-T-01",
-          "topic_level": [{
-            "name": "action",
-            "subscription": {
-              "qos": 0,
-              "static": [{
-                "mapped_topic": "zigbee2mqtt/Philips-CA-All/set",
-                "message_mapping": [{
-                  "message": "on_press",
-                  "mapped_message": "{ \"state\": \"ON\" }"
-                },{
-                  "message": "up_press",
-                  "mapped_message": "{ \"brightness_step_onoff\": 32, \"transition\": 1 }"
-                },{
-                  "message": "down_press",
-                  "mapped_message": "{ \"brightness_step_onoff\": -32, \"transition\": 1 }"
-                },{
-                  "message": "off_press",
-                  "mapped_message": "{ \"state\": \"OFF\" }"
-                }]
-              }]
+        "topic_level": [
+          {
+            "name": "Philips-T-01",
+            "topic_level": {
+              "name": "action",
+              "subscription": {
+                "static": [
+                  {
+                    "mapped_topic": "zigbee2mqtt/Philips-CA-All/set",
+                    "message_mapping": [
+                      {
+                        "mapped_message": "{ \"state\": \"ON\" }",
+                        "message": "on_press"
+                      },
+                      {
+                        "mapped_message": "{ \"brightness_step_onoff\": 32, \"transition\": 1 }",
+                        "message": "up_press"
+                      },
+                      {
+                        "mapped_message": "{ \"brightness_step_onoff\": -32, \"transition\": 1 }",
+                        "message": "down_press"
+                      },
+                      {
+                        "mapped_message": "{ \"state\": \"OFF\" }",
+                        "message": "off_press"
+                      }
+                    ]
+                  }
+                ]
+              }
             }
-          }]
-        },{
-          "name" : "Philips-M-01",
-          "subscription": {
-            "qos": 0,
-            "json": [{
-              "mapped_topic": "zigbee2mqtt/Philips-CA-All/set",
-              "mapping_template": "{% if message.occupancy == true %}{ \"state\": \"ON\" }{% endif %}",
-              "suppressions": [ "" ]
-            }]
+          },
+          {
+            "name": "Philips-M-01",
+            "subscription": {
+              "json": {
+                "mapped_topic": "zigbee2mqtt/Philips-CA-All/set",
+                "mapping_template": "{% if message.occupancy == true %}{ \"state\": \"ON\" }{% endif %}",
+                "suppressions": [
+                  ""
+                ]
+              }
+            }
           }
-        }]
+        ]
       }
     ]
+  },
+  "meta": {
+    "created": "2026-02-08T17:39:36Z",
+    "version": "1770572376"
   }
 }

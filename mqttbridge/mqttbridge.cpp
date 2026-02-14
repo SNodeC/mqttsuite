@@ -57,10 +57,9 @@
 #include <iot/mqtt/MqttContext.h>
 //
 #include <log/Logger.h>
-#include <utils/Config.h>
+#include <net/config/ConfigInstanceAPI.hpp>
 //
 #include <nlohmann/json_fwd.hpp>
-#include <utils/CLI11.hpp>
 //
 
 // Select necessary include files
@@ -120,7 +119,6 @@ static std::set<core::eventreceiver::ConnectEventReceiver*> activeConnectors;
 static std::set<std::shared_ptr<core::socket::stream::AutoConnectControl>> autoConnectControllers;
 
 static bool restart = false;
-static std::string bridgeDefinitionFile = "<REQUIRED>";
 
 static void startBridges();
 
@@ -183,9 +181,8 @@ static void closeBridges() {
             mqtt->getMqttContext()
                 ->getSocketConnection()
                 ->getConfigInstance()
-                ->getSection("socket")
-                ->get_option("--reconnect")
-                ->default_str("false");
+                ->getSection<net::config::ConfigPhysicalSocketClient>()
+                ->setReconnect(false);
         }
     }
 
@@ -578,18 +575,30 @@ int main(int argc, char* argv[]) {
     web::websocket::client::SubProtocolFactorySelector::link("mqtt", mqttClientSubProtocolFactory);
 #endif
 
-    CLI::App* bridgeApp = utils::Config::addInstance("bridge", "Configuration for Application mqttbridge", "MQTT-Bridge");
+    int a = 3;
+
+    CLI::App* bridgeApp =
+        utils::Config::addInstance(net::config::Instance("bridge", "Configuration for Application mqttbridge", &a), "Applications");
     utils::Config::required(bridgeApp);
 
+    std::string bridgeDefinitionFile; // = "<REQUIRED>";
+
     bridgeApp->needs(bridgeApp->add_option("--definition", bridgeDefinitionFile, "MQTT bridge definition file (JSON format)")
+                         ->check(CLI::ExistingFile)
                          ->capture_default_str()
                          ->group(bridgeApp->get_formatter()->get_label("Persistent Options"))
                          ->type_name("path")
                          ->configurable()
                          ->required());
 
-    utils::Config::addStringOption(
-        "--html-dir", "Path to html source directory", "[path]", std::string(CMAKE_INSTALL_PREFIX) + "/var/www/mqttsuite/mqttbridge");
+    std::string htmlDir = std::string(CMAKE_INSTALL_PREFIX) + "/var/www/mqttsuite/mqttbridge";
+
+    bridgeApp->add_option("--html-dir", htmlDir, "Path to html source directory")
+        ->check(CLI::ExistingDirectory)
+        ->capture_default_str()
+        ->group(bridgeApp->get_formatter()->get_label("Persistent Options"))
+        ->type_name("path")
+        ->configurable();
 
     core::SNodeC::init(argc, argv);
 
@@ -650,7 +659,7 @@ int main(int argc, char* argv[]) {
         res->redirect("/config/index.html");
     });
 
-    router.use("/config", express::middleware::StaticMiddleware(utils::Config::getStringOptionValue("--html-dir")));
+    router.use("/config", express::middleware::StaticMiddleware(htmlDir));
 
     router.get("*", [] APPLICATION(req, res) {
         res->redirect("/config/index.html");
