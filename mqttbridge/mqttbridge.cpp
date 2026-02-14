@@ -180,10 +180,8 @@ static void closeBridges() {
                 bridgeName, mqtt->getMqttContext()->getSocketConnection()->getInstanceName());
 
             mqtt->sendDisconnect();
-            mqtt->getMqttContext()
-                ->getSocketConnection()
-                ->getConfigInstance()
-                ->getSection<net::config::ConfigPhysicalSocketClient>()
+            dynamic_cast<net::config::ConfigPhysicalSocketClient*>(
+                mqtt->getMqttContext()->getSocketConnection()->getConfigInstance()->getSection<net::config::ConfigPhysicalSocket>())
                 ->setReconnect(false);
         }
     }
