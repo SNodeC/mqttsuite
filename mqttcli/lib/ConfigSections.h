@@ -62,6 +62,8 @@ namespace mqtt::mqttcli::lib {
 
     class ConfigSubscribe : public net::config::ConfigSection {
     public:
+        constexpr static std::string name{"sub"};
+
         ConfigSubscribe(net::config::ConfigInstance* instance);
 
         std::list<std::string> getTopic() const;
@@ -74,6 +76,8 @@ namespace mqtt::mqttcli::lib {
 
     class ConfigPublish : public net::config::ConfigSection {
     public:
+        constexpr static std::string name{"pub"};
+
         ConfigPublish(net::config::ConfigInstance* instance);
 
         std::string getTopic() const;
@@ -96,6 +100,8 @@ namespace mqtt::mqttcli::lib {
 
     class ConfigSession : public net::config::ConfigSection {
     public:
+        constexpr static std::string name{"session"};
+
         ConfigSession(net::config::ConfigInstance* instance);
 
         std::string getClientId() const;

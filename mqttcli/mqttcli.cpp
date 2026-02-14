@@ -62,7 +62,6 @@
 #include <core/SNodeC.h>
 
 //
-#include <net/config/ConfigInstanceAPI.hpp>
 #include <net/in/stream/legacy/SocketClient.h>
 #include <net/in/stream/tls/SocketClient.h>
 #include <net/in6/stream/legacy/SocketClient.h>
@@ -131,7 +130,7 @@ void startClient(const std::string& name, const std::function<void(typename Http
             const std::string target = req->getSocketContext()
                                            ->getSocketConnection()
                                            ->getConfigInstance()
-                                           ->getSection<web::http::client::ConfigHTTP>("http")
+                                           ->getSection<web::http::client::ConfigHTTP>()
                                            ->getOption("--target")
                                            ->as<std::string>();
 
@@ -178,7 +177,7 @@ void startClient(const std::string& name, const std::function<void(typename Http
 }
 
 static void createWSConfig(net::config::ConfigInstance& config) {
-    config.getSection<web::http::client::ConfigHTTP>("http")
+    config.getSection<web::http::client::ConfigHTTP>()
         ->addOption("--target", "Websocket endpoint")
         ->type_name("string")
         ->default_str("/ws")

@@ -66,11 +66,11 @@ namespace mqtt::mqttcli::websocket {
 
     iot::mqtt::client::SubProtocol* SubProtocolFactory::create(web::websocket::SubProtocolContext* subProtocolContext) {
         const lib::ConfigSession* configSession =
-            subProtocolContext->getSocketConnection()->getConfigInstance()->getSection<lib::ConfigSession>("session", true, true);
+            subProtocolContext->getSocketConnection()->getConfigInstance()->getSection<lib::ConfigSession>(true, true);
         const lib::ConfigSubscribe* configSubscribe =
-            subProtocolContext->getSocketConnection()->getConfigInstance()->getSection<lib::ConfigSubscribe>("sub", true, true);
+            subProtocolContext->getSocketConnection()->getConfigInstance()->getSection<lib::ConfigSubscribe>(true, true);
         const lib::ConfigPublish* configPublish =
-            subProtocolContext->getSocketConnection()->getConfigInstance()->getSection<lib::ConfigPublish>("pub", true, true);
+            subProtocolContext->getSocketConnection()->getConfigInstance()->getSection<lib::ConfigPublish>(true, true);
 
         configSubscribe = (configSubscribe != nullptr && configSubscribe->getOption("--topic")->count() > 0) ? configSubscribe : nullptr;
         configPublish = (configPublish != nullptr && configPublish->getOption("--topic")->count() > 0 &&
