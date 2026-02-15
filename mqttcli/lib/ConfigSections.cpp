@@ -53,7 +53,7 @@
 
 namespace mqtt::mqttcli::lib {
     ConfigSubscribe::ConfigSubscribe(net::config::ConfigInstance* instance)
-        : net::config::ConfigSection(instance, net::config::Section(ConfigSubscribe::name, "Configuration for application mqttsub", this)) {
+        : net::config::ConfigSection(instance, net::config::Section(std::string(name), std::string(description), this)) {
         topicOpt = addOptionFunction<std::string>(
                        "--topic",
                        [configSubscribe = this](const std::string& value) {
@@ -83,7 +83,7 @@ namespace mqtt::mqttcli::lib {
     }
 
     ConfigPublish::ConfigPublish(net::config::ConfigInstance* instance)
-        : net::config::ConfigSection(instance, net::config::Section(ConfigPublish::name, "Configuration for application mqttpub", this)) {
+        : net::config::ConfigSection(instance, net::config::Section(std::string(name), std::string(description), this)) {
         topicOpt = addOptionFunction<std::string>(
                        "--topic",
                        [configPublish = this](const std::string& value) {
@@ -160,7 +160,7 @@ namespace mqtt::mqttcli::lib {
     }
 
     ConfigSession::ConfigSession(net::config::ConfigInstance* instance)
-        : net::config::ConfigSection(instance, net::config::Section(ConfigSession::name, "MQTT session behavior", this)) {
+        : net::config::ConfigSection(instance, net::config::Section(std::string(name), std::string(description), this)) {
         clientIdOpt = addOption("--client-id", "MQTT Client-ID")
                           ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
                           ->type_name("string");

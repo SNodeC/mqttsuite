@@ -51,6 +51,7 @@ namespace net::config {
 #include <cstdint>
 #include <list>
 #include <net/config/ConfigSection.h>
+#include <string_view>
 
 namespace CLI {
     class Option;
@@ -62,7 +63,8 @@ namespace mqtt::mqttcli::lib {
 
     class ConfigSubscribe : public net::config::ConfigSection {
     public:
-        constexpr static std::string name{"sub"};
+        constexpr static std::string_view name{"sub"};
+        constexpr static std::string_view description{"Configuration for application mqttsub"};
 
         ConfigSubscribe(net::config::ConfigInstance* instance);
 
@@ -76,7 +78,8 @@ namespace mqtt::mqttcli::lib {
 
     class ConfigPublish : public net::config::ConfigSection {
     public:
-        constexpr static std::string name{"pub"};
+        constexpr static std::string_view name{"pub"};
+        constexpr static std::string_view description{"Configuration for application mqttpub"};
 
         ConfigPublish(net::config::ConfigInstance* instance);
 
@@ -100,7 +103,8 @@ namespace mqtt::mqttcli::lib {
 
     class ConfigSession : public net::config::ConfigSection {
     public:
-        constexpr static std::string name{"session"};
+        constexpr static std::string_view name{"session"};
+        constexpr static std::string_view description{"MQTT session behavior"};
 
         ConfigSession(net::config::ConfigInstance* instance);
 
