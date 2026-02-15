@@ -60,6 +60,15 @@
 #if __has_warning("-Wnrvo")
 #pragma GCC diagnostic ignored "-Wnrvo"
 #endif
+#if __has_warning("-Wsuggest-override")
+#pragma GCC diagnostic ignored "-Wsuggest-override"
+#endif
+#if __has_warning("-Wmissing-noreturn")
+#pragma GCC diagnostic ignored "-Wmissing-noreturn"
+#endif
+#if __has_warning("-Wdeprecated-copy-with-user-provided-dtor")
+#pragma GCC diagnostic ignored "-Wdeprecated-copy-with-user-provided-dtor"
+#endif
 #endif
 #endif
 #include "inja.hpp"

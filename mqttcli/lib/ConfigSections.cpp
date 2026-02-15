@@ -72,6 +72,9 @@ namespace mqtt::mqttcli::lib {
         sectionSc->needs(topicOpt);
     }
 
+    ConfigSubscribe::~ConfigSubscribe() {
+    }
+
     std::list<std::string> ConfigSubscribe::getTopic() const {
         return topicOpt->as<std::list<std::string>>();
     }
@@ -127,6 +130,9 @@ namespace mqtt::mqttcli::lib {
                         ->default_str("false")
                         ->check(CLI::IsMember({"true", "false"}))
                         ->configurable();
+    }
+
+    ConfigPublish::~ConfigPublish() {
     }
 
     std::string ConfigPublish::getTopic() const {
@@ -215,6 +221,9 @@ namespace mqtt::mqttcli::lib {
                           ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
                           ->type_name("string")
                           ->configurable();
+    }
+
+    ConfigSession::~ConfigSession() {
     }
 
     std::string ConfigSession::getClientId() const {

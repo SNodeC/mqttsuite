@@ -68,6 +68,8 @@ namespace mqtt::mqttcli::lib {
 
         ConfigSubscribe(net::config::ConfigInstance* instance);
 
+        ~ConfigSubscribe() override;
+
         std::list<std::string> getTopic() const;
 
         const ConfigSubscribe* setTopic(const std::string& topic);
@@ -82,6 +84,8 @@ namespace mqtt::mqttcli::lib {
         constexpr static std::string_view description{"Configuration for application mqttpub"};
 
         ConfigPublish(net::config::ConfigInstance* instance);
+
+        ~ConfigPublish() override;
 
         std::string getTopic() const;
 
@@ -107,6 +111,8 @@ namespace mqtt::mqttcli::lib {
         constexpr static std::string_view description{"MQTT session behavior"};
 
         ConfigSession(net::config::ConfigInstance* instance);
+
+        ~ConfigSession() override;
 
         std::string getClientId() const;
 
