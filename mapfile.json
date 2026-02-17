@@ -304,11 +304,25 @@
             }
           }
         ]
+      },
+      {
+        "name": "topi",
+        "subscription": {
+          "static": [
+            {
+              "mapped_topic": "asdfasf",
+              "message_mapping": {
+                "mapped_message": "on",
+                "message": "1"
+              }
+            }
+          ]
+        }
       }
     ]
   },
   "meta": {
-    "created": "2026-02-08T17:39:36Z",
-    "version": "1770572376"
+    "created": "2026-02-14T20:20:40Z",
+    "version": "1771100440"
   }
 }

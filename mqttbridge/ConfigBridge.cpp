@@ -52,7 +52,7 @@ namespace mqtt::bridge {
 
     mqtt::bridge::ConfigBridge::ConfigBridge() {
         bridgeSc =
-            utils::Config::newInstance(net::config::Instance(name, "Configuration for Application mqttbridge", this), "Applications", true);
+            utils::Config::newInstance(net::config::Instance(std::string(name), std::string(description), this), "Applications", true);
 
         bridgeDefinitionOpt = bridgeSc->add_option("--definition", "MQTT bridge definition file (JSON format)")
                                   ->check(CLI::ExistingFile)

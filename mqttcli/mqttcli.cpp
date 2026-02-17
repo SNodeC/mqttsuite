@@ -60,7 +60,6 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <core/SNodeC.h>
-
 //
 #include <net/config/ConfigInstanceAPI.hpp>
 //

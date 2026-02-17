@@ -50,6 +50,7 @@ namespace CLI {
 } // namespace CLI
 
 #include <string>
+#include <string_view>
 
 #endif
 
@@ -57,7 +58,8 @@ namespace mqtt::bridge {
 
     class ConfigBridge {
     public:
-        constexpr static std::string name{"bridge"};
+        constexpr static std::string_view name{"bridge"};
+        constexpr static std::string_view description{"Configuration for Application mqttbridge"};
 
         ConfigBridge();
 
