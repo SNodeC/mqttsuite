@@ -193,27 +193,10 @@ int main(int argc, char* argv[]) {
     web::websocket::client::SubProtocolFactorySelector::link("mqtt", mqttClientSubProtocolFactory);
 #endif
 
-    utils::Config::app->get_formatter()->label("SUBCOMMAND", "APPLICATION | CONNECTION | INSTANCE");
-    utils::Config::app->get_formatter()->label("SUBCOMMANDS", "APPLICATION | CONNECTIONS | INSTANCES");
-
-    /*
-        createConfig(
-            utils::Config::addInstance(net::config::Instance("session", "MQTT session behavior", &a), "Connection", true),
-            utils::Config::addInstance(net::config::Instance("sub", "Configuration for application mqttsub", &a), "Applications", true),
-            utils::Config::addInstance(net::config::Instance("pub", "Configuration for application mqttpub", &a), "Applications",
-       true));
-    */
-
     // Start of application
 
 #if defined(CONFIG_MQTTSUITE_CLI_TCP_IPV4)
     net::in::stream::legacy::Client<mqtt::mqttcli::SocketContextFactory>("in-mqtt", [](auto& config) {
-        /*
-            config.addSection(std::make_shared<lib::ConfigSession>(&config));
-            config.addSection(std::make_shared<lib::ConfigSubscribe>(&config));
-            config.addSection(std::make_shared<lib::ConfigPublish>(&config));
-        */
-
         config.template addSection<mqtt::mqttcli::lib::ConfigSession>();
         config.template addSection<mqtt::mqttcli::lib::ConfigSubscribe>();
         config.template addSection<mqtt::mqttcli::lib::ConfigPublish>();

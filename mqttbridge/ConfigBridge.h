@@ -64,11 +64,9 @@ namespace mqtt::bridge {
         ConfigBridge();
 
         void setDefinitionFile(const std::string& definitionFile) const;
-
         std::string getDefinitionFile() const;
 
         void setHtmlDir(const std::string& htmlDir) const;
-
         std::string getHtmlDir() const;
 
     private:
