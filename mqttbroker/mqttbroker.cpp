@@ -369,10 +369,6 @@ reportState(const std::string& instanceName, const core::socket::SocketAddress& 
 }
 
 int main(int argc, char* argv[]) {
-    //    utils::Config::addStringOption(
-    //        "--html-dir", "Path to html source directory", "[path]", std::string(CMAKE_INSTALL_PREFIX) + "/var/www/mqttsuite/mqttbroker");
-
-    // /home/voc/projects/mqttsuite/mqttsuite/mapfile.json
     utils::Config::addInstance<mqtt::lib::ConfigMqttBroker>();
     utils::Config::addInstance<mqtt::lib::ConfigWWW>()->setHtmlRoot(std::string(CMAKE_INSTALL_PREFIX) + "/var/www/mqttsuite/mqttbroker");
 

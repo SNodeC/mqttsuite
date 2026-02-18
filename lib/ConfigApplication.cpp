@@ -78,9 +78,8 @@ namespace mqtt::lib {
         mappingFileOpt->default_str(mappingFile)->clear();
         mappingFileOpt->required(false);
 
-        configSc->remove_needs(mappingFileOpt);
+        configSc->required(false)->remove_needs(mappingFileOpt);
         configSc->get_parent()->remove_needs(configSc);
-        configSc->required(false);
 
         return *this;
     }
@@ -99,7 +98,7 @@ namespace mqtt::lib {
               utils::Config::newInstance(net::config::Instance(std::string(name), std::string(description), this), "Applications", true)) {
         mappingFileOpt->required();
 
-        configSc->needs(mappingFileOpt)->required();
+        configSc->required()->needs(mappingFileOpt);
         configSc->get_parent()->needs(configSc);
     }
 
@@ -112,7 +111,7 @@ namespace mqtt::lib {
                           ->configurable()
                           ->required();
 
-        configWWWSc->needs(htmlRootOpt)->required();
+        configWWWSc->required()->needs(htmlRootOpt);
         configWWWSc->get_parent()->needs(configWWWSc);
     }
 
@@ -120,9 +119,8 @@ namespace mqtt::lib {
         htmlRootOpt->default_str(htmlRoot)->clear();
         htmlRootOpt->required(false);
 
-        configWWWSc->remove_needs(htmlRootOpt);
+        configWWWSc->required(false)->remove_needs(htmlRootOpt);
         configWWWSc->get_parent()->remove_needs(configWWWSc);
-        configWWWSc->required(false);
 
         return *this;
     }

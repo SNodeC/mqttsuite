@@ -74,9 +74,8 @@ namespace mqtt::bridge {
         bridgeDefinitionOpt->default_str(definitionFile)->clear();
         bridgeDefinitionOpt->required(false);
 
-        bridgeSc->remove_needs(bridgeDefinitionOpt);
+        bridgeSc->required(false)->remove_needs(bridgeDefinitionOpt);
         bridgeSc->get_parent()->remove_needs(bridgeSc);
-        bridgeSc->required(false);
     }
 
     std::string mqtt::bridge::ConfigBridge::getDefinitionFile() const {
