@@ -39,44 +39,75 @@
  * THE SOFTWARE.
  */
 
-#include "SocketContextFactory.h"
-
-#include "lib/ConfigApplication.h"
-#include "lib/JsonMappingReader.h"
-#include "lib/Mqtt.h"
+#ifndef APPS_MQTTBROKER_MQTTBRIDGE_CONFIGBRIDGE_H
+#define APPS_MQTTBROKER_MQTTBRIDGE_CONFIGBRIDGE_H
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <core/socket/stream/SocketConnection.h>
-#include <iot/mqtt/SocketContext.h>
-#include <net/config/ConfigInstanceAPI.hpp>
-//
-#include <map>
-#include <nlohmann/json.hpp>
+namespace CLI {
+    class App;
+    class Option;
+} // namespace CLI
+
 #include <string>
+#include <string_view>
 
 #endif
 
-namespace mqtt::mqttintegrator {
+namespace mqtt::lib {
 
-    SocketContextFactory::SocketContextFactory(const std::string& sessionStoreFileName)
-        : sessionStoreFileName(sessionStoreFileName) {
-    }
+    class ConfigApplication {
+    public:
+        ConfigApplication(CLI::App* configSc);
 
-    core::socket::stream::SocketContext* SocketContextFactory::create(core::socket::stream::SocketConnection* socketConnection) {
-        iot::mqtt::SocketContext* socketContext = nullptr;
+        const ConfigApplication& setSessionStore(const std::string& sessionStore) const;
 
-        nlohmann::json& mappingJson = mqtt::lib::JsonMappingReader::readMappingFromFile(
-            utils::Config::getInstance<mqtt::lib::ConfigMqttIntegrator>()->getMappingFile());
+        std::string getSessionStore() const;
 
-        if (mappingJson.contains("connection")) {
-            socketContext = new iot::mqtt::SocketContext(
-                socketConnection,
-                new mqtt::mqttintegrator::lib::Mqtt(
-                    socketConnection->getConnectionName(), mappingJson["connection"], mappingJson["mapping"], sessionStoreFileName));
-        }
+        const ConfigApplication& setMappingFile(const std::string& mappingFile) const;
 
-        return socketContext;
-    }
+        std::string getMappingFile() const;
 
-} // namespace mqtt::mqttintegrator
+        std::string MappingFile() const;
+
+    protected:
+        CLI::App* configSc;
+
+        CLI::Option* sessionStoreOpt;
+        CLI::Option* mappingFileOpt;
+    };
+
+    class ConfigMqttBroker : public ConfigApplication {
+    public:
+        constexpr static std::string_view name{"broker"};
+        constexpr static std::string_view description{"Configuration for Application mqttbroker"};
+
+        ConfigMqttBroker();
+    };
+
+    class ConfigMqttIntegrator : public ConfigApplication {
+    public:
+        constexpr static std::string_view name{"integrator"};
+        constexpr static std::string_view description{"Configuration for Application mqttintegrator"};
+
+        ConfigMqttIntegrator();
+    };
+
+    class ConfigWWW {
+    public:
+        constexpr static std::string_view name{"www"};
+        constexpr static std::string_view description{"Web behavior of httpserver"};
+
+        ConfigWWW();
+
+        ConfigWWW& setHtmlRoot(const std::string& htmlRoot);
+        std::string getHtmlRoot();
+
+    private:
+        CLI::App* configWWWSc;
+        CLI::Option* htmlRootOpt;
+    };
+
+} // namespace mqtt::lib
+
+#endif // APPS_MQTTBROKER_MQTTBRIDGE_CONFIGBRIDGE_H

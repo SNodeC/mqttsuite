@@ -79,10 +79,10 @@ namespace mqtt::mqttcli::lib {
         return topicOpt->as<std::list<std::string>>();
     }
 
-    const ConfigSubscribe* ConfigSubscribe::setTopic(const std::string& topic) {
+    const ConfigSubscribe& ConfigSubscribe::setTopic(const std::string& topic) {
         topicOpt->default_val(topic);
 
-        return this;
+        return *this;
     }
 
     ConfigPublish::ConfigPublish(net::config::ConfigInstance* instance)
@@ -139,30 +139,30 @@ namespace mqtt::mqttcli::lib {
         return topicOpt->as<std::string>();
     }
 
-    const ConfigPublish* ConfigPublish::setTopic(const std::string& topic) {
+    const ConfigPublish& ConfigPublish::setTopic(const std::string& topic) {
         topicOpt->default_val(topic);
 
-        return this;
+        return *this;
     }
 
     std::string ConfigPublish::getMessage() const {
         return messageOpt->as<std::string>();
     }
 
-    const ConfigPublish* ConfigPublish::setMessage(const std::string& message) {
+    const ConfigPublish& ConfigPublish::setMessage(const std::string& message) {
         messageOpt->default_val(message);
 
-        return this;
+        return *this;
     }
 
     bool ConfigPublish::getRetain() const {
         return retainOpt->as<bool>();
     }
 
-    const ConfigPublish* ConfigPublish::setRetain(bool retain) {
+    const ConfigPublish& ConfigPublish::setRetain(bool retain) {
         retainOpt->default_val(retain);
 
-        return this;
+        return *this;
     }
 
     ConfigSession::ConfigSession(net::config::ConfigInstance* instance)
@@ -230,100 +230,100 @@ namespace mqtt::mqttcli::lib {
         return clientIdOpt->as<std::string>();
     }
 
-    const ConfigSession* ConfigSession::setClientId(const std::string& clientId) const {
+    const ConfigSession& ConfigSession::setClientId(const std::string& clientId) const {
         clientIdOpt->default_val(clientId)->clear();
 
-        return this;
+        return *this;
     }
 
     uint8_t ConfigSession::getQoS() const {
         return qoSOpt->as<uint8_t>();
     }
 
-    const ConfigSession* ConfigSession::setQos(uint8_t qoS) const {
+    const ConfigSession& ConfigSession::setQos(uint8_t qoS) const {
         qoSOpt->default_val(qoS)->clear();
 
-        return this;
+        return *this;
     }
 
     bool ConfigSession::getRetainSession() const {
         return retainSessionOpt->as<bool>();
     }
 
-    const ConfigSession* ConfigSession::setRetainSession(bool retainSession) const {
+    const ConfigSession& ConfigSession::setRetainSession(bool retainSession) const {
         retainSessionOpt->default_val(retainSession)->clear();
 
-        return this;
+        return *this;
     }
 
     uint16_t ConfigSession::getKeepAlive() const {
         return keepAliveOpt->as<uint16_t>();
     }
 
-    const ConfigSession* ConfigSession::setKeepAlive(uint16_t keepAlive) const {
+    const ConfigSession& ConfigSession::setKeepAlive(uint16_t keepAlive) const {
         keepAliveOpt->default_val(keepAlive)->clear();
 
-        return this;
+        return *this;
     }
 
     std::string ConfigSession::getWillTopic() const {
         return willTopicOpt->as<std::string>();
     }
 
-    const ConfigSession* ConfigSession::setWillTopic(const std::string& willTopic) const {
+    const ConfigSession& ConfigSession::setWillTopic(const std::string& willTopic) const {
         willTopicOpt->default_val(willTopic)->clear();
 
-        return this;
+        return *this;
     }
 
     std::string ConfigSession::getWillMessage() const {
         return willMessageOpt->as<std::string>();
     }
 
-    const ConfigSession* ConfigSession::getWillMessage(const std::string& willMessage) const {
+    const ConfigSession& ConfigSession::setWillMessage(const std::string& willMessage) const {
         willMessageOpt->default_val(willMessage)->clear();
 
-        return this;
+        return *this;
     }
 
     uint8_t ConfigSession::getWillQoS() const {
         return willQoSOpt->as<uint8_t>();
     }
 
-    const ConfigSession* ConfigSession::settWillQoS(uint8_t willQoS) const {
+    const ConfigSession& ConfigSession::settWillQoS(uint8_t willQoS) const {
         willQoSOpt->default_val(willQoS)->clear();
 
-        return this;
+        return *this;
     }
 
     bool ConfigSession::getWillRetain() const {
         return willRetainOpt->as<bool>();
     }
 
-    const ConfigSession* ConfigSession::setWillRetain(bool willRetain) const {
+    const ConfigSession& ConfigSession::setWillRetain(bool willRetain) const {
         willRetainOpt->default_val(willRetain)->clear();
 
-        return this;
+        return *this;
     }
 
     std::string ConfigSession::getUsername() const {
         return usernameOpt->as<std::string>();
     }
 
-    const ConfigSession* ConfigSession::settUsername(const std::string& username) const {
+    const ConfigSession& ConfigSession::settUsername(const std::string& username) const {
         usernameOpt->default_val(username)->clear();
 
-        return this;
+        return *this;
     }
 
     std::string ConfigSession::getPassword() const {
         return passwordOpt->as<std::string>();
     }
 
-    const ConfigSession* ConfigSession::setPassword(const std::string& password) const {
+    const ConfigSession& ConfigSession::setPassword(const std::string& password) const {
         passwordOpt->default_val(password)->clear();
 
-        return this;
+        return *this;
     }
 
 } // namespace mqtt::mqttcli::lib

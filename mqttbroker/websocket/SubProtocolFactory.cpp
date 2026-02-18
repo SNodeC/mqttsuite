@@ -41,17 +41,17 @@
 
 #include "SubProtocolFactory.h"
 
+#include "lib/ConfigApplication.h"
 #include "lib/JsonMappingReader.h"
 #include "lib/Mqtt.h"
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #include <core/socket/stream/SocketConnection.h>
 #include <iot/mqtt/server/broker/Broker.h>
+#include <net/config/ConfigInstanceAPI.hpp>
 #include <web/websocket/SubProtocolContext.h>
-
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
-
+//
 #include <nlohmann/json.hpp>
-#include <utils/Config.h>
 
 #endif
 
@@ -70,8 +70,9 @@ namespace mqtt::mqttbroker::websocket {
             new mqtt::mqttbroker::lib::Mqtt(
                 subProtocolContext->getSocketConnection()->getConnectionName(),
                 iot::mqtt::server::broker::Broker::instance(SUBSCRIPTION_MAX_QOS,
-                                                            utils::Config::getStringOptionValue("--mqtt-session-store")),
-                mqtt::lib::JsonMappingReader::readMappingFromFile(utils::Config::getStringOptionValue("--mqtt-mapping-file"))["mapping"]));
+                                                            utils::Config::getInstance<mqtt::lib::ConfigMqttBroker>()->getSessionStore()),
+                mqtt::lib::JsonMappingReader::readMappingFromFile(
+                    utils::Config::getInstance<mqtt::lib::ConfigMqttBroker>()->getMappingFile())["mapping"]));
     }
 
 } // namespace mqtt::mqttbroker::websocket

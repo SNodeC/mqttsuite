@@ -72,7 +72,7 @@ namespace mqtt::mqttcli::lib {
 
         std::list<std::string> getTopic() const;
 
-        const ConfigSubscribe* setTopic(const std::string& topic);
+        const ConfigSubscribe& setTopic(const std::string& topic);
 
     private:
         CLI::Option* topicOpt;
@@ -89,15 +89,15 @@ namespace mqtt::mqttcli::lib {
 
         std::string getTopic() const;
 
-        const ConfigPublish* setTopic(const std::string& topic);
+        const ConfigPublish& setTopic(const std::string& topic);
 
         std::string getMessage() const;
 
-        const ConfigPublish* setMessage(const std::string& message);
+        const ConfigPublish& setMessage(const std::string& message);
 
         bool getRetain() const;
 
-        const ConfigPublish* setRetain(bool retain);
+        const ConfigPublish& setRetain(bool retain);
 
     private:
         CLI::Option* topicOpt;
@@ -116,43 +116,43 @@ namespace mqtt::mqttcli::lib {
 
         std::string getClientId() const;
 
-        const ConfigSession* setClientId(const std::string& clientId) const;
+        const ConfigSession& setClientId(const std::string& clientId) const;
 
         uint8_t getQoS() const;
 
-        const ConfigSession* setQos(uint8_t qoS) const;
+        const ConfigSession& setQos(uint8_t qoS) const;
 
         bool getRetainSession() const;
 
-        const ConfigSession* setRetainSession(bool retainSession) const;
+        const ConfigSession& setRetainSession(bool retainSession) const;
 
         uint16_t getKeepAlive() const;
 
-        const ConfigSession* setKeepAlive(uint16_t keepAlive) const;
+        const ConfigSession& setKeepAlive(uint16_t keepAlive) const;
 
         std::string getWillTopic() const;
 
-        const ConfigSession* setWillTopic(const std::string& willTopic) const;
+        const ConfigSession& setWillTopic(const std::string& willTopic) const;
 
         std::string getWillMessage() const;
 
-        const ConfigSession* getWillMessage(const std::string& willMessage) const;
+        const ConfigSession& setWillMessage(const std::string& willMessage) const;
 
         uint8_t getWillQoS() const;
 
-        const ConfigSession* settWillQoS(uint8_t willQoS) const;
+        const ConfigSession& settWillQoS(uint8_t willQoS) const;
 
         bool getWillRetain() const;
 
-        const ConfigSession* setWillRetain(bool willRetain) const;
+        const ConfigSession& setWillRetain(bool willRetain) const;
 
         std::string getUsername() const;
 
-        const ConfigSession* settUsername(const std::string& username) const;
+        const ConfigSession& settUsername(const std::string& username) const;
 
         std::string getPassword() const;
 
-        const ConfigSession* setPassword(const std::string& password) const;
+        const ConfigSession& setPassword(const std::string& password) const;
 
     private:
         CLI::Option* clientIdOpt;

@@ -43,7 +43,6 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <memory>
 #include <net/config/ConfigInstanceAPI.hpp>
 
 #endif
@@ -68,13 +67,17 @@ namespace mqtt::bridge {
                          ->type_name("path")
                          ->configurable();
 
-        bridgeSc->needs(bridgeDefinitionOpt);
-
+        bridgeSc->needs(bridgeDefinitionOpt)->required();
         bridgeSc->get_parent()->needs(bridgeSc);
     }
 
     void mqtt::bridge::ConfigBridge::setDefinitionFile(const std::string& definitionFile) const {
         bridgeDefinitionOpt->default_str(definitionFile)->clear();
+        bridgeDefinitionOpt->required(false);
+
+        bridgeSc->remove_needs(bridgeDefinitionOpt);
+        bridgeSc->get_parent()->remove_needs(bridgeSc);
+        bridgeSc->required(false);
     }
 
     std::string mqtt::bridge::ConfigBridge::getDefinitionFile() const {

@@ -43,7 +43,7 @@
 
 #include "SocketContextFactory.h" // IWYU pragma: keep
 #include "config.h"
-
+#include "lib/ConfigApplication.h"
 #ifdef LINK_SUBPROTOCOL_STATIC
 
 #include "websocket/SubProtocolFactory.h"
@@ -78,8 +78,10 @@
 #include <express/legacy/in/Server.h>
 #include <express/tls/in/Server.h>
 //
+#include <net/config/ConfigInstanceAPI.hpp>
+
+//
 #include <log/Logger.h>
-#include <utils/Config.h>
 //
 #include <string>
 
@@ -155,17 +157,16 @@ int main(int argc, char* argv[]) {
     web::websocket::client::SubProtocolFactorySelector::link("mqtt", mqttClientSubProtocolFactory);
 #endif
 
-    utils::Config::addStringOption("--mqtt-mapping-file", "MQTT mapping file (json format) for integration", "[path]");
-    utils::Config::addStringOption("--mqtt-session-store", "Path to file for the persistent session store", "[path]", "");
+    // /home/voc/projects/mqttsuite/mqttsuite/mapfile.json
+    utils::Config::addInstance<mqtt::lib::ConfigMqttIntegrator>();
 
     core::SNodeC::init(argc, argv);
 
-    const std::string mappingPath = utils::Config::getStringOptionValue("--mqtt-mapping-file");
-
     // Instanciate Admin Router for Mapping Management
-    express::Router router = mqtt::lib::admin::makeMappingAdminRouter(mappingPath, mqtt::lib::admin::AdminOptions{}, []() {
-        mqtt::mqttintegrator::lib::Mqtt::reloadAll();
-    });
+    express::Router router = mqtt::lib::admin::makeMappingAdminRouter(
+        utils::Config::getInstance<mqtt::lib::ConfigMqttIntegrator>()->getMappingFile(), mqtt::lib::admin::AdminOptions{}, []() {
+            mqtt::mqttintegrator::lib::Mqtt::reloadAll();
+        });
 
     express::legacy::in::Server("in-http", router, reportState, [](auto& config) {
         config.setPort(8085);
@@ -177,7 +178,7 @@ int main(int argc, char* argv[]) {
         config.setRetry();
     });
 
-    std::string sessionStoreFileName = utils::Config::getStringOptionValue("--mqtt-session-store");
+    std::string sessionStoreFileName = utils::Config::getInstance<mqtt::lib::ConfigMqttIntegrator>()->getSessionStore();
 
 #if defined(CONFIG_MQTTSUITE_INTEGRATOR_TCP_IPV4)
     net::in::stream::legacy::Client<mqtt::mqttintegrator::SocketContextFactory>(

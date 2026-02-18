@@ -101,6 +101,8 @@ add_library(
     inja.hpp
     MappingAdminRouter.cpp
     MappingAdminRouter.h
+    ConfigApplication.cpp
+    ConfigApplication.h
 )
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")

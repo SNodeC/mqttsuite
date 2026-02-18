@@ -41,6 +41,7 @@
 
 #include "SocketContextFactory.h" // IWYU pragma: keep
 #include "config.h"
+#include "lib/ConfigApplication.h"
 #include "lib/Mqtt.h"
 #include "lib/MqttModel.h"
 
@@ -48,7 +49,7 @@
 
 #include <core/SNodeC.h>
 #include <iot/mqtt/MqttContext.h>
-#include <utils/Config.h>
+#include <net/config/ConfigInstanceAPI.hpp>
 //
 
 #ifdef CONFIG_MQTTSUITE_BROKER_TCP_IPV4
@@ -147,7 +148,7 @@ static void upgrade APPLICATION(req, res) {
     }
 }
 
-static express::Router getRouter(std::shared_ptr<iot::mqtt::server::broker::Broker> broker) {
+static express::Router getRouter(std::shared_ptr<iot::mqtt::server::broker::Broker> broker, const std::string& webRoot) {
     const express::Router& jsonRouter = express::middleware::JsonMiddleware();
 
     /*
@@ -340,7 +341,7 @@ static express::Router getRouter(std::shared_ptr<iot::mqtt::server::broker::Brok
         res->redirect("/clients/index.html");
     });
 
-    router.use("/clients", express::middleware::StaticMiddleware(utils::Config::getStringOptionValue("--html-dir")));
+    router.use("/clients", express::middleware::StaticMiddleware(webRoot));
 
     router.get("*", [] APPLICATION(req, res) {
         res->redirect("/clients/index.html");
@@ -368,15 +369,17 @@ reportState(const std::string& instanceName, const core::socket::SocketAddress& 
 }
 
 int main(int argc, char* argv[]) {
-    utils::Config::addStringOption("--mqtt-mapping-file", "MQTT mapping file (json format) for integration", "[path]", "");
-    utils::Config::addStringOption("--mqtt-session-store", "Path to file for the persistent session store", "[path]", "");
-    utils::Config::addStringOption(
-        "--html-dir", "Path to html source directory", "[path]", std::string(CMAKE_INSTALL_PREFIX) + "/var/www/mqttsuite/mqttbroker");
+    //    utils::Config::addStringOption(
+    //        "--html-dir", "Path to html source directory", "[path]", std::string(CMAKE_INSTALL_PREFIX) + "/var/www/mqttsuite/mqttbroker");
+
+    // /home/voc/projects/mqttsuite/mqttsuite/mapfile.json
+    utils::Config::addInstance<mqtt::lib::ConfigMqttBroker>();
+    utils::Config::addInstance<mqtt::lib::ConfigWWW>()->setHtmlRoot(std::string(CMAKE_INSTALL_PREFIX) + "/var/www/mqttsuite/mqttbroker");
 
     core::SNodeC::init(argc, argv);
 
-    std::shared_ptr<iot::mqtt::server::broker::Broker> broker =
-        iot::mqtt::server::broker::Broker::instance(SUBSCRIPTION_MAX_QOS, utils::Config::getStringOptionValue("--mqtt-session-store"));
+    std::shared_ptr<iot::mqtt::server::broker::Broker> broker = iot::mqtt::server::broker::Broker::instance(
+        SUBSCRIPTION_MAX_QOS, utils::Config::getInstance<mqtt::lib::ConfigMqttBroker>()->getSessionStore());
 
 #ifdef CONFIG_MQTTSUITE_BROKER_TCP_IPV4
     net::in::stream::legacy::Server<mqtt::mqttbroker::SocketContextFactory>(
@@ -463,8 +466,7 @@ int main(int argc, char* argv[]) {
         });
 #endif
 #endif
-
-    express::Router router = getRouter(broker);
+    express::Router router = getRouter(broker, utils::Config::getInstance<mqtt::lib::ConfigWWW>()->getHtmlRoot());
 
 #ifdef CONFIG_MQTTSUITE_BROKER_TCP_IPV4
     express::legacy::in::Server("in-http", router, reportState, [](auto& config) {
