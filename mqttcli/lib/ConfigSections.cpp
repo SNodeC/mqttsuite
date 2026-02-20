@@ -47,6 +47,7 @@
 #include <net/config/ConfigSection.hpp>
 //
 #include <functional>
+#include <log/Logger.h>
 #include <memory>
 
 #endif
@@ -57,22 +58,32 @@ namespace mqtt::mqttcli::lib {
         topicOpt = addOptionFunction<std::string>(
                        "--topic",
                        [configSubscribe = this](const std::string& value) {
-                           if (value == "") {
-                               configSubscribe->topicOpt->required(false)->clear();
-                               configSubscribe->sectionSc->remove_needs(configSubscribe->topicOpt);
+                           if (!value.empty()) {
+                               configSubscribe->required(configSubscribe->topicOpt, false);
+
+                               if (configSubscribe->configPublish != nullptr && !configSubscribe->getRequired()) {
+                                   configSubscribe->configPublish->required(false);
+                               }
                            }
                        },
                        "List of topics subscribing to")
                        ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
                        ->type_name("string list")
                        ->take_all()
-                       ->required()
                        ->allow_extra_args()
                        ->configurable();
         sectionSc->needs(topicOpt);
+
+        required(topicOpt);
     }
 
     ConfigSubscribe::~ConfigSubscribe() {
+    }
+
+    const ConfigSubscribe& ConfigSubscribe::setConfigPublish(ConfigSection* configPublish) {
+        this->configPublish = configPublish;
+
+        return *this;
     }
 
     std::list<std::string> ConfigSubscribe::getTopic() const {
@@ -89,50 +100,53 @@ namespace mqtt::mqttcli::lib {
         : net::config::ConfigSection(instance, this) {
         topicOpt = addOptionFunction<std::string>(
                        "--topic",
-                       [configPublish = this](const std::string& value) {
-                           if (value == "") {
-                               configPublish->topicOpt->required(false)->clear();
-                               configPublish->sectionSc->remove_needs(configPublish->topicOpt);
+                       [configPublish = this]([[maybe_unused]] const std::string& value) {
+                           if (!value.empty()) {
+                               configPublish->required(configPublish->topicOpt, false);
 
-                               configPublish->messageOpt->required(false)->clear();
-                               configPublish->sectionSc->remove_needs(configPublish->messageOpt);
+                               if (configPublish->configSubscribe != nullptr && !configPublish->getRequired()) {
+                                   configPublish->configSubscribe->required(false);
+                               }
                            }
                        },
                        "List of topics subscribing to")
                        ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
                        ->type_name("string list")
                        ->take_all()
-                       ->required()
                        ->configurable();
-        sectionSc->needs(topicOpt);
 
         messageOpt = addOptionFunction<std::string>(
                          "--message",
-                         [configPublish = this](const std::string& value) {
-                             if (value == "") {
-                                 configPublish->topicOpt->required(false)->clear();
-                                 configPublish->sectionSc->remove_needs(configPublish->topicOpt);
+                         [configPublish = this]([[maybe_unused]] const std::string& value) {
+                             configPublish->required(configPublish->messageOpt, false);
 
-                                 configPublish->messageOpt->required(false)->clear();
-                                 configPublish->sectionSc->remove_needs(configPublish->messageOpt);
+                             if (configPublish->configSubscribe != nullptr && !configPublish->getRequired()) {
+                                 configPublish->configSubscribe->required(false);
                              }
                          },
                          "List of topics subscribing to")
                          ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
                          ->type_name("string list")
                          ->take_all()
-                         ->required()
                          ->configurable();
-        sectionSc->needs(messageOpt);
 
         retainOpt = addFlag("--retain{true}", "Message retain", "bool")
                         ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
                         ->default_str("false")
                         ->check(CLI::IsMember({"true", "false"}))
                         ->configurable();
+
+        required(messageOpt);
+        required(topicOpt);
     }
 
     ConfigPublish::~ConfigPublish() {
+    }
+
+    const ConfigPublish& ConfigPublish::setConfigSubscribe(ConfigSection* configSubscribe) {
+        this->configSubscribe = configSubscribe;
+
+        return *this;
     }
 
     std::string ConfigPublish::getTopic() const {
@@ -167,6 +181,9 @@ namespace mqtt::mqttcli::lib {
 
     ConfigSession::ConfigSession(net::config::ConfigInstance* instance)
         : net::config::ConfigSection(instance, this) {
+        sectionSc->final_callback([]() {
+            VLOG(0) << "######################################";
+        });
         clientIdOpt = addOption("--client-id", "MQTT Client-ID")
                           ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
                           ->type_name("string");

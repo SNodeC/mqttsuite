@@ -80,6 +80,7 @@
 //
 #include <log/Logger.h>
 //
+#include <list>
 #include <string>
 
 #endif
@@ -174,7 +175,42 @@ void startClient(const std::string& name, const std::function<void(typename Http
     });
 }
 
+static void createConfig(net::config::ConfigInstance& config) {
+    config.addSection<mqtt::mqttcli::lib::ConfigSession>();
+    mqtt::mqttcli::lib::ConfigSubscribe* configSubscribe = config.addSection<mqtt::mqttcli::lib::ConfigSubscribe>();
+    mqtt::mqttcli::lib::ConfigPublish* configPublish = config.addSection<mqtt::mqttcli::lib::ConfigPublish>();
+
+    configSubscribe->setConfigPublish(configPublish);
+    configPublish->setConfigSubscribe(configSubscribe);
+
+    config.get()->require_callback([config = &config]() {
+        if (!config->getDisabled() && utils::Config::showConfigTriggerApp == nullptr &&
+            config->get()->get_parent()->get_option("--write-config")->count() == 0) {
+            mqtt::mqttcli::lib::ConfigPublish* pubApp = config->getSection<mqtt::mqttcli::lib::ConfigPublish>(true, true);
+            mqtt::mqttcli::lib::ConfigSubscribe* subApp = config->getSection<mqtt::mqttcli::lib::ConfigSubscribe>(true, true);
+
+            if ((pubApp == nullptr || pubApp->getTopic().empty()) && (subApp == nullptr || subApp->getTopic().empty())) {
+                throw CLI::RequiresError(config->get()->get_parent()->get_name() + ":" + config->getInstanceName() +
+                                             " requires at least one of {sub | pub}",
+                                         CLI::ExitCodes::RequiresError);
+            }
+
+            if (pubApp != nullptr) {
+                VLOG(0) << "[" << Color::Code::FG_LIGHT_GREEN << "Success" << Color::Code::FG_DEFAULT << "] " << "Bootstrap of "
+                        << config->getInstanceName() << ":pub";
+            }
+
+            if (subApp != nullptr) {
+                VLOG(0) << "[" << Color::Code::FG_LIGHT_GREEN << "Success" << Color::Code::FG_DEFAULT << "] " << "Bootstrap of "
+                        << config->getInstanceName() << ":sub";
+            }
+        }
+    });
+}
+
 static void createWSConfig(net::config::ConfigInstance& config) {
+    createConfig(config);
+
     config.getSection<web::http::client::ConfigHTTP>()
         ->addOption("--target", "Websocket endpoint")
         ->type_name("string")
@@ -197,15 +233,13 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_TCP_IPV4)
     net::in::stream::legacy::Client<mqtt::mqttcli::SocketContextFactory>("in-mqtt", [](auto& config) {
-        config.template addSection<mqtt::mqttcli::lib::ConfigSession>();
-        config.template addSection<mqtt::mqttcli::lib::ConfigSubscribe>();
-        config.template addSection<mqtt::mqttcli::lib::ConfigPublish>();
-
         config.Remote::setPort(1883);
 
         config.setRetry();
         config.setRetryBase(1);
         config.setDisableNagleAlgorithm();
+
+        createConfig(config); // cppcheck-suppress throwInEntryPoint
     }).connect([](const auto& socketAddress, const core::socket::State& state) {
         reportState("in-mqtt", socketAddress, state);
     });
@@ -213,16 +247,14 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_TLS_IPV4)
     net::in::stream::tls::Client<mqtt::mqttcli::SocketContextFactory>("in-mqtts", [](auto& config) {
-        config.template addSection<mqtt::mqttcli::lib::ConfigSession>();
-        config.template addSection<mqtt::mqttcli::lib::ConfigSubscribe>();
-        config.template addSection<mqtt::mqttcli::lib::ConfigPublish>();
-
         config.Remote::setPort(1883);
 
         config.setRetry();
         config.setRetryBase(1);
         config.setDisableNagleAlgorithm();
         config.setDisabled();
+
+        createConfig(config); // cppcheck-suppress throwInEntryPoint
     }).connect([](const auto& socketAddress, const core::socket::State& state) {
         reportState("in-mqtts", socketAddress, state);
     });
@@ -230,16 +262,14 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_TCP_IPV6)
     net::in6::stream::legacy::Client<mqtt::mqttcli::SocketContextFactory>("in6-mqtt", [](auto& config) {
-        config.template addSection<mqtt::mqttcli::lib::ConfigSession>();
-        config.template addSection<mqtt::mqttcli::lib::ConfigSubscribe>();
-        config.template addSection<mqtt::mqttcli::lib::ConfigPublish>();
-
         config.Remote::setPort(1883);
 
         config.setRetry();
         config.setRetryBase(1);
         config.setDisableNagleAlgorithm();
         config.setDisabled();
+
+        createConfig(config); // cppcheck-suppress throwInEntryPoint
     }).connect([](const auto& socketAddress, const core::socket::State& state) {
         reportState("in6-mqtt", socketAddress, state);
     });
@@ -247,16 +277,14 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_TLS_IPV6)
     net::in6::stream::tls::Client<mqtt::mqttcli::SocketContextFactory>("in6-mqtts", [](auto& config) {
-        config.template addSection<mqtt::mqttcli::lib::ConfigSession>();
-        config.template addSection<mqtt::mqttcli::lib::ConfigSubscribe>();
-        config.template addSection<mqtt::mqttcli::lib::ConfigPublish>();
-
         config.Remote::setPort(1883);
 
         config.setRetry();
         config.setRetryBase(1);
         config.setDisableNagleAlgorithm();
         config.setDisabled();
+
+        createConfig(config); // cppcheck-suppress throwInEntryPoint
     }).connect([](const auto& socketAddress, const core::socket::State& state) {
         reportState("in6-mqtts", socketAddress, state);
     });
@@ -264,15 +292,13 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_UNIX)
     net::un::stream::legacy::Client<mqtt::mqttcli::SocketContextFactory>("un-mqtt", [](auto& config) {
-        config.template addSection<mqtt::mqttcli::lib::ConfigSession>();
-        config.template addSection<mqtt::mqttcli::lib::ConfigSubscribe>();
-        config.template addSection<mqtt::mqttcli::lib::ConfigPublish>();
-
         config.Remote::setSunPath("/var/mqttbroker-un-mqtt");
 
         config.setRetry();
         config.setRetryBase(1);
         config.setDisabled();
+
+        createConfig(config); // cppcheck-suppress throwInEntryPoint
     }).connect([](const auto& socketAddress, const core::socket::State& state) {
         reportState("un-mqtt", socketAddress, state);
     });
@@ -280,15 +306,13 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_UNIX_TLS)
     net::un::stream::tls::Client<mqtt::mqttcli::SocketContextFactory>("un-mqtts", [](auto& config) {
-        config.template addSection<mqtt::mqttcli::lib::ConfigSession>();
-        config.template addSection<mqtt::mqttcli::lib::ConfigSubscribe>();
-        config.template addSection<mqtt::mqttcli::lib::ConfigPublish>();
-
         config.Remote::setSunPath("/var/mqttbroker-un-mqtts");
 
         config.setRetry();
         config.setRetryBase(1);
         config.setDisabled();
+
+        createConfig(config); // cppcheck-suppress throwInEntryPoint
     }).connect([](const auto& socketAddress, const core::socket::State& state) {
         reportState("un-mqtts", socketAddress, state);
     });
@@ -296,10 +320,6 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_TCP_IPV4) && defined(CONFIG_MQTTSUITE_CLI_WS)
     startClient<web::http::legacy::in::Client>("in-wsmqtt", [](auto& config) {
-        config.template addSection<mqtt::mqttcli::lib::ConfigSession>();
-        config.template addSection<mqtt::mqttcli::lib::ConfigSubscribe>();
-        config.template addSection<mqtt::mqttcli::lib::ConfigPublish>();
-
         config.Remote::setPort(8080);
 
         config.setRetry();
@@ -313,10 +333,6 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_TLS_IPV4) && defined(CONFIG_MQTTSUITE_CLI_WSS)
     startClient<web::http::tls::in::Client>("in-wsmqtts", [](auto& config) {
-        config.template addSection<mqtt::mqttcli::lib::ConfigSession>();
-        config.template addSection<mqtt::mqttcli::lib::ConfigSubscribe>();
-        config.template addSection<mqtt::mqttcli::lib::ConfigPublish>();
-
         config.Remote::setPort(8088);
 
         config.setRetry();
@@ -330,10 +346,6 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_TCP_IPV6) && defined(CONFIG_MQTTSUITE_CLI_WS)
     startClient<web::http::legacy::in6::Client>("in6-wsmqtt", [](auto& config) {
-        config.template addSection<mqtt::mqttcli::lib::ConfigSession>();
-        config.template addSection<mqtt::mqttcli::lib::ConfigSubscribe>();
-        config.template addSection<mqtt::mqttcli::lib::ConfigPublish>();
-
         config.Remote::setPort(8080);
 
         config.setRetry();
@@ -347,10 +359,6 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_TLS_IPV6) && defined(CONFIG_MQTTSUITE_CLI_WSS)
     startClient<web::http::tls::in6::Client>("in6-wsmqtts", [](auto& config) {
-        config.template addSection<mqtt::mqttcli::lib::ConfigSession>();
-        config.template addSection<mqtt::mqttcli::lib::ConfigSubscribe>();
-        config.template addSection<mqtt::mqttcli::lib::ConfigPublish>();
-
         config.Remote::setPort(8088);
 
         config.setReconnect();
@@ -365,10 +373,6 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_UNIX) && defined(CONFIG_MQTTSUITE_CLI_WS)
     startClient<web::http::legacy::un::Client>("un-wsmqtt", [](auto& config) {
-        config.template addSection<mqtt::mqttcli::lib::ConfigSession>();
-        config.template addSection<mqtt::mqttcli::lib::ConfigSubscribe>();
-        config.template addSection<mqtt::mqttcli::lib::ConfigPublish>();
-
         config.setRetry();
         config.setRetryBase(1);
         config.setReconnect();
@@ -380,10 +384,6 @@ int main(int argc, char* argv[]) {
 
 #if defined(CONFIG_MQTTSUITE_CLI_UNIX_TLS) && defined(CONFIG_MQTTSUITE_CLI_WSS)
     startClient<web::http::tls::un::Client>("un-wsmqtts", [](auto& config) {
-        config.template addSection<mqtt::mqttcli::lib::ConfigSession>();
-        config.template addSection<mqtt::mqttcli::lib::ConfigSubscribe>();
-        config.template addSection<mqtt::mqttcli::lib::ConfigPublish>();
-
         config.setRetry();
         config.setRetryBase(1);
         config.setReconnect();
