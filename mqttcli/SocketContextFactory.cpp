@@ -46,12 +46,10 @@
 
 #include <core/socket/stream/SocketConnection.h>
 #include <iot/mqtt/SocketContext.h>
-#include <log/Logger.h>
 #include <net/config/ConfigInstanceAPI.hpp>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <list>
 #include <string>
 
 #endif
@@ -59,42 +57,26 @@
 namespace mqtt::mqttcli {
 
     core::socket::stream::SocketContext* SocketContextFactory::create(core::socket::stream::SocketConnection* socketConnection) {
-        const lib::ConfigSession* configSession = socketConnection->getConfigInstance()->getSection<lib::ConfigSession>(true, true);
-        const lib::ConfigSubscribe* configSubscribe = socketConnection->getConfigInstance()->getSection<lib::ConfigSubscribe>(true, true);
-        const lib::ConfigPublish* configPublish = socketConnection->getConfigInstance()->getSection<lib::ConfigPublish>(true, true);
+        const lib::ConfigSession* configSession = socketConnection->getConfigInstance()->getSection<lib::ConfigSession>();
+        const lib::ConfigSubscribe* configSubscribe = socketConnection->getConfigInstance()->getSection<lib::ConfigSubscribe>();
+        const lib::ConfigPublish* configPublish = socketConnection->getConfigInstance()->getSection<lib::ConfigPublish>();
 
-        configSubscribe = (configSubscribe != nullptr && configSubscribe->getOption("--topic")->count() > 0) ? configSubscribe : nullptr;
-        configPublish = (configPublish != nullptr && configPublish->getOption("--topic")->count() > 0 &&
-                         configPublish->getOption("--message")->count() > 0)
-                            ? configPublish
-                            : nullptr;
-
-        core::socket::stream::SocketContext* socketContext = nullptr;
-
-        if (configSubscribe != nullptr || configPublish != nullptr) {
-            socketContext = new iot::mqtt::SocketContext(
-                socketConnection,
-                new ::mqtt::mqttcli::lib::Mqtt(socketConnection->getConnectionName(),
-                                               configSession != nullptr ? configSession->getClientId() : "",
-                                               configSession != nullptr ? configSession->getQoS() : 0,
-                                               configSession != nullptr ? configSession->getKeepAlive() : 60,
-                                               configSession != nullptr ? !configSession->getRetainSession() : true,
-                                               configSession != nullptr ? configSession->getWillTopic() : "",
-                                               configSession != nullptr ? configSession->getWillMessage() : "",
-                                               configSession != nullptr ? configSession->getWillQoS() : 0,
-                                               configSession != nullptr ? configSession->getWillRetain() : false,
-                                               configSession != nullptr ? configSession->getUsername() : "",
-                                               configSession != nullptr ? configSession->getPassword() : "",
-                                               configSubscribe != nullptr ? configSubscribe->getTopic() : std::list<std::string>(),
-                                               configPublish != nullptr ? configPublish->getTopic() : "",
-                                               configPublish != nullptr ? configPublish->getMessage() : "",
-                                               configPublish != nullptr ? configPublish->getRetain() : false));
-        } else {
-            VLOG(0) << "[" << Color::Code::FG_RED << "Error" << Color::Code::FG_DEFAULT << "] " << socketConnection->getConnectionName()
-                    << ": one of 'sub' or 'pub' is required";
-        }
-
-        return socketContext;
+        return new iot::mqtt::SocketContext(socketConnection,
+                                            new ::mqtt::mqttcli::lib::Mqtt(socketConnection->getConnectionName(),
+                                                                           configSession->getClientId(),
+                                                                           configSession->getQoS(),
+                                                                           configSession->getKeepAlive(),
+                                                                           !configSession->getRetainSession(),
+                                                                           configSession->getWillTopic(),
+                                                                           configSession->getWillMessage(),
+                                                                           configSession->getWillQoS(),
+                                                                           configSession->getWillRetain(),
+                                                                           configSession->getUsername(),
+                                                                           configSession->getPassword(),
+                                                                           configSubscribe->getTopic(),
+                                                                           configPublish->getTopic(),
+                                                                           configPublish->getMessage(),
+                                                                           configPublish->getRetain()));
     }
 
 } // namespace mqtt::mqttcli
