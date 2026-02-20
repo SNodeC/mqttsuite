@@ -186,21 +186,21 @@ static void createConfig(net::config::ConfigInstance& config) {
     config.get()->require_callback([config = &config]() {
         if (!config->getDisabled() && utils::Config::showConfigTriggerApp == nullptr &&
             config->get()->get_parent()->get_option("--write-config")->count() == 0) {
-            mqtt::mqttcli::lib::ConfigPublish* pubApp = config->getSection<mqtt::mqttcli::lib::ConfigPublish>(true, true);
-            mqtt::mqttcli::lib::ConfigSubscribe* subApp = config->getSection<mqtt::mqttcli::lib::ConfigSubscribe>(true, true);
+            mqtt::mqttcli::lib::ConfigPublish* pubApp = config->getSection<mqtt::mqttcli::lib::ConfigPublish>();
+            mqtt::mqttcli::lib::ConfigSubscribe* subApp = config->getSection<mqtt::mqttcli::lib::ConfigSubscribe>();
 
-            if ((pubApp == nullptr || pubApp->getTopic().empty()) && (subApp == nullptr || subApp->getTopic().empty())) {
+            if (pubApp->getTopic().empty() && subApp->getTopic().empty()) {
                 throw CLI::RequiresError(config->get()->get_parent()->get_name() + ":" + config->getInstanceName() +
                                              " requires at least one of {sub | pub}",
                                          CLI::ExitCodes::RequiresError);
             }
 
-            if (pubApp != nullptr) {
+            if (!pubApp->getTopic().empty()) {
                 VLOG(0) << "[" << Color::Code::FG_LIGHT_GREEN << "Success" << Color::Code::FG_DEFAULT << "] " << "Bootstrap of "
                         << config->getInstanceName() << ":pub";
             }
 
-            if (subApp != nullptr) {
+            if (!subApp->getTopic().empty()) {
                 VLOG(0) << "[" << Color::Code::FG_LIGHT_GREEN << "Success" << Color::Code::FG_DEFAULT << "] " << "Bootstrap of "
                         << config->getInstanceName() << ":sub";
             }

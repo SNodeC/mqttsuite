@@ -47,14 +47,13 @@
 #include <net/config/ConfigSection.hpp>
 //
 #include <functional>
-#include <log/Logger.h>
 #include <memory>
 
 #endif
 
 namespace mqtt::mqttcli::lib {
     ConfigSubscribe::ConfigSubscribe(net::config::ConfigInstance* instance)
-        : net::config::ConfigSection(instance, this) {
+        : net::config::ConfigSection(instance, this, "Applications (at least one required)") {
         topicOpt = addOptionFunction<std::string>(
                        "--topic",
                        [configSubscribe = this](const std::string& value) {
@@ -75,6 +74,8 @@ namespace mqtt::mqttcli::lib {
         sectionSc->needs(topicOpt);
 
         required(topicOpt);
+
+        required(false);
     }
 
     ConfigSubscribe::~ConfigSubscribe() {
@@ -87,7 +88,13 @@ namespace mqtt::mqttcli::lib {
     }
 
     std::list<std::string> ConfigSubscribe::getTopic() const {
-        return topicOpt->as<std::list<std::string>>();
+        std::list<std::string> topicList = topicOpt->as<std::list<std::string>>();
+
+        if (topicList.front().empty()) {
+            topicList.pop_front();
+        }
+
+        return topicList;
     }
 
     const ConfigSubscribe& ConfigSubscribe::setTopic(const std::string& topic) {
@@ -97,7 +104,7 @@ namespace mqtt::mqttcli::lib {
     }
 
     ConfigPublish::ConfigPublish(net::config::ConfigInstance* instance)
-        : net::config::ConfigSection(instance, this) {
+        : net::config::ConfigSection(instance, this, "Applications (at least one required)") {
         topicOpt = addOptionFunction<std::string>(
                        "--topic",
                        [configPublish = this]([[maybe_unused]] const std::string& value) {
@@ -138,6 +145,8 @@ namespace mqtt::mqttcli::lib {
 
         required(messageOpt);
         required(topicOpt);
+
+        required(false);
     }
 
     ConfigPublish::~ConfigPublish() {
@@ -181,9 +190,6 @@ namespace mqtt::mqttcli::lib {
 
     ConfigSession::ConfigSession(net::config::ConfigInstance* instance)
         : net::config::ConfigSection(instance, this) {
-        sectionSc->final_callback([]() {
-            VLOG(0) << "######################################";
-        });
         clientIdOpt = addOption("--client-id", "MQTT Client-ID")
                           ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
                           ->type_name("string");
