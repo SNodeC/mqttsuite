@@ -369,8 +369,8 @@ reportState(const std::string& instanceName, const core::socket::SocketAddress& 
 }
 
 int main(int argc, char* argv[]) {
-    utils::Config::addInstance<mqtt::lib::ConfigMqttBroker>();
-    utils::Config::addInstance<mqtt::lib::ConfigWWW>()->setHtmlRoot(std::string(CMAKE_INSTALL_PREFIX) + "/var/www/mqttsuite/mqttbroker");
+    utils::Config::addInstance<mqtt::lib::ConfigMqttBroker>()->setHtmlRoot(std::string(CMAKE_INSTALL_PREFIX) +
+                                                                           "/var/www/mqttsuite/mqttbroker");
 
     core::SNodeC::init(argc, argv);
 
@@ -462,7 +462,7 @@ int main(int argc, char* argv[]) {
         });
 #endif
 #endif
-    express::Router router = getRouter(broker, utils::Config::getInstance<mqtt::lib::ConfigWWW>()->getHtmlRoot());
+    express::Router router = getRouter(broker, utils::Config::getInstance<mqtt::lib::ConfigMqttBroker>()->getHtmlRoot());
 
 #ifdef CONFIG_MQTTSUITE_BROKER_TCP_IPV4
     express::legacy::in::Server("in-http", router, reportState, [](auto& config) {

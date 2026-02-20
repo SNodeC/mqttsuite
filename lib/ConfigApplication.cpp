@@ -91,6 +91,28 @@ namespace mqtt::lib {
     ConfigMqttBroker::ConfigMqttBroker()
         : ConfigApplication(
               utils::Config::newInstance(net::config::Instance(std::string(name), std::string(description), this), "Applications", true)) {
+        htmlRootOpt = configSc->add_option("--html-root", "HTML root directory")
+                          ->group(configSc->get_formatter()->get_label("Persistent Options"))
+                          ->type_name("path")
+                          ->configurable()
+                          ->required();
+
+        configSc->required()->needs(htmlRootOpt);
+        configSc->get_parent()->needs(configSc);
+    }
+
+    ConfigMqttBroker& ConfigMqttBroker::setHtmlRoot(const std::string& htmlRoot) {
+        htmlRootOpt->default_str(htmlRoot)->clear();
+        htmlRootOpt->required(false);
+
+        configSc->required(false)->remove_needs(htmlRootOpt);
+        configSc->get_parent()->remove_needs(configSc);
+
+        return *this;
+    }
+
+    std::string ConfigMqttBroker::getHtmlRoot() {
+        return htmlRootOpt->as<std::string>();
     }
 
     ConfigMqttIntegrator::ConfigMqttIntegrator()
@@ -100,33 +122,6 @@ namespace mqtt::lib {
 
         configSc->required()->needs(mappingFileOpt);
         configSc->get_parent()->needs(configSc);
-    }
-
-    ConfigWWW::ConfigWWW()
-        : configWWWSc(
-              utils::Config::newInstance(net::config::Instance(std::string(name), std::string(description), this), "Applications", true)) {
-        htmlRootOpt = configWWWSc->add_option("--html-root", "HTML root directory")
-                          ->group(configWWWSc->get_formatter()->get_label("Persistent Options"))
-                          ->type_name("path")
-                          ->configurable()
-                          ->required();
-
-        configWWWSc->required()->needs(htmlRootOpt);
-        configWWWSc->get_parent()->needs(configWWWSc);
-    }
-
-    ConfigWWW& ConfigWWW::setHtmlRoot(const std::string& htmlRoot) {
-        htmlRootOpt->default_str(htmlRoot)->clear();
-        htmlRootOpt->required(false);
-
-        configWWWSc->required(false)->remove_needs(htmlRootOpt);
-        configWWWSc->get_parent()->remove_needs(configWWWSc);
-
-        return *this;
-    }
-
-    std::string ConfigWWW::getHtmlRoot() {
-        return htmlRootOpt->as<std::string>();
     }
 
 } // namespace mqtt::lib

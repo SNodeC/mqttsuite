@@ -83,6 +83,12 @@ namespace mqtt::lib {
         constexpr static std::string_view description{"Configuration for Application mqttbroker"};
 
         ConfigMqttBroker();
+
+        ConfigMqttBroker& setHtmlRoot(const std::string& htmlRoot);
+        std::string getHtmlRoot();
+
+    private:
+        CLI::Option* htmlRootOpt;
     };
 
     class ConfigMqttIntegrator : public ConfigApplication {
@@ -91,21 +97,6 @@ namespace mqtt::lib {
         constexpr static std::string_view description{"Configuration for Application mqttintegrator"};
 
         ConfigMqttIntegrator();
-    };
-
-    class ConfigWWW {
-    public:
-        constexpr static std::string_view name{"www"};
-        constexpr static std::string_view description{"Web behavior of httpserver"};
-
-        ConfigWWW();
-
-        ConfigWWW& setHtmlRoot(const std::string& htmlRoot);
-        std::string getHtmlRoot();
-
-    private:
-        CLI::App* configWWWSc;
-        CLI::Option* htmlRootOpt;
     };
 
 } // namespace mqtt::lib
