@@ -84,6 +84,7 @@
 #include <log/Logger.h>
 //
 #include <string>
+#include <utility>
 
 #endif
 
@@ -107,6 +108,27 @@ reportState(const std::string& instanceName, const core::socket::SocketAddress& 
             VLOG(1) << instanceName << ": " << socketAddress.toString() << ": " << state.what();
             break;
     }
+}
+
+template <template <typename SocketContextFactoryT, typename... ArgsT> typename SocketClientT, typename... Args>
+SocketClientT<mqtt::mqttintegrator::SocketContextFactory, Args...>
+startClient(const std::string& instanceName,
+            const std::function<void(typename SocketClientT<mqtt::mqttintegrator::SocketContextFactory>::Config&)>& configurator,
+            Args&&... args) {
+    using Client = SocketClientT<mqtt::mqttintegrator::SocketContextFactory, Args...>;
+    using SocketAddress = typename Client::SocketAddress;
+
+    Client socketClient = core::socket::stream::Client<Client>(instanceName, configurator, std::forward<Args>(args)...);
+
+    socketClient.getConfig().setRetry();
+    socketClient.getConfig().setRetryBase(1);
+    socketClient.getConfig().setReconnect();
+
+    socketClient.connect([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) {
+        reportState(instanceName, socketAddress, state);
+    });
+
+    return socketClient;
 }
 
 template <typename HttpClient>
@@ -143,6 +165,10 @@ void startClient(const std::string& name, const std::function<void(typename Http
         configurator(httpClient.getConfig());
     }
 
+    httpClient.getConfig().setRetry();
+    httpClient.getConfig().setRetryBase(1);
+    httpClient.getConfig().setReconnect();
+
     httpClient.connect([name](const SocketAddress& socketAddress, const core::socket::State& state) {
         reportState(name, socketAddress, state);
     });
@@ -168,12 +194,12 @@ int main(int argc, char* argv[]) {
             mqtt::mqttintegrator::lib::Mqtt::reloadAll();
         });
 
-    express::legacy::in::Server("in-http", router, reportState, [](auto& config) {
+    express::legacy::in::Server("in-http", router, reportState, [](net::in::stream::legacy::config::ConfigSocketServer& config) {
         config.setPort(8085);
         config.setRetry();
     });
 
-    express::tls::in::Server("in-https", router, reportState, [](auto& config) {
+    express::tls::in::Server("in-https", router, reportState, [](net::in::stream::tls::config::ConfigSocketServer& config) {
         config.setPort(8086);
         config.setRetry();
     });
@@ -181,163 +207,110 @@ int main(int argc, char* argv[]) {
     std::string sessionStoreFileName = utils::Config::getInstance<mqtt::lib::ConfigMqttIntegrator>()->getSessionStore();
 
 #if defined(CONFIG_MQTTSUITE_INTEGRATOR_TCP_IPV4)
-    net::in::stream::legacy::Client<mqtt::mqttintegrator::SocketContextFactory>(
+    startClient<net::in::stream::legacy::SocketClient>( //
         "in-mqtt",
-        [](auto& config) {
+        [](net::in::stream::legacy::config::ConfigSocketClient& config) {
             config.Remote::setPort(1883);
 
-            config.setRetry();
-            config.setRetryBase(1);
-            config.setReconnect();
             config.setDisableNagleAlgorithm();
         },
-        sessionStoreFileName)
-        .connect([](const auto& socketAddress, const core::socket::State& state) {
-            reportState("in-mqtt", socketAddress, state);
-        });
+        sessionStoreFileName);
 #endif // CONFIG_MQTTSUITE_INTEGRATOR_TCP_IPV4
 
 #if defined(CONFIG_MQTTSUITE_INTEGRATOR_TLS_IPV4)
-    net::in::stream::tls::Client<mqtt::mqttintegrator::SocketContextFactory>(
+    startClient<net::in::stream::tls::SocketClient>( //
         "in-mqtts",
-        [](auto& config) {
+        [](net::in::stream::tls::config::ConfigSocketClient& config) {
             config.Remote::setPort(1883);
-
-            config.setRetry();
-            config.setRetryBase(1);
-            config.setReconnect();
             config.setDisableNagleAlgorithm();
         },
-        sessionStoreFileName)
-        .connect([](const auto& socketAddress, const core::socket::State& state) {
-            reportState("in-mqtts", socketAddress, state);
-        });
+        sessionStoreFileName);
 #endif
 
 #if defined(CONFIG_MQTTSUITE_INTEGRATOR_TCP_IPV6)
-    net::in6::stream::legacy::Client<mqtt::mqttintegrator::SocketContextFactory>(
+    startClient<net::in6::stream::legacy::SocketClient>( //
         "in6-mqtt",
-        [](auto& config) {
+        [](net::in6::stream::legacy::config::ConfigSocketClient& config) {
             config.Remote::setPort(1883);
-
-            config.setRetry();
-            config.setRetryBase(1);
-            config.setReconnect();
             config.setDisableNagleAlgorithm();
         },
-        sessionStoreFileName)
-        .connect([](const auto& socketAddress, const core::socket::State& state) {
-            reportState("in6-mqtt", socketAddress, state);
-        });
+        sessionStoreFileName);
 #endif
 
 #if defined(CONFIG_MQTTSUITE_INTEGRATOR_TLS_IPV6)
-    net::in6::stream::tls::Client<mqtt::mqttintegrator::SocketContextFactory>(
+    startClient<net::in6::stream::tls::SocketClient>( //
         "in6-mqtts",
-        [](auto& config) {
+        [](net::in6::stream::tls::config::ConfigSocketClient& config) {
             config.Remote::setPort(1883);
-
-            config.setRetry();
-            config.setRetryBase(1);
-            config.setReconnect();
             config.setDisableNagleAlgorithm();
         },
-        sessionStoreFileName)
-        .connect([](const auto& socketAddress, const core::socket::State& state) {
-            reportState("in6-mqtts", socketAddress, state);
-        });
+        sessionStoreFileName);
 #endif
 
 #if defined(CONFIG_MQTTSUITE_INTEGRATOR_UNIX)
-    net::un::stream::legacy::Client<mqtt::mqttintegrator::SocketContextFactory>(
+    startClient<net::un::stream::legacy::SocketClient>( //
         "un-mqtt",
-        [](auto& config) {
-            config.Remote::setSunPath("/var/mqttbroker-un-mqtt");
-
-            config.setRetry();
-            config.setRetryBase(1);
-            config.setReconnect();
+        []([[maybe_unused]] net::un::stream::legacy::config::ConfigSocketClient& config) {
         },
-        sessionStoreFileName)
-        .connect([](const auto& socketAddress, const core::socket::State& state) {
-            reportState("un-mqtt", socketAddress, state);
-        });
+        sessionStoreFileName);
 #endif
 
 #if defined(CONFIG_MQTTSUITE_INTEGRATOR_UNIX_TLS)
-    net::un::stream::tls::Client<mqtt::mqttintegrator::SocketContextFactory>(
+    startClient<net::un::stream::tls::SocketClient>( //
         "un-mqtts",
-        [](auto& config) {
-            config.Remote::setSunPath("/var/mqttbroker-un-mqtt");
-
-            config.setRetry();
-            config.setRetryBase(1);
-            config.setReconnect();
+        []([[maybe_unused]] net::un::stream::tls::config::ConfigSocketClient& config) {
         },
-        sessionStoreFileName)
-        .connect([](const auto& socketAddress, const core::socket::State& state) {
-            reportState("un-mqtts", socketAddress, state);
-        });
+        sessionStoreFileName);
 #endif
 
 #if defined(CONFIG_MQTTSUITE_INTEGRATOR_TCP_IPV4) && defined(CONFIG_MQTTSUITE_INTEGRATOR_WS)
-    startClient<web::http::legacy::in::Client>("in-wsmqtt", [](auto& config) {
-        config.Remote::setPort(8080);
-
-        config.setRetry();
-        config.setRetryBase(1);
-        config.setReconnect();
-        config.setDisableNagleAlgorithm();
-    });
+    startClient<web::http::legacy::in::Client>( //
+        "in-wsmqtt",
+        [](net::in::stream::legacy::config::ConfigSocketClient& config) {
+            config.Remote::setPort(8080);
+            config.setDisableNagleAlgorithm();
+        });
 #endif
 
 #if defined(CONFIG_MQTTSUITE_INTEGRATOR_TLS_IPV4) && defined(CONFIG_MQTTSUITE_INTEGRATOR_WSS)
-    startClient<web::http::tls::in::Client>("in-wsmqtts", [](auto& config) {
-        config.Remote::setPort(8088);
-
-        config.setRetry();
-        config.setRetryBase(1);
-        config.setReconnect();
-        config.setDisableNagleAlgorithm();
-    });
+    startClient<web::http::tls::in::Client>( //
+        "in-wsmqtts",
+        [](net::in::stream::tls::config::ConfigSocketClient& config) {
+            config.Remote::setPort(8088);
+            config.setDisableNagleAlgorithm();
+        });
 #endif
 
 #if defined(CONFIG_MQTTSUITE_INTEGRATOR_TCP_IPV6) && defined(CONFIG_MQTTSUITE_INTEGRATOR_WS)
-    startClient<web::http::legacy::in6::Client>("in6-wsmqtt", [](auto& config) {
-        config.Remote::setPort(8080);
-
-        config.setRetry();
-        config.setRetryBase(1);
-        config.setReconnect();
-        config.setDisableNagleAlgorithm();
-    });
+    startClient<web::http::legacy::in6::Client>( //
+        "in6-wsmqtt",
+        [](net::in6::stream::legacy::config::ConfigSocketClient& config) {
+            config.Remote::setPort(8080);
+            config.setDisableNagleAlgorithm();
+        });
 #endif
 
 #if defined(CONFIG_MQTTSUITE_INTEGRATOR_TLS_IPV6) && defined(CONFIG_MQTTSUITE_INTEGRATOR_WSS)
-    startClient<web::http::tls::in6::Client>("in6-wsmqtts", [](auto& config) {
-        config.Remote::setPort(8088);
-
-        config.setRetry();
-        config.setRetryBase(1);
-        config.setReconnect();
-        config.setDisableNagleAlgorithm();
-    });
+    startClient<web::http::tls::in6::Client>( //
+        "in6-wsmqtts",
+        [](net::in6::stream::tls::config::ConfigSocketClient& config) {
+            config.Remote::setPort(8088);
+            config.setDisableNagleAlgorithm();
+        });
 #endif
 
 #if defined(CONFIG_MQTTSUITE_INTEGRATOR_UNIX) && defined(CONFIG_MQTTSUITE_INTEGRATOR_WS)
-    startClient<web::http::legacy::un::Client>("un-wsmqtt", [](auto& config) {
-        config.setRetry();
-        config.setRetryBase(1);
-        config.setReconnect();
-    });
+    startClient<web::http::legacy::un::Client>( //
+        "un-wsmqtt",
+        []([[maybe_unused]] net::un::stream::legacy::config::ConfigSocketClient& config) {
+        });
 #endif
 
 #if defined(CONFIG_MQTTSUITE_INTEGRATOR_UNIX_TLS) && defined(CONFIG_MQTTSUITE_INTEGRATOR_WSS)
-    startClient<web::http::tls::un::Client>("un-wsmqtts", [](auto& config) {
-        config.setRetry();
-        config.setRetryBase(1);
-        config.setReconnect();
-    });
+    startClient<web::http::tls::un::Client>( //
+        "un-wsmqtts",
+        []([[maybe_unused]] net::un::stream::tls::config::ConfigSocketClient& config) {
+        });
 #endif
 
     return core::SNodeC::start();

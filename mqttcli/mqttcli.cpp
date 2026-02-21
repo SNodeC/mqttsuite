@@ -118,8 +118,29 @@ static void logResponse(const std::shared_ptr<web::http::client::Request>& req, 
             << httputils::toString(res->httpVersion, res->statusCode, res->reason, res->headers, res->cookies, res->body);
 }
 
+template <template <typename SocketContextFactoryT, typename... ArgsT> typename SocketClient>
+SocketClient<mqtt::mqttcli::SocketContextFactory>
+startClient(const std::string& instanceName,
+            const std::function<void(typename SocketClient<mqtt::mqttcli::SocketContextFactory>::Config&)>& configurator) {
+    using Client = SocketClient<mqtt::mqttcli::SocketContextFactory>;
+    using SocketAddress = typename Client::SocketAddress;
+
+    Client socketClient = core::socket::stream::Client<Client>(instanceName, configurator);
+
+    socketClient.getConfig().setRetry();
+    socketClient.getConfig().setRetryBase(1);
+    socketClient.getConfig().setReconnect();
+    socketClient.getConfig().setDisabled();
+
+    socketClient.connect([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) {
+        reportState(instanceName, socketAddress, state);
+    });
+
+    return socketClient;
+}
+
 template <typename HttpClient>
-void startClient(const std::string& name, const std::function<void(typename HttpClient::Config&)>& configurator) {
+HttpClient startClient(const std::string& name, const std::function<void(typename HttpClient::Config&)>& configurator) {
     using SocketAddress = typename HttpClient::SocketAddress;
 
     const HttpClient httpClient(
@@ -170,9 +191,16 @@ void startClient(const std::string& name, const std::function<void(typename Http
 
     configurator(httpClient.getConfig());
 
+    httpClient.getConfig().setRetry();
+    httpClient.getConfig().setRetryBase(1);
+    httpClient.getConfig().setReconnect();
+    httpClient.getConfig().setDisabled();
+
     httpClient.connect([name](const SocketAddress& socketAddress, const core::socket::State& state) {
         reportState(name, socketAddress, state);
     });
+
+    return httpClient;
 }
 
 static void createConfig(net::config::ConfigInstance& config) {
@@ -232,165 +260,123 @@ int main(int argc, char* argv[]) {
     // Start of application
 
 #if defined(CONFIG_MQTTSUITE_CLI_TCP_IPV4)
-    net::in::stream::legacy::Client<mqtt::mqttcli::SocketContextFactory>("in-mqtt", [](auto& config) {
-        config.Remote::setPort(1883);
+    startClient<net::in::stream::legacy::SocketClient>( //
+        "in-mqtt",
+        [](net::in::stream::legacy::config::ConfigSocketClient& config) {
+            config.Remote::setPort(1883);
+            config.setDisableNagleAlgorithm();
 
-        config.setRetry();
-        config.setRetryBase(1);
-        config.setDisableNagleAlgorithm();
-
-        createConfig(config); // cppcheck-suppress throwInEntryPoint
-    }).connect([](const auto& socketAddress, const core::socket::State& state) {
-        reportState("in-mqtt", socketAddress, state);
-    });
+            createConfig(config); // cppcheck-suppress throwInEntryPoint
+        });
 #endif
 
 #if defined(CONFIG_MQTTSUITE_CLI_TLS_IPV4)
-    net::in::stream::tls::Client<mqtt::mqttcli::SocketContextFactory>("in-mqtts", [](auto& config) {
-        config.Remote::setPort(1883);
+    startClient<net::in::stream::tls::SocketClient>( //
+        "in-mqtts",
+        [](net::in::stream::tls::config::ConfigSocketClient& config) {
+            config.Remote::setPort(1883);
+            config.setDisableNagleAlgorithm();
 
-        config.setRetry();
-        config.setRetryBase(1);
-        config.setDisableNagleAlgorithm();
-        config.setDisabled();
-
-        createConfig(config); // cppcheck-suppress throwInEntryPoint
-    }).connect([](const auto& socketAddress, const core::socket::State& state) {
-        reportState("in-mqtts", socketAddress, state);
-    });
+            createConfig(config); // cppcheck-suppress throwInEntryPoint
+        });
 #endif
 
 #if defined(CONFIG_MQTTSUITE_CLI_TCP_IPV6)
-    net::in6::stream::legacy::Client<mqtt::mqttcli::SocketContextFactory>("in6-mqtt", [](auto& config) {
-        config.Remote::setPort(1883);
+    startClient<net::in6::stream::legacy::SocketClient>( //
+        "in6-mqtt",
+        [](net::in6::stream::legacy::config::ConfigSocketClient& config) {
+            config.Remote::setPort(1883);
+            config.setDisableNagleAlgorithm();
 
-        config.setRetry();
-        config.setRetryBase(1);
-        config.setDisableNagleAlgorithm();
-        config.setDisabled();
-
-        createConfig(config); // cppcheck-suppress throwInEntryPoint
-    }).connect([](const auto& socketAddress, const core::socket::State& state) {
-        reportState("in6-mqtt", socketAddress, state);
-    });
+            createConfig(config); // cppcheck-suppress throwInEntryPoint
+        });
 #endif
 
 #if defined(CONFIG_MQTTSUITE_CLI_TLS_IPV6)
-    net::in6::stream::tls::Client<mqtt::mqttcli::SocketContextFactory>("in6-mqtts", [](auto& config) {
-        config.Remote::setPort(1883);
+    startClient<net::in6::stream::tls::SocketClient>( //
+        "in6-mqtts",
+        [](net::in6::stream::tls::config::ConfigSocketClient& config) {
+            config.Remote::setPort(1883);
+            config.setDisableNagleAlgorithm();
 
-        config.setRetry();
-        config.setRetryBase(1);
-        config.setDisableNagleAlgorithm();
-        config.setDisabled();
-
-        createConfig(config); // cppcheck-suppress throwInEntryPoint
-    }).connect([](const auto& socketAddress, const core::socket::State& state) {
-        reportState("in6-mqtts", socketAddress, state);
-    });
+            createConfig(config); // cppcheck-suppress throwInEntryPoint
+        });
 #endif
 
 #if defined(CONFIG_MQTTSUITE_CLI_UNIX)
-    net::un::stream::legacy::Client<mqtt::mqttcli::SocketContextFactory>("un-mqtt", [](auto& config) {
-        config.Remote::setSunPath("/var/mqttbroker-un-mqtt");
-
-        config.setRetry();
-        config.setRetryBase(1);
-        config.setDisabled();
-
-        createConfig(config); // cppcheck-suppress throwInEntryPoint
-    }).connect([](const auto& socketAddress, const core::socket::State& state) {
-        reportState("un-mqtt", socketAddress, state);
-    });
+    startClient<net::un::stream::legacy::SocketClient>( //
+        "un-mqtt",
+        [](net::un::stream::legacy::config::ConfigSocketClient& config) {
+            createConfig(config); // cppcheck-suppress throwInEntryPoint
+        });
 #endif
 
 #if defined(CONFIG_MQTTSUITE_CLI_UNIX_TLS)
-    net::un::stream::tls::Client<mqtt::mqttcli::SocketContextFactory>("un-mqtts", [](auto& config) {
-        config.Remote::setSunPath("/var/mqttbroker-un-mqtts");
-
-        config.setRetry();
-        config.setRetryBase(1);
-        config.setDisabled();
-
-        createConfig(config); // cppcheck-suppress throwInEntryPoint
-    }).connect([](const auto& socketAddress, const core::socket::State& state) {
-        reportState("un-mqtts", socketAddress, state);
-    });
+    startClient<net::un::stream::tls::SocketClient>( //
+        "un-mqtts",
+        [](net::un::stream::tls::config::ConfigSocketClient& config) {
+            createConfig(config); // cppcheck-suppress throwInEntryPoint
+        });
 #endif
 
 #if defined(CONFIG_MQTTSUITE_CLI_TCP_IPV4) && defined(CONFIG_MQTTSUITE_CLI_WS)
-    startClient<web::http::legacy::in::Client>("in-wsmqtt", [](auto& config) {
-        config.Remote::setPort(8080);
+    startClient<web::http::legacy::in::Client>( //
+        "in-wsmqtt",
+        [](net::in::stream::legacy::config::ConfigSocketClient& config) {
+            config.Remote::setPort(8080);
+            config.setDisableNagleAlgorithm();
 
-        config.setRetry();
-        config.setRetryBase(1);
-        config.setDisableNagleAlgorithm();
-        config.setDisabled();
-
-        createWSConfig(config);
-    });
+            createWSConfig(config);
+        });
 #endif
 
 #if defined(CONFIG_MQTTSUITE_CLI_TLS_IPV4) && defined(CONFIG_MQTTSUITE_CLI_WSS)
-    startClient<web::http::tls::in::Client>("in-wsmqtts", [](auto& config) {
-        config.Remote::setPort(8088);
+    startClient<web::http::tls::in::Client>( //
+        "in-wsmqtts",
+        [](net::in::stream::tls::config::ConfigSocketClient& config) {
+            config.Remote::setPort(8088);
+            config.setDisableNagleAlgorithm();
 
-        config.setRetry();
-        config.setRetryBase(1);
-        config.setDisableNagleAlgorithm();
-        config.setDisabled();
-
-        createWSConfig(config);
-    });
+            createWSConfig(config);
+        });
 #endif
 
 #if defined(CONFIG_MQTTSUITE_CLI_TCP_IPV6) && defined(CONFIG_MQTTSUITE_CLI_WS)
-    startClient<web::http::legacy::in6::Client>("in6-wsmqtt", [](auto& config) {
-        config.Remote::setPort(8080);
+    startClient<web::http::legacy::in6::Client>( //
+        "in6-wsmqtt",
+        [](net::in6::stream::legacy::config::ConfigSocketClient& config) {
+            config.Remote::setPort(8080);
+            config.setDisableNagleAlgorithm();
 
-        config.setRetry();
-        config.setRetryBase(1);
-        config.setDisableNagleAlgorithm();
-        config.setDisabled();
-
-        createWSConfig(config);
-    });
+            createWSConfig(config);
+        });
 #endif
 
 #if defined(CONFIG_MQTTSUITE_CLI_TLS_IPV6) && defined(CONFIG_MQTTSUITE_CLI_WSS)
-    startClient<web::http::tls::in6::Client>("in6-wsmqtts", [](auto& config) {
-        config.Remote::setPort(8088);
+    startClient<web::http::tls::in6::Client>( //
+        "in6-wsmqtts",
+        [](net::in6::stream::tls::config::ConfigSocketClient& config) {
+            config.Remote::setPort(8088);
+            config.setDisableNagleAlgorithm();
 
-        config.setReconnect();
-        config.setRetry();
-        config.setRetryBase(1);
-        config.setDisableNagleAlgorithm();
-        config.setDisabled();
-
-        createWSConfig(config);
-    });
+            createWSConfig(config);
+        });
 #endif
 
 #if defined(CONFIG_MQTTSUITE_CLI_UNIX) && defined(CONFIG_MQTTSUITE_CLI_WS)
-    startClient<web::http::legacy::un::Client>("un-wsmqtt", [](auto& config) {
-        config.setRetry();
-        config.setRetryBase(1);
-        config.setReconnect();
-        config.setDisabled();
-
-        createWSConfig(config);
-    });
+    startClient<web::http::legacy::un::Client>( //
+        "un-wsmqtt",
+        [](net::un::stream::legacy::config::ConfigSocketClient& config) {
+            createWSConfig(config);
+        });
 #endif
 
 #if defined(CONFIG_MQTTSUITE_CLI_UNIX_TLS) && defined(CONFIG_MQTTSUITE_CLI_WSS)
-    startClient<web::http::tls::un::Client>("un-wsmqtts", [](auto& config) {
-        config.setRetry();
-        config.setRetryBase(1);
-        config.setReconnect();
-        config.setDisabled();
-
-        createWSConfig(config);
-    });
+    startClient<web::http::tls::un::Client>( //
+        "un-wsmqtts",
+        [](net::un::stream::tls::config::ConfigSocketClient& config) {
+            createWSConfig(config);
+        });
 #endif
 
     return core::SNodeC::start();

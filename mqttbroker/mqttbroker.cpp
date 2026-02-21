@@ -378,9 +378,9 @@ int main(int argc, char* argv[]) {
         SUBSCRIPTION_MAX_QOS, utils::Config::getInstance<mqtt::lib::ConfigMqttBroker>()->getSessionStore());
 
 #ifdef CONFIG_MQTTSUITE_BROKER_TCP_IPV4
-    net::in::stream::legacy::Server<mqtt::mqttbroker::SocketContextFactory>(
+    net::in::stream::legacy::Server<mqtt::mqttbroker::SocketContextFactory>( //
         "in-mqtt",
-        [](auto& config) {
+        [](net::in::stream::legacy::config::ConfigSocketServer& config) {
             config.setPort(1883);
             config.setRetry();
             config.setDisableNagleAlgorithm();
@@ -391,9 +391,9 @@ int main(int argc, char* argv[]) {
         });
 
 #ifdef CONFIG_MQTTSUITE_BROKER_TLS_IPV4
-    net::in::stream::tls::Server<mqtt::mqttbroker::SocketContextFactory>(
+    net::in::stream::tls::Server<mqtt::mqttbroker::SocketContextFactory>( //
         "in-mqtts",
-        [](auto& config) {
+        [](net::in::stream::tls::config::ConfigSocketServer& config) {
             config.setPort(8883);
             config.setRetry();
             config.setDisableNagleAlgorithm();
@@ -406,9 +406,9 @@ int main(int argc, char* argv[]) {
 #endif
 
 #ifdef CONFIG_MQTTSUITE_BROKER_TCP_IPV6
-    net::in6::stream::legacy::Server<mqtt::mqttbroker::SocketContextFactory>(
+    net::in6::stream::legacy::Server<mqtt::mqttbroker::SocketContextFactory>( //
         "in6-mqtt",
-        [](auto& config) {
+        [](net::in6::stream::legacy::config::ConfigSocketServer& config) {
             config.setPort(1883);
             config.setRetry();
             config.setDisableNagleAlgorithm();
@@ -421,9 +421,9 @@ int main(int argc, char* argv[]) {
         });
 
 #ifdef CONFIG_MQTTSUITE_BROKER_TLS_IPV6
-    net::in6::stream::tls::Server<mqtt::mqttbroker::SocketContextFactory>(
+    net::in6::stream::tls::Server<mqtt::mqttbroker::SocketContextFactory>( //
         "in6-mqtts",
-        [](auto& config) {
+        [](net::in6::stream::tls::config::ConfigSocketServer& config) {
             config.setPort(8883);
             config.setRetry();
             config.setDisableNagleAlgorithm();
@@ -438,9 +438,9 @@ int main(int argc, char* argv[]) {
 #endif
 
 #ifdef CONFIG_MQTTSUITE_BROKER_UNIX
-    net::un::stream::legacy::Server<mqtt::mqttbroker::SocketContextFactory>(
+    net::un::stream::legacy::Server<mqtt::mqttbroker::SocketContextFactory>( //
         "un-mqtt",
-        [](auto& config) {
+        [](net::un::stream::legacy::config::ConfigSocketServer& config) {
             config.setSunPath("/tmp/" + utils::Config::getApplicationName() + "-" + config.getInstanceName());
             config.setRetry();
         },
@@ -450,9 +450,9 @@ int main(int argc, char* argv[]) {
         });
 
 #ifdef CONFIG_MQTTSUITE_BROKER_UNIX_TLS
-    net::un::stream::tls::Server<mqtt::mqttbroker::SocketContextFactory>(
+    net::un::stream::tls::Server<mqtt::mqttbroker::SocketContextFactory>( //
         "un-mqtts",
-        [](auto& config) {
+        [](net::un::stream::tls::config::ConfigSocketServer& config) {
             config.setSunPath("/tmp/" + utils::Config::getApplicationName() + "-" + config.getInstanceName());
             config.setRetry();
         },
@@ -465,50 +465,74 @@ int main(int argc, char* argv[]) {
     express::Router router = getRouter(broker, utils::Config::getInstance<mqtt::lib::ConfigMqttBroker>()->getHtmlRoot());
 
 #ifdef CONFIG_MQTTSUITE_BROKER_TCP_IPV4
-    express::legacy::in::Server("in-http", router, reportState, [](auto& config) {
-        config.setPort(8080);
-        config.setRetry();
-        config.setDisableNagleAlgorithm();
-    });
+    express::legacy::in::Server( //
+        "in-http",
+        router,
+        reportState,
+        [](net::in::stream::legacy::config::ConfigSocketServer& config) {
+            config.setPort(8080);
+            config.setRetry();
+            config.setDisableNagleAlgorithm();
+        });
 
 #ifdef CONFIG_MQTTSUITE_BROKER_TLS_IPV4
-    express::tls::in::Server("in-https", router, reportState, [](auto& config) {
-        config.setPort(8088);
-        config.setRetry();
-        config.setDisableNagleAlgorithm();
-    });
+    express::tls::in::Server( //
+        "in-https",
+        router,
+        reportState,
+        [](net::in::stream::tls::config::ConfigSocketServer& config) {
+            config.setPort(8088);
+            config.setRetry();
+            config.setDisableNagleAlgorithm();
+        });
 #endif
 #endif
 
 #ifdef CONFIG_MQTTSUITE_BROKER_TCP_IPV6
-    express::legacy::in6::Server("in6-http", router, reportState, [](auto& config) {
-        config.setPort(8080);
-        config.setRetry();
-        config.setDisableNagleAlgorithm();
+    express::legacy::in6::Server( //
+        "in6-http",
+        router,
+        reportState,
+        [](net::in6::stream::legacy::config::ConfigSocketServer& config) {
+            config.setPort(8080);
+            config.setRetry();
+            config.setDisableNagleAlgorithm();
 
-        config.setIPv6Only();
-    });
+            config.setIPv6Only();
+        });
 
 #ifdef CONFIG_MQTTSUITE_BROKER_TLS_IPV6
-    express::tls::in6::Server("in6-https", router, reportState, [](auto& config) {
-        config.setPort(8088);
-        config.setRetry();
-        config.setDisableNagleAlgorithm();
+    express::tls::in6::Server( //
+        "in6-https",
+        router,
+        reportState,
+        [](net::in6::stream::tls::config::ConfigSocketServer& config) {
+            config.setPort(8088);
+            config.setRetry();
+            config.setDisableNagleAlgorithm();
 
-        config.setIPv6Only();
-    });
+            config.setIPv6Only();
+        });
 #endif
 #endif
 
 #ifdef CONFIG_MQTTSUITE_BROKER_UNIX
-    express::legacy::un::Server("un-http", router, reportState, [](auto& config) {
-        config.setSunPath("/tmp/" + utils::Config::getApplicationName() + "-" + config.getInstanceName());
-    });
+    express::legacy::un::Server( //
+        "un-http",
+        router,
+        reportState,
+        [](net::un::stream::legacy::config::ConfigSocketServer& config) {
+            config.setSunPath("/tmp/" + utils::Config::getApplicationName() + "-" + config.getInstanceName());
+        });
 
 #ifdef CONFIG_MQTTSUITE_BROKER_UNIX_TLS
-    express::tls::un::Server("un-https", router, reportState, [](auto& config) {
-        config.setSunPath("/tmp/" + utils::Config::getApplicationName() + "-" + config.getInstanceName());
-    });
+    express::tls::un::Server( //
+        "un-https",
+        router,
+        reportState,
+        [](net::un::stream::tls::config::ConfigSocketServer& config) {
+            config.setSunPath("/tmp/" + utils::Config::getApplicationName() + "-" + config.getInstanceName());
+        });
 #endif
 #endif
 
