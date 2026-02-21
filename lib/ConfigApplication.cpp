@@ -43,11 +43,43 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include <filesystem>
+#include <functional>
 #include <net/config/ConfigInstanceAPI.hpp>
+#include <system_error>
 
 #endif
 
 namespace mqtt::lib {
+
+    static CLI::Validator parent_dir_exists_and_target_not_dir() {
+        return CLI::Validator(
+            [](const std::string& value) -> std::string {
+                namespace fs = std::filesystem;
+
+                fs::path p{value};
+
+                fs::path parent = p.parent_path();
+                if (parent.empty())
+                    parent = fs::path{"."};
+
+                std::error_code ec;
+
+                if (!fs::exists(parent, ec) || ec)
+                    return "Parent directory does not exist: " + parent.string();
+
+                if (!fs::is_directory(parent, ec) || ec)
+                    return "Parent path is not a directory: " + parent.string();
+
+                // Only forbid: target is an existing directory (including symlink-to-dir)
+                if (fs::exists(p, ec) && !ec && fs::is_directory(p, ec) && !ec)
+                    return "Target must not be an existing directory: " + p.string();
+
+                return {}; // OK
+            },
+            "PATH(parent exists, target not directory)",
+            "ParentExistsTargetNotDir");
+    }
 
     ConfigApplication::ConfigApplication(CLI::App* configSc)
         : configSc(configSc) {
@@ -58,7 +90,7 @@ namespace mqtt::lib {
                              ->configurable();
 
         sessionStoreOpt = configSc->add_option("--mqtt-session-store", "Path to file for the persistent session store")
-                              ->check(CLI::ExistingFile)
+                              ->check(parent_dir_exists_and_target_not_dir())
                               ->group(configSc->get_formatter()->get_label("Persistent Options"))
                               ->type_name("path")
                               ->configurable();
