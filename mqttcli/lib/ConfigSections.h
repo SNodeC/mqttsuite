@@ -70,16 +70,12 @@ namespace mqtt::mqttcli::lib {
 
         ~ConfigSubscribe() override;
 
-        const ConfigSubscribe& setConfigPublish(net::config::ConfigSection* configPublish);
-
         std::list<std::string> getTopic() const;
 
         const ConfigSubscribe& setTopic(const std::string& topic);
 
     private:
         CLI::Option* topicOpt;
-
-        net::config::ConfigSection* configPublish = nullptr;
     };
 
     class ConfigPublish : public net::config::ConfigSection {
@@ -90,8 +86,6 @@ namespace mqtt::mqttcli::lib {
         ConfigPublish(net::config::ConfigInstance* instance);
 
         ~ConfigPublish() override;
-
-        const ConfigPublish& setConfigSubscribe(net::config::ConfigSection* configSubscribe);
 
         std::string getTopic() const;
         const ConfigPublish& setTopic(const std::string& topic);
@@ -106,8 +100,6 @@ namespace mqtt::mqttcli::lib {
         CLI::Option* topicOpt;
         CLI::Option* messageOpt;
         CLI::Option* retainOpt;
-
-        net::config::ConfigSection* configSubscribe = nullptr;
     };
 
     class ConfigSession : public net::config::ConfigSection {
