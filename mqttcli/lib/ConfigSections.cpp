@@ -46,7 +46,6 @@
 //
 #include <net/config/ConfigSection.hpp>
 //
-#include <functional>
 #include <memory>
 
 #endif
