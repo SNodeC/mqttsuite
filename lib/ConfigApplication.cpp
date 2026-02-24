@@ -103,7 +103,13 @@ namespace mqtt::lib {
     }
 
     std::string ConfigApplication::getSessionStore() const {
-        return sessionStoreOpt->as<std::string>();
+        std::string sessionStoreFile;
+        try {
+            sessionStoreFile = sessionStoreOpt->as<std::string>();
+        } catch (CLI::ParseError&) {
+        }
+
+        return sessionStoreFile;
     }
 
     const ConfigApplication& ConfigApplication::setMappingFile(const std::string& mappingFile) const {
@@ -117,7 +123,13 @@ namespace mqtt::lib {
     }
 
     std::string ConfigApplication::getMappingFile() const {
-        return mappingFileOpt->as<std::string>();
+        std::string mappingFile;
+        try {
+            mappingFile = mappingFileOpt->as<std::string>();
+        } catch (CLI::ParseError&) {
+        }
+
+        return mappingFile;
     }
 
     ConfigMqttBroker::ConfigMqttBroker()
@@ -125,6 +137,7 @@ namespace mqtt::lib {
               utils::Config::newInstance(net::config::Instance(std::string(name), std::string(description), this), "Applications", true)) {
         htmlRootOpt = configSc->add_option("--html-root", "HTML root directory")
                           ->group(configSc->get_formatter()->get_label("Persistent Options"))
+                          ->check(CLI::ExistingDirectory)
                           ->type_name("path")
                           ->configurable()
                           ->required();
@@ -144,7 +157,14 @@ namespace mqtt::lib {
     }
 
     std::string ConfigMqttBroker::getHtmlRoot() {
-        return htmlRootOpt->as<std::string>();
+        std::string htmlRoot;
+
+        try {
+            htmlRoot = htmlRootOpt->as<std::string>();
+        } catch (CLI::ParseError&) {
+        }
+
+        return htmlRoot;
     }
 
     ConfigMqttIntegrator::ConfigMqttIntegrator()
