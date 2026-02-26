@@ -57,12 +57,8 @@
 
 #endif
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
-
 #include <core/SNodeC.h>
-//
 #include <net/config/ConfigInstanceAPI.hpp>
-//
 #include <net/in/stream/legacy/SocketClient.h>
 #include <net/in/stream/tls/SocketClient.h>
 #include <net/in6/stream/legacy/SocketClient.h>
@@ -77,7 +73,9 @@
 #include <web/http/tls/in/Client.h>
 #include <web/http/tls/in6/Client.h>
 #include <web/http/tls/un/Client.h>
-//
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
 #include <log/Logger.h>
 //
 #include <list>

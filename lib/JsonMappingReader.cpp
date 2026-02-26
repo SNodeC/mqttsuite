@@ -43,9 +43,9 @@
 
 #include "JsonMappingReader.h"
 
-#include "nlohmann/json-schema.hpp"
-
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
+
+#include "nlohmann/json-schema.hpp"
 
 #include <algorithm>
 #include <chrono>

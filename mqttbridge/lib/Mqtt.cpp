@@ -43,11 +43,12 @@
 
 #include "lib/BridgeStore.h"
 
+#include <iot/mqtt/packets/Connack.h>
+
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <cstdint>
 #include <cstring>
-#include <iot/mqtt/packets/Connack.h>
 #include <log/Logger.h>
 #include <utils/system/signal.h>
 

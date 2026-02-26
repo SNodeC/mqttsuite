@@ -43,11 +43,6 @@
 
 #include "Mqtt.h"
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
-
-// #include <cctype>
-// #include <core/socket/SocketAddress.h>
-
 #include <core/socket/stream/SocketConnection.h>
 #include <express/Response.h>
 #include <iot/mqtt/MqttContext.h>
@@ -55,6 +50,8 @@
 #include <net/SocketAddress.h>
 #include <nlohmann/json.hpp>
 #include <web/http/server/SocketContext.h>
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 // IWYU pragma: no_include <nlohmann/detail/json_ref.hpp>
 

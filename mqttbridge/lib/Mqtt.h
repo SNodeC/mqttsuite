@@ -42,13 +42,14 @@
 #ifndef APPS_MQTTBROKER_MQTTBRIDGE_SOCKETCONTEXT_H
 #define APPS_MQTTBROKER_MQTTBRIDGE_SOCKETCONTEXT_H
 
+#include <iot/mqtt/client/Mqtt.h>
+
 namespace mqtt::bridge::lib {
     class Broker;
 }
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <iot/mqtt/client/Mqtt.h>
 #include <string>
 
 #endif

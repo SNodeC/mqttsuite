@@ -45,10 +45,11 @@
 #include "lib/JsonMappingReader.h"
 #include "mqttbroker/lib/Mqtt.h"
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #include <core/socket/stream/SocketConnection.h>
 #include <iot/mqtt/SocketContext.h>
 #include <net/config/ConfigInstanceAPI.hpp>
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 //
 #include <memory>
 #include <nlohmann/json.hpp>

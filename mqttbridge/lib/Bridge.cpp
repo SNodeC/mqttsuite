@@ -46,11 +46,11 @@
 
 #include <core/socket/stream/SocketConnection.h>
 #include <iot/mqtt/MqttContext.h>
+#include <iot/mqtt/packets/Publish.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <compare>
-#include <iot/mqtt/packets/Publish.h>
 #include <map>
 #include <utility>
 

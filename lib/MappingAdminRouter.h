@@ -42,10 +42,10 @@
 #ifndef MQTTBROKER_LIB_MAPPINGADMINROUTER_H
 #define MQTTBROKER_LIB_MAPPINGADMINROUTER_H
 
+#include <express/Router.h>
+
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <express/Router.h>
-//
 #include <functional>
 #include <string>
 

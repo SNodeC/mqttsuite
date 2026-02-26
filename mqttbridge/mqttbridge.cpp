@@ -46,11 +46,7 @@
 #include "lib/Mqtt.h"
 #include "lib/SSEDistributor.h"
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
-
 #include <core/SNodeC.h>
-#include <core/eventreceiver/ConnectEventReceiver.h>
-#include <core/socket/stream/AutoConnectControl.h>
 #include <express/legacy/in/Server.h>
 #include <express/middleware/JsonMiddleware.h>
 #include <express/middleware/StaticMiddleware.h>
@@ -58,6 +54,9 @@
 #include <iot/mqtt/MqttContext.h>
 //
 #include <net/config/ConfigInstanceAPI.hpp>
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
 //
 #include <log/Logger.h>
 //

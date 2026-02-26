@@ -49,7 +49,8 @@ if(DOXYGEN_FOUND)
 
     if(BUILD_DOCUMENTATION)
         get_filename_component(
-            SNODEC_DOC_ROOTDIR "${CMAKE_SOURCE_DIR}/../mqttsuite-doc/" ABSOLUTE
+            MQTTSUITE_DOC_ROOTDIR "${CMAKE_SOURCE_DIR}/../mqttsuite-doc/"
+            ABSOLUTE
         )
 
         set(DOXYFILE_IN ${CMAKE_SOURCE_DIR}/docs/Doxygen.in)
@@ -59,12 +60,14 @@ if(DOXYGEN_FOUND)
 
         add_custom_target(
             doc
-            COMMAND rm -rf ${SNODEC_DOC_ROOTDIR}/html
-            COMMAND rm -f ${SNODEC_DOC_ROOTDIR}/inline_umlgraph_cache_all.pu
-            COMMAND mkdir -p ${SNODEC_DOC_ROOTDIR}/html/docs/assets/README
-            COMMAND cp -a ${CMAKE_SOURCE_DIR}/docs/assets/README
-                    ${SNODEC_DOC_ROOTDIR}/html/docs/assets
+            COMMAND rm -rf ${MQTTSUITE_DOC_ROOTDIR}/html-staging
             COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYFILE}
+            COMMAND rm -rf ${MQTTSUITE_DOC_ROOTDIR}/html
+            COMMAND cp -a ${MQTTSUITE_DOC_ROOTDIR}/html-staging
+                    ${MQTTSUITE_DOC_ROOTDIR}/html
+            COMMAND mkdir -p ${MQTTSUITE_DOC_ROOTDIR}/html/docs/assets
+            COMMAND cp -a ${CMAKE_SOURCE_DIR}/docs/assets/README
+                    ${MQTTSUITE_DOC_ROOTDIR}/html/docs/assets
             WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
             COMMENT "Generating API documentation with Doxygen"
             VERBATIM
@@ -72,11 +75,13 @@ if(DOXYGEN_FOUND)
 
         add_custom_target(
             doc-fast
-            COMMAND rm -f ${SNODEC_DOC_ROOTDIR}/inline_umlgraph_cache_all.pu
-            COMMAND mkdir -p ${SNODEC_DOC_ROOTDIR}/html/docs/assets/README
-            COMMAND cp -a ${CMAKE_SOURCE_DIR}/docs/assets/README
-                    ${SNODEC_DOC_ROOTDIR}/html/docs/assets
             COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYFILE}
+            COMMAND rm -rf ${MQTTSUITE_DOC_ROOTDIR}/html
+            COMMAND cp -a ${MQTTSUITE_DOC_ROOTDIR}/html-staging
+                    ${MQTTSUITE_DOC_ROOTDIR}/html
+            COMMAND mkdir -p ${MQTTSUITE_DOC_ROOTDIR}/html/docs/assets
+            COMMAND cp -a ${CMAKE_SOURCE_DIR}/docs/assets/README
+                    ${MQTTSUITE_DOC_ROOTDIR}/html/docs/assets
             WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
             COMMENT "Generating API documentation with Doxygen"
             VERBATIM

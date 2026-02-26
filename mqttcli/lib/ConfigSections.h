@@ -42,6 +42,8 @@
 #ifndef CONFIG_SECTIONS
 #define CONFIG_SECTIONS
 
+#include <net/config/ConfigSection.h>
+
 namespace net::config {
     class ConfigInstance;
 }
@@ -50,7 +52,6 @@ namespace net::config {
 
 #include <cstdint>
 #include <list>
-#include <net/config/ConfigSection.h>
 #include <string_view>
 
 namespace CLI {

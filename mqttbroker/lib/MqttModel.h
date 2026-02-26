@@ -42,6 +42,8 @@
 #ifndef MQTTBROKER_LIB_MQTTMODEL_H
 #define MQTTBROKER_LIB_MQTTMODEL_H
 
+#include <core/timer/Timer.h>
+
 namespace mqtt::mqttbroker::lib {
     class Mqtt;
 }
@@ -59,7 +61,6 @@ namespace iot::mqtt {
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <chrono>
-#include <core/timer/Timer.h>
 #include <cstdint>
 #include <list>
 #include <map>

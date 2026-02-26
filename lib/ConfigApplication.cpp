@@ -41,11 +41,12 @@
 
 #include "ConfigApplication.h"
 
+#include <net/config/ConfigInstanceAPI.hpp>
+
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <filesystem>
 #include <functional>
-#include <net/config/ConfigInstanceAPI.hpp>
 #include <system_error>
 
 #endif

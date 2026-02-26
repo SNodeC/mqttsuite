@@ -41,9 +41,9 @@
 
 #include "ConfigBridge.h"
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
-
 #include <net/config/ConfigInstanceAPI.hpp>
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #endif
 

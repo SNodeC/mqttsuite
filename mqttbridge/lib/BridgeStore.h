@@ -43,7 +43,6 @@
 #define BRIDGECONFIGLOADER_H
 
 #include "lib/Bridge.h" // IWYU pragma: export
-#include "lib/Broker.h" // IWYU pragma: export
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 

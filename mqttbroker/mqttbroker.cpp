@@ -45,12 +45,12 @@
 #include "lib/Mqtt.h"
 #include "lib/MqttModel.h"
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
-
 #include <core/SNodeC.h>
+#include <express/middleware/JsonMiddleware.h>
+#include <express/middleware/StaticMiddleware.h>
 #include <iot/mqtt/MqttContext.h>
+#include <iot/mqtt/server/broker/Broker.h>
 #include <net/config/ConfigInstanceAPI.hpp>
-//
 
 #ifdef CONFIG_MQTTSUITE_BROKER_TCP_IPV4
 #include <express/legacy/in/Server.h>
@@ -95,11 +95,9 @@
 #endif
 #endif
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
 #include <web/http/http_utils.h>
-//
-#include <express/middleware/JsonMiddleware.h>
-#include <express/middleware/StaticMiddleware.h>
-#include <iot/mqtt/server/broker/Broker.h>
 //
 #include <log/Logger.h>
 //
@@ -109,7 +107,7 @@
 //
 #include <string>
 #include <utility>
-//
+
 #endif
 
 static void upgrade APPLICATION(req, res) {

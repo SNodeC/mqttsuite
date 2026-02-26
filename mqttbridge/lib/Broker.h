@@ -42,6 +42,8 @@
 #ifndef MQTT_BRIDGE_LIB_BROKER_H
 #define MQTT_BRIDGE_LIB_BROKER_H
 
+#include <iot/mqtt/Topic.h> // IWYU pragma: export
+
 namespace mqtt::bridge::lib {
     class Bridge;
 }
@@ -49,7 +51,6 @@ namespace mqtt::bridge::lib {
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <cstdint>
-#include <iot/mqtt/Topic.h> // IWYU pragma: export
 #include <list>
 #include <nlohmann/json.hpp>
 #include <string>

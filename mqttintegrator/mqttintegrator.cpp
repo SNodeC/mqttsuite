@@ -58,8 +58,6 @@
 
 #endif
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
-
 #include <core/SNodeC.h>
 //
 #include <net/in/stream/legacy/SocketClient.h>
@@ -80,7 +78,8 @@
 //
 #include <net/config/ConfigInstanceAPI.hpp>
 
-//
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
 #include <log/Logger.h>
 //
 #include <string>

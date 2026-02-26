@@ -42,6 +42,8 @@
 #ifndef MQTTBROKER_LIB_MQTTMAPPER_H
 #define MQTTBROKER_LIB_MQTTMAPPER_H
 
+#include <core/timer/Timer.h>
+
 namespace iot::mqtt {
     class Topic;
     namespace packets {
@@ -55,7 +57,6 @@ namespace inja {
     class Environment;
 }
 
-#include <core/timer/Timer.h>
 #include <cstddef>
 #include <cstdint>
 #include <list>

@@ -43,11 +43,12 @@
 
 #include "JsonMappingReader.h"
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
-
 #include <express/middleware/BasicAuthentication.h>
 #include <express/middleware/JsonMiddleware.h>
 #include <express/middleware/StaticMiddleware.h>
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
 //
 #include <exception>
 #include <nlohmann/json-schema.hpp>
