@@ -53,11 +53,9 @@
 namespace mqtt::mqttcli::lib {
     ConfigSubscribe::ConfigSubscribe(net::config::ConfigInstance* instance)
         : net::config::ConfigSection(instance, this, "Applications (at least one required)") {
-        topicOpt = addOption("--topic", "List of topics subscribing to")
+        topicOpt = addOption("--topic", "List of topics subscribing to", "string", CLI::TypeValidator<std::string>())
                        ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
-                       ->type_name("string list")
                        ->take_all()
-                       ->allow_extra_args()
                        ->configurable();
         sectionSc->needs(topicOpt);
 
@@ -87,22 +85,16 @@ namespace mqtt::mqttcli::lib {
 
     ConfigPublish::ConfigPublish(net::config::ConfigInstance* instance)
         : net::config::ConfigSection(instance, this, "Applications (at least one required)") {
-        topicOpt = addOption("--topic", "List of topics subscribing to")
+        topicOpt = addOption("--topic", "List of topics subscribing to", "string", CLI::TypeValidator<std::string>())
                        ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
-                       ->type_name("string list")
-                       ->take_all()
                        ->configurable();
 
-        messageOpt = addOption("--message", "List of topics subscribing to")
+        messageOpt = addOption("--message", "Message to be published", "string", CLI::TypeValidator<std::string>())
                          ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
-                         ->type_name("string list")
-                         ->take_all()
                          ->configurable();
 
-        retainOpt = addFlag("--retain{true}", "Message retain", "bool")
+        retainOpt = addFlag("--retain{true}", "Message retain", "bool", "false", CLI::IsMember({"true", "false"}))
                         ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
-                        ->default_str("false")
-                        ->check(CLI::IsMember({"true", "false"}))
                         ->configurable();
 
         required(messageOpt);
@@ -146,59 +138,45 @@ namespace mqtt::mqttcli::lib {
 
     ConfigSession::ConfigSession(net::config::ConfigInstance* instance)
         : net::config::ConfigSection(instance, this) {
-        clientIdOpt = addOption("--client-id", "MQTT Client-ID")
+        clientIdOpt = addOption("--client-id", "MQTT Client-ID", "string", CLI::TypeValidator<std::string>())
                           ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
                           ->type_name("string");
 
-        qoSOpt = addOption("--qos", "Quality of service")
+        qoSOpt = addOption("--qos", "Quality of service", "uint8_t", "0", CLI::Range(0, 2))
                      ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
-                     ->type_name("uint8_t")
-                     ->default_val(0)
                      ->configurable();
 
-        retainSessionOpt = addFlag("--retain-session{true},-r{true}", "Clean session", "bool")
+        retainSessionOpt = addFlag("--retain-session{true},-r{true}", "Clean session", "bool", "false", CLI::IsMember({"true", "false"}))
                                ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
-                               ->default_str("false")
-                               ->check(CLI::IsMember({"true", "false"}))
                                ->configurable()
                                ->needs(clientIdOpt);
 
-        keepAliveOpt = addOption("--keep-alive", "Quality of service")
+        keepAliveOpt = addOption("--keep-alive", "Quality of service", "uint16_t", "60", CLI::TypeValidator<uint16_t>())
                            ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
-                           ->type_name("uint16_t")
-                           ->default_val(60)
                            ->configurable();
 
-        willTopicOpt = addOption("--will-topic", "MQTT will topic")
+        willTopicOpt = addOption("--will-topic", "MQTT will topic", "string", CLI::TypeValidator<std::string>())
                            ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
-                           ->type_name("string")
                            ->configurable();
 
-        willMessageOpt = addOption("--will-message", "MQTT will message")
+        willMessageOpt = addOption("--will-message", "MQTT will message", "string", CLI::TypeValidator<std::string>())
                              ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
-                             ->type_name("string")
                              ->configurable();
 
-        willQoSOpt = addOption("--will-qos", "MQTT will quality of service")
+        willQoSOpt = addOption("--will-qos", "MQTT will quality of service", "uint8_t", "0", CLI::TypeValidator<uint8_t>())
                          ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
-                         ->type_name("uint8_t")
-                         ->default_val(0)
                          ->configurable();
 
-        willRetainOpt = addFlag("--will-retain{true}", "MQTT will message retain", "bool")
+        willRetainOpt = addFlag("--will-retain{true}", "MQTT will message retain", "bool", "false", CLI::IsMember({"true", "false"}))
                             ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
-                            ->default_str("false")
-                            ->check(CLI::IsMember({"true", "false"}))
                             ->configurable();
 
-        usernameOpt = addOption("--username", "MQTT username")
+        usernameOpt = addOption("--username", "MQTT username", "string", CLI::TypeValidator<std::string>())
                           ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
-                          ->type_name("string")
                           ->configurable();
 
-        passwordOpt = addOption("--password", "MQTT password")
+        passwordOpt = addOption("--password", "MQTT password", "string", CLI::TypeValidator<std::string>())
                           ->group(sectionSc->get_formatter()->get_label("Persistent Options"))
-                          ->type_name("string")
                           ->configurable();
     }
 

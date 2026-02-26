@@ -237,9 +237,7 @@ static void createWSConfig(net::config::ConfigInstance& config) {
     createConfig(config);
 
     config.getSection<web::http::client::ConfigHTTP>()
-        ->addOption("--target", "Websocket endpoint")
-        ->type_name("string")
-        ->default_str("/ws")
+        ->addOption("--target", "Websocket endpoint", "string", "/ws", CLI::TypeValidator<std::string>())
         ->configurable();
 }
 
