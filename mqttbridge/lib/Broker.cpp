@@ -63,8 +63,8 @@ namespace mqtt::bridge::lib {
                    const std::string& willMessage,
                    const uint8_t willQoS,
                    bool willRetain,
-                   const std::string& userName,
-                   const std::string& passWord,
+                   const std::string& username,
+                   const std::string& password,
                    bool loopPrevention,
                    const std::string& prefix,
                    bool disabled,
@@ -83,8 +83,8 @@ namespace mqtt::bridge::lib {
         , willMessage(willMessage)
         , willQoS(willQoS)
         , willRetain(willRetain)
-        , username(userName)
-        , password(passWord)
+        , username(username)
+        , password(password)
         , loopPrevention(loopPrevention)
         , prefix(prefix)
         , disabled(disabled)

@@ -209,8 +209,8 @@ static void createConfig(net::config::ConfigInstance& config) {
     config.get()->require_callback([config = &config]() {
         if (!config->getDisabled() && utils::Config::showConfigTriggerApp == nullptr &&
             config->get()->get_parent()->get_option("--write-config")->count() == 0) {
-            mqtt::mqttcli::lib::ConfigPublish* pubApp = config->getSection<mqtt::mqttcli::lib::ConfigPublish>();
-            mqtt::mqttcli::lib::ConfigSubscribe* subApp = config->getSection<mqtt::mqttcli::lib::ConfigSubscribe>();
+            const mqtt::mqttcli::lib::ConfigPublish* pubApp = config->getSection<mqtt::mqttcli::lib::ConfigPublish>();
+            const mqtt::mqttcli::lib::ConfigSubscribe* subApp = config->getSection<mqtt::mqttcli::lib::ConfigSubscribe>();
 
             if (pubApp->getTopic().empty() && subApp->getTopic().empty()) {
                 throw CLI::RequiresError(config->get()->get_parent()->get_name() + ":" + config->getInstanceName() +

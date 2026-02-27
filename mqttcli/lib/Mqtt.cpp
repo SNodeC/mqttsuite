@@ -283,9 +283,9 @@ namespace mqtt::mqttcli::lib {
     }
 
     void Mqtt::onConnack(const iot::mqtt::packets::Connack& connack) {
-        bool sendDisconnectFlag = true;
-
         if (connack.getReturnCode() == 0) {
+            bool sendDisconnectFlag = true;
+
             if (!subTopics.empty()) {
                 VLOG(0) << "MQTT Subscribe";
 

@@ -166,7 +166,7 @@ namespace mqtt::lib {
         return mappingJson.dump();
     }
 
-    std::list<iot::mqtt::Topic> MqttMapper::extractSubscriptions() {
+    std::list<iot::mqtt::Topic> MqttMapper::extractSubscriptions() const {
         std::list<iot::mqtt::Topic> topicList;
 
         extractSubscriptions(mappingJson, "", topicList);

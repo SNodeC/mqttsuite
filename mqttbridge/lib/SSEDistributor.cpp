@@ -110,7 +110,7 @@ namespace mqtt::bridge::lib {
     void SSEDistributor::sendEvent(const std::string& data, const std::string& event, const std::string& id) {
         VLOG(0) << "Server sent event: " << event << "\n" << data;
 
-        for (auto& eventReceiver : eventReceiverList) {
+        for (const auto& eventReceiver : eventReceiverList) {
             if (const auto& response = eventReceiver.getResponse()) {
                 sendEvent(response, data, event, id);
             }
@@ -202,7 +202,7 @@ namespace mqtt::bridge::lib {
 
     std::string SSEDistributor::timePointToString(const std::chrono::time_point<std::chrono::system_clock>& timePoint) {
         std::time_t time = std::chrono::system_clock::to_time_t(timePoint);
-        std::tm* tm_ptr = std::gmtime(&time);
+        const std::tm* tm_ptr = std::gmtime(&time);
 
         char buffer[100];
         std::string onlineSince = "Formatting error";

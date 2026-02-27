@@ -203,7 +203,7 @@ int main(int argc, char* argv[]) {
         config.setRetry();
     });
 
-    std::string sessionStoreFileName = utils::Config::getInstance<mqtt::lib::ConfigMqttIntegrator>()->getSessionStore();
+    const std::string sessionStoreFileName = utils::Config::getInstance<mqtt::lib::ConfigMqttIntegrator>()->getSessionStore();
 
 #if defined(CONFIG_MQTTSUITE_INTEGRATOR_TCP_IPV4)
     startClient<net::in::stream::legacy::SocketClient>( //
@@ -249,7 +249,7 @@ int main(int argc, char* argv[]) {
 #if defined(CONFIG_MQTTSUITE_INTEGRATOR_UNIX)
     startClient<net::un::stream::legacy::SocketClient>( //
         "un-mqtt",
-        []([[maybe_unused]] net::un::stream::legacy::config::ConfigSocketClient& config) {
+        []([[maybe_unused]] const net::un::stream::legacy::config::ConfigSocketClient& config) {
         },
         sessionStoreFileName);
 #endif
@@ -257,7 +257,7 @@ int main(int argc, char* argv[]) {
 #if defined(CONFIG_MQTTSUITE_INTEGRATOR_UNIX_TLS)
     startClient<net::un::stream::tls::SocketClient>( //
         "un-mqtts",
-        []([[maybe_unused]] net::un::stream::tls::config::ConfigSocketClient& config) {
+        []([[maybe_unused]] const net::un::stream::tls::config::ConfigSocketClient& config) {
         },
         sessionStoreFileName);
 #endif
@@ -301,14 +301,14 @@ int main(int argc, char* argv[]) {
 #if defined(CONFIG_MQTTSUITE_INTEGRATOR_UNIX) && defined(CONFIG_MQTTSUITE_INTEGRATOR_WS)
     startClient<web::http::legacy::un::Client>( //
         "un-wsmqtt",
-        []([[maybe_unused]] net::un::stream::legacy::config::ConfigSocketClient& config) {
+        []([[maybe_unused]] const net::un::stream::legacy::config::ConfigSocketClient& config) {
         });
 #endif
 
 #if defined(CONFIG_MQTTSUITE_INTEGRATOR_UNIX_TLS) && defined(CONFIG_MQTTSUITE_INTEGRATOR_WSS)
     startClient<web::http::tls::un::Client>( //
         "un-wsmqtts",
-        []([[maybe_unused]] net::un::stream::tls::config::ConfigSocketClient& config) {
+        []([[maybe_unused]] const net::un::stream::tls::config::ConfigSocketClient& config) {
         });
 #endif
 

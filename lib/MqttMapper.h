@@ -80,7 +80,7 @@ namespace mqtt::lib {
     protected:
         std::string dump();
 
-        std::list<iot::mqtt::Topic> extractSubscriptions();
+        std::list<iot::mqtt::Topic> extractSubscriptions() const;
         void publishMappings(const iot::mqtt::packets::Publish& publish);
 
     private:
