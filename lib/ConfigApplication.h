@@ -42,10 +42,11 @@
 #ifndef APPS_MQTTBROKER_MQTTBRIDGE_CONFIGBRIDGE_H
 #define APPS_MQTTBROKER_MQTTBRIDGE_CONFIGBRIDGE_H
 
+#include <utils/SubCommand.h>
+
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 namespace CLI {
-    class App;
     class Option;
 } // namespace CLI
 
@@ -56,23 +57,18 @@ namespace CLI {
 
 namespace mqtt::lib {
 
-    class ConfigApplication {
+    class ConfigApplication : public utils::SubCommand {
     public:
-        ConfigApplication(CLI::App* configSc);
+        template <typename ConcretConfigApplicationT>
+        ConfigApplication(ConcretConfigApplicationT* concretConfigApplication);
 
         const ConfigApplication& setSessionStore(const std::string& sessionStore) const;
-
         std::string getSessionStore() const;
 
         const ConfigApplication& setMappingFile(const std::string& mappingFile) const;
-
         std::string getMappingFile() const;
 
-        std::string MappingFile() const;
-
     protected:
-        CLI::App* configSc;
-
         CLI::Option* sessionStoreOpt;
         CLI::Option* mappingFileOpt;
     };
