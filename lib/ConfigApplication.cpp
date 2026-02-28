@@ -98,7 +98,7 @@ namespace mqtt::lib {
     }
 
     const ConfigApplication& ConfigApplication::setSessionStore(const std::string& sessionStore) const {
-        sessionStoreOpt->default_str(sessionStore)->clear();
+        sessionStoreOpt->default_val(sessionStore)->clear();
 
         return *this;
     }
@@ -114,7 +114,7 @@ namespace mqtt::lib {
     }
 
     const ConfigApplication& ConfigApplication::setMappingFile(const std::string& mappingFile) const {
-        mappingFileOpt->default_str(mappingFile)->clear();
+        mappingFileOpt->default_val(mappingFile)->clear();
         mappingFileOpt->required(false);
 
         configSc->required(false)->remove_needs(mappingFileOpt);
@@ -148,7 +148,7 @@ namespace mqtt::lib {
     }
 
     ConfigMqttBroker& ConfigMqttBroker::setHtmlRoot(const std::string& htmlRoot) {
-        htmlRootOpt->default_str(htmlRoot)->clear();
+        htmlRootOpt->default_val(htmlRoot)->clear();
         htmlRootOpt->required(false);
 
         configSc->required(false)->remove_needs(htmlRootOpt);

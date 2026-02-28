@@ -61,7 +61,7 @@ namespace mqtt::bridge {
 
         htmlDirOpt = bridgeSc->add_option("--html-dir", "Path to html source directory")
                          ->check(CLI::ExistingDirectory)
-                         ->default_str(std::string(CMAKE_INSTALL_PREFIX) + "/var/www/mqttsuite/mqttbridge")
+                         ->default_val(std::string(CMAKE_INSTALL_PREFIX) + "/var/www/mqttsuite/mqttbridge")
                          ->group(bridgeSc->get_formatter()->get_label("Persistent Options"))
                          ->type_name("path")
                          ->configurable();
@@ -71,7 +71,7 @@ namespace mqtt::bridge {
     }
 
     void mqtt::bridge::ConfigBridge::setDefinitionFile(const std::string& definitionFile) const {
-        bridgeDefinitionOpt->default_str(definitionFile)->clear();
+        bridgeDefinitionOpt->default_val(definitionFile)->clear();
         bridgeDefinitionOpt->required(false);
 
         bridgeSc->required(false)->remove_needs(bridgeDefinitionOpt);
@@ -83,7 +83,7 @@ namespace mqtt::bridge {
     }
 
     void mqtt::bridge::ConfigBridge::setHtmlDir(const std::string& htmlDir) const {
-        htmlDirOpt->default_str(htmlDir)->clear();
+        htmlDirOpt->default_val(htmlDir)->clear();
     }
 
     std::string mqtt::bridge::ConfigBridge::getHtmlDir() const {
