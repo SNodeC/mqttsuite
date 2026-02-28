@@ -206,14 +206,14 @@ static void createConfig(net::config::ConfigInstance& config) {
     config.addSection<mqtt::mqttcli::lib::ConfigSubscribe>();
     config.addSection<mqtt::mqttcli::lib::ConfigPublish>();
 
-    config.get()->require_callback([config = &config]() {
+    config.setRequireCallback([config = &config]() {
         if (!config->getDisabled() && utils::Config::showConfigTriggerApp == nullptr &&
-            config->get()->get_parent()->get_option("--write-config")->count() == 0) {
+            config->getParent()->get_option("--write-config")->count() == 0) {
             const mqtt::mqttcli::lib::ConfigPublish* pubApp = config->getSection<mqtt::mqttcli::lib::ConfigPublish>();
             const mqtt::mqttcli::lib::ConfigSubscribe* subApp = config->getSection<mqtt::mqttcli::lib::ConfigSubscribe>();
 
             if (pubApp->getTopic().empty() && subApp->getTopic().empty()) {
-                throw CLI::RequiresError(config->get()->get_parent()->get_name() + ":" + config->getInstanceName() +
+                throw CLI::RequiresError(config->getParent()->get_name() + ":" + config->getInstanceName() +
                                              " requires at least one of {sub | pub}",
                                          CLI::ExitCodes::RequiresError);
             }
