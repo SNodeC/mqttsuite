@@ -82,7 +82,6 @@
 
 #include <log/Logger.h>
 //
-#include <string>
 #include <utility>
 
 #endif

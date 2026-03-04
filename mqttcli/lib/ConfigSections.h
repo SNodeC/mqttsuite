@@ -44,19 +44,11 @@
 
 #include <net/config/ConfigSection.h>
 
-namespace net::config {
-    class ConfigInstance;
-}
-
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <cstdint>
 #include <list>
 #include <string_view>
-
-namespace CLI {
-    class Option;
-}
 
 #endif
 

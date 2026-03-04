@@ -51,42 +51,14 @@ namespace mqtt::bridge {
         : utils::SubCommand(parent, this, "Application") {
         bridgeDefinitionOpt = bridgeDefinitionOpt =
             addOption("--definition", "MQTT bridge definition file (JSON format)", "file", CLI::ExistingFile);
-        htmlDirOpt = bridgeDefinitionOpt = addOption("--html-dir", "Path to html source directory", "directory", CLI::ExistingDirectory);
+        htmlDirOpt = addOption("--html-dir", "Path to html source directory", "directory", CLI::ExistingDirectory);
 
         required(bridgeDefinitionOpt);
-
-        /*
-                bridgeDefinitionOpt = bridgeSc->add_option("--definition", "MQTT bridge definition file (JSON format)")
-                                          ->check(CLI::ExistingFile)
-                                          ->group(bridgeSc->get_formatter()->get_label("Persistent Options"))
-                                          ->type_name("path")
-                                          ->configurable()
-                                          ->required();
-
-                htmlDirOpt = bridgeSc->add_option("--html-dir", "Path to html source directory")
-                                 ->check(CLI::ExistingDirectory)
-                                 ->default_val(std::string(CMAKE_INSTALL_PREFIX) + "/var/www/mqttsuite/mqttbridge")
-                                 ->group(bridgeSc->get_formatter()->get_label("Persistent Options"))
-                                 ->type_name("path")
-                                 ->configurable();
-
-
-                bridgeSc->needs(bridgeDefinitionOpt)->required();
-                bridgeSc->get_parent()->needs(bridgeSc);
-        */
     }
 
     void mqtt::bridge::ConfigBridge::setDefinitionFile(const std::string& definitionFile) {
         setDefaultValue(bridgeDefinitionOpt, definitionFile);
         this->required(bridgeDefinitionOpt, false);
-
-        /*
-                bridgeDefinitionOpt->default_val(definitionFile)->clear();
-                bridgeDefinitionOpt->required(false);
-
-                bridgeSc->required(false)->remove_needs(bridgeDefinitionOpt);
-                bridgeSc->get_parent()->remove_needs(bridgeSc);
-        */
     }
 
     std::string mqtt::bridge::ConfigBridge::getDefinitionFile() const {

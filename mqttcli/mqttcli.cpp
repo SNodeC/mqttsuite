@@ -79,7 +79,6 @@
 #include <log/Logger.h>
 //
 #include <list>
-#include <string>
 
 #endif
 
