@@ -58,7 +58,9 @@
 #endif
 
 #include <core/SNodeC.h>
-#include <net/config/ConfigInstanceAPI.hpp>
+#include <net/config/ConfigInstance.h>
+#include <utils/Config.h>
+//
 #include <net/in/stream/legacy/SocketClient.h>
 #include <net/in/stream/tls/SocketClient.h>
 #include <net/in6/stream/legacy/SocketClient.h>

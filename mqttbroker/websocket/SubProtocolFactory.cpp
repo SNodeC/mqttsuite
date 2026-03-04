@@ -47,7 +47,7 @@
 
 #include <core/socket/stream/SocketConnection.h>
 #include <iot/mqtt/server/broker/Broker.h>
-#include <net/config/ConfigInstanceAPI.hpp>
+#include <utils/Config.h>
 #include <web/websocket/SubProtocolContext.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS

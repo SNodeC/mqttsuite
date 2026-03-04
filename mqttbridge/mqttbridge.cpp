@@ -52,8 +52,9 @@
 #include <express/middleware/StaticMiddleware.h>
 #include <express/tls/in/Server.h>
 #include <iot/mqtt/MqttContext.h>
+#include <net/config/ConfigInstance.h>
+#include <utils/Config.h>
 //
-#include <net/config/ConfigInstanceAPI.hpp>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
@@ -110,7 +111,6 @@
 #include <list>
 #include <nlohmann/json.hpp>
 #include <set>
-#include <string>
 
 #endif
 

@@ -46,7 +46,7 @@
 
 #include <core/socket/stream/SocketConnection.h>
 #include <iot/mqtt/SocketContext.h>
-#include <net/config/ConfigInstanceAPI.hpp>
+#include <net/config/ConfigInstance.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 

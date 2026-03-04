@@ -45,7 +45,7 @@
 #include "lib/Mqtt.h"
 
 #include <core/socket/stream/SocketConnection.h>
-#include <net/config/ConfigInstanceAPI.hpp>
+#include <net/config/ConfigInstance.h>
 #include <web/websocket/SubProtocolContext.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS

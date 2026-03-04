@@ -46,11 +46,12 @@
 #include "lib/MqttModel.h"
 
 #include <core/SNodeC.h>
+#include <utils/Config.h>
+//
 #include <express/middleware/JsonMiddleware.h>
 #include <express/middleware/StaticMiddleware.h>
 #include <iot/mqtt/MqttContext.h>
 #include <iot/mqtt/server/broker/Broker.h>
-#include <net/config/ConfigInstanceAPI.hpp>
 
 #ifdef CONFIG_MQTTSUITE_BROKER_TCP_IPV4
 #include <express/legacy/in/Server.h>
@@ -105,7 +106,6 @@
 // IWYU pragma: no_include <nlohmann/json_fwd.hpp>
 // IWYU pragma: no_include <nlohmann/detail/json_ref.hpp>
 //
-#include <string>
 #include <utility>
 
 #endif

@@ -59,6 +59,7 @@
 #endif
 
 #include <core/SNodeC.h>
+#include <utils/Config.h>
 //
 #include <net/in/stream/legacy/SocketClient.h>
 #include <net/in/stream/tls/SocketClient.h>
@@ -76,7 +77,6 @@
 #include <express/legacy/in/Server.h>
 #include <express/tls/in/Server.h>
 //
-#include <net/config/ConfigInstanceAPI.hpp>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
