@@ -148,7 +148,7 @@ HttpClient startClient(const std::string& name, const std::function<void(typenam
             const std::string target = req->getSocketContext()
                                            ->getSocketConnection()
                                            ->getConfigInstance()
-                                           ->getSection<web::http::client::ConfigHTTP>()
+                                           ->getSubCommand<web::http::client::ConfigHTTP>()
                                            ->getOption("--target")
                                            ->as<std::string>();
 
@@ -202,18 +202,18 @@ HttpClient startClient(const std::string& name, const std::function<void(typenam
 }
 
 static void createConfig(net::config::ConfigInstance& config) {
-    config.addSection<mqtt::mqttcli::lib::ConfigSession>();
-    config.addSection<mqtt::mqttcli::lib::ConfigSubscribe>();
-    config.addSection<mqtt::mqttcli::lib::ConfigPublish>();
+    config.addSubCommand<mqtt::mqttcli::lib::ConfigSession>();
+    config.addSubCommand<mqtt::mqttcli::lib::ConfigSubscribe>();
+    config.addSubCommand<mqtt::mqttcli::lib::ConfigPublish>();
 
     config.setRequireCallback([config = &config]() {
-        if (!config->getDisabled() && utils::Config::showConfigTriggerApp == nullptr &&
-            config->getParent()->get_option("--write-config")->count() == 0) {
-            const mqtt::mqttcli::lib::ConfigPublish* pubApp = config->getSection<mqtt::mqttcli::lib::ConfigPublish>();
-            const mqtt::mqttcli::lib::ConfigSubscribe* subApp = config->getSection<mqtt::mqttcli::lib::ConfigSubscribe>();
+        if (!config->getDisabled() && utils::Config::configRoot.getShowConfigTriggerApp() == nullptr &&
+            config->getParent()->getOption("--write-config")->count() == 0) {
+            const mqtt::mqttcli::lib::ConfigPublish* pubApp = config->getSubCommand<mqtt::mqttcli::lib::ConfigPublish>();
+            const mqtt::mqttcli::lib::ConfigSubscribe* subApp = config->getSubCommand<mqtt::mqttcli::lib::ConfigSubscribe>();
 
             if (pubApp->getTopic().empty() && subApp->getTopic().empty()) {
-                throw CLI::RequiresError(config->getParent()->get_name() + ":" + config->getInstanceName() +
+                throw CLI::RequiresError(config->getParent()->getName() + ":" + config->getInstanceName() +
                                              " requires at least one of {sub | pub}",
                                          CLI::ExitCodes::RequiresError);
             }
@@ -234,7 +234,7 @@ static void createConfig(net::config::ConfigInstance& config) {
 static void createWSConfig(net::config::ConfigInstance& config) {
     createConfig(config);
 
-    config.getSection<web::http::client::ConfigHTTP>()
+    config.getSubCommand<web::http::client::ConfigHTTP>()
         ->addOption("--target", "Websocket endpoint", "string", "/ws", CLI::TypeValidator<std::string>())
         ->configurable();
 }

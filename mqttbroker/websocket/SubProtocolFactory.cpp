@@ -70,10 +70,10 @@ namespace mqtt::mqttbroker::websocket {
             getName(),
             new mqtt::mqttbroker::lib::Mqtt(
                 subProtocolContext->getSocketConnection()->getConnectionName(),
-                iot::mqtt::server::broker::Broker::instance(SUBSCRIPTION_MAX_QOS,
-                                                            utils::Config::getInstance<mqtt::lib::ConfigMqttBroker>()->getSessionStore()),
+                iot::mqtt::server::broker::Broker::instance(
+                    SUBSCRIPTION_MAX_QOS, utils::Config::configRoot.getSubCommand<mqtt::lib::ConfigMqttBroker>()->getSessionStore()),
                 mqtt::lib::JsonMappingReader::readMappingFromFile(
-                    utils::Config::getInstance<mqtt::lib::ConfigMqttBroker>()->getMappingFile())["mapping"]));
+                    utils::Config::configRoot.getSubCommand<mqtt::lib::ConfigMqttBroker>()->getMappingFile())["mapping"]));
     }
 
 } // namespace mqtt::mqttbroker::websocket

@@ -367,13 +367,13 @@ reportState(const std::string& instanceName, const core::socket::SocketAddress& 
 }
 
 int main(int argc, char* argv[]) {
-    utils::Config::addInstance<mqtt::lib::ConfigMqttBroker>()->setHtmlRoot(std::string(CMAKE_INSTALL_PREFIX) +
-                                                                           "/var/www/mqttsuite/mqttbroker");
+    utils::Config::configRoot.addSubCommand<mqtt::lib::ConfigMqttBroker>()->setHtmlRoot(std::string(CMAKE_INSTALL_PREFIX) +
+                                                                                        "/var/www/mqttsuite/mqttbroker");
 
     core::SNodeC::init(argc, argv);
 
     std::shared_ptr<iot::mqtt::server::broker::Broker> broker = iot::mqtt::server::broker::Broker::instance(
-        SUBSCRIPTION_MAX_QOS, utils::Config::getInstance<mqtt::lib::ConfigMqttBroker>()->getSessionStore());
+        SUBSCRIPTION_MAX_QOS, utils::Config::configRoot.getSubCommand<mqtt::lib::ConfigMqttBroker>()->getSessionStore());
 
 #ifdef CONFIG_MQTTSUITE_BROKER_TCP_IPV4
     net::in::stream::legacy::Server<mqtt::mqttbroker::SocketContextFactory>( //
@@ -460,7 +460,7 @@ int main(int argc, char* argv[]) {
         });
 #endif
 #endif
-    express::Router router = getRouter(broker, utils::Config::getInstance<mqtt::lib::ConfigMqttBroker>()->getHtmlRoot());
+    express::Router router = getRouter(broker, utils::Config::configRoot.getSubCommand<mqtt::lib::ConfigMqttBroker>()->getHtmlRoot());
 
 #ifdef CONFIG_MQTTSUITE_BROKER_TCP_IPV4
     express::legacy::in::Server( //

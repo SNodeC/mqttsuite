@@ -60,12 +60,12 @@ namespace mqtt::lib {
     class ConfigApplication : public utils::SubCommand {
     public:
         template <typename ConcretConfigApplicationT>
-        ConfigApplication(ConcretConfigApplicationT* concretConfigApplication);
+        ConfigApplication(utils::SubCommand* parent, ConcretConfigApplicationT* concretConfigApplication);
 
-        const ConfigApplication& setSessionStore(const std::string& sessionStore) const;
+        ConfigApplication& setSessionStore(const std::string& sessionStore);
         std::string getSessionStore() const;
 
-        const ConfigApplication& setMappingFile(const std::string& mappingFile) const;
+        ConfigApplication& setMappingFile(const std::string& mappingFile);
         std::string getMappingFile() const;
 
     protected:
@@ -75,10 +75,10 @@ namespace mqtt::lib {
 
     class ConfigMqttBroker : public ConfigApplication {
     public:
-        constexpr static std::string_view name{"broker"};
-        constexpr static std::string_view description{"Configuration for Application mqttbroker"};
+        constexpr static std::string_view NAME{"broker"};
+        constexpr static std::string_view DESCRIPTION{"Configuration for Application mqttbroker"};
 
-        ConfigMqttBroker();
+        ConfigMqttBroker(utils::SubCommand* parent);
 
         ConfigMqttBroker& setHtmlRoot(const std::string& htmlRoot);
         std::string getHtmlRoot();
@@ -89,10 +89,10 @@ namespace mqtt::lib {
 
     class ConfigMqttIntegrator : public ConfigApplication {
     public:
-        constexpr static std::string_view name{"integrator"};
-        constexpr static std::string_view description{"Configuration for Application mqttintegrator"};
+        constexpr static std::string_view NAME{"integrator"};
+        constexpr static std::string_view DESCRIPTION{"Configuration for Application mqttintegrator"};
 
-        ConfigMqttIntegrator();
+        ConfigMqttIntegrator(utils::SubCommand* parent);
     };
 
 } // namespace mqtt::lib

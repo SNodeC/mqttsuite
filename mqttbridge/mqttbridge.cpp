@@ -136,7 +136,7 @@ static void tryRestartBridges() {
 
             startBridges();
 
-            utils::Config::parse2();
+            utils::Config::parse();
 
             restart = false;
         });
@@ -181,7 +181,7 @@ static void closeBridges() {
             mqtt->getMqttContext()
                 ->getSocketConnection()
                 ->getConfigInstance()
-                ->getSection<net::config::ConfigPhysicalSocketClient>()
+                ->getSubCommand<net::config::ConfigPhysicalSocketClient>()
                 ->setReconnect(false);
         }
     }
@@ -570,7 +570,7 @@ int main(int argc, char* argv[]) {
     web::websocket::client::SubProtocolFactorySelector::link("mqtt", mqttClientSubProtocolFactory);
 #endif
 
-    utils::Config::addInstance<mqtt::bridge::ConfigBridge>();
+    utils::Config::configRoot.addSubCommand<mqtt::bridge::ConfigBridge>();
 
     core::SNodeC::init(argc, argv);
 
@@ -631,7 +631,8 @@ int main(int argc, char* argv[]) {
         res->redirect("/config/index.html");
     });
 
-    router.use("/config", express::middleware::StaticMiddleware(utils::Config::getInstance<mqtt::bridge::ConfigBridge>()->getHtmlDir()));
+    router.use("/config",
+               express::middleware::StaticMiddleware(utils::Config::configRoot.getSubCommand<mqtt::bridge::ConfigBridge>()->getHtmlDir()));
 
     router.get("*", [] APPLICATION(req, res) {
         res->redirect("/config/index.html");
@@ -658,7 +659,7 @@ int main(int argc, char* argv[]) {
         });
 
     if (mqtt::bridge::lib::BridgeStore::instance().loadAndValidate(
-            utils::Config::getInstance<mqtt::bridge::ConfigBridge>()->getDefinitionFile())) {
+            utils::Config::configRoot.getSubCommand<mqtt::bridge::ConfigBridge>()->getDefinitionFile())) {
         startBridges();
     } else {
         VLOG(1) << "Loading bridge definition file failed";

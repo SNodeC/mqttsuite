@@ -50,19 +50,15 @@
 namespace mqtt::lib {
 
     template <typename ConcretConfigApplication>
-    ConfigApplication::ConfigApplication(ConcretConfigApplication* concretConfigApplication)
-        : utils::SubCommand(utils::Config::newInstance(net::config::Instance(std::string(ConcretConfigApplication::name),
-                                                                             std::string(ConcretConfigApplication::description),
-                                                                             concretConfigApplication),
-                                                       "Applications",
-                                                       true)) {
+    ConfigApplication::ConfigApplication(utils::SubCommand* parent, ConcretConfigApplication* concretConfigApplication)
+        : utils::SubCommand(parent, concretConfigApplication, "Applications") {
         mappingFileOpt = addOption("--mqtt-mapping-file", "MQTT mapping file (json format) for integration", "filename", CLI::ExistingFile);
 
         sessionStoreOpt =
             addOption("--mqtt-session-store", "Path to file for the persistent session store", "filename", !CLI::ExistingDirectory);
     }
 
-    const ConfigApplication& ConfigApplication::setSessionStore(const std::string& sessionStore) const {
+    ConfigApplication& ConfigApplication::setSessionStore(const std::string& sessionStore) {
         setDefaultValue(sessionStoreOpt, sessionStore);
 
         return *this;
@@ -72,13 +68,16 @@ namespace mqtt::lib {
         return sessionStoreOpt->as<std::string>();
     }
 
-    const ConfigApplication& ConfigApplication::setMappingFile(const std::string& mappingFile) const {
+    ConfigApplication& ConfigApplication::setMappingFile(const std::string& mappingFile) {
         setDefaultValue(mappingFileOpt, mappingFile);
+        required(mappingFileOpt, false);
+
         mappingFileOpt->required(false);
 
-        subCommandSc->required(false)->remove_needs(mappingFileOpt);
-        subCommandSc->get_parent()->remove_needs(subCommandSc);
-
+        /*
+                subCommandSc->required(false)->remove_needs(mappingFileOpt);
+                subCommandSc->get_parent()->remove_needs(subCommandSc);
+        */
         return *this;
     }
 
@@ -86,21 +85,24 @@ namespace mqtt::lib {
         return mappingFileOpt->as<std::string>();
     }
 
-    ConfigMqttBroker::ConfigMqttBroker()
-        : ConfigApplication(this) {
+    ConfigMqttBroker::ConfigMqttBroker(utils::SubCommand* parent)
+        : ConfigApplication(parent, this) {
         htmlRootOpt = addOption("--html-root", "HTML root directory", "directory", CLI::ExistingDirectory);
 
-        subCommandSc->required()->needs(htmlRootOpt);
-        subCommandSc->get_parent()->needs(subCommandSc);
+        required(htmlRootOpt);
+        /*
+                subCommandSc->required()->needs(htmlRootOpt);
+                subCommandSc->get_parent()->needs(subCommandSc);
+        */
     }
 
     ConfigMqttBroker& ConfigMqttBroker::setHtmlRoot(const std::string& htmlRoot) {
         setDefaultValue(htmlRootOpt, htmlRoot);
-        htmlRootOpt->required(false);
-
-        subCommandSc->required(false)->remove_needs(htmlRootOpt);
-        subCommandSc->get_parent()->remove_needs(subCommandSc);
-
+        required(htmlRootOpt, false);
+        /*
+                subCommandSc->required(false)->remove_needs(htmlRootOpt);
+                subCommandSc->get_parent()->remove_needs(subCommandSc);
+        */
         return *this;
     }
 
@@ -110,12 +112,15 @@ namespace mqtt::lib {
         return htmlRootOpt->as<std::string>();
     }
 
-    ConfigMqttIntegrator::ConfigMqttIntegrator()
-        : ConfigApplication(this) {
-        mappingFileOpt->required();
+    ConfigMqttIntegrator::ConfigMqttIntegrator(utils::SubCommand* parent)
+        : ConfigApplication(parent, this) {
+        required(mappingFileOpt);
+        /*
+                mappingFileOpt->required();
 
-        subCommandSc->required()->needs(mappingFileOpt);
-        subCommandSc->get_parent()->needs(subCommandSc);
+                subCommandSc->required()->needs(mappingFileOpt);
+                subCommandSc->get_parent()->needs(subCommandSc);
+        */
     }
 
 } // namespace mqtt::lib

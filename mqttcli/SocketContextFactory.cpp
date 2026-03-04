@@ -57,9 +57,9 @@
 namespace mqtt::mqttcli {
 
     core::socket::stream::SocketContext* SocketContextFactory::create(core::socket::stream::SocketConnection* socketConnection) {
-        const lib::ConfigSession* configSession = socketConnection->getConfigInstance()->getSection<lib::ConfigSession>();
-        const lib::ConfigSubscribe* configSubscribe = socketConnection->getConfigInstance()->getSection<lib::ConfigSubscribe>();
-        const lib::ConfigPublish* configPublish = socketConnection->getConfigInstance()->getSection<lib::ConfigPublish>();
+        const lib::ConfigSession* configSession = socketConnection->getConfigInstance()->getSubCommand<lib::ConfigSession>();
+        const lib::ConfigSubscribe* configSubscribe = socketConnection->getConfigInstance()->getSubCommand<lib::ConfigSubscribe>();
+        const lib::ConfigPublish* configPublish = socketConnection->getConfigInstance()->getSubCommand<lib::ConfigPublish>();
 
         return new iot::mqtt::SocketContext(socketConnection,
                                             new ::mqtt::mqttcli::lib::Mqtt(socketConnection->getConnectionName(),
