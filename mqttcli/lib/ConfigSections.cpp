@@ -46,18 +46,13 @@
 #endif
 
 namespace mqtt::mqttcli::lib {
-    ConfigSubscribe::ConfigSubscribe(utils::SubCommand* instance)
-        : utils::SubCommand(instance, this, "Applications (at least one required)") {
+    ConfigSubscribe::ConfigSubscribe(utils::SubCommand* parent)
+        : utils::SubCommand(parent, this, "Applications (at least one required)") {
         topicOpt = setConfigurable(addOption("--topic", "List of topics subscribing to", "string", CLI::TypeValidator<std::string>()), true)
                        ->take_all();
 
         required(topicOpt);
 
-        /*
-                subCommandSc->needs(topicOpt);
-
-                required(topicOpt);
-        */
         required(false, true);
     }
 
@@ -80,8 +75,8 @@ namespace mqtt::mqttcli::lib {
         return *this;
     }
 
-    ConfigPublish::ConfigPublish(utils::SubCommand* instance)
-        : utils::SubCommand(instance, this, "Applications (at least one required)") {
+    ConfigPublish::ConfigPublish(utils::SubCommand* parent)
+        : utils::SubCommand(parent, this, "Applications (at least one required)") {
         topicOpt =
             setConfigurable(addOption("--topic", "List of topics subscribing to", "string", CLI::TypeValidator<std::string>()), true);
 
@@ -128,8 +123,8 @@ namespace mqtt::mqttcli::lib {
         return *this;
     }
 
-    ConfigSession::ConfigSession(utils::SubCommand* instance)
-        : utils::SubCommand(instance, this, "Applications") {
+    ConfigSession::ConfigSession(utils::SubCommand* parent)
+        : utils::SubCommand(parent, this, "Applications") {
         clientIdOpt = setConfigurable(addOption("--client-id", "MQTT Client-ID", "string", CLI::TypeValidator<std::string>()), true);
 
         qoSOpt = setConfigurable(addOption("--qos", "Quality of service", "uint8_t", "0", CLI::Range(0, 2)), true);

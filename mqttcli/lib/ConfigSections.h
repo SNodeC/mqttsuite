@@ -59,7 +59,7 @@ namespace mqtt::mqttcli::lib {
         constexpr static std::string_view NAME{"sub"};
         constexpr static std::string_view DESCRIPTION{"Configuration for application mqttsub"};
 
-        ConfigSubscribe(utils::SubCommand* instance);
+        ConfigSubscribe(utils::SubCommand* parent);
 
         ~ConfigSubscribe() override;
 
@@ -76,7 +76,7 @@ namespace mqtt::mqttcli::lib {
         constexpr static std::string_view NAME{"pub"};
         constexpr static std::string_view DESCRIPTION{"Configuration for application mqttpub"};
 
-        ConfigPublish(utils::SubCommand* instance);
+        ConfigPublish(utils::SubCommand* parent);
 
         ~ConfigPublish() override;
 
@@ -100,7 +100,7 @@ namespace mqtt::mqttcli::lib {
         constexpr static std::string_view NAME{"session"};
         constexpr static std::string_view DESCRIPTION{"MQTT session behavior"};
 
-        ConfigSession(utils::SubCommand* instance);
+        ConfigSession(utils::SubCommand* parent);
 
         ~ConfigSession() override;
 

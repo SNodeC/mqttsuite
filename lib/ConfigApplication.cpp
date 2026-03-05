@@ -72,10 +72,6 @@ namespace mqtt::lib {
 
         mappingFileOpt->required(false);
 
-        /*
-                subCommandSc->required(false)->remove_needs(mappingFileOpt);
-                subCommandSc->get_parent()->remove_needs(subCommandSc);
-        */
         return *this;
     }
 
@@ -88,19 +84,12 @@ namespace mqtt::lib {
         htmlRootOpt = addOption("--html-root", "HTML root directory", "directory", CLI::ExistingDirectory);
 
         required(htmlRootOpt);
-        /*
-                subCommandSc->required()->needs(htmlRootOpt);
-                subCommandSc->get_parent()->needs(subCommandSc);
-        */
     }
 
     ConfigMqttBroker& ConfigMqttBroker::setHtmlRoot(const std::string& htmlRoot) {
         setDefaultValue(htmlRootOpt, htmlRoot);
         required(htmlRootOpt, false);
-        /*
-                subCommandSc->required(false)->remove_needs(htmlRootOpt);
-                subCommandSc->get_parent()->remove_needs(subCommandSc);
-        */
+
         return *this;
     }
 
@@ -113,12 +102,6 @@ namespace mqtt::lib {
     ConfigMqttIntegrator::ConfigMqttIntegrator(utils::SubCommand* parent)
         : ConfigApplication(parent, this) {
         required(mappingFileOpt);
-        /*
-                mappingFileOpt->required();
-
-                subCommandSc->required()->needs(mappingFileOpt);
-                subCommandSc->get_parent()->needs(subCommandSc);
-        */
     }
 
 } // namespace mqtt::lib
