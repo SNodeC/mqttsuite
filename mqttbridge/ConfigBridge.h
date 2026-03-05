@@ -42,12 +42,9 @@
 #ifndef APPS_MQTTBROKER_MQTTBRIDGE_CONFIGBRIDGE_H
 #define APPS_MQTTBROKER_MQTTBRIDGE_CONFIGBRIDGE_H
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
+#include <utils/SubCommand.h>
 
-namespace CLI {
-    class App;
-    class Option;
-} // namespace CLI
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <string>
 #include <string_view>
@@ -56,22 +53,20 @@ namespace CLI {
 
 namespace mqtt::bridge {
 
-    class ConfigBridge {
+    class ConfigBridge : public utils::SubCommand {
     public:
-        constexpr static std::string_view name{"bridge"};
-        constexpr static std::string_view description{"Configuration for Application mqttbridge"};
+        constexpr static std::string_view NAME{"bridge"};
+        constexpr static std::string_view DESCRIPTION{"Configuration for Application mqttbridge"};
 
-        ConfigBridge();
+        ConfigBridge(utils::SubCommand* parent);
 
-        void setDefinitionFile(const std::string& definitionFile) const;
+        void setDefinitionFile(const std::string& definitionFile);
         std::string getDefinitionFile() const;
 
         void setHtmlDir(const std::string& htmlDir) const;
         std::string getHtmlDir() const;
 
     private:
-        CLI::App* bridgeSc;
-
         CLI::Option* bridgeDefinitionOpt;
         CLI::Option* htmlDirOpt;
     };

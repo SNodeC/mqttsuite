@@ -46,7 +46,7 @@
 #include "lib/Mqtt.h"
 
 #include <core/socket/stream/SocketConnection.h>
-#include <net/config/ConfigInstanceAPI.hpp>
+#include <utils/Config.h>
 #include <web/websocket/SubProtocolContext.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -68,16 +68,17 @@ namespace mqtt::mqttintegrator::websocket {
         iot::mqtt::client::SubProtocol* subProtocol = nullptr;
 
         nlohmann::json& mappingJson = mqtt::lib::JsonMappingReader::readMappingFromFile(
-            utils::Config::getInstance<mqtt::lib::ConfigMqttIntegrator>()->getMappingFile());
+            utils::Config::configRoot.getSubCommand<mqtt::lib::ConfigMqttIntegrator>()->getMappingFile());
 
         if (mappingJson.contains("connection")) {
             subProtocol = new iot::mqtt::client::SubProtocol(
                 subProtocolContext,
                 getName(),
-                new mqtt::mqttintegrator::lib::Mqtt(subProtocolContext->getSocketConnection()->getConnectionName(),
-                                                    mappingJson["connection"],
-                                                    mappingJson["mapping"],
-                                                    utils::Config::getInstance<mqtt::lib::ConfigMqttIntegrator>()->getSessionStore()));
+                new mqtt::mqttintegrator::lib::Mqtt(
+                    subProtocolContext->getSocketConnection()->getConnectionName(),
+                    mappingJson["connection"],
+                    mappingJson["mapping"],
+                    utils::Config::configRoot.getSubCommand<mqtt::lib::ConfigMqttIntegrator>()->getSessionStore()));
         }
 
         return subProtocol;

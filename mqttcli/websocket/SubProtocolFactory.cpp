@@ -45,7 +45,7 @@
 #include "lib/Mqtt.h"
 
 #include <core/socket/stream/SocketConnection.h>
-#include <net/config/ConfigInstanceAPI.hpp>
+#include <net/config/ConfigInstance.h>
 #include <web/websocket/SubProtocolContext.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -62,11 +62,11 @@ namespace mqtt::mqttcli::websocket {
 
     iot::mqtt::client::SubProtocol* SubProtocolFactory::create(web::websocket::SubProtocolContext* subProtocolContext) {
         const lib::ConfigSession* configSession =
-            subProtocolContext->getSocketConnection()->getConfigInstance()->getSection<lib::ConfigSession>();
+            subProtocolContext->getSocketConnection()->getConfigInstance()->getSubCommand<lib::ConfigSession>();
         const lib::ConfigSubscribe* configSubscribe =
-            subProtocolContext->getSocketConnection()->getConfigInstance()->getSection<lib::ConfigSubscribe>();
+            subProtocolContext->getSocketConnection()->getConfigInstance()->getSubCommand<lib::ConfigSubscribe>();
         const lib::ConfigPublish* configPublish =
-            subProtocolContext->getSocketConnection()->getConfigInstance()->getSection<lib::ConfigPublish>();
+            subProtocolContext->getSocketConnection()->getConfigInstance()->getSubCommand<lib::ConfigPublish>();
 
         return new iot::mqtt::client::SubProtocol(
             subProtocolContext,

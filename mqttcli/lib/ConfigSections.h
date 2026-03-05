@@ -44,30 +44,22 @@
 
 #include <net/config/ConfigSection.h>
 
-namespace net::config {
-    class ConfigInstance;
-}
-
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <cstdint>
 #include <list>
 #include <string_view>
 
-namespace CLI {
-    class Option;
-}
-
 #endif
 
 namespace mqtt::mqttcli::lib {
 
-    class ConfigSubscribe : public net::config::ConfigSection {
+    class ConfigSubscribe : public utils::SubCommand {
     public:
-        constexpr static std::string_view name{"sub"};
-        constexpr static std::string_view description{"Configuration for application mqttsub"};
+        constexpr static std::string_view NAME{"sub"};
+        constexpr static std::string_view DESCRIPTION{"Configuration for application mqttsub"};
 
-        ConfigSubscribe(net::config::ConfigInstance* instance);
+        ConfigSubscribe(utils::SubCommand* parent);
 
         ~ConfigSubscribe() override;
 
@@ -79,12 +71,12 @@ namespace mqtt::mqttcli::lib {
         CLI::Option* topicOpt;
     };
 
-    class ConfigPublish : public net::config::ConfigSection {
+    class ConfigPublish : public utils::SubCommand {
     public:
-        constexpr static std::string_view name{"pub"};
-        constexpr static std::string_view description{"Configuration for application mqttpub"};
+        constexpr static std::string_view NAME{"pub"};
+        constexpr static std::string_view DESCRIPTION{"Configuration for application mqttpub"};
 
-        ConfigPublish(net::config::ConfigInstance* instance);
+        ConfigPublish(utils::SubCommand* parent);
 
         ~ConfigPublish() override;
 
@@ -103,12 +95,12 @@ namespace mqtt::mqttcli::lib {
         CLI::Option* retainOpt;
     };
 
-    class ConfigSession : public net::config::ConfigSection {
+    class ConfigSession : public utils::SubCommand {
     public:
-        constexpr static std::string_view name{"session"};
-        constexpr static std::string_view description{"MQTT session behavior"};
+        constexpr static std::string_view NAME{"session"};
+        constexpr static std::string_view DESCRIPTION{"MQTT session behavior"};
 
-        ConfigSession(net::config::ConfigInstance* instance);
+        ConfigSession(utils::SubCommand* parent);
 
         ~ConfigSession() override;
 

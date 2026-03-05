@@ -59,6 +59,7 @@
 #endif
 
 #include <core/SNodeC.h>
+#include <utils/Config.h>
 //
 #include <net/in/stream/legacy/SocketClient.h>
 #include <net/in/stream/tls/SocketClient.h>
@@ -76,13 +77,11 @@
 #include <express/legacy/in/Server.h>
 #include <express/tls/in/Server.h>
 //
-#include <net/config/ConfigInstanceAPI.hpp>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <log/Logger.h>
 //
-#include <string>
 #include <utility>
 
 #endif
@@ -183,13 +182,15 @@ int main(int argc, char* argv[]) {
 #endif
 
     // /home/voc/projects/mqttsuite/mqttsuite/mapfile.json
-    utils::Config::addInstance<mqtt::lib::ConfigMqttIntegrator>();
+    utils::Config::configRoot.newSubCommand<mqtt::lib::ConfigMqttIntegrator>();
 
     core::SNodeC::init(argc, argv);
 
     // Instanciate Admin Router for Mapping Management
     express::Router router = mqtt::lib::admin::makeMappingAdminRouter(
-        utils::Config::getInstance<mqtt::lib::ConfigMqttIntegrator>()->getMappingFile(), mqtt::lib::admin::AdminOptions{}, []() {
+        utils::Config::configRoot.getSubCommand<mqtt::lib::ConfigMqttIntegrator>()->getMappingFile(),
+        mqtt::lib::admin::AdminOptions{},
+        []() {
             mqtt::mqttintegrator::lib::Mqtt::reloadAll();
         });
 
@@ -203,7 +204,7 @@ int main(int argc, char* argv[]) {
         config.setRetry();
     });
 
-    const std::string sessionStoreFileName = utils::Config::getInstance<mqtt::lib::ConfigMqttIntegrator>()->getSessionStore();
+    const std::string sessionStoreFileName = utils::Config::configRoot.getSubCommand<mqtt::lib::ConfigMqttIntegrator>()->getSessionStore();
 
 #if defined(CONFIG_MQTTSUITE_INTEGRATOR_TCP_IPV4)
     startClient<net::in::stream::legacy::SocketClient>( //
