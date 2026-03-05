@@ -570,7 +570,7 @@ int main(int argc, char* argv[]) {
     web::websocket::client::SubProtocolFactorySelector::link("mqtt", mqttClientSubProtocolFactory);
 #endif
 
-    utils::Config::configRoot.addSubCommand<mqtt::bridge::ConfigBridge>();
+    utils::Config::configRoot.newSubCommand<mqtt::bridge::ConfigBridge>();
 
     core::SNodeC::init(argc, argv);
 

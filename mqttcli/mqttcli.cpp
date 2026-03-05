@@ -203,9 +203,9 @@ HttpClient startClient(const std::string& name, const std::function<void(typenam
 }
 
 static void createConfig(net::config::ConfigInstance& config) {
-    config.addSubCommand<mqtt::mqttcli::lib::ConfigSession>();
-    config.addSubCommand<mqtt::mqttcli::lib::ConfigSubscribe>();
-    config.addSubCommand<mqtt::mqttcli::lib::ConfigPublish>();
+    config.newSubCommand<mqtt::mqttcli::lib::ConfigSession>();
+    config.newSubCommand<mqtt::mqttcli::lib::ConfigSubscribe>();
+    config.newSubCommand<mqtt::mqttcli::lib::ConfigPublish>();
 
     config.setRequireCallback([config = &config]() {
         if (!config->getDisabled() && utils::Config::configRoot.getShowConfigTriggerApp() == nullptr &&

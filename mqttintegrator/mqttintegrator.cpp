@@ -182,7 +182,7 @@ int main(int argc, char* argv[]) {
 #endif
 
     // /home/voc/projects/mqttsuite/mqttsuite/mapfile.json
-    utils::Config::configRoot.addSubCommand<mqtt::lib::ConfigMqttIntegrator>();
+    utils::Config::configRoot.newSubCommand<mqtt::lib::ConfigMqttIntegrator>();
 
     core::SNodeC::init(argc, argv);
 
