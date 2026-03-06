@@ -93,6 +93,10 @@ namespace mqtt::lib {
     MqttMapper::MqttMapper(const nlohmann::json& mappingJson)
         : mappingJson(mappingJson)
         , delayedQueue(this) {
+        initializeRuntime();
+    }
+
+    void MqttMapper::initializeRuntime() {
         injaEnvironment = new inja::Environment;
 
         if (mappingJson.contains("plugins")) {
@@ -154,12 +158,30 @@ namespace mqtt::lib {
         }
     }
 
-    MqttMapper::~MqttMapper() {
+    void MqttMapper::cleanupRuntime() {
         delete injaEnvironment;
+        injaEnvironment = nullptr;
 
         for (void* pluginHandle : pluginHandles) {
             core::DynamicLoader::dlClose(pluginHandle);
         }
+        pluginHandles.clear();
+    }
+
+    MqttMapper::~MqttMapper() {
+        cleanupRuntime();
+    }
+
+    MqttMapper::ReloadStats MqttMapper::reloadMapping(const nlohmann::json& newMappingJson) {
+        ReloadStats stats;
+
+        stats.droppedDelayedPublishes = delayedQueue.clear();
+        cleanupRuntime();
+
+        mappingJson = newMappingJson;
+        initializeRuntime();
+
+        return stats;
     }
 
     std::string MqttMapper::dump() {
@@ -498,6 +520,17 @@ namespace mqtt::lib {
 
     void MqttMapper::DelayedQueue::pop() {
         minHeap.pop();
+    }
+
+    std::size_t MqttMapper::DelayedQueue::clear() {
+        const std::size_t dropped = minHeap.size();
+
+        delayTimer.cancel();
+        while (!minHeap.empty()) {
+            minHeap.pop();
+        }
+
+        return dropped;
     }
 
     bool MqttMapper::EarlierFirst::operator()(const ScheduledPublish& a, const ScheduledPublish& b) const {
