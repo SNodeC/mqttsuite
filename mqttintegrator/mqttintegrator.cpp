@@ -230,18 +230,9 @@ int main(int argc, char* argv[]) {
             result.removedSubscriptionsNotApplied = reloadResult.removedSubscriptionsNotApplied;
             result.droppedDelayedPublishes = reloadResult.droppedDelayedPublishes;
 
-            if (reloadResult.removedSubscriptionsNotApplied > 0) {
-                // We cannot selectively unsubscribe in the current hot-reload path,
-                // so reconnect to ensure stale broker-side subscriptions are removed.
-                result.mode = "reconnect";
-                result.reason = "mapping-removed-topics";
-                result.partialHotReload = false;
-                result.disconnectedInstances = mqtt::mqttintegrator::lib::Mqtt::reconnectAll();
-            } else {
-                result.mode = "hot";
-                result.reason = "mapping-only";
-                result.partialHotReload = false;
-            }
+            result.mode = "hot";
+            result.reason = "mapping-only";
+            result.partialHotReload = false;
 
             return result;
         });
