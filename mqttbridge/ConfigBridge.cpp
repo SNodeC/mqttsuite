@@ -49,8 +49,10 @@ namespace mqtt::bridge {
 
     mqtt::bridge::ConfigBridge::ConfigBridge(utils::SubCommand* parent)
         : utils::SubCommand(parent, this, "Application")
-        , bridgeDefinitionOpt(addOption("--definition", "MQTT bridge definition file (JSON format)", "file", CLI::ExistingFile))
-        , htmlDirOpt(addOption("--html-dir", "Path to html source directory", "directory", CLI::ExistingDirectory)) {
+        , bridgeDefinitionOpt( //
+              addOption("--definition", "MQTT bridge definition file (JSON format)", "file", CLI::ExistingFile))
+        , htmlDirOpt( //
+              addOption("--html-dir", "Path to html source directory", "directory", CLI::ExistingDirectory)) {
         required(bridgeDefinitionOpt);
     }
 

@@ -47,10 +47,10 @@
 
 namespace mqtt::mqttcli::lib {
     ConfigSubscribe::ConfigSubscribe(utils::SubCommand* parent)
-        : utils::SubCommand(parent, this, "Applications (at least one required)") {
-        topicOpt = setConfigurable(addOption("--topic", "List of topics subscribing to", "string", CLI::TypeValidator<std::string>()), true)
-                       ->take_all();
-
+        : utils::SubCommand(parent, this, "Applications (at least one required)")
+        , topicOpt( //
+              setConfigurable(addOption("--topic", "List of topics subscribing to", "string", CLI::TypeValidator<std::string>()), true)
+                  ->take_all()) {
         required(topicOpt);
 
         required(false, true);
@@ -76,14 +76,13 @@ namespace mqtt::mqttcli::lib {
     }
 
     ConfigPublish::ConfigPublish(utils::SubCommand* parent)
-        : utils::SubCommand(parent, this, "Applications (at least one required)") {
-        topicOpt =
-            setConfigurable(addOption("--topic", "List of topics subscribing to", "string", CLI::TypeValidator<std::string>()), true);
-
-        messageOpt = setConfigurable(addOption("--message", "Message to be published", "string", CLI::TypeValidator<std::string>()), true);
-
-        retainOpt = setConfigurable(addFlag("--retain{true}", "Message retain", "bool", "false", CLI::IsMember({"true", "false"})), true);
-
+        : utils::SubCommand(parent, this, "Applications (at least one required)")
+        , topicOpt( //
+              setConfigurable(addOption("--topic", "List of topics subscribing to", "string", CLI::TypeValidator<std::string>()), true))
+        , messageOpt( //
+              setConfigurable(addOption("--message", "Message to be published", "string", CLI::TypeValidator<std::string>()), true))
+        , retainOpt( //
+              setConfigurable(addFlag("--retain{true}", "Message retain", "bool", "false", CLI::IsMember({"true", "false"})), true)) {
         required(messageOpt);
         required(topicOpt);
 
@@ -124,33 +123,30 @@ namespace mqtt::mqttcli::lib {
     }
 
     ConfigSession::ConfigSession(utils::SubCommand* parent)
-        : utils::SubCommand(parent, this, "Applications") {
-        clientIdOpt = setConfigurable(addOption("--client-id", "MQTT Client-ID", "string", CLI::TypeValidator<std::string>()), true);
-
-        qoSOpt = setConfigurable(addOption("--qos", "Quality of service", "uint8_t", "0", CLI::Range(0, 2)), true);
-
-        retainSessionOpt =
-            setConfigurable(addFlag("--retain-session{true},-r{true}", "Clean session", "bool", "false", CLI::IsMember({"true", "false"})),
-                            true)
-                ->needs(clientIdOpt);
-
-        keepAliveOpt =
-            setConfigurable(addOption("--keep-alive", "Quality of service", "uint16_t", "60", CLI::TypeValidator<uint16_t>()), true);
-
-        willTopicOpt = setConfigurable(addOption("--will-topic", "MQTT will topic", "string", CLI::TypeValidator<std::string>()), true);
-
-        willMessageOpt =
-            setConfigurable(addOption("--will-message", "MQTT will message", "string", CLI::TypeValidator<std::string>()), true);
-
-        willQoSOpt =
-            setConfigurable(addOption("--will-qos", "MQTT will quality of service", "uint8_t", "0", CLI::TypeValidator<uint8_t>()), true);
-
-        willRetainOpt = setConfigurable(
-            addFlag("--will-retain{true}", "MQTT will message retain", "bool", "false", CLI::IsMember({"true", "false"})), true);
-
-        usernameOpt = setConfigurable(addOption("--username", "MQTT username", "string", CLI::TypeValidator<std::string>()), true);
-
-        passwordOpt = setConfigurable(addOption("--password", "MQTT password", "string", CLI::TypeValidator<std::string>()), true);
+        : utils::SubCommand(parent, this, "Applications")
+        , clientIdOpt( //
+              setConfigurable(addOption("--client-id", "MQTT Client-ID", "string", CLI::TypeValidator<std::string>()), true))
+        , qoSOpt( //
+              setConfigurable(addOption("--qos", "Quality of service", "uint8_t", "0", CLI::Range(0, 2)), true))
+        , retainSessionOpt( //
+              setConfigurable(
+                  addFlag("--retain-session{true},-r{true}", "Clean session", "bool", "false", CLI::IsMember({"true", "false"})), true)
+                  ->needs(clientIdOpt))
+        , keepAliveOpt( //
+              setConfigurable(addOption("--keep-alive", "Quality of service", "uint16_t", "60", CLI::TypeValidator<uint16_t>()), true))
+        , willTopicOpt( //
+              setConfigurable(addOption("--will-topic", "MQTT will topic", "string", CLI::TypeValidator<std::string>()), true))
+        , willMessageOpt( //
+              setConfigurable(addOption("--will-message", "MQTT will message", "string", CLI::TypeValidator<std::string>()), true))
+        , willQoSOpt( //
+              setConfigurable(addOption("--will-qos", "MQTT will quality of service", "uint8_t", "0", CLI::TypeValidator<uint8_t>()), true))
+        , willRetainOpt( //
+              setConfigurable(addFlag("--will-retain{true}", "MQTT will message retain", "bool", "false", CLI::IsMember({"true", "false"})),
+                              true))
+        , usernameOpt( //
+              setConfigurable(addOption("--username", "MQTT username", "string", CLI::TypeValidator<std::string>()), true))
+        , passwordOpt( //
+              setConfigurable(addOption("--password", "MQTT password", "string", CLI::TypeValidator<std::string>()), true)) {
     }
 
     ConfigSession::~ConfigSession() {

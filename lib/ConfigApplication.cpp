@@ -49,11 +49,11 @@ namespace mqtt::lib {
 
     template <typename ConcretConfigApplication>
     ConfigApplication::ConfigApplication(utils::SubCommand* parent, ConcretConfigApplication* concretConfigApplication)
-        : utils::SubCommand(parent, concretConfigApplication, "Applications") {
-        mappingFileOpt = addOption("--mqtt-mapping-file", "MQTT mapping file (json format) for integration", "filename", CLI::ExistingFile);
-
-        sessionStoreOpt =
-            addOption("--mqtt-session-store", "Path to file for the persistent session store", "filename", !CLI::ExistingDirectory);
+        : utils::SubCommand(parent, concretConfigApplication, "Applications")
+        , mappingFileOpt( //
+              addOption("--mqtt-mapping-file", "MQTT mapping file (json format) for integration", "filename", CLI::ExistingFile))
+        , sessionStoreOpt( //
+              addOption("--mqtt-session-store", "Path to file for the persistent session store", "filename", !CLI::ExistingDirectory)) {
     }
 
     ConfigApplication& ConfigApplication::setSessionStore(const std::string& sessionStore) {

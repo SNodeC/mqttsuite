@@ -65,8 +65,8 @@ namespace mqtt::lib {
         std::string getMappingFile() const;
 
     protected:
-        CLI::Option* sessionStoreOpt;
         CLI::Option* mappingFileOpt;
+        CLI::Option* sessionStoreOpt;
     };
 
     class ConfigMqttBroker : public ConfigApplication {
