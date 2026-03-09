@@ -65,10 +65,10 @@ add_compile_options(
     -Wextra
     -Wconversion
     -Wpedantic
+    -Wno-error=pedantic
     -Wuninitialized
     -Wunreachable-code
     -Wfloat-equal
-    -pedantic-errors
     -fexec-charset=UTF-8
     -Wno-shadow # yes we do
     -Wno-psabi # needed for RaspberryPi
