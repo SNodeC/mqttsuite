@@ -72,6 +72,7 @@ add_compile_options(
     -fexec-charset=UTF-8
     -Wno-shadow # yes we do
     -Wno-psabi # needed for RaspberryPi
+    -Wno-gnu-include-next
     $<$<CXX_COMPILER_ID:Clang>:-Weverything>
     $<$<CXX_COMPILER_ID:Clang>:-Wno-c++98-compat-pedantic>
     $<$<CXX_COMPILER_ID:Clang>:-Wno-exit-time-destructors>
