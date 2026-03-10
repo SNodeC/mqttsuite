@@ -63,11 +63,11 @@ namespace mqtt::mqttbroker {
         : broker(broker) {
     }
 
-    core::socket::stream::SocketContext* SocketContextFactory::create(core::socket::stream::SocketConnection* socketConnectionr) {
+    core::socket::stream::SocketContext* SocketContextFactory::create(core::socket::stream::SocketConnection* socketConnection) {
         return new iot::mqtt::SocketContext(
-            socketConnectionr,
+            socketConnection,
             new mqtt::mqttbroker::lib::Mqtt(
-                socketConnectionr->getConnectionName(),
+                socketConnection->getConnectionName(),
                 broker,
                 mqtt::lib::JsonMappingReader::readMappingFromFile(
                     utils::Config::configRoot.getSubCommand<mqtt::lib::ConfigMqttBroker>()->getMappingFile())["mapping"]));

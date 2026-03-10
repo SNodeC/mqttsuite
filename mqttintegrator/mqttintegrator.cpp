@@ -181,10 +181,10 @@ int main(int argc, char* argv[]) {
     web::websocket::client::SubProtocolFactorySelector::link("mqtt", mqttClientSubProtocolFactory);
 #endif
 
+    core::SNodeC::init(argc, argv);
+
     // /home/voc/projects/mqttsuite/mqttsuite/mapfile.json
     utils::Config::configRoot.newSubCommand<mqtt::lib::ConfigMqttIntegrator>();
-
-    core::SNodeC::init(argc, argv);
 
     // Instanciate Admin Router for Mapping Management
     express::Router router = mqtt::lib::admin::makeMappingAdminRouter(
