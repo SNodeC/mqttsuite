@@ -48,9 +48,11 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include <algorithm>
 #include <cstring>
 #include <list>
 #include <log/Logger.h>
+#include <map>
 #include <nlohmann/json.hpp>
 #include <utils/system/signal.h>
 
@@ -82,9 +84,65 @@ namespace mqtt::mqttintegrator::lib {
         instances.erase(this);
     }
 
-    void Mqtt::reloadAll() {
+    Mqtt::ReloadAllResult Mqtt::reloadMappingsAll(const nlohmann::json& newMappingJson) {
+        ReloadAllResult total;
+
         for (auto* instance : instances) {
-            instance->sendDisconnect(); // We go as friend
+            ++total.instances;
+            instance->reloadMapping(newMappingJson, total);
+        }
+
+        return total;
+    }
+
+    std::size_t Mqtt::reconnectAll() {
+        std::size_t disconnected = 0;
+
+        for (auto* instance : instances) {
+            ++disconnected;
+            instance->sendDisconnect(); // reconnect controlled by socket client config
+        }
+
+        return disconnected;
+    }
+
+    void Mqtt::reloadMapping(const nlohmann::json& newMappingJson, ReloadAllResult& total) {
+        std::map<std::string, uint8_t> oldSubscriptions;
+        for (const iot::mqtt::Topic& topic : extractSubscriptions()) {
+            oldSubscriptions[topic.getName()] = topic.getQoS();
+        }
+
+        const mqtt::lib::MqttMapper::ReloadStats mapperStats = MqttMapper::reloadMapping(newMappingJson);
+        total.droppedDelayedPublishes += mapperStats.droppedDelayedPublishes;
+
+        std::map<std::string, uint8_t> newSubscriptions;
+        for (const iot::mqtt::Topic& topic : extractSubscriptions()) {
+            newSubscriptions[topic.getName()] = topic.getQoS();
+        }
+
+        std::list<iot::mqtt::Topic> subscribeList;
+        std::list<std::string> unsubscribeList;
+        for (const auto& [topic, qoS] : newSubscriptions) {
+            const auto oldIt = oldSubscriptions.find(topic);
+            if (oldIt == oldSubscriptions.end() || oldIt->second != qoS) {
+                subscribeList.emplace_back(topic, qoS);
+            }
+        }
+
+        for (const auto& [topic, oldQoS] : oldSubscriptions) {
+            const auto newIt = newSubscriptions.find(topic);
+            if (newIt == newSubscriptions.end() || newIt->second != oldQoS) {
+                unsubscribeList.emplace_back(topic);
+            }
+        }
+
+        if (!unsubscribeList.empty()) {
+            sendUnsubscribe(unsubscribeList);
+        }
+
+        if (!subscribeList.empty()) {
+            total.subscriptionsAddedOrChanged += subscribeList.size();
+            sendSubscribe(subscribeList);
         }
     }
 

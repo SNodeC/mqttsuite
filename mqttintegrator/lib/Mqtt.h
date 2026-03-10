@@ -51,6 +51,7 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <cstdint>
+#include <cstddef>
 #include <set>
 #include <string>
 
@@ -62,13 +63,21 @@ namespace mqtt::mqttintegrator::lib {
         : public iot::mqtt::client::Mqtt
         , public mqtt::lib::MqttMapper {
     public:
+        struct ReloadAllResult {
+            std::size_t instances{0};
+            std::size_t subscriptionsAddedOrChanged{0};
+            std::size_t removedSubscriptionsNotApplied{0};
+            std::size_t droppedDelayedPublishes{0};
+        };
+
         explicit Mqtt(const std::string& connectionName,
                       const nlohmann::json& connectionJson,
                       const nlohmann::json& mappingJson,
                       const std::string& sessionStoreFileName);
 
         ~Mqtt() override;
-        static void reloadAll();
+        static ReloadAllResult reloadMappingsAll(const nlohmann::json& newMappingJson);
+        static std::size_t reconnectAll();
 
     private:
         using Super = iot::mqtt::client::Mqtt;
@@ -81,7 +90,9 @@ namespace mqtt::mqttintegrator::lib {
 
         void publishMapping(const std::string& topic, const std::string& message, uint8_t qoS, bool retain) final;
 
-        const nlohmann::json& connectionJson;
+        void reloadMapping(const nlohmann::json& newMappingJson, ReloadAllResult& total);
+
+        nlohmann::json connectionJson;
 
         static std::set<Mqtt*> instances;
     };

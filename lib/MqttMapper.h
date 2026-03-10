@@ -60,7 +60,8 @@ namespace inja {
 #include <cstddef>
 #include <cstdint>
 #include <list>
-#include <nlohmann/json_fwd.hpp> // IWYU pragma: export
+#include <map>
+#include <nlohmann/json.hpp> // IWYU pragma: export
 #include <queue>
 #include <string>
 #include <vector>
@@ -71,11 +72,17 @@ namespace mqtt::lib {
 
     class MqttMapper {
     public:
+        struct ReloadStats {
+            std::size_t droppedDelayedPublishes{0};
+        };
+
         MqttMapper(const nlohmann::json& mappingJson);
         MqttMapper(const MqttMapper&) = delete;
         MqttMapper& operator=(const MqttMapper&) = delete;
 
         virtual ~MqttMapper();
+
+        ReloadStats reloadMapping(const nlohmann::json& newMappingJson);
 
     protected:
         std::string dump();
@@ -102,11 +109,14 @@ namespace mqtt::lib {
         void publishMappedMessage(const nlohmann::json& staticMapping, const iot::mqtt::packets::Publish& publish);
         void publishMappedMessages(const nlohmann::json& staticMapping, const iot::mqtt::packets::Publish& publish);
 
-        const nlohmann::json& mappingJson;
+        nlohmann::json mappingJson;
 
         std::list<void*> pluginHandles;
 
         inja::Environment* injaEnvironment;
+
+        void initializeRuntime();
+        void cleanupRuntime();
 
         struct ScheduledPublish {
             utils::Timeval when;
@@ -140,6 +150,7 @@ namespace mqtt::lib {
 
             ScheduledPublish const& top() const;
             void pop();
+            std::size_t clear();
 
         private:
             MqttMapper* mqttMapper;

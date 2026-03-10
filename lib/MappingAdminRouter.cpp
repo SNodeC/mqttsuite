@@ -51,6 +51,8 @@
 
 //
 #include <exception>
+#include <filesystem>
+#include <fstream>
 #include <nlohmann/json-schema.hpp>
 #include <nlohmann/json.hpp>
 #include <vector>
@@ -105,13 +107,47 @@ namespace mqtt::lib::admin {
             }
         });
 
+        // POST /config (replace full draft config)
+        api.post("/config", [mappingFilePath] APPLICATION(req, res) {
+            try {
+                const std::string bodyStr(req->body.begin(), req->body.end());
+                json replacement = json::parse(bodyStr);
+
+                if (!replacement.is_object()) {
+                    res->status(422).json({{"error", "Config replacement must be a JSON object"}});
+                    return;
+                }
+
+                JsonMappingReader::saveDraft(mappingFilePath, replacement);
+                res->status(200).json({{"status", "replaced"}, {"path", mappingFilePath}});
+            } catch (const json::parse_error& e) {
+                res->status(400).json({{"error", "Invalid JSON body"}, {"details", e.what()}});
+            } catch (const std::exception& e) {
+                res->status(422).json({{"error", "Config replacement failed"}, {"details", e.what()}});
+            }
+        });
+
         // POST /config/deploy
         api.post("/config/deploy", [mappingFilePath, onDeploy] APPLICATION(req, res) {
             try {
+                const nlohmann::json oldConfig = JsonMappingReader::readDraftOrActive(mappingFilePath);
                 JsonMappingReader::deployDraft(mappingFilePath);
-                if (onDeploy)
-                    onDeploy();
-                res->status(200).json({{"status", "deploy-ack"}, {"note", "hot-reload triggered"}});
+                const nlohmann::json newConfig = JsonMappingReader::readDraftOrActive(mappingFilePath);
+
+                ReloadResult reloadResult;
+                if (onDeploy) {
+                    reloadResult = onDeploy(oldConfig, newConfig);
+                }
+
+                res->status(200).json({{"status", "deploy-ack"},
+                                       {"reload_mode", reloadResult.mode},
+                                       {"reason", reloadResult.reason},
+                                       {"partial_hot_reload", reloadResult.partialHotReload},
+                                       {"instances", reloadResult.instances},
+                                       {"subscriptions_added_or_changed", reloadResult.subscriptionsAddedOrChanged},
+                                       {"removed_subscriptions_not_applied", reloadResult.removedSubscriptionsNotApplied},
+                                       {"dropped_delayed_messages", reloadResult.droppedDelayedPublishes},
+                                       {"disconnected_instances", reloadResult.disconnectedInstances}});
             } catch (const std::exception& e) {
                 res->status(500).json({{"error", "Deploy failed"}, {"details", e.what()}});
             }
@@ -136,6 +172,38 @@ namespace mqtt::lib::admin {
             }
         });
 
+        // GET /config/validateDraft
+        api.get("/config/validateDraft", [mappingFilePath, validator] APPLICATION(req, res) {
+            try {
+                const std::string draftPath = JsonMappingReader::getDraftPath(mappingFilePath);
+
+                if (!std::filesystem::exists(draftPath)) {
+                    res->status(404).json({{"valid", false}, {"error", "No draft configuration available"}, {"path", draftPath}});
+                    return;
+                }
+
+                std::ifstream draftFile(draftPath);
+                if (!draftFile) {
+                    res->status(500).json({{"valid", false}, {"error", "Cannot open draft configuration"}, {"path", draftPath}});
+                    return;
+                }
+
+                nlohmann::json draftDocument;
+                draftFile >> draftDocument;
+
+                nlohmann::json_schema::basic_error_handler err;
+                validator->validate(draftDocument, err);
+
+                if (err) {
+                    res->status(422).json({{"valid", false}, {"error", "Draft validation failed"}, {"path", draftPath}});
+                } else {
+                    res->status(200).json({{"valid", true}, {"path", draftPath}});
+                }
+            } catch (const std::exception& e) {
+                res->status(400).json({{"valid", false}, {"error", "Draft validation exception"}, {"details", e.what()}});
+            }
+        });
+
         // POST /config/rollback
         api.post("/config/rollback", [mappingFilePath, onDeploy] APPLICATION(req, res) {
             try {
@@ -148,12 +216,25 @@ namespace mqtt::lib::admin {
                 }
 
                 std::string versionId = jsonBody["version_id"];
+                const nlohmann::json oldConfig = JsonMappingReader::readDraftOrActive(mappingFilePath);
                 JsonMappingReader::rollbackTo(mappingFilePath, versionId);
+                const nlohmann::json newConfig = JsonMappingReader::readDraftOrActive(mappingFilePath);
 
-                if (onDeploy)
-                    onDeploy(); // Trigger hot-reload
+                ReloadResult reloadResult;
+                if (onDeploy) {
+                    reloadResult = onDeploy(oldConfig, newConfig);
+                }
 
-                res->status(200).json({{"status", "rolled_back"}, {"version", versionId}});
+                res->status(200).json({{"status", "rolled_back"},
+                                       {"version", versionId},
+                                       {"reload_mode", reloadResult.mode},
+                                       {"reason", reloadResult.reason},
+                                       {"partial_hot_reload", reloadResult.partialHotReload},
+                                       {"instances", reloadResult.instances},
+                                       {"subscriptions_added_or_changed", reloadResult.subscriptionsAddedOrChanged},
+                                       {"removed_subscriptions_not_applied", reloadResult.removedSubscriptionsNotApplied},
+                                       {"dropped_delayed_messages", reloadResult.droppedDelayedPublishes},
+                                       {"disconnected_instances", reloadResult.disconnectedInstances}});
             } catch (const std::exception& e) {
                 res->status(500).json({{"error", "Rollback failed"}, {"details", e.what()}});
             }

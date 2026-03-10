@@ -47,6 +47,8 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <functional>
+#include <cstddef>
+#include <nlohmann/json_fwd.hpp>
 #include <string>
 
 #endif // DOXYGEN_SHOULD_SKIP_THIS
@@ -59,8 +61,19 @@ namespace mqtt::lib::admin {
         std::string realm{"mqttsuite-admin"};
     };
 
+    struct ReloadResult {
+        std::string mode{"hot"};
+        std::string reason{"mapping-only"};
+        bool partialHotReload{false};
+        std::size_t instances{0};
+        std::size_t subscriptionsAddedOrChanged{0};
+        std::size_t removedSubscriptionsNotApplied{0};
+        std::size_t droppedDelayedPublishes{0};
+        std::size_t disconnectedInstances{0};
+    };
+
     // Callback to trigger reload in the main application
-    using ReloadCallback = std::function<void()>;
+    using ReloadCallback = std::function<ReloadResult(const nlohmann::json& oldConfig, const nlohmann::json& newConfig)>;
 
     // Creates and returns a Router that handles /config/* endpoints.
     express::Router makeMappingAdminRouter(const std::string& mappingFilePath, const AdminOptions& opt, ReloadCallback onDeploy);

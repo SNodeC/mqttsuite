@@ -81,6 +81,7 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <log/Logger.h>
+#include <nlohmann/json.hpp>
 //
 #include <utility>
 
@@ -190,8 +191,50 @@ int main(int argc, char* argv[]) {
     express::Router router = mqtt::lib::admin::makeMappingAdminRouter(
         utils::Config::configRoot.getSubCommand<mqtt::lib::ConfigMqttIntegrator>()->getMappingFile(),
         mqtt::lib::admin::AdminOptions{},
-        []() {
-            mqtt::mqttintegrator::lib::Mqtt::reloadAll();
+        [](const nlohmann::json& oldConfig, const nlohmann::json& newConfig) {
+            mqtt::lib::admin::ReloadResult result;
+
+            const nlohmann::json oldConnection = oldConfig.contains("connection") ? oldConfig["connection"] : nlohmann::json::object();
+            const nlohmann::json newConnection = newConfig.contains("connection") ? newConfig["connection"] : nlohmann::json::object();
+
+            nlohmann::json oldPlugins = nlohmann::json::array();
+            nlohmann::json newPlugins = nlohmann::json::array();
+            if (oldConfig.contains("mapping") && oldConfig["mapping"].contains("plugins")) {
+                oldPlugins = oldConfig["mapping"]["plugins"];
+            }
+            if (newConfig.contains("mapping") && newConfig["mapping"].contains("plugins")) {
+                newPlugins = newConfig["mapping"]["plugins"];
+            }
+
+            const bool connectionChanged = oldConnection != newConnection;
+            const bool pluginsChanged = oldPlugins != newPlugins;
+
+            if (connectionChanged || pluginsChanged) {
+                result.mode = "reconnect";
+                result.reason = connectionChanged ? "connection-changed" : "plugins-changed";
+                result.disconnectedInstances = mqtt::mqttintegrator::lib::Mqtt::reconnectAll();
+                return result;
+            }
+
+            if (!newConfig.contains("mapping")) {
+                result.mode = "hot";
+                result.reason = "mapping-missing";
+                return result;
+            }
+
+            const mqtt::mqttintegrator::lib::Mqtt::ReloadAllResult reloadResult =
+                mqtt::mqttintegrator::lib::Mqtt::reloadMappingsAll(newConfig["mapping"]);
+
+            result.instances = reloadResult.instances;
+            result.subscriptionsAddedOrChanged = reloadResult.subscriptionsAddedOrChanged;
+            result.removedSubscriptionsNotApplied = reloadResult.removedSubscriptionsNotApplied;
+            result.droppedDelayedPublishes = reloadResult.droppedDelayedPublishes;
+
+            result.mode = "hot";
+            result.reason = "mapping-only";
+            result.partialHotReload = false;
+
+            return result;
         });
 
     express::legacy::in::Server("in-http", router, reportState, [](net::in::stream::legacy::config::ConfigSocketServer& config) {
