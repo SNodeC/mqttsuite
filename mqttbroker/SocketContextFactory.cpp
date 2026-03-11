@@ -42,7 +42,6 @@
 #include "SocketContextFactory.h"
 
 #include "lib/ConfigApplication.h"
-#include "lib/JsonMappingReader.h"
 #include "mqttbroker/lib/Mqtt.h"
 
 #include <core/socket/stream/SocketConnection.h>
@@ -69,8 +68,7 @@ namespace mqtt::mqttbroker {
             new mqtt::mqttbroker::lib::Mqtt(
                 socketConnection->getConnectionName(),
                 broker,
-                mqtt::lib::JsonMappingReader::readMappingFromFile(
-                    utils::Config::configRoot.getSubCommand<mqtt::lib::ConfigMqttBroker>()->getMappingFile())["mapping"]));
+                utils::Config::configRoot.getSubCommand<mqtt::lib::ConfigMqttBroker>()->getMqttMapper()));
     }
 
 } // namespace mqtt::mqttbroker

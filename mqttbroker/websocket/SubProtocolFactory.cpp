@@ -42,7 +42,6 @@
 #include "SubProtocolFactory.h"
 
 #include "lib/ConfigApplication.h"
-#include "lib/JsonMappingReader.h"
 #include "lib/Mqtt.h"
 
 #include <core/socket/stream/SocketConnection.h>
@@ -72,8 +71,7 @@ namespace mqtt::mqttbroker::websocket {
                 subProtocolContext->getSocketConnection()->getConnectionName(),
                 iot::mqtt::server::broker::Broker::instance(
                     SUBSCRIPTION_MAX_QOS, utils::Config::configRoot.getSubCommand<mqtt::lib::ConfigMqttBroker>()->getSessionStore()),
-                mqtt::lib::JsonMappingReader::readMappingFromFile(
-                    utils::Config::configRoot.getSubCommand<mqtt::lib::ConfigMqttBroker>()->getMappingFile())["mapping"]));
+                utils::Config::configRoot.getSubCommand<mqtt::lib::ConfigMqttBroker>()->getMqttMapper()));
     }
 
 } // namespace mqtt::mqttbroker::websocket

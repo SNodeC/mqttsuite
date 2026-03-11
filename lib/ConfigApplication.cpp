@@ -41,11 +41,11 @@
 
 #include "ConfigApplication.h"
 
-// #include "JsonMappingReader.h"
+#include "JsonMappingReader.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-// #include <nlohmann/json.hpp>
+#include <nlohmann/json.hpp>
 
 #endif
 
@@ -57,15 +57,20 @@ namespace mqtt::lib {
         , mappingFileOpt( //
               addOptionFunction(
                   "--mqtt-mapping-file",
-                  [/* this */]([[maybe_unused]] const std::string& value) {
-                      // nlohmann::json mappingJson = JsonMappingReader::readMappingFromFile(value);
-                      // mqttMapper = new MqttMapper(mappingJson);
+                  [this]([[maybe_unused]] const std::string& value) {
+                      mappingRootJson = JsonMappingReader::readMappingFromFile(value);
+                      if (mappingRootJson.contains("mapping")) {
+                          mqttMapper = std::make_unique<MqttMapper>(mappingRootJson["mapping"]);
+                      } else {
+                          mqttMapper.reset();
+                      }
                   },
                   "MQTT mapping file (json format) for integration",
                   "filename",
                   CLI::ExistingFile))
         , sessionStoreOpt( //
               addOption("--mqtt-session-store", "Path to file for the persistent session store", "filename", !CLI::ExistingDirectory)) {
+        mappingFileOpt->force_callback();
     }
 
     ConfigApplication& ConfigApplication::setSessionStore(const std::string& sessionStore) {
@@ -91,6 +96,10 @@ namespace mqtt::lib {
         return mappingFileOpt->as<std::string>();
     }
 
+    MqttMapper* ConfigApplication::getMqttMapper() const {
+        return mqttMapper.get();
+    }
+
     ConfigMqttBroker::ConfigMqttBroker(utils::SubCommand* parent)
         : ConfigApplication(parent, this) {
         htmlRootOpt = addOption("--html-root", "HTML root directory", "directory", CLI::ExistingDirectory);
@@ -114,7 +123,10 @@ namespace mqtt::lib {
     ConfigMqttIntegrator::ConfigMqttIntegrator(utils::SubCommand* parent)
         : ConfigApplication(parent, this) {
         required(mappingFileOpt);
-        mappingFileOpt->force_callback();
+    }
+
+    const nlohmann::json& ConfigMqttIntegrator::getConnection() const {
+        return mappingRootJson["connection"];
     }
 
 } // namespace mqtt::lib

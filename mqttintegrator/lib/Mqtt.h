@@ -46,25 +46,26 @@
 
 #include "lib/MqttMapper.h"
 
+#include <core/timer/Timer.h>
 #include <iot/mqtt/client/Mqtt.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <cstdint>
+#include <queue>
 #include <set>
 #include <string>
+#include <vector>
 
 #endif
 
 namespace mqtt::mqttintegrator::lib {
 
-    class Mqtt
-        : public iot::mqtt::client::Mqtt
-        , public mqtt::lib::MqttMapper {
+    class Mqtt : public iot::mqtt::client::Mqtt {
     public:
         explicit Mqtt(const std::string& connectionName,
                       const nlohmann::json& connectionJson,
-                      const nlohmann::json& mappingJson,
+                      mqtt::lib::MqttMapper* mqttMapper,
                       const std::string& sessionStoreFileName);
 
         ~Mqtt() override;
@@ -73,15 +74,47 @@ namespace mqtt::mqttintegrator::lib {
     private:
         using Super = iot::mqtt::client::Mqtt;
 
+        struct ScheduledPublish {
+            utils::Timeval when;
+            std::size_t seq;
+            iot::mqtt::packets::Publish publish;
+            utils::Timeval delay;
+        };
+
+        struct EarlierFirst {
+            bool operator()(const ScheduledPublish& a, const ScheduledPublish& b) const;
+        };
+
+        class DelayedQueue {
+        public:
+            explicit DelayedQueue(Mqtt* mqtt);
+            ~DelayedQueue();
+
+            void delayPublish(const utils::Timeval& delay, const iot::mqtt::packets::Publish& publish);
+
+            bool empty() const;
+            ScheduledPublish const& top() const;
+            void pop();
+
+        private:
+            Mqtt* mqtt;
+            std::size_t nextSeq = 0;
+            std::priority_queue<ScheduledPublish, std::vector<ScheduledPublish>, EarlierFirst> minHeap;
+
+            core::timer::Timer delayTimer;
+            void processDue();
+            void armDelayTimer();
+        };
+
         void onConnected() final;
         [[nodiscard]] bool onSignal(int signum) final;
 
         void onConnack(const iot::mqtt::packets::Connack& connack) final;
         void onPublish(const iot::mqtt::packets::Publish& publish) final;
 
-        void publishMapping(const std::string& topic, const std::string& message, uint8_t qoS, bool retain) final;
-
         const nlohmann::json& connectionJson;
+        mqtt::lib::MqttMapper* mqttMapper;
+        DelayedQueue delayedQueue;
 
         static std::set<Mqtt*> instances;
     };
