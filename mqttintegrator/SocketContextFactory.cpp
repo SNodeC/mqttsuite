@@ -42,7 +42,6 @@
 #include "SocketContextFactory.h"
 
 #include "lib/ConfigApplication.h"
-#include "lib/JsonMappingReader.h"
 #include "lib/Mqtt.h"
 
 #include <core/socket/stream/SocketConnection.h>
@@ -66,14 +65,15 @@ namespace mqtt::mqttintegrator {
     core::socket::stream::SocketContext* SocketContextFactory::create(core::socket::stream::SocketConnection* socketConnection) {
         iot::mqtt::SocketContext* socketContext = nullptr;
 
-        nlohmann::json& mappingJson = mqtt::lib::JsonMappingReader::readMappingFromFile(
-            utils::Config::configRoot.getSubCommand<mqtt::lib::ConfigMqttIntegrator>()->getMappingFile());
+        mqtt::lib::ConfigMqttIntegrator* config = utils::Config::configRoot.getSubCommand<mqtt::lib::ConfigMqttIntegrator>();
 
-        if (mappingJson.contains("connection")) {
+        if (config->getMqttMapper() != nullptr) {
             socketContext = new iot::mqtt::SocketContext(
                 socketConnection,
-                new mqtt::mqttintegrator::lib::Mqtt(
-                    socketConnection->getConnectionName(), mappingJson["connection"], mappingJson["mapping"], sessionStoreFileName));
+                new mqtt::mqttintegrator::lib::Mqtt(socketConnection->getConnectionName(),
+                                                   config->getConnection(),
+                                                   config->getMqttMapper(),
+                                                   sessionStoreFileName));
         }
 
         return socketContext;

@@ -92,7 +92,7 @@ namespace mqtt::lib {
 
     MqttMapper::MqttMapper(const nlohmann::json& mappingJson)
         : mappingJson(mappingJson)
-        , delayedQueue(this) {
+         {
         injaEnvironment = new inja::Environment;
 
         if (mappingJson.contains("plugins")) {
@@ -174,7 +174,8 @@ namespace mqtt::lib {
         return topicList;
     }
 
-    void MqttMapper::publishMappings(const iot::mqtt::packets::Publish& publish) {
+    MqttMapper::MappedPublishes MqttMapper::publishMappings(const iot::mqtt::packets::Publish& publish) {
+        MappedPublishes mappedPublishes;
         if (!mappingJson.empty()) {
             nlohmann::json matchingTopicLevel = findMatchingTopicLevel(mappingJson["topic_level"], publish.getTopic());
 
@@ -189,7 +190,7 @@ namespace mqtt::lib {
                     VLOG(1) << "  QoS: " << static_cast<uint16_t>(publish.getQoS());
                     VLOG(1) << "  Retain: " << publish.getRetain();
 
-                    publishMappedMessages(subscription["static"], publish);
+                    publishMappedMessages(subscription["static"], publish, mappedPublishes);
                 }
 
                 if (subscription.contains("value")) {
@@ -203,7 +204,7 @@ namespace mqtt::lib {
                     nlohmann::json json;
                     json["message"] = publish.getMessage();
 
-                    publishMappedTemplates(subscription["value"], json, publish);
+                    publishMappedTemplates(subscription["value"], json, publish, mappedPublishes);
                 }
 
                 if (subscription.contains("json")) {
@@ -218,7 +219,7 @@ namespace mqtt::lib {
                         nlohmann::json json;
                         json["message"] = nlohmann::json::parse(publish.getMessage());
 
-                        publishMappedTemplates(subscription["json"], json, publish);
+                        publishMappedTemplates(subscription["json"], json, publish, mappedPublishes);
                     } catch (const nlohmann::json::parse_error& e) {
                         VLOG(1) << "  Parsing message into json failed: " << publish.getMessage();
                         VLOG(1) << "     What: " << e.what() << '\n'
@@ -228,14 +229,8 @@ namespace mqtt::lib {
                 }
             }
         }
-    }
 
-    void MqttMapper::publishMapping(const std::string& topic, const std::string& message, uint8_t qoS, bool retain, double delay) {
-        if (delay < 0.0) {
-            publishMapping(topic, message, qoS, retain);
-        } else {
-            delayedQueue.delayPublish(delay, topic, message, qoS, retain);
-        }
+        return mappedPublishes;
     }
 
     void MqttMapper::extractSubscription(const nlohmann::json& topicLevelJson,
@@ -294,7 +289,7 @@ namespace mqtt::lib {
         return foundTopicLevel;
     }
 
-    void MqttMapper::publishMappedTemplate(const nlohmann::json& templateMapping, nlohmann::json& json) {
+    void MqttMapper::publishMappedTemplate(const nlohmann::json& templateMapping, nlohmann::json& json, MappedPublishes& mappedPublishes) {
         const std::string& mappingTemplate = templateMapping["mapping_template"];
         const std::string& mappedTopic = templateMapping["mapped_topic"];
 
@@ -327,7 +322,7 @@ namespace mqtt::lib {
                     VLOG(1) << "    retain: " << retain;
                     VLOG(1) << "    Delay: " << delay;
 
-                    publishMapping(renderedTopic, renderedMessage, qoS, retain, delay);
+                    publishMappedMessage(renderedTopic, renderedMessage, qoS, retain, delay, mappedPublishes);
                 } else {
                     VLOG(1) << "    Rendered message: '" << renderedMessage << "' in suppression list:";
                     for (const nlohmann::json& item : suppressions) {
@@ -351,7 +346,8 @@ namespace mqtt::lib {
 
     void MqttMapper::publishMappedTemplates(const nlohmann::json& templateMapping,
                                             nlohmann::json& json,
-                                            const iot::mqtt::packets::Publish& publish) {
+                                            const iot::mqtt::packets::Publish& publish,
+                                            MappedPublishes& mappedPublishes) {
         json["topic"] = publish.getTopic();
         json["qos"] = publish.getQoS();
         json["retain"] = publish.getRetain();
@@ -361,10 +357,10 @@ namespace mqtt::lib {
             VLOG(1) << "  Render data: " << json.dump();
 
             if (templateMapping.is_object()) {
-                publishMappedTemplate(templateMapping, json);
+                publishMappedTemplate(templateMapping, json, mappedPublishes);
             } else {
                 for (const nlohmann::json& concreteTemplateMapping : templateMapping) {
-                    publishMappedTemplate(concreteTemplateMapping, json);
+                    publishMappedTemplate(concreteTemplateMapping, json, mappedPublishes);
                 }
             }
         } catch (const nlohmann::json::exception& e) {
@@ -372,7 +368,8 @@ namespace mqtt::lib {
         }
     }
 
-    void MqttMapper::publishMappedMessage(const std::string& topic, const std::string& message, uint8_t qoS, bool retain, double delay) {
+    void MqttMapper::publishMappedMessage(
+        const std::string& topic, const std::string& message, uint8_t qoS, bool retain, double delay, MappedPublishes& mappedPublishes) {
         VLOG(1) << "  Mapped topic:";
         VLOG(1) << "    -> " << topic;
         VLOG(1) << "  Mapped message:";
@@ -384,10 +381,16 @@ namespace mqtt::lib {
         VLOG(1) << "    retain: " << retain;
         VLOG(1) << "    Delay: " << delay;
 
-        publishMapping(topic, message, qoS, retain, delay);
+        if (delay < 0.0) {
+            mappedPublishes.first.emplace_back(0, topic, message, qoS, false, retain);
+        } else {
+            mappedPublishes.second.push_back({utils::Timeval::fromDouble(delay), iot::mqtt::packets::Publish(0, topic, message, qoS, false, retain)});
+        }
     }
 
-    void MqttMapper::publishMappedMessage(const nlohmann::json& staticMapping, const iot::mqtt::packets::Publish& publish) {
+    void MqttMapper::publishMappedMessage(const nlohmann::json& staticMapping,
+                                          const iot::mqtt::packets::Publish& publish,
+                                          MappedPublishes& mappedPublishes) {
         const nlohmann::json& messageMapping = staticMapping["message_mapping"];
 
         VLOG(1) << "  Message mapping: " << messageMapping.dump();
@@ -398,7 +401,8 @@ namespace mqtt::lib {
                                      messageMapping["mapped_message"],
                                      staticMapping["qos"],
                                      staticMapping["retain"],
-                                     staticMapping["delay"]);
+                                     staticMapping["delay"],
+                                     mappedPublishes);
             } else {
                 VLOG(1) << "    no matching mapped message found";
             }
@@ -413,97 +417,24 @@ namespace mqtt::lib {
                                      (*matchedMessageMappingIterator)["mapped_message"],
                                      staticMapping["qos"],
                                      staticMapping["retain"],
-                                     staticMapping["delay"]);
+                                     staticMapping["delay"],
+                                     mappedPublishes);
             } else {
                 VLOG(1) << "    no matching mapped message found";
             }
         }
     }
 
-    void MqttMapper::publishMappedMessages(const nlohmann::json& staticMapping, const iot::mqtt::packets::Publish& publish) {
+    void MqttMapper::publishMappedMessages(const nlohmann::json& staticMapping,
+                                           const iot::mqtt::packets::Publish& publish,
+                                           MappedPublishes& mappedPublishes) {
         if (staticMapping.is_object()) {
-            publishMappedMessage(staticMapping, publish);
+            publishMappedMessage(staticMapping, publish, mappedPublishes);
         } else if (staticMapping.is_array()) {
             for (const nlohmann::json& concreteStaticMapping : staticMapping) {
-                publishMappedMessage(concreteStaticMapping, publish);
+                publishMappedMessage(concreteStaticMapping, publish, mappedPublishes);
             }
         }
-    }
-
-    MqttMapper::DelayedQueue::DelayedQueue(MqttMapper* mqttMapper)
-        : mqttMapper(mqttMapper) {
-    }
-
-    MqttMapper::DelayedQueue::~DelayedQueue() {
-        delayTimer.cancel();
-    }
-
-    void MqttMapper::DelayedQueue::processDue() {
-        const auto now = utils::Timeval::currentTime();
-
-        while (!empty() && top().when <= now) {
-            const auto& sheduledPublish = top();
-            VLOG(1) << "Publish delayed message";
-            VLOG(1) << "  Topic: " << sheduledPublish.topic;
-            VLOG(1) << "  Message: " << sheduledPublish.message;
-            VLOG(1) << "  QoS: " << static_cast<int>(sheduledPublish.qoS);
-            VLOG(1) << "  retain: " << sheduledPublish.retain;
-            VLOG(1) << "  Delay: " << sheduledPublish.delay;
-
-            mqttMapper->publishMapping(sheduledPublish.topic, sheduledPublish.message, sheduledPublish.qoS, sheduledPublish.retain);
-            pop();
-        }
-    }
-
-    void MqttMapper::DelayedQueue::armDelayTimer() {
-        delayTimer.cancel();
-
-        auto delay = top().when - utils::Timeval::currentTime();
-
-        // clamp negative delay to 0 (if top().when is already due)
-        if (delay < utils::Timeval{}) {
-            delay = utils::Timeval{};
-        }
-
-        delayTimer = core::timer::Timer::singleshotTimer(
-            [this]() {
-                processDue();
-
-                if (!empty()) {
-                    armDelayTimer(); // re-arm for the next item
-                }
-            },
-            delay);
-    }
-
-    void MqttMapper::DelayedQueue::delayPublish(
-        const utils::Timeval& timeval, const std::string& topic, const std::string& message, uint8_t qoS, bool retain) {
-        minHeap.push(ScheduledPublish{
-            utils::Timeval::currentTime() + timeval, timeval, nextSeq++, std::move(topic), std::move(message), qoS, retain});
-
-        armDelayTimer();
-    }
-
-    bool MqttMapper::DelayedQueue::empty() const {
-        return minHeap.empty();
-    }
-
-    std::size_t MqttMapper::DelayedQueue::size() const {
-        return minHeap.size();
-    }
-
-    const MqttMapper::ScheduledPublish& MqttMapper::DelayedQueue::top() const {
-        return minHeap.top();
-    }
-
-    void MqttMapper::DelayedQueue::pop() {
-        minHeap.pop();
-    }
-
-    bool MqttMapper::EarlierFirst::operator()(const ScheduledPublish& a, const ScheduledPublish& b) const {
-        if (a.when != b.when)
-            return a.when > b.when; // "later" has lower priority
-        return a.seq > b.seq;
     }
 
 } // namespace mqtt::lib
