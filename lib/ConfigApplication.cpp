@@ -41,7 +41,11 @@
 
 #include "ConfigApplication.h"
 
+// #include "JsonMappingReader.h"
+
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
+
+// #include <nlohmann/json.hpp>
 
 #endif
 
@@ -51,7 +55,15 @@ namespace mqtt::lib {
     ConfigApplication::ConfigApplication(utils::SubCommand* parent, ConcretConfigApplication* concretConfigApplication)
         : utils::SubCommand(parent, concretConfigApplication, "Applications")
         , mappingFileOpt( //
-              addOption("--mqtt-mapping-file", "MQTT mapping file (json format) for integration", "filename", CLI::ExistingFile))
+              addOptionFunction(
+                  "--mqtt-mapping-file",
+                  [/* this */]([[maybe_unused]] const std::string& value) {
+                      // nlohmann::json mappingJson = JsonMappingReader::readMappingFromFile(value);
+                      // mqttMapper = new MqttMapper(mappingJson);
+                  },
+                  "MQTT mapping file (json format) for integration",
+                  "filename",
+                  CLI::ExistingFile))
         , sessionStoreOpt( //
               addOption("--mqtt-session-store", "Path to file for the persistent session store", "filename", !CLI::ExistingDirectory)) {
     }
@@ -102,6 +114,7 @@ namespace mqtt::lib {
     ConfigMqttIntegrator::ConfigMqttIntegrator(utils::SubCommand* parent)
         : ConfigApplication(parent, this) {
         required(mappingFileOpt);
+        mappingFileOpt->force_callback();
     }
 
 } // namespace mqtt::lib

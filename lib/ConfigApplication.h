@@ -42,6 +42,8 @@
 #ifndef APPS_MQTTBROKER_MQTTBRIDGE_CONFIGBRIDGE_H
 #define APPS_MQTTBROKER_MQTTBRIDGE_CONFIGBRIDGE_H
 
+#include "MqttMapper.h"
+
 #include <utils/SubCommand.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -67,6 +69,8 @@ namespace mqtt::lib {
     protected:
         CLI::Option* mappingFileOpt;
         CLI::Option* sessionStoreOpt;
+
+        MqttMapper* mqttMapper = nullptr;
     };
 
     class ConfigMqttBroker : public ConfigApplication {
