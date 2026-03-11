@@ -45,6 +45,8 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include <log/Logger.h>
+#include <map>
 #include <nlohmann/json.hpp>
 
 #endif
@@ -57,7 +59,8 @@ namespace mqtt::lib {
         , mappingFileOpt( //
               addOptionFunction(
                   "--mqtt-mapping-file",
-                  [this]([[maybe_unused]] const std::string& value) {
+                  [this](const std::string& value) {
+                      VLOG(0) << "------------ callback: " << value;
                       mappingRootJson = JsonMappingReader::readMappingFromFile(value);
                       if (mappingRootJson.contains("mapping")) {
                           mqttMapper = std::make_unique<MqttMapper>(mappingRootJson["mapping"]);
@@ -70,7 +73,9 @@ namespace mqtt::lib {
                   CLI::ExistingFile))
         , sessionStoreOpt( //
               addOption("--mqtt-session-store", "Path to file for the persistent session store", "filename", !CLI::ExistingDirectory)) {
-        mappingFileOpt->force_callback();
+    }
+
+    ConfigApplication::~ConfigApplication() {
     }
 
     ConfigApplication& ConfigApplication::setSessionStore(const std::string& sessionStore) {

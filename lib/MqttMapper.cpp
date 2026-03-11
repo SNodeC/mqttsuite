@@ -91,8 +91,7 @@
 namespace mqtt::lib {
 
     MqttMapper::MqttMapper(const nlohmann::json& mappingJson)
-        : mappingJson(mappingJson)
-         {
+        : mappingJson(mappingJson) {
         injaEnvironment = new inja::Environment;
 
         if (mappingJson.contains("plugins")) {
@@ -384,7 +383,7 @@ namespace mqtt::lib {
         if (delay < 0.0) {
             mappedPublishes.first.emplace_back(0, topic, message, qoS, false, retain);
         } else {
-            mappedPublishes.second.push_back({utils::Timeval::fromDouble(delay), iot::mqtt::packets::Publish(0, topic, message, qoS, false, retain)});
+            mappedPublishes.second.push_back({delay, iot::mqtt::packets::Publish(0, topic, message, qoS, false, retain)});
         }
     }
 

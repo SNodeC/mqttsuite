@@ -61,6 +61,7 @@ namespace mqtt::lib {
     public:
         template <typename ConcretConfigApplicationT>
         ConfigApplication(utils::SubCommand* parent, ConcretConfigApplicationT* concretConfigApplication);
+        ~ConfigApplication() override;
 
         ConfigApplication& setSessionStore(const std::string& sessionStore);
         std::string getSessionStore() const;

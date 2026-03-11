@@ -51,9 +51,7 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <nlohmann/json.hpp>
-
-#endif
+#endif // DOXYGEN_SHOULD_SKIP_THIS
 
 namespace mqtt::mqttbroker::websocket {
 
