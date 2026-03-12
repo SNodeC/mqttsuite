@@ -45,7 +45,6 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <log/Logger.h>
 #include <map>
 #include <nlohmann/json.hpp>
 
@@ -60,7 +59,6 @@ namespace mqtt::lib {
               addOptionFunction(
                   "--mqtt-mapping-file",
                   [this](const std::string& value) {
-                      VLOG(0) << "------------ callback: " << value;
                       mappingRootJson = JsonMappingReader::readMappingFromFile(value);
                       if (mappingRootJson.contains("mapping")) {
                           mqttMapper = std::make_unique<MqttMapper>(mappingRootJson["mapping"]);
