@@ -184,7 +184,7 @@ int main(int argc, char* argv[]) {
     // /home/voc/projects/mqttsuite/mqttsuite/mapfile.json
     utils::Config::configRoot.newSubCommand<mqtt::lib::ConfigMqttIntegrator>();
 
-    core::SNodeC::init(argc, argv);
+    core::SNodeC::init(argc, argv); // NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks)
 
     // Instanciate Admin Router for Mapping Management
     express::Router router = mqtt::lib::admin::makeMappingAdminRouter(
