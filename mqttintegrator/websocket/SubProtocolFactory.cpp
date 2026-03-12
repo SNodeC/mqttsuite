@@ -42,7 +42,6 @@
 #include "SubProtocolFactory.h"
 
 #include "lib/ConfigApplication.h"
-#include "lib/JsonMappingReader.h"
 #include "lib/Mqtt.h"
 
 #include <core/socket/stream/SocketConnection.h>
@@ -50,9 +49,6 @@
 #include <web/websocket/SubProtocolContext.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-
-#include <map>
-#include <nlohmann/json.hpp>
 
 #endif
 
@@ -67,18 +63,16 @@ namespace mqtt::mqttintegrator::websocket {
     iot::mqtt::client::SubProtocol* SubProtocolFactory::create(web::websocket::SubProtocolContext* subProtocolContext) {
         iot::mqtt::client::SubProtocol* subProtocol = nullptr;
 
-        nlohmann::json& mappingJson = mqtt::lib::JsonMappingReader::readMappingFromFile(
-            utils::Config::configRoot.getSubCommand<mqtt::lib::ConfigMqttIntegrator>()->getMappingFile());
+        mqtt::lib::ConfigMqttIntegrator* config = utils::Config::configRoot.getSubCommand<mqtt::lib::ConfigMqttIntegrator>();
 
-        if (mappingJson.contains("connection")) {
+        if (config->getMqttMapper() != nullptr) {
             subProtocol = new iot::mqtt::client::SubProtocol(
                 subProtocolContext,
                 getName(),
-                new mqtt::mqttintegrator::lib::Mqtt(
-                    subProtocolContext->getSocketConnection()->getConnectionName(),
-                    mappingJson["connection"],
-                    mappingJson["mapping"],
-                    utils::Config::configRoot.getSubCommand<mqtt::lib::ConfigMqttIntegrator>()->getSessionStore()));
+                new mqtt::mqttintegrator::lib::Mqtt(subProtocolContext->getSocketConnection()->getConnectionName(),
+                                                    config->getConnection(),
+                                                    config->getMqttMapper(),
+                                                    config->getSessionStore()));
         }
 
         return subProtocol;

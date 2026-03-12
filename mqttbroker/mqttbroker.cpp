@@ -367,10 +367,10 @@ reportState(const std::string& instanceName, const core::socket::SocketAddress& 
 }
 
 int main(int argc, char* argv[]) {
-    core::SNodeC::init(argc, argv);
-
     utils::Config::configRoot.newSubCommand<mqtt::lib::ConfigMqttBroker>()->setHtmlRoot(std::string(CMAKE_INSTALL_PREFIX) +
                                                                                         "/var/www/mqttsuite/mqttbroker");
+
+    core::SNodeC::init(argc, argv);
 
     std::shared_ptr<iot::mqtt::server::broker::Broker> broker = iot::mqtt::server::broker::Broker::instance(
         SUBSCRIPTION_MAX_QOS, utils::Config::configRoot.getSubCommand<mqtt::lib::ConfigMqttBroker>()->getSessionStore());

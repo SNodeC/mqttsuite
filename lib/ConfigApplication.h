@@ -42,10 +42,14 @@
 #ifndef APPS_MQTTBROKER_MQTTBRIDGE_CONFIGBRIDGE_H
 #define APPS_MQTTBROKER_MQTTBRIDGE_CONFIGBRIDGE_H
 
+#include "MqttMapper.h"
+
 #include <utils/SubCommand.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include <memory>
+#include <nlohmann/json.hpp>
 #include <string>
 #include <string_view>
 
@@ -57,6 +61,7 @@ namespace mqtt::lib {
     public:
         template <typename ConcretConfigApplicationT>
         ConfigApplication(utils::SubCommand* parent, ConcretConfigApplicationT* concretConfigApplication);
+        ~ConfigApplication() override;
 
         ConfigApplication& setSessionStore(const std::string& sessionStore);
         std::string getSessionStore() const;
@@ -64,9 +69,14 @@ namespace mqtt::lib {
         ConfigApplication& setMappingFile(const std::string& mappingFile);
         std::string getMappingFile() const;
 
+        MqttMapper* getMqttMapper() const;
+
     protected:
         CLI::Option* mappingFileOpt;
         CLI::Option* sessionStoreOpt;
+
+        std::unique_ptr<MqttMapper> mqttMapper;
+        nlohmann::json mappingRootJson;
     };
 
     class ConfigMqttBroker : public ConfigApplication {
@@ -89,6 +99,8 @@ namespace mqtt::lib {
         constexpr static std::string_view DESCRIPTION{"Configuration for Application mqttintegrator"};
 
         ConfigMqttIntegrator(utils::SubCommand* parent);
+
+        const nlohmann::json& getConnection() const;
     };
 
 } // namespace mqtt::lib

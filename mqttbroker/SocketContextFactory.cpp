@@ -42,18 +42,15 @@
 #include "SocketContextFactory.h"
 
 #include "lib/ConfigApplication.h"
-#include "lib/JsonMappingReader.h"
 #include "mqttbroker/lib/Mqtt.h"
 
 #include <core/socket/stream/SocketConnection.h>
 #include <iot/mqtt/SocketContext.h>
+#include <utils/Config.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 //
 #include <memory>
-#include <nlohmann/json.hpp>
-#include <string>
-#include <utils/Config.h>
 
 #endif
 
@@ -66,11 +63,9 @@ namespace mqtt::mqttbroker {
     core::socket::stream::SocketContext* SocketContextFactory::create(core::socket::stream::SocketConnection* socketConnection) {
         return new iot::mqtt::SocketContext(
             socketConnection,
-            new mqtt::mqttbroker::lib::Mqtt(
-                socketConnection->getConnectionName(),
-                broker,
-                mqtt::lib::JsonMappingReader::readMappingFromFile(
-                    utils::Config::configRoot.getSubCommand<mqtt::lib::ConfigMqttBroker>()->getMappingFile())["mapping"]));
+            new mqtt::mqttbroker::lib::Mqtt(socketConnection->getConnectionName(),
+                                            broker,
+                                            utils::Config::configRoot.getSubCommand<mqtt::lib::ConfigMqttBroker>()->getMqttMapper()));
     }
 
 } // namespace mqtt::mqttbroker
