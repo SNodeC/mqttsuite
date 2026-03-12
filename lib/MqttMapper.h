@@ -113,7 +113,7 @@ namespace mqtt::lib {
 
         std::list<void*> pluginHandles;
 
-        inja::Environment* injaEnvironment;
+        inja::Environment* injaEnvironment; // We need it as pointer as it must be removed befor unloading the plugin libraries
     };
 
 } // namespace mqtt::lib
