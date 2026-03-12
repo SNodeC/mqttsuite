@@ -45,6 +45,7 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include <log/Logger.h>
 #include <map>
 #include <nlohmann/json.hpp>
 
@@ -60,7 +61,11 @@ namespace mqtt::lib {
                   "--mqtt-mapping-file",
                   [this](const std::string& value) {
                       mappingRootJson = JsonMappingReader::readMappingFromFile(value);
+                      VLOG(0) << "############################## new";
                       if (mappingRootJson.contains("mapping")) {
+                          VLOG(0) << "############################## new 1";
+                          mqttMapper.reset();
+
                           mqttMapper = std::make_unique<MqttMapper>(mappingRootJson["mapping"]);
                       } else {
                           mqttMapper.reset();
@@ -74,6 +79,8 @@ namespace mqtt::lib {
     }
 
     ConfigApplication::~ConfigApplication() {
+        VLOG(0) << "############################## delete";
+        //        mqttMapper.release();
     }
 
     ConfigApplication& ConfigApplication::setSessionStore(const std::string& sessionStore) {
