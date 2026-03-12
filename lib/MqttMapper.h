@@ -44,9 +44,6 @@
 
 namespace iot::mqtt {
     class Topic;
-    namespace packets {
-        class Publish;
-    }
 } // namespace iot::mqtt
 
 #include <iot/mqtt/packets/Publish.h>
@@ -58,7 +55,6 @@ namespace inja {
     class Environment;
 }
 
-#include <cstddef>
 #include <cstdint>
 #include <list>
 #include <nlohmann/json_fwd.hpp> // IWYU pragma: export

@@ -44,14 +44,17 @@
 #ifndef APPS_MQTTBROKER_MQTTINTEGRATOR_SOCKETCONTEXT_H
 #define APPS_MQTTBROKER_MQTTINTEGRATOR_SOCKETCONTEXT_H
 
-#include "lib/MqttMapper.h"
-
-#include <core/timer/Timer.h>
 #include <iot/mqtt/client/Mqtt.h>
+#include <iot/mqtt/packets/Publish.h>
+
+namespace mqtt::lib {
+    class MqttMapper;
+}
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <cstdint>
+#include <cstddef>
+#include <nlohmann/json_fwd.hpp>
 #include <queue>
 #include <set>
 #include <string>

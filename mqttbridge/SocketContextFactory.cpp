@@ -52,6 +52,7 @@
 #include <cstdint>
 #include <list>
 #include <log/Logger.h>
+#include <string>
 
 #endif
 

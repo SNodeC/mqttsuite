@@ -77,11 +77,9 @@
 #endif
 
 #include <algorithm>
-#include <functional>
 #include <log/Logger.h>
 #include <map>
 #include <nlohmann/json.hpp>
-#include <utility>
 #include <vector>
 
 #endif
