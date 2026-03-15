@@ -91,6 +91,9 @@ namespace mqtt::mqttbroker::lib {
             const iot::mqtt::packets::Publish duePublish = top().publish;
             pop();
 
+            mqtt->broker->publish(
+                mqtt->clientId, duePublish.getTopic(), duePublish.getMessage(), duePublish.getQoS(), duePublish.getRetain());
+
             mqtt->onPublish(duePublish);
         }
     }
@@ -151,13 +154,18 @@ namespace mqtt::mqttbroker::lib {
         if (mqttMapper != nullptr) {
             mqtt::lib::MqttMapper::MappedPublishes mappedPublishes = mqttMapper->publishMappings(publish);
 
-            for (const iot::mqtt::packets::Publish& mappedPublish : mappedPublishes.first) {
-                MqttModel::instance().publishMessage(
-                    mappedPublish.getTopic(), mappedPublish.getMessage(), mappedPublish.getQoS(), mappedPublish.getRetain());
-            }
-
             for (const mqtt::lib::MqttMapper::ScheduledPublish& delayedPublish : mappedPublishes.second) {
                 delayedQueue.delayPublish(delayedPublish.delay, delayedPublish.publish);
+            }
+
+            for (const iot::mqtt::packets::Publish& mappedPublish : mappedPublishes.first) {
+                broker->publish(
+                    clientId, mappedPublish.getTopic(), mappedPublish.getMessage(), mappedPublish.getQoS(), mappedPublish.getRetain());
+
+                MqttModel::instance().publishMessage(
+                    mappedPublish.getTopic(), mappedPublish.getMessage(), mappedPublish.getQoS(), mappedPublish.getRetain());
+
+                onPublish(mappedPublish);
             }
         }
     }

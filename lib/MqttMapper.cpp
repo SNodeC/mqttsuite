@@ -227,19 +227,7 @@ namespace mqtt::lib {
             }
         }
 
-        MappedPublishes resultPublishes = mappedPublishes;
-
-        for (auto& mappedPublish : mappedPublishes.first) {
-            MappedPublishes recursiveMappedPublishs = publishMappings(mappedPublish);
-
-            resultPublishes.first.insert(
-                resultPublishes.first.end(), recursiveMappedPublishs.first.begin(), recursiveMappedPublishs.first.end());
-
-            resultPublishes.second.insert(
-                resultPublishes.second.end(), recursiveMappedPublishs.second.begin(), recursiveMappedPublishs.second.end());
-        }
-
-        return resultPublishes;
+        return mappedPublishes;
     }
 
     void MqttMapper::extractSubscription(const nlohmann::json& topicLevelJson,
