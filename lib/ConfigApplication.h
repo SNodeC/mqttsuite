@@ -80,7 +80,6 @@ namespace mqtt::lib {
         CLI::Option* sessionStoreOpt;
 
         std::shared_ptr<MqttMapper> mqttMapper;
-        nlohmann::json mappingRootJson;
     };
 
     class ConfigMqttBroker : public ConfigApplication {

@@ -81,9 +81,12 @@ namespace mqtt::lib {
 
         virtual ~MqttMapper();
 
+        MqttMapper* setMapping(const nlohmann::json& mappingJson);
         MqttMapper* renewMapping();
 
         std::string dump();
+
+        const nlohmann::json& getConnection() const;
 
         std::list<iot::mqtt::Topic> extractSubscriptions() const;
         MappedPublishes publishMappings(const iot::mqtt::packets::Publish& publish);
@@ -113,7 +116,7 @@ namespace mqtt::lib {
                                           const iot::mqtt::packets::Publish& publish,
                                           MappedPublishes& mappedPublishes);
 
-        const nlohmann::json& mappingJson;
+        nlohmann::json mappingJson;
 
         std::list<void*> pluginHandles;
 
