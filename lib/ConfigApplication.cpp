@@ -43,6 +43,8 @@
 
 #include "JsonMappingReader.h"
 
+#include <iot/mqtt/Topic.h>
+
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <map>
@@ -61,7 +63,7 @@ namespace mqtt::lib {
                   [this](const std::string& value) {
                       mappingRootJson = JsonMappingReader::readMappingFromFile(value);
                       if (mappingRootJson.contains("mapping")) {
-                          mqttMapper = std::make_unique<MqttMapper>(mappingRootJson["mapping"]);
+                          mqttMapper = std::make_shared<MqttMapper>(mappingRootJson["mapping"]);
                       } else {
                           mqttMapper.reset();
                       }
@@ -88,19 +90,46 @@ namespace mqtt::lib {
 
     ConfigApplication& ConfigApplication::setMappingFile(const std::string& mappingFile) {
         setDefaultValue(mappingFileOpt, mappingFile);
-        required(mappingFileOpt, false);
 
-        mappingFileOpt->required(false);
-
-        return *this;
+        return setMapping(JsonMappingReader::readMappingFromFile(mappingFile));
     }
 
     std::string ConfigApplication::getMappingFile() const {
         return mappingFileOpt->as<std::string>();
     }
 
-    MqttMapper* ConfigApplication::getMqttMapper() const {
-        return mqttMapper.get();
+    ConfigApplication& ConfigApplication::setMapping(const nlohmann::json& mappingJson) {
+        required(mappingFileOpt, false);
+
+        if (!mqttMapper) {
+            mappingRootJson = mappingJson; // This propagates to MqttMapper as this class holds a reference to mappingRootJson
+
+            if (mappingRootJson.contains("mapping")) {
+                mqttMapper = std::make_shared<MqttMapper>(mappingRootJson["mapping"]);
+            } else {
+                mqttMapper.reset();
+            }
+        } else {
+            std::list<iot::mqtt::Topic> oldSubscriptions = mqttMapper->extractSubscriptions();
+
+            mappingRootJson = mappingJson;
+
+            std::list<iot::mqtt::Topic> newSubscriptions = mqttMapper->extractSubscriptions();
+
+            mqttMapper->renewMapping();
+        }
+
+        /*
+            for (const mqtt::lib::Reloadable& reloadable : allMqtts) {
+                reloadAble->updateSubscriptions(oldMqttRootJson);
+            }
+        */
+
+        return *this;
+    }
+
+    const std::shared_ptr<MqttMapper> ConfigApplication::getMqttMapper() const {
+        return mqttMapper;
     }
 
     ConfigMqttBroker::ConfigMqttBroker(utils::SubCommand* parent)

@@ -72,7 +72,7 @@ namespace mqtt::mqttbroker::lib {
     public:
         explicit Mqtt(const std::string& connectionName,
                       const std::shared_ptr<iot::mqtt::server::broker::Broker>& broker,
-                      mqtt::lib::MqttMapper* mqttMapper);
+                      const std::shared_ptr<mqtt::lib::MqttMapper>& mqttMapper);
 
         void subscribe(const std::string& topic, uint8_t qoS);
         void unsubscribe(const std::string& topic);
@@ -116,7 +116,7 @@ namespace mqtt::mqttbroker::lib {
         void onUnsubscribe(const iot::mqtt::packets::Unsubscribe& unsubscribe) final;
         void onDisconnected() final;
 
-        mqtt::lib::MqttMapper* mqttMapper;
+        std::shared_ptr<mqtt::lib::MqttMapper> mqttMapper;
         DelayedQueue delayedQueue;
     };
 

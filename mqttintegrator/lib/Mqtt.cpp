@@ -43,6 +43,7 @@
 
 #include "Mqtt.h"
 
+#include "lib/ConfigApplication.h"
 #include "lib/MqttMapper.h"
 
 #include <iot/mqtt/Topic.h> // IWYU pragma: keep
@@ -61,15 +62,14 @@ namespace mqtt::mqttintegrator::lib {
     std::set<Mqtt*> Mqtt::instances;
 
     Mqtt::Mqtt(const std::string& connectionName,
-               const nlohmann::json& connectionJson,
-               mqtt::lib::MqttMapper* mqttMapper,
+               mqtt::lib::ConfigMqttIntegrator* config,
                const std::string& sessionStoreFileName)
         : iot::mqtt::client::Mqtt(connectionName, //
-                                  connectionJson["client_id"],
-                                  connectionJson["keep_alive"],
+                                  config->getConnection()["client_id"],
+                                  config->getConnection()["keep_alive"],
                                   sessionStoreFileName)
-        , connectionJson(connectionJson)
-        , mqttMapper(mqttMapper)
+        , connectionJson(config->getConnection())
+        , mqttMapper(config->getMqttMapper())
         , delayedQueue(this) {
         instances.insert(this);
     }
