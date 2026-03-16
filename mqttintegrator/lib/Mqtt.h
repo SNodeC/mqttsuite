@@ -76,7 +76,7 @@ namespace mqtt::mqttintegrator::lib {
                       const std::string& sessionStoreFileName);
 
         ~Mqtt() override;
-        static void reloadSubscriptions();
+        static void updateSubscriptions();
 
     private:
         using Super = iot::mqtt::client::Mqtt;

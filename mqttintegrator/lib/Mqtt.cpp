@@ -142,7 +142,7 @@ namespace mqtt::mqttintegrator::lib {
         minHeap.pop();
     }
 
-    void Mqtt::reloadSubscriptions() {
+    void Mqtt::updateSubscriptions() {
         for (auto* instance : instances) {
             instance->resubscribe();
         }

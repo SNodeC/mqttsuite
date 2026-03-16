@@ -187,12 +187,12 @@ int main(int argc, char* argv[]) {
     core::SNodeC::init(argc, argv);
 
     // Instanciate Admin Router for Mapping Management
+    mqtt::lib::ConfigMqttIntegrator* configMqttIntegrator = utils::Config::configRoot.getSubCommand<mqtt::lib::ConfigMqttIntegrator>();
+
     express::Router router = mqtt::lib::admin::makeMappingAdminRouter(
-        utils::Config::configRoot.getSubCommand<mqtt::lib::ConfigMqttIntegrator>()->getMappingFile(),
-        mqtt::lib::admin::AdminOptions{},
-        []() {
-            utils::Config::configRoot.getSubCommand<mqtt::lib::ConfigMqttIntegrator>()->reloadMapping();
-            mqtt::mqttintegrator::lib::Mqtt::reloadSubscriptions();
+        configMqttIntegrator->getMappingFile(), mqtt::lib::admin::AdminOptions{}, [configMqttIntegrator]() {
+            configMqttIntegrator->reloadMapping();
+            mqtt::mqttintegrator::lib::Mqtt::updateSubscriptions();
         });
 
     express::legacy::in::Server("in-http", router, reportState, [](net::in::stream::legacy::config::ConfigSocketServer& config) {
