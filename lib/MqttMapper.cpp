@@ -98,10 +98,19 @@ namespace mqtt::lib {
     MqttMapper* MqttMapper::setMapping(const nlohmann::json& mappingJson) {
         this->mappingJson = mappingJson;
 
-        return renewMapping();
+        return activateMapping();
     }
 
     MqttMapper* MqttMapper::activateMapping() {
+        delete injaEnvironment;
+
+        for (void* handle : pluginHandles) {
+            core::DynamicLoader::dlClose(handle);
+        }
+        pluginHandles.clear();
+
+        injaEnvironment = new inja::Environment;
+
         if (mappingJson.contains("mapping") && mappingJson["mapping"].contains("plugins")) {
             VLOG(1) << "Loading plugins ...";
 
@@ -163,19 +172,6 @@ namespace mqtt::lib {
         return this;
     }
 
-    MqttMapper* MqttMapper::renewMapping() {
-        delete injaEnvironment;
-
-        for (void* handle : pluginHandles) {
-            core::DynamicLoader::dlClose(handle);
-        }
-        pluginHandles.clear();
-
-        injaEnvironment = new inja::Environment;
-
-        return activateMapping();
-    }
-
     MqttMapper::~MqttMapper() {
         delete injaEnvironment;
 
@@ -189,9 +185,7 @@ namespace mqtt::lib {
     }
 
     const nlohmann::json& MqttMapper::getConnection() const {
-        static const nlohmann::json emptyConnection = nlohmann::json::object();
-
-        return mappingJson.contains("connection") ? mappingJson["connection"] : emptyConnection;
+        return mappingJson["connection"];
     }
 
     std::list<iot::mqtt::Topic> MqttMapper::extractSubscriptions() const {

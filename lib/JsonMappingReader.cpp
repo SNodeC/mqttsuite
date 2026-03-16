@@ -71,60 +71,57 @@ namespace mqtt::lib {
 
     nlohmann::json JsonMappingReader::mappingJsonSchema = nlohmann::json::parse(mappingJsonSchemaString);
 
-    nlohmann::json JsonMappingReader::mapFileJson;
-    nlohmann::json JsonMappingReader::mapFileJsonDefaultPatched;
+    nlohmann::json JsonMappingReader::readMappingFromFile(const std::string& mapFilePath) {
+        nlohmann::json mapFileJson;
 
-    nlohmann::json& JsonMappingReader::readMappingFromFile(const std::string& mapFilePath) {
-        if (mapFileJson.empty()) {
-            if (!mapFilePath.empty()) {
-                std::ifstream mapFile(mapFilePath);
+        if (!mapFilePath.empty()) {
+            std::ifstream mapFile(mapFilePath);
 
-                if (mapFile.is_open()) {
-                    VLOG(1) << "MappingFilePath: " << mapFilePath;
+            if (mapFile.is_open()) {
+                VLOG(1) << "MappingFilePath: " << mapFilePath;
+
+                try {
+                    mapFile >> mapFileJson;
 
                     try {
-                        mapFile >> mapFileJson;
+                        const nlohmann::json_schema::json_validator validator(
+                            mappingJsonSchema, nullptr, nlohmann::json_schema::default_string_format_check);
 
                         try {
-                            const nlohmann::json_schema::json_validator validator(
-                                mappingJsonSchema, nullptr, nlohmann::json_schema::default_string_format_check);
+                            const nlohmann::json defaultPatch = validator.validate(mapFileJson);
 
                             try {
-                                const nlohmann::json defaultPatch = validator.validate(mapFileJson);
-
-                                try {
-                                    mapFileJsonDefaultPatched = mapFileJson.patch(defaultPatch);
-                                    VLOG(0) << "Patched: \n" << mapFileJson.dump(4);
-                                } catch (const std::exception& e) {
-                                    VLOG(1) << e.what();
-                                    VLOG(1) << "Patching JSON with default patch failed:\n" << defaultPatch.dump(4);
-                                    mapFileJson.clear();
-                                }
+                                mapFileJson = mapFileJson.patch(defaultPatch);
+                                VLOG(0) << "Patched: \n" << mapFileJson.dump(4);
                             } catch (const std::exception& e) {
-                                VLOG(1) << "  Validating JSON failed:\n" << mapFileJson.dump(4);
-                                VLOG(1) << "    " << e.what();
+                                VLOG(1) << e.what();
+                                VLOG(1) << "Patching JSON with default patch failed:\n" << defaultPatch.dump(4);
                                 mapFileJson.clear();
                             }
                         } catch (const std::exception& e) {
-                            VLOG(1) << e.what();
-                            VLOG(1) << "Setting root json mapping schema failed:\n" << mappingJsonSchema.dump(4);
+                            VLOG(1) << "  Validating JSON failed:\n" << mapFileJson.dump(4);
+                            VLOG(1) << "    " << e.what();
                             mapFileJson.clear();
                         }
                     } catch (const std::exception& e) {
-                        VLOG(1) << "JSON map file parsing failed: " << e.what() << " at " << mapFile.tellg();
+                        VLOG(1) << e.what();
+                        VLOG(1) << "Setting root json mapping schema failed:\n" << mappingJsonSchema.dump(4);
                         mapFileJson.clear();
                     }
-
-                    mapFile.close();
-                } else {
-                    VLOG(1) << "MappingFilePath: " << mapFilePath << " not found";
+                } catch (const std::exception& e) {
+                    VLOG(1) << "JSON map file parsing failed: " << e.what() << " at " << mapFile.tellg();
+                    mapFileJson.clear();
                 }
+
+                mapFile.close();
             } else {
-                VLOG(1) << "MappingFilePath empty";
+                VLOG(1) << "MappingFilePath: " << mapFilePath << " not found";
             }
+        } else {
+            VLOG(1) << "MappingFilePath empty";
         }
 
-        return mapFileJsonDefaultPatched;
+        return mapFileJson;
     }
 
     const nlohmann::json& JsonMappingReader::getSchema() {
@@ -227,9 +224,6 @@ namespace mqtt::lib {
 
         // 4. Promote draft to active
         fs::rename(draftPath, mapFilePath);
-
-        // Invalidate cache so next readMappingFromFile reloads it
-        mapFileJson.clear();
     }
 
     void JsonMappingReader::discardDraft(const std::string& mapFilePath) {
@@ -322,8 +316,6 @@ namespace mqtt::lib {
 
         // Delete any existing draft to avoid confusion
         discardDraft(mapFilePath);
-
-        mapFileJson.clear();
     }
 
 } // namespace mqtt::lib

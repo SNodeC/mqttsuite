@@ -43,12 +43,11 @@
 
 #include "JsonMappingReader.h"
 
-#include <iot/mqtt/Topic.h>
+#include <iot/mqtt/Topic.h> // IWYU pragma: keep
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <map>
-#include <nlohmann/json.hpp>
+#include <list>
 
 #endif
 
@@ -91,6 +90,7 @@ namespace mqtt::lib {
 
     ConfigApplication& ConfigApplication::setMappingFile(const std::string& mappingFile) {
         setDefaultValue(mappingFileOpt, mappingFile);
+        required(mappingFileOpt, false);
 
         return setMapping(JsonMappingReader::readMappingFromFile(mappingFile));
     }
@@ -99,9 +99,11 @@ namespace mqtt::lib {
         return mappingFileOpt->as<std::string>();
     }
 
-    ConfigApplication& ConfigApplication::setMapping(const nlohmann::json& mappingJson) {
-        required(mappingFileOpt, false);
+    ConfigApplication& ConfigApplication::reloadMapping() {
+        return setMapping(JsonMappingReader::readMappingFromFile(getMappingFile()));
+    }
 
+    ConfigApplication& ConfigApplication::setMapping(const nlohmann::json& mappingJson) {
         if (!mqttMapper) {
             mqttMapper = std::make_shared<MqttMapper>(mappingJson);
         } else {
@@ -111,12 +113,6 @@ namespace mqtt::lib {
 
             std::list<iot::mqtt::Topic> newSubscriptions = mqttMapper->extractSubscriptions();
         }
-
-        /*
-            for (const mqtt::lib::Reloadable& reloadable : allMqtts) {
-                reloadAble->updateSubscriptions(oldMqttRootJson);
-            }
-        */
 
         return *this;
     }
@@ -148,12 +144,6 @@ namespace mqtt::lib {
     ConfigMqttIntegrator::ConfigMqttIntegrator(utils::SubCommand* parent)
         : ConfigApplication(parent, this) {
         required(mappingFileOpt);
-    }
-
-    const nlohmann::json& ConfigMqttIntegrator::getConnection() const {
-        static const nlohmann::json emptyConnection = nlohmann::json::object();
-
-        return mqttMapper ? mqttMapper->getConnection() : emptyConnection;
     }
 
 } // namespace mqtt::lib

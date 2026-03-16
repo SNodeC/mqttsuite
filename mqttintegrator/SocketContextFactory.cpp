@@ -50,7 +50,6 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <memory>
 #include <string>
 
 #endif
@@ -65,7 +64,8 @@ namespace mqtt::mqttintegrator {
         mqtt::lib::ConfigMqttIntegrator* config = utils::Config::configRoot.getSubCommand<mqtt::lib::ConfigMqttIntegrator>();
 
         return new iot::mqtt::SocketContext(
-            socketConnection, new mqtt::mqttintegrator::lib::Mqtt(socketConnection->getConnectionName(), config, sessionStoreFileName));
+            socketConnection,
+            new mqtt::mqttintegrator::lib::Mqtt(socketConnection->getConnectionName(), config->getMqttMapper(), sessionStoreFileName));
     }
 
 } // namespace mqtt::mqttintegrator

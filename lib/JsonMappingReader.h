@@ -59,7 +59,7 @@ namespace mqtt::lib {
         JsonMappingReader() = delete;
 
     public:
-        static nlohmann::json& readMappingFromFile(const std::string& mapFilePath);
+        static nlohmann::json readMappingFromFile(const std::string& mapFilePath);
 
         static const nlohmann::json& getSchema();
 
@@ -83,9 +83,6 @@ namespace mqtt::lib {
     private:
         static nlohmann::json mappingJsonSchema;
         static const std::string mappingJsonSchemaString;
-
-        static nlohmann::json mapFileJson;
-        static nlohmann::json mapFileJsonDefaultPatched;
     };
 
 } // namespace mqtt::lib

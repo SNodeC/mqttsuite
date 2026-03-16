@@ -57,10 +57,12 @@ namespace inja {
 
 #include <cstdint>
 #include <list>
-#include <nlohmann/json_fwd.hpp> // IWYU pragma: export
+#include <nlohmann/json.hpp> // IWYU pragma: export
 #include <string>
 #include <utility>
 #include <vector>
+
+// IWYU pragma: no_include <nlohmann/json_fwd.hpp>
 
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
@@ -82,7 +84,6 @@ namespace mqtt::lib {
         virtual ~MqttMapper();
 
         MqttMapper* setMapping(const nlohmann::json& mappingJson);
-        MqttMapper* renewMapping();
 
         std::string dump();
 

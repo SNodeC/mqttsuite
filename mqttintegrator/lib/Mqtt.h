@@ -48,7 +48,6 @@
 #include <iot/mqtt/packets/Publish.h>
 
 namespace mqtt::lib {
-    class ConfigMqttIntegrator;
     class MqttMapper;
 } // namespace mqtt::lib
 
@@ -56,7 +55,6 @@ namespace mqtt::lib {
 
 #include <cstddef>
 #include <memory>
-#include <nlohmann/json_fwd.hpp>
 #include <queue>
 #include <set>
 #include <string>
@@ -68,7 +66,9 @@ namespace mqtt::mqttintegrator::lib {
 
     class Mqtt : public iot::mqtt::client::Mqtt {
     public:
-        explicit Mqtt(const std::string& connectionName, mqtt::lib::ConfigMqttIntegrator* config, const std::string& sessionStoreFileName);
+        explicit Mqtt(const std::string& connectionName,
+                      std::shared_ptr<mqtt::lib::MqttMapper> mqttMapper,
+                      const std::string& sessionStoreFileName);
 
         ~Mqtt() override;
         static void reloadAll();
@@ -114,7 +114,6 @@ namespace mqtt::mqttintegrator::lib {
         void onConnack(const iot::mqtt::packets::Connack& connack) final;
         void onPublish(const iot::mqtt::packets::Publish& publish) final;
 
-        const nlohmann::json& connectionJson;
         std::shared_ptr<mqtt::lib::MqttMapper> mqttMapper;
         DelayedQueue delayedQueue;
 

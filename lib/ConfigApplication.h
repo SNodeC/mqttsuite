@@ -49,7 +49,6 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <memory>
-#include <nlohmann/json.hpp>
 #include <string>
 #include <string_view>
 
@@ -71,6 +70,7 @@ namespace mqtt::lib {
         ConfigApplication& setMappingFile(const std::string& mappingFile);
         std::string getMappingFile() const;
 
+        ConfigApplication& reloadMapping();
         ConfigApplication& setMapping(const nlohmann::json& json);
 
         const std::shared_ptr<MqttMapper> getMqttMapper() const;
@@ -102,8 +102,6 @@ namespace mqtt::lib {
         constexpr static std::string_view DESCRIPTION{"Configuration for Application mqttintegrator"};
 
         ConfigMqttIntegrator(utils::SubCommand* parent);
-
-        const nlohmann::json& getConnection() const;
     };
 
 } // namespace mqtt::lib

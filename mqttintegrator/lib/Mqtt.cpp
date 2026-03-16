@@ -43,7 +43,6 @@
 
 #include "Mqtt.h"
 
-#include "lib/ConfigApplication.h"
 #include "lib/MqttMapper.h"
 
 #include <iot/mqtt/Topic.h> // IWYU pragma: keep
@@ -53,7 +52,6 @@
 
 #include <functional>
 #include <list>
-#include <nlohmann/json.hpp>
 
 #endif
 
@@ -62,14 +60,13 @@ namespace mqtt::mqttintegrator::lib {
     std::set<Mqtt*> Mqtt::instances;
 
     Mqtt::Mqtt(const std::string& connectionName,
-               mqtt::lib::ConfigMqttIntegrator* config,
+               std::shared_ptr<mqtt::lib::MqttMapper> mqttMapper,
                const std::string& sessionStoreFileName)
         : iot::mqtt::client::Mqtt(connectionName, //
-                                  config->getConnection()["client_id"],
-                                  config->getConnection()["keep_alive"],
+                                  mqttMapper->getConnection()["client_id"],
+                                  mqttMapper->getConnection()["keep_alive"],
                                   sessionStoreFileName)
-        , connectionJson(config->getConnection())
-        , mqttMapper(config->getMqttMapper())
+        , mqttMapper(mqttMapper)
         , delayedQueue(this) {
         instances.insert(this);
     }
@@ -150,13 +147,15 @@ namespace mqtt::mqttintegrator::lib {
     }
 
     void Mqtt::onConnected() {
-        sendConnect(connectionJson["clean_session"],
-                    connectionJson["will_topic"],
-                    connectionJson["will_message"],
-                    connectionJson["will_qos"],
-                    connectionJson["will_retain"],
-                    connectionJson["username"],
-                    connectionJson["password"]);
+        const nlohmann::json& connection = mqttMapper->getConnection();
+
+        sendConnect(connection["clean_session"],
+                    connection["will_topic"],
+                    connection["will_message"],
+                    connection["will_qos"],
+                    connection["will_retain"],
+                    connection["username"],
+                    connection["password"]);
     }
 
     bool Mqtt::onSignal(int signum) {
@@ -166,8 +165,6 @@ namespace mqtt::mqttintegrator::lib {
 
     void Mqtt::onConnack(const iot::mqtt::packets::Connack& connack) {
         if (connack.getReturnCode() == 0 && !connack.getSessionPresent()) {
-            sendPublish("snode.c/_cfg_/connection", connectionJson.dump(), 0, true);
-
             const std::list<iot::mqtt::Topic> topicList = mqttMapper->extractSubscriptions();
             sendSubscribe(topicList);
         }

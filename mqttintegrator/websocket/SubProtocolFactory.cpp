@@ -50,8 +50,6 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <memory>
-
 #endif
 
 namespace mqtt::mqttintegrator::websocket {
@@ -69,7 +67,7 @@ namespace mqtt::mqttintegrator::websocket {
             subProtocolContext,
             getName(),
             new mqtt::mqttintegrator::lib::Mqtt(
-                subProtocolContext->getSocketConnection()->getConnectionName(), config, config->getSessionStore()));
+                subProtocolContext->getSocketConnection()->getConnectionName(), config->getMqttMapper(), config->getSessionStore()));
     }
 
 } // namespace mqtt::mqttintegrator::websocket
