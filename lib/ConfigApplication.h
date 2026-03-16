@@ -76,10 +76,10 @@ namespace mqtt::lib {
         const std::shared_ptr<MqttMapper> getMqttMapper() const;
 
     protected:
+        std::shared_ptr<MqttMapper> mqttMapper;
+
         CLI::Option* mappingFileOpt;
         CLI::Option* sessionStoreOpt;
-
-        std::shared_ptr<MqttMapper> mqttMapper;
     };
 
     class ConfigMqttBroker : public ConfigApplication {

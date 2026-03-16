@@ -54,17 +54,12 @@ namespace mqtt::lib {
     template <typename ConcretConfigApplication>
     ConfigApplication::ConfigApplication(utils::SubCommand* parent, ConcretConfigApplication* concretConfigApplication)
         : utils::SubCommand(parent, concretConfigApplication, "Applications")
+        , mqttMapper(std::make_shared<MqttMapper>())
         , mappingFileOpt( //
               addOptionFunction(
                   "--mqtt-mapping-file",
-                  [this](const std::string& value) {
-                      const nlohmann::json mappingJson = JsonMappingReader::readMappingFromFile(value);
-
-                      if (!mqttMapper) {
-                          mqttMapper = std::make_shared<MqttMapper>(mappingJson);
-                      } else {
-                          mqttMapper->setMapping(mappingJson);
-                      }
+                  [this](const std::string& mappingFile) {
+                      mqttMapper->setMapping(JsonMappingReader::readMappingFromFile(mappingFile));
                   },
                   "MQTT mapping file (json format) for integration",
                   "filename",
@@ -97,17 +92,15 @@ namespace mqtt::lib {
     }
 
     ConfigApplication& ConfigApplication::reloadMapping() {
-        return setMapping(JsonMappingReader::readMappingFromFile(getMappingFile()));
+        mqttMapper->setMapping(JsonMappingReader::readMappingFromFile(getMappingFile()));
+
+        return *this;
     }
 
     ConfigApplication& ConfigApplication::setMapping(const nlohmann::json& mappingJson) {
         required(mappingFileOpt, false);
 
-        if (!mqttMapper) {
-            mqttMapper = std::make_shared<MqttMapper>(mappingJson);
-        } else {
-            mqttMapper->setMapping(mappingJson);
-        }
+        mqttMapper->setMapping(mappingJson);
 
         return *this;
     }

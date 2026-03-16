@@ -88,11 +88,8 @@
 
 namespace mqtt::lib {
 
-    MqttMapper::MqttMapper(const nlohmann::json& mappingJson)
-        : mappingJson(mappingJson) {
-        injaEnvironment = new inja::Environment;
-
-        activateMapping();
+    MqttMapper::MqttMapper()
+        : injaEnvironment(new inja::Environment) {
     }
 
     MqttMapper* MqttMapper::setMapping(const nlohmann::json& mappingJson) {

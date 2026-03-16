@@ -77,7 +77,7 @@ namespace mqtt::lib {
 
         using MappedPublishes = std::pair<std::vector<iot::mqtt::packets::Publish>, std::vector<ScheduledPublish>>;
 
-        MqttMapper(const nlohmann::json& mappingJson);
+        MqttMapper();
         MqttMapper(const MqttMapper&) = delete;
         MqttMapper& operator=(const MqttMapper&) = delete;
 
