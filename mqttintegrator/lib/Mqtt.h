@@ -88,11 +88,23 @@ namespace mqtt::mqttintegrator::lib {
             utils::Timeval delay;
         };
 
-        struct EarlierFirst {
-            bool operator()(const ScheduledPublish& a, const ScheduledPublish& b) const;
-        };
+        void onConnected() final;
+        [[nodiscard]] bool onSignal(int signum) final;
+
+        void onConnack(const iot::mqtt::packets::Connack& connack) final;
+        void onPublish(const iot::mqtt::packets::Publish& publish) final;
+
+        void resubscribe();
+
+        std::shared_ptr<mqtt::lib::MqttMapper> mqttMapper;
+        std::list<iot::mqtt::Topic> currentSubscriptions;
 
         class DelayedQueue {
+        private:
+            struct EarlierFirst {
+                bool operator()(const ScheduledPublish& a, const ScheduledPublish& b) const;
+            };
+
         public:
             explicit DelayedQueue(Mqtt* mqtt);
             ~DelayedQueue();
@@ -111,20 +123,7 @@ namespace mqtt::mqttintegrator::lib {
             core::timer::Timer delayTimer;
             void processDue();
             void armDelayTimer();
-        };
-
-        void onConnected() final;
-        [[nodiscard]] bool onSignal(int signum) final;
-
-        void onConnack(const iot::mqtt::packets::Connack& connack) final;
-        void onPublish(const iot::mqtt::packets::Publish& publish) final;
-
-        void resubscribe();
-
-        std::shared_ptr<mqtt::lib::MqttMapper> mqttMapper;
-        std::list<iot::mqtt::Topic> currentSubscriptions;
-
-        DelayedQueue delayedQueue;
+        } delayedQueue;
 
         static std::set<Mqtt*> instances;
     };

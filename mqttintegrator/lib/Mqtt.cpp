@@ -77,71 +77,6 @@ namespace mqtt::mqttintegrator::lib {
         instances.erase(this);
     }
 
-    bool Mqtt::EarlierFirst::operator()(const ScheduledPublish& a, const ScheduledPublish& b) const {
-        if (a.when != b.when) {
-            return a.when > b.when;
-        }
-
-        return a.seq > b.seq;
-    }
-
-    Mqtt::DelayedQueue::DelayedQueue(Mqtt* mqtt)
-        : mqtt(mqtt) {
-    }
-
-    Mqtt::DelayedQueue::~DelayedQueue() {
-        delayTimer.cancel();
-    }
-
-    void Mqtt::DelayedQueue::processDue() {
-        const auto now = utils::Timeval::currentTime();
-
-        while (!empty() && top().when <= now) {
-            const iot::mqtt::packets::Publish duePublish = top().publish;
-            pop();
-
-            mqtt->sendPublish(duePublish.getTopic(), duePublish.getMessage(), duePublish.getQoS(), duePublish.getRetain());
-
-            mqtt->onPublish(duePublish);
-        }
-    }
-
-    void Mqtt::DelayedQueue::armDelayTimer() {
-        delayTimer.cancel();
-
-        auto delay = top().when - utils::Timeval::currentTime();
-        if (delay < utils::Timeval{}) {
-            delay = utils::Timeval{};
-        }
-
-        delayTimer = core::timer::Timer::singleshotTimer(
-            [this]() {
-                processDue();
-
-                if (!empty()) {
-                    armDelayTimer();
-                }
-            },
-            delay);
-    }
-
-    void Mqtt::DelayedQueue::delayPublish(const utils::Timeval& delay, const iot::mqtt::packets::Publish& publish) {
-        minHeap.emplace(utils::Timeval::currentTime() + delay, nextSeq++, publish, delay);
-        armDelayTimer();
-    }
-
-    bool Mqtt::DelayedQueue::empty() const {
-        return minHeap.empty();
-    }
-
-    Mqtt::ScheduledPublish const& Mqtt::DelayedQueue::top() const {
-        return minHeap.top();
-    }
-
-    void Mqtt::DelayedQueue::pop() {
-        minHeap.pop();
-    }
-
     void Mqtt::updateSubscriptions() {
         for (auto* instance : instances) {
             instance->resubscribe();
@@ -219,6 +154,71 @@ namespace mqtt::mqttintegrator::lib {
         }
 
         currentSubscriptions = newSubscriptions;
+    }
+
+    bool Mqtt::DelayedQueue::EarlierFirst::operator()(const ScheduledPublish& a, const ScheduledPublish& b) const {
+        if (a.when != b.when) {
+            return a.when > b.when;
+        }
+
+        return a.seq > b.seq;
+    }
+
+    Mqtt::DelayedQueue::DelayedQueue(Mqtt* mqtt)
+        : mqtt(mqtt) {
+    }
+
+    Mqtt::DelayedQueue::~DelayedQueue() {
+        delayTimer.cancel();
+    }
+
+    void Mqtt::DelayedQueue::processDue() {
+        const auto now = utils::Timeval::currentTime();
+
+        while (!empty() && top().when <= now) {
+            const iot::mqtt::packets::Publish duePublish = top().publish;
+            pop();
+
+            mqtt->sendPublish(duePublish.getTopic(), duePublish.getMessage(), duePublish.getQoS(), duePublish.getRetain());
+
+            mqtt->onPublish(duePublish);
+        }
+    }
+
+    void Mqtt::DelayedQueue::armDelayTimer() {
+        delayTimer.cancel();
+
+        auto delay = top().when - utils::Timeval::currentTime();
+        if (delay < utils::Timeval{}) {
+            delay = utils::Timeval{};
+        }
+
+        delayTimer = core::timer::Timer::singleshotTimer(
+            [this]() {
+                processDue();
+
+                if (!empty()) {
+                    armDelayTimer();
+                }
+            },
+            delay);
+    }
+
+    void Mqtt::DelayedQueue::delayPublish(const utils::Timeval& delay, const iot::mqtt::packets::Publish& publish) {
+        minHeap.emplace(utils::Timeval::currentTime() + delay, nextSeq++, publish, delay);
+        armDelayTimer();
+    }
+
+    bool Mqtt::DelayedQueue::empty() const {
+        return minHeap.empty();
+    }
+
+    Mqtt::ScheduledPublish const& Mqtt::DelayedQueue::top() const {
+        return minHeap.top();
+    }
+
+    void Mqtt::DelayedQueue::pop() {
+        minHeap.pop();
     }
 
 } // namespace mqtt::mqttintegrator::lib
