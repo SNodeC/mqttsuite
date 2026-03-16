@@ -61,11 +61,12 @@ namespace mqtt::lib {
               addOptionFunction(
                   "--mqtt-mapping-file",
                   [this](const std::string& value) {
-                      mappingRootJson = JsonMappingReader::readMappingFromFile(value);
-                      if (mappingRootJson.contains("mapping")) {
-                          mqttMapper = std::make_shared<MqttMapper>(mappingRootJson["mapping"]);
+                      const nlohmann::json mappingJson = JsonMappingReader::readMappingFromFile(value);
+
+                      if (!mqttMapper) {
+                          mqttMapper = std::make_shared<MqttMapper>(mappingJson);
                       } else {
-                          mqttMapper.reset();
+                          mqttMapper->setMapping(mappingJson);
                       }
                   },
                   "MQTT mapping file (json format) for integration",
@@ -102,21 +103,13 @@ namespace mqtt::lib {
         required(mappingFileOpt, false);
 
         if (!mqttMapper) {
-            mappingRootJson = mappingJson; // This propagates to MqttMapper as this class holds a reference to mappingRootJson
-
-            if (mappingRootJson.contains("mapping")) {
-                mqttMapper = std::make_shared<MqttMapper>(mappingRootJson["mapping"]);
-            } else {
-                mqttMapper.reset();
-            }
+            mqttMapper = std::make_shared<MqttMapper>(mappingJson);
         } else {
             std::list<iot::mqtt::Topic> oldSubscriptions = mqttMapper->extractSubscriptions();
 
-            mappingRootJson = mappingJson;
+            mqttMapper->setMapping(mappingJson);
 
             std::list<iot::mqtt::Topic> newSubscriptions = mqttMapper->extractSubscriptions();
-
-            mqttMapper->renewMapping();
         }
 
         /*
@@ -158,7 +151,9 @@ namespace mqtt::lib {
     }
 
     const nlohmann::json& ConfigMqttIntegrator::getConnection() const {
-        return mappingRootJson["connection"];
+        static const nlohmann::json emptyConnection = nlohmann::json::object();
+
+        return mqttMapper ? mqttMapper->getConnection() : emptyConnection;
     }
 
 } // namespace mqtt::lib

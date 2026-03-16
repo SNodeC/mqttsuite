@@ -95,11 +95,17 @@ namespace mqtt::lib {
         activateMapping();
     }
 
+    MqttMapper* MqttMapper::setMapping(const nlohmann::json& mappingJson) {
+        this->mappingJson = mappingJson;
+
+        return renewMapping();
+    }
+
     MqttMapper* MqttMapper::activateMapping() {
-        if (mappingJson.contains("plugins")) {
+        if (mappingJson.contains("mapping") && mappingJson["mapping"].contains("plugins")) {
             VLOG(1) << "Loading plugins ...";
 
-            for (const nlohmann::json& pluginJson : mappingJson["plugins"]) {
+            for (const nlohmann::json& pluginJson : mappingJson["mapping"]["plugins"]) {
                 const std::string plugin = pluginJson;
 
                 void* handle = core::DynamicLoader::dlOpen(plugin);
@@ -182,18 +188,26 @@ namespace mqtt::lib {
         return mappingJson.dump();
     }
 
+    const nlohmann::json& MqttMapper::getConnection() const {
+        static const nlohmann::json emptyConnection = nlohmann::json::object();
+
+        return mappingJson.contains("connection") ? mappingJson["connection"] : emptyConnection;
+    }
+
     std::list<iot::mqtt::Topic> MqttMapper::extractSubscriptions() const {
         std::list<iot::mqtt::Topic> topicList;
 
-        extractSubscriptions(mappingJson, "", topicList);
+        if (mappingJson.contains("mapping")) {
+            extractSubscriptions(mappingJson["mapping"], "", topicList);
+        }
 
         return topicList;
     }
 
     MqttMapper::MappedPublishes MqttMapper::publishMappings(const iot::mqtt::packets::Publish& publish) {
         MappedPublishes mappedPublishes;
-        if (!mappingJson.empty()) {
-            nlohmann::json matchingTopicLevel = findMatchingTopicLevel(mappingJson["topic_level"], publish.getTopic());
+        if (mappingJson.contains("mapping") && !mappingJson["mapping"].empty()) {
+            nlohmann::json matchingTopicLevel = findMatchingTopicLevel(mappingJson["mapping"]["topic_level"], publish.getTopic());
 
             if (!matchingTopicLevel.empty()) {
                 const nlohmann::json& subscription = matchingTopicLevel["subscription"];
