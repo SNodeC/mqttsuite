@@ -62,7 +62,7 @@ namespace mqtt::mqttbroker::lib {
 
     Mqtt::Mqtt(const std::string& connectionName,
                const std::shared_ptr<iot::mqtt::server::broker::Broker>& broker,
-               mqtt::lib::MqttMapper* mqttMapper)
+               const std::shared_ptr<mqtt::lib::MqttMapper>& mqttMapper)
         : iot::mqtt::server::Mqtt(connectionName, broker)
         , mqttMapper(mqttMapper)
         , delayedQueue(this) {
@@ -161,9 +161,6 @@ namespace mqtt::mqttbroker::lib {
             for (const iot::mqtt::packets::Publish& mappedPublish : mappedPublishes.first) {
                 broker->publish(
                     clientId, mappedPublish.getTopic(), mappedPublish.getMessage(), mappedPublish.getQoS(), mappedPublish.getRetain());
-
-                MqttModel::instance().publishMessage(
-                    mappedPublish.getTopic(), mappedPublish.getMessage(), mappedPublish.getQoS(), mappedPublish.getRetain());
 
                 onPublish(mappedPublish);
             }

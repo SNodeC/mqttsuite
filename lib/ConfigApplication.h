@@ -53,6 +53,8 @@
 #include <string>
 #include <string_view>
 
+// IWYU pragma: no_include <nlohmann/json_fwd.hpp>
+
 #endif
 
 namespace mqtt::lib {
@@ -69,13 +71,15 @@ namespace mqtt::lib {
         ConfigApplication& setMappingFile(const std::string& mappingFile);
         std::string getMappingFile() const;
 
-        MqttMapper* getMqttMapper() const;
+        ConfigApplication& setMapping(const nlohmann::json& json);
+
+        const std::shared_ptr<MqttMapper> getMqttMapper() const;
 
     protected:
         CLI::Option* mappingFileOpt;
         CLI::Option* sessionStoreOpt;
 
-        std::unique_ptr<MqttMapper> mqttMapper;
+        std::shared_ptr<MqttMapper> mqttMapper;
         nlohmann::json mappingRootJson;
     };
 

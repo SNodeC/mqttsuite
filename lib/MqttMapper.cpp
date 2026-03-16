@@ -92,6 +92,10 @@ namespace mqtt::lib {
         : mappingJson(mappingJson) {
         injaEnvironment = new inja::Environment;
 
+        activateMapping();
+    }
+
+    MqttMapper* MqttMapper::activateMapping() {
         if (mappingJson.contains("plugins")) {
             VLOG(1) << "Loading plugins ...";
 
@@ -149,6 +153,21 @@ namespace mqtt::lib {
 
             VLOG(1) << "Loading plugins done";
         }
+
+        return this;
+    }
+
+    MqttMapper* MqttMapper::renewMapping() {
+        delete injaEnvironment;
+
+        for (void* handle : pluginHandles) {
+            core::DynamicLoader::dlClose(handle);
+        }
+        pluginHandles.clear();
+
+        injaEnvironment = new inja::Environment;
+
+        return activateMapping();
     }
 
     MqttMapper::~MqttMapper() {
