@@ -191,7 +191,11 @@ namespace mqtt::lib {
     const nlohmann::json& MqttMapper::getConnection() const {
         static const nlohmann::json emptyConnection = nlohmann::json::object();
 
-        return mappingJson.contains("connection") ? mappingJson["connection"] : emptyConnection;
+        if (mappingJson.contains("connection")) {
+            return mappingJson["connection"];
+        }
+
+        return emptyConnection;
     }
 
     std::list<iot::mqtt::Topic> MqttMapper::extractSubscriptions() const {
