@@ -47,8 +47,6 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <list>
-
 #endif
 
 namespace mqtt::lib {
@@ -90,7 +88,6 @@ namespace mqtt::lib {
 
     ConfigApplication& ConfigApplication::setMappingFile(const std::string& mappingFile) {
         setDefaultValue(mappingFileOpt, mappingFile);
-        required(mappingFileOpt, false);
 
         return setMapping(JsonMappingReader::readMappingFromFile(mappingFile));
     }
@@ -104,14 +101,12 @@ namespace mqtt::lib {
     }
 
     ConfigApplication& ConfigApplication::setMapping(const nlohmann::json& mappingJson) {
+        required(mappingFileOpt, false);
+
         if (!mqttMapper) {
             mqttMapper = std::make_shared<MqttMapper>(mappingJson);
         } else {
-            std::list<iot::mqtt::Topic> oldSubscriptions = mqttMapper->extractSubscriptions();
-
             mqttMapper->setMapping(mappingJson);
-
-            std::list<iot::mqtt::Topic> newSubscriptions = mqttMapper->extractSubscriptions();
         }
 
         return *this;

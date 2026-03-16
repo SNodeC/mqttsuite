@@ -191,7 +191,8 @@ int main(int argc, char* argv[]) {
         utils::Config::configRoot.getSubCommand<mqtt::lib::ConfigMqttIntegrator>()->getMappingFile(),
         mqtt::lib::admin::AdminOptions{},
         []() {
-            mqtt::mqttintegrator::lib::Mqtt::reloadAll();
+            utils::Config::configRoot.getSubCommand<mqtt::lib::ConfigMqttIntegrator>()->reloadMapping();
+            mqtt::mqttintegrator::lib::Mqtt::reloadSubscriptions();
         });
 
     express::legacy::in::Server("in-http", router, reportState, [](net::in::stream::legacy::config::ConfigSocketServer& config) {

@@ -51,9 +51,14 @@ namespace mqtt::lib {
     class MqttMapper;
 } // namespace mqtt::lib
 
+namespace iot::mqtt {
+    class Topic;
+} // namespace iot::mqtt
+
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <cstddef>
+#include <list>
 #include <memory>
 #include <queue>
 #include <set>
@@ -71,7 +76,7 @@ namespace mqtt::mqttintegrator::lib {
                       const std::string& sessionStoreFileName);
 
         ~Mqtt() override;
-        static void reloadAll();
+        static void reloadSubscriptions();
 
     private:
         using Super = iot::mqtt::client::Mqtt;
@@ -114,7 +119,11 @@ namespace mqtt::mqttintegrator::lib {
         void onConnack(const iot::mqtt::packets::Connack& connack) final;
         void onPublish(const iot::mqtt::packets::Publish& publish) final;
 
+        void resubscribe();
+
         std::shared_ptr<mqtt::lib::MqttMapper> mqttMapper;
+        std::list<iot::mqtt::Topic> currentSubscriptions;
+
         DelayedQueue delayedQueue;
 
         static std::set<Mqtt*> instances;

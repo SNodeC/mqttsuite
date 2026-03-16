@@ -50,8 +50,9 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include <algorithm>
 #include <functional>
-#include <list>
+#include <nlohmann/json_fwd.hpp>
 
 #endif
 
@@ -67,6 +68,7 @@ namespace mqtt::mqttintegrator::lib {
                                   mqttMapper->getConnection()["keep_alive"],
                                   sessionStoreFileName)
         , mqttMapper(mqttMapper)
+        , currentSubscriptions(mqttMapper->extractSubscriptions())
         , delayedQueue(this) {
         instances.insert(this);
     }
@@ -140,9 +142,9 @@ namespace mqtt::mqttintegrator::lib {
         minHeap.pop();
     }
 
-    void Mqtt::reloadAll() {
+    void Mqtt::reloadSubscriptions() {
         for (auto* instance : instances) {
-            instance->sendDisconnect();
+            instance->resubscribe();
         }
     }
 
@@ -165,8 +167,7 @@ namespace mqtt::mqttintegrator::lib {
 
     void Mqtt::onConnack(const iot::mqtt::packets::Connack& connack) {
         if (connack.getReturnCode() == 0 && !connack.getSessionPresent()) {
-            const std::list<iot::mqtt::Topic> topicList = mqttMapper->extractSubscriptions();
-            sendSubscribe(topicList);
+            sendSubscribe(currentSubscriptions);
         }
     }
 
@@ -182,6 +183,42 @@ namespace mqtt::mqttintegrator::lib {
 
             onPublish(mappedPublish);
         }
+    }
+
+    void Mqtt::resubscribe() {
+        std::list<iot::mqtt::Topic> newSubscriptions = mqttMapper->extractSubscriptions();
+
+        std::list<std::string> topicsToUnsubscribe;
+        for (const auto& currentTopic : currentSubscriptions) {
+            const bool existsInNew = std::any_of(newSubscriptions.begin(), newSubscriptions.end(), [&](const auto& newTopic) {
+                return currentTopic.getName() == newTopic.getName() && currentTopic.getQoS() == newTopic.getQoS();
+            });
+
+            if (!existsInNew) {
+                topicsToUnsubscribe.push_back(currentTopic.getName());
+            }
+        }
+
+        if (!topicsToUnsubscribe.empty()) {
+            sendUnsubscribe(topicsToUnsubscribe);
+        }
+
+        std::list<iot::mqtt::Topic> topicsToSubscribe;
+        for (const auto& newTopic : newSubscriptions) {
+            const bool existsInOld = std::any_of(currentSubscriptions.begin(), currentSubscriptions.end(), [&](const auto& currentTopic) {
+                return currentTopic.getName() == newTopic.getName() && currentTopic.getQoS() == newTopic.getQoS();
+            });
+
+            if (!existsInOld) {
+                topicsToSubscribe.push_back(newTopic);
+            }
+        }
+
+        if (!topicsToSubscribe.empty()) {
+            sendSubscribe(topicsToSubscribe);
+        }
+
+        currentSubscriptions = newSubscriptions;
     }
 
 } // namespace mqtt::mqttintegrator::lib
