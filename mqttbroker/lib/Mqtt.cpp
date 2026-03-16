@@ -89,23 +89,12 @@ namespace mqtt::mqttbroker::lib {
 
         while (!empty() && top().when <= now) {
             const iot::mqtt::packets::Publish duePublish = top().publish;
+            pop();
 
             mqtt->broker->publish(
                 mqtt->clientId, duePublish.getTopic(), duePublish.getMessage(), duePublish.getQoS(), duePublish.getRetain());
 
-            mqtt::lib::MqttMapper::MappedPublishes mappedPublishes = mqtt->mqttMapper->publishMappings(duePublish);
-            for (const iot::mqtt::packets::Publish& mappedPublish : mappedPublishes.first) {
-                mqtt->broker->publish(mqtt->clientId,
-                                      mappedPublish.getTopic(),
-                                      mappedPublish.getMessage(),
-                                      mappedPublish.getQoS(),
-                                      mappedPublish.getRetain());
-            }
-            for (const mqtt::lib::MqttMapper::ScheduledPublish& delayedPublish : mappedPublishes.second) {
-                delayPublish(delayedPublish.delay, delayedPublish.publish);
-            }
-
-            pop();
+            mqtt->onPublish(duePublish);
         }
     }
 
@@ -165,25 +154,18 @@ namespace mqtt::mqttbroker::lib {
         if (mqttMapper != nullptr) {
             mqtt::lib::MqttMapper::MappedPublishes mappedPublishes = mqttMapper->publishMappings(publish);
 
+            for (const mqtt::lib::MqttMapper::ScheduledPublish& delayedPublish : mappedPublishes.second) {
+                delayedQueue.delayPublish(delayedPublish.delay, delayedPublish.publish);
+            }
+
             for (const iot::mqtt::packets::Publish& mappedPublish : mappedPublishes.first) {
                 broker->publish(
                     clientId, mappedPublish.getTopic(), mappedPublish.getMessage(), mappedPublish.getQoS(), mappedPublish.getRetain());
 
-                mqtt::lib::MqttMapper::MappedPublishes recursiveMappedPublishes = mqttMapper->publishMappings(mappedPublish);
-                for (const iot::mqtt::packets::Publish& recursiveMappedPublish : recursiveMappedPublishes.first) {
-                    broker->publish(clientId,
-                                    recursiveMappedPublish.getTopic(),
-                                    recursiveMappedPublish.getMessage(),
-                                    recursiveMappedPublish.getQoS(),
-                                    recursiveMappedPublish.getRetain());
-                }
-                for (const mqtt::lib::MqttMapper::ScheduledPublish& delayedPublish : recursiveMappedPublishes.second) {
-                    delayedQueue.delayPublish(delayedPublish.delay, delayedPublish.publish);
-                }
-            }
+                MqttModel::instance().publishMessage(
+                    mappedPublish.getTopic(), mappedPublish.getMessage(), mappedPublish.getQoS(), mappedPublish.getRetain());
 
-            for (const mqtt::lib::MqttMapper::ScheduledPublish& delayedPublish : mappedPublishes.second) {
-                delayedQueue.delayPublish(delayedPublish.delay, delayedPublish.publish);
+                onPublish(mappedPublish);
             }
         }
     }

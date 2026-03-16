@@ -99,17 +99,11 @@ namespace mqtt::mqttintegrator::lib {
 
         while (!empty() && top().when <= now) {
             const iot::mqtt::packets::Publish duePublish = top().publish;
+            pop();
+
             mqtt->sendPublish(duePublish.getTopic(), duePublish.getMessage(), duePublish.getQoS(), duePublish.getRetain());
 
-            mqtt::lib::MqttMapper::MappedPublishes mappedPublishes = mqtt->mqttMapper->publishMappings(duePublish);
-            for (const iot::mqtt::packets::Publish& mappedPublish : mappedPublishes.first) {
-                mqtt->sendPublish(mappedPublish.getTopic(), mappedPublish.getMessage(), mappedPublish.getQoS(), mappedPublish.getRetain());
-            }
-            for (const mqtt::lib::MqttMapper::ScheduledPublish& delayedPublish : mappedPublishes.second) {
-                delayPublish(delayedPublish.delay, delayedPublish.publish);
-            }
-
-            pop();
+            mqtt->onPublish(duePublish);
         }
     }
 
@@ -133,7 +127,7 @@ namespace mqtt::mqttintegrator::lib {
     }
 
     void Mqtt::DelayedQueue::delayPublish(const utils::Timeval& delay, const iot::mqtt::packets::Publish& publish) {
-        minHeap.push({utils::Timeval::currentTime() + delay, nextSeq++, publish, delay});
+        minHeap.emplace(utils::Timeval::currentTime() + delay, nextSeq++, publish, delay);
         armDelayTimer();
     }
 
@@ -182,12 +176,14 @@ namespace mqtt::mqttintegrator::lib {
     void Mqtt::onPublish(const iot::mqtt::packets::Publish& publish) {
         mqtt::lib::MqttMapper::MappedPublishes mappedPublishes = mqttMapper->publishMappings(publish);
 
-        for (const iot::mqtt::packets::Publish& mappedPublish : mappedPublishes.first) {
-            sendPublish(mappedPublish.getTopic(), mappedPublish.getMessage(), mappedPublish.getQoS(), mappedPublish.getRetain());
-        }
-
         for (const mqtt::lib::MqttMapper::ScheduledPublish& delayedPublish : mappedPublishes.second) {
             delayedQueue.delayPublish(delayedPublish.delay, delayedPublish.publish);
+        }
+
+        for (const iot::mqtt::packets::Publish& mappedPublish : mappedPublishes.first) {
+            sendPublish(mappedPublish.getTopic(), mappedPublish.getMessage(), mappedPublish.getQoS(), mappedPublish.getRetain());
+
+            onPublish(mappedPublish);
         }
     }
 

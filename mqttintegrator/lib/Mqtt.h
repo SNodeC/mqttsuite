@@ -78,8 +78,8 @@ namespace mqtt::mqttintegrator::lib {
         using Super = iot::mqtt::client::Mqtt;
 
         struct ScheduledPublish {
-            utils::Timeval when;
-            std::size_t seq;
+            utils::Timeval when = 0;
+            std::size_t seq = 0;
             iot::mqtt::packets::Publish publish;
             utils::Timeval delay;
         };
