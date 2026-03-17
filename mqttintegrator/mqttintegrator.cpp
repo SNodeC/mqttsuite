@@ -189,11 +189,17 @@ int main(int argc, char* argv[]) {
     // Instanciate Admin Router for Mapping Management
     mqtt::lib::ConfigMqttIntegrator* configMqttIntegrator = utils::Config::configRoot.getSubCommand<mqtt::lib::ConfigMqttIntegrator>();
 
-    express::Router router = mqtt::lib::admin::makeMappingAdminRouter(
-        configMqttIntegrator->getMappingFile(), mqtt::lib::admin::AdminOptions{}, [configMqttIntegrator]() {
-            configMqttIntegrator->reloadMapping();
-            mqtt::mqttintegrator::lib::Mqtt::updateSubscriptions();
-        });
+    express::Router router =
+        mqtt::lib::admin::makeMappingAdminRouter(configMqttIntegrator->getMappingFile(),
+                                                 mqtt::lib::admin::AdminOptions{},
+                                                 [configMqttIntegrator]() -> mqtt::lib::admin::ReloadResult {
+                                                     bool mustReconnect =
+                                                         configMqttIntegrator->reloadMapping(); // throws in case of an error during loading
+                                                                                                // or validation. This exeption is catched
+                                                                                                // in the MappingAdminRouter
+
+                                                     return mqtt::mqttintegrator::lib::Mqtt::updateSubscriptions(mustReconnect);
+                                                 });
 
     express::legacy::in::Server("in-http", router, reportState, [](net::in::stream::legacy::config::ConfigSocketServer& config) {
         config.setPort(8085);

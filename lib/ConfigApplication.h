@@ -67,11 +67,11 @@ namespace mqtt::lib {
         ConfigApplication& setSessionStore(const std::string& sessionStore);
         std::string getSessionStore() const;
 
-        ConfigApplication& setMappingFile(const std::string& mappingFile);
+        bool setMappingFile(const std::string& mappingFile); // can throw
         std::string getMappingFile() const;
 
-        ConfigApplication& reloadMapping();
-        ConfigApplication& setMapping(const nlohmann::json& json);
+        bool reloadMapping();                        // can throw
+        bool setMapping(const nlohmann::json& json); // can throw
 
         const std::shared_ptr<MqttMapper> getMqttMapper() const;
 

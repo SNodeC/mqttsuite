@@ -49,6 +49,9 @@
 
 namespace mqtt::lib {
     class MqttMapper;
+    namespace admin {
+        struct ReloadResult;
+    }
 } // namespace mqtt::lib
 
 namespace iot::mqtt {
@@ -63,6 +66,7 @@ namespace iot::mqtt {
 #include <queue>
 #include <set>
 #include <string>
+#include <utility>
 #include <vector>
 
 #endif
@@ -76,7 +80,7 @@ namespace mqtt::mqttintegrator::lib {
                       const std::string& sessionStoreFileName);
 
         ~Mqtt() override;
-        static void updateSubscriptions();
+        static mqtt::lib::admin::ReloadResult updateSubscriptions(bool mustReconnect);
 
     private:
         using Super = iot::mqtt::client::Mqtt;
@@ -94,7 +98,7 @@ namespace mqtt::mqttintegrator::lib {
         void onConnack(const iot::mqtt::packets::Connack& connack) final;
         void onPublish(const iot::mqtt::packets::Publish& publish) final;
 
-        void resubscribe();
+        std::pair<std::size_t, std::size_t> resubscribe();
 
         std::shared_ptr<mqtt::lib::MqttMapper> mqttMapper;
         std::list<iot::mqtt::Topic> currentSubscriptions;
@@ -125,7 +129,7 @@ namespace mqtt::mqttintegrator::lib {
             void armDelayTimer();
         } delayedQueue;
 
-        static std::set<Mqtt*> instances;
+        static std::set<Mqtt*> mqttInstances;
     };
 
 } // namespace mqtt::mqttintegrator::lib

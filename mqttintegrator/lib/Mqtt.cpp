@@ -43,6 +43,7 @@
 
 #include "Mqtt.h"
 
+#include "lib/MappingAdminRouter.h"
 #include "lib/MqttMapper.h"
 
 #include <iot/mqtt/Topic.h> // IWYU pragma: keep
@@ -58,7 +59,7 @@
 
 namespace mqtt::mqttintegrator::lib {
 
-    std::set<Mqtt*> Mqtt::instances;
+    std::set<Mqtt*> Mqtt::mqttInstances;
 
     Mqtt::Mqtt(const std::string& connectionName,
                std::shared_ptr<mqtt::lib::MqttMapper> mqttMapper,
@@ -70,17 +71,35 @@ namespace mqtt::mqttintegrator::lib {
         , mqttMapper(mqttMapper)
         , currentSubscriptions(mqttMapper->extractSubscriptions())
         , delayedQueue(this) {
-        instances.insert(this);
+        mqttInstances.insert(this);
     }
 
     Mqtt::~Mqtt() {
-        instances.erase(this);
+        mqttInstances.erase(this);
     }
 
-    void Mqtt::updateSubscriptions() {
-        for (auto* instance : instances) {
-            instance->resubscribe();
+    mqtt::lib::admin::ReloadResult Mqtt::updateSubscriptions(bool mustReconnect) {
+        mqtt::lib::admin::ReloadResult reloadResult;
+
+        reloadResult.instances = mqttInstances.size();
+        if (mustReconnect) {
+            reloadResult.mode = "reconnect";
+        } else {
+            reloadResult.mode = "hot";
         }
+
+        for (Mqtt* mqtt : mqttInstances) {
+            if (mustReconnect) {
+                mqtt->sendDisconnect();
+            } else {
+                auto [subscribeCount, unsubscribeCount] = mqtt->resubscribe();
+
+                reloadResult.subscribed += subscribeCount;
+                reloadResult.unsubscribed += unsubscribeCount;
+            }
+        }
+
+        return reloadResult;
     }
 
     void Mqtt::onConnected() {
@@ -120,7 +139,20 @@ namespace mqtt::mqttintegrator::lib {
         }
     }
 
-    void Mqtt::resubscribe() {
+    std::pair<std::size_t, std::size_t> Mqtt::resubscribe() {
+        struct ReloadResult {
+            std::string mode{"hot"};
+            std::string reason{"mapping-only"};
+            bool partialHotReload{false};
+            std::size_t instances{0};
+            std::size_t subscriptionsAddedOrChanged{0};
+            std::size_t removedSubscriptionsNotApplied{0};
+            std::size_t droppedDelayedPublishes{0};
+            std::size_t disconnectedInstances{0};
+        };
+
+        mqtt::lib::admin::ReloadResult result;
+
         std::list<iot::mqtt::Topic> newSubscriptions = mqttMapper->extractSubscriptions();
 
         std::list<std::string> topicsToUnsubscribe;
@@ -154,6 +186,8 @@ namespace mqtt::mqttintegrator::lib {
         }
 
         currentSubscriptions = newSubscriptions;
+
+        return {topicsToSubscribe.size(), topicsToUnsubscribe.size()};
     }
 
     bool Mqtt::DelayedQueue::EarlierFirst::operator()(const ScheduledPublish& a, const ScheduledPublish& b) const {

@@ -80,6 +80,7 @@
 #include <log/Logger.h>
 #include <map>
 #include <nlohmann/json.hpp>
+#include <stdexcept>
 #include <vector>
 
 #endif
@@ -92,7 +93,9 @@ namespace mqtt::lib {
         : injaEnvironment(new inja::Environment) {
     }
 
-    MqttMapper* MqttMapper::setMapping(const nlohmann::json& mappingJson) {
+    bool MqttMapper::setMapping(const nlohmann::json& mappingJson) { // can throw
+        bool mustReconnect = this->mappingJson["connection"] != mappingJson["connection"];
+
         this->mappingJson = mappingJson;
 
         delete injaEnvironment;
@@ -104,7 +107,7 @@ namespace mqtt::lib {
 
         injaEnvironment = new inja::Environment;
 
-        if (mappingJson.contains("mapping") && mappingJson["mapping"].contains("plugins")) {
+        if (mappingJson["mapping"].contains("plugins")) {
             VLOG(1) << "Loading plugins ...";
 
             for (const nlohmann::json& pluginJson : mappingJson["mapping"]["plugins"]) {
@@ -156,13 +159,14 @@ namespace mqtt::lib {
                     VLOG(1) << "  Loading plugin done: " << plugin;
                 } else {
                     VLOG(1) << "  Error loading plugin: " << plugin;
+                    throw std::runtime_error("Loading plugin: " + plugin);
                 }
             }
 
             VLOG(1) << "Loading plugins done";
         }
 
-        return this;
+        return mustReconnect;
     }
 
     MqttMapper::~MqttMapper() {
@@ -184,9 +188,7 @@ namespace mqtt::lib {
     std::list<iot::mqtt::Topic> MqttMapper::extractSubscriptions() const {
         std::list<iot::mqtt::Topic> topicList;
 
-        if (mappingJson.contains("mapping")) {
-            extractSubscriptions(mappingJson["mapping"], "", topicList);
-        }
+        extractSubscriptions(mappingJson["mapping"], "", topicList);
 
         return topicList;
     }

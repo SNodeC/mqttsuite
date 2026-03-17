@@ -69,7 +69,10 @@ namespace mqtt::lib {
 
 #include "mapping-schema.json.h" // definition of mappingJsonSchemaString
 
-    nlohmann::json JsonMappingReader::mappingJsonSchema = nlohmann::json::parse(mappingJsonSchemaString);
+    const nlohmann::json JsonMappingReader::mappingJsonSchema = nlohmann::json::parse(mappingJsonSchemaString);
+
+    const nlohmann::json_schema::json_validator
+        JsonMappingReader::validator(mappingJsonSchema, nullptr, nlohmann::json_schema::default_string_format_check);
 
     nlohmann::json JsonMappingReader::readMappingFromFile(const std::string& mapFilePath) {
         nlohmann::json mapFileJson;
@@ -83,42 +86,36 @@ namespace mqtt::lib {
                 try {
                     mapFile >> mapFileJson;
 
+                    mapFile.close();
                     try {
-                        const nlohmann::json_schema::json_validator validator(
-                            mappingJsonSchema, nullptr, nlohmann::json_schema::default_string_format_check);
+                        const nlohmann::json defaultPatch = validator.validate(mapFileJson);
 
                         try {
-                            const nlohmann::json defaultPatch = validator.validate(mapFileJson);
-
-                            try {
-                                mapFileJson = mapFileJson.patch(defaultPatch);
-                                VLOG(0) << "Patched: \n" << mapFileJson.dump(4);
-                            } catch (const std::exception& e) {
-                                VLOG(1) << e.what();
-                                VLOG(1) << "Patching JSON with default patch failed:\n" << defaultPatch.dump(4);
-                                mapFileJson.clear();
-                            }
+                            mapFileJson = mapFileJson.patch(defaultPatch);
+                            VLOG(0) << "Patched: \n" << mapFileJson.dump(4);
                         } catch (const std::exception& e) {
-                            VLOG(1) << "  Validating JSON failed:\n" << mapFileJson.dump(4);
-                            VLOG(1) << "    " << e.what();
-                            mapFileJson.clear();
+                            VLOG(1) << e.what();
+                            VLOG(1) << "Patching JSON with default patch failed:\n" << defaultPatch.dump(4);
+                            throw std::runtime_error("Patching JSON with default patch failed:\n" + defaultPatch.dump(4) +
+                                                     "\nWhat: " + e.what());
                         }
                     } catch (const std::exception& e) {
-                        VLOG(1) << e.what();
-                        VLOG(1) << "Setting root json mapping schema failed:\n" << mappingJsonSchema.dump(4);
-                        mapFileJson.clear();
+                        VLOG(1) << "  Validating JSON failed:\n" << mapFileJson.dump(4);
+                        VLOG(1) << "    " << e.what();
+                        throw std::runtime_error("Validating JSON failed:\n" + mapFileJson.dump(4) + "\nWhat: " + e.what());
                     }
                 } catch (const std::exception& e) {
-                    VLOG(1) << "JSON map file parsing failed: " << e.what() << " at " << mapFile.tellg();
-                    mapFileJson.clear();
-                }
+                    mapFile.close();
 
-                mapFile.close();
+                    VLOG(1) << "JSON map file parsing failed: " << e.what() << " at " << mapFile.tellg();
+                    throw std::runtime_error("JSON map file parsing faile at: " + std::to_string(mapFile.tellg()) + "\nWhat: " + e.what());
+                }
             } else {
-                VLOG(1) << "MappingFilePath: " << mapFilePath << " not found";
+                VLOG(1) << "MappingFile: " << mapFilePath << " not found";
             }
         } else {
-            VLOG(1) << "MappingFilePath empty";
+            VLOG(1) << "MappingFile not set";
+            throw std::runtime_error("MappingFile not set");
         }
 
         return mapFileJson;

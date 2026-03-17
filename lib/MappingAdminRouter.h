@@ -46,6 +46,7 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include <cstddef>
 #include <functional>
 #include <string>
 
@@ -59,8 +60,15 @@ namespace mqtt::lib::admin {
         std::string realm{"mqttsuite-admin"};
     };
 
+    struct ReloadResult {
+        std::string mode;
+        std::size_t instances{0};
+        std::size_t subscribed{0};
+        std::size_t unsubscribed{0};
+    };
+
     // Callback to trigger reload in the main application
-    using ReloadCallback = std::function<void()>;
+    using ReloadCallback = std::function<ReloadResult()>;
 
     // Creates and returns a Router that handles /config/* endpoints.
     express::Router makeMappingAdminRouter(const std::string& mappingFilePath, const AdminOptions& opt, ReloadCallback onDeploy);

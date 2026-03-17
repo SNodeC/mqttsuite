@@ -50,6 +50,10 @@
 #include <string>
 #include <vector>
 
+namespace nlohmann::json_schema {
+    class json_validator;
+}
+
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
 namespace mqtt::lib {
@@ -81,8 +85,13 @@ namespace mqtt::lib {
         static void rollbackTo(const std::string& mapFilePath, const std::string& versionId);
 
     private:
-        static nlohmann::json mappingJsonSchema;
+        static nlohmann::json getDefaultPatch(const nlohmann::json& inputJson);
+
+        static const nlohmann::json mappingJsonSchema;
         static const std::string mappingJsonSchemaString;
+
+    public:
+        static const nlohmann::json_schema::json_validator validator;
     };
 
 } // namespace mqtt::lib

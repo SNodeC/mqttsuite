@@ -83,7 +83,7 @@ namespace mqtt::lib {
 
         virtual ~MqttMapper();
 
-        MqttMapper* setMapping(const nlohmann::json& mappingJson);
+        bool setMapping(const nlohmann::json& mappingJson); // can throw
 
         std::string dump();
 
