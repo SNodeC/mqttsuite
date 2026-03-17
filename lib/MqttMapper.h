@@ -93,8 +93,6 @@ namespace mqtt::lib {
         MappedPublishes publishMappings(const iot::mqtt::packets::Publish& publish);
 
     private:
-        MqttMapper* activateMapping();
-
         static void
         extractSubscription(const nlohmann::json& topicLevelJson, const std::string& topic, std::list<iot::mqtt::Topic>& topicList);
         static void

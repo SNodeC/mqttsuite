@@ -95,10 +95,6 @@ namespace mqtt::lib {
     MqttMapper* MqttMapper::setMapping(const nlohmann::json& mappingJson) {
         this->mappingJson = mappingJson;
 
-        return activateMapping();
-    }
-
-    MqttMapper* MqttMapper::activateMapping() {
         delete injaEnvironment;
 
         for (void* handle : pluginHandles) {
