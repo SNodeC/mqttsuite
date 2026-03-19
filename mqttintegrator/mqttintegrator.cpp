@@ -183,15 +183,11 @@ int main(int argc, char* argv[]) {
     web::websocket::client::SubProtocolFactorySelector::link("mqtt", mqttClientSubProtocolFactory);
 #endif
 
-    // /home/voc/projects/mqttsuite/mqttsuite/mapfile.json
-
-    utils::Config::configRoot.newSubCommand<mqtt::lib::ConfigMqttIntegrator>();
+    mqtt::lib::ConfigMqttIntegrator* configMqttIntegrator = utils::Config::configRoot.newSubCommand<mqtt::lib::ConfigMqttIntegrator>();
 
     core::SNodeC::init(argc, argv);
 
     // Instanciate Admin Router for Mapping Management
-    mqtt::lib::ConfigMqttIntegrator* configMqttIntegrator = utils::Config::configRoot.getSubCommand<mqtt::lib::ConfigMqttIntegrator>();
-
     express::Router router = mqtt::lib::admin::makeMappingAdminRouter(
         configMqttIntegrator->getMappingFile(),
         mqtt::lib::admin::AdminOptions{},
@@ -212,8 +208,6 @@ int main(int argc, char* argv[]) {
         config.setRetry();
     });
 
-    const std::string sessionStoreFileName = utils::Config::configRoot.getSubCommand<mqtt::lib::ConfigMqttIntegrator>()->getSessionStore();
-
 #if defined(CONFIG_MQTTSUITE_INTEGRATOR_TCP_IPV4)
     startClient<net::in::stream::legacy::SocketClient>( //
         "in-mqtt",
@@ -221,8 +215,7 @@ int main(int argc, char* argv[]) {
             config.Remote::setPort(1883);
 
             config.setDisableNagleAlgorithm();
-        },
-        sessionStoreFileName);
+        });
 #endif // CONFIG_MQTTSUITE_INTEGRATOR_TCP_IPV4
 
 #if defined(CONFIG_MQTTSUITE_INTEGRATOR_TLS_IPV4)
@@ -231,8 +224,7 @@ int main(int argc, char* argv[]) {
         [](net::in::stream::tls::config::ConfigSocketClient& config) {
             config.Remote::setPort(1883);
             config.setDisableNagleAlgorithm();
-        },
-        sessionStoreFileName);
+        });
 #endif
 
 #if defined(CONFIG_MQTTSUITE_INTEGRATOR_TCP_IPV6)
@@ -241,8 +233,7 @@ int main(int argc, char* argv[]) {
         [](net::in6::stream::legacy::config::ConfigSocketClient& config) {
             config.Remote::setPort(1883);
             config.setDisableNagleAlgorithm();
-        },
-        sessionStoreFileName);
+        });
 #endif
 
 #if defined(CONFIG_MQTTSUITE_INTEGRATOR_TLS_IPV6)
@@ -251,24 +242,21 @@ int main(int argc, char* argv[]) {
         [](net::in6::stream::tls::config::ConfigSocketClient& config) {
             config.Remote::setPort(1883);
             config.setDisableNagleAlgorithm();
-        },
-        sessionStoreFileName);
+        });
 #endif
 
 #if defined(CONFIG_MQTTSUITE_INTEGRATOR_UNIX)
     startClient<net::un::stream::legacy::SocketClient>( //
         "un-mqtt",
         []([[maybe_unused]] const net::un::stream::legacy::config::ConfigSocketClient& config) {
-        },
-        sessionStoreFileName);
+        });
 #endif
 
 #if defined(CONFIG_MQTTSUITE_INTEGRATOR_UNIX_TLS)
     startClient<net::un::stream::tls::SocketClient>( //
         "un-mqtts",
         []([[maybe_unused]] const net::un::stream::tls::config::ConfigSocketClient& config) {
-        },
-        sessionStoreFileName);
+        });
 #endif
 
 #if defined(CONFIG_MQTTSUITE_INTEGRATOR_TCP_IPV4) && defined(CONFIG_MQTTSUITE_INTEGRATOR_WS)

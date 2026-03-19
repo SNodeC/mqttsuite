@@ -50,6 +50,8 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include <stdexcept>
+
 #endif
 
 namespace mqtt::mqttintegrator::websocket {
@@ -63,11 +65,18 @@ namespace mqtt::mqttintegrator::websocket {
     iot::mqtt::client::SubProtocol* SubProtocolFactory::create(web::websocket::SubProtocolContext* subProtocolContext) {
         mqtt::lib::ConfigMqttIntegrator* config = utils::Config::configRoot.getSubCommand<mqtt::lib::ConfigMqttIntegrator>();
 
-        return new iot::mqtt::client::SubProtocol(
-            subProtocolContext,
-            getName(),
-            new mqtt::mqttintegrator::lib::Mqtt(
-                subProtocolContext->getSocketConnection()->getConnectionName(), config->getMqttMapper(), config->getSessionStore()));
+        iot::mqtt::client::SubProtocol* subProtocol = nullptr;
+
+        try {
+            subProtocol = new iot::mqtt::client::SubProtocol(
+                subProtocolContext,
+                getName(),
+                new mqtt::mqttintegrator::lib::Mqtt(
+                    subProtocolContext->getSocketConnection()->getConnectionName(), config->getMqttMapper(), config->getSessionStore()));
+        } catch (const std::exception&) {
+        }
+
+        return subProtocol;
     }
 
 } // namespace mqtt::mqttintegrator::websocket
