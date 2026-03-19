@@ -112,20 +112,18 @@ namespace mqtt::lib {
     }
 
     bool MqttMapper::setMapping(nlohmann::json mappingJson) { // can throw
-        try {
-            const nlohmann::json defaultPatch = validator.validate(mappingJson);
+        nlohmann::json defaultPatch;
 
-            try {
-                mappingJson = mappingJson.patch(defaultPatch);
-            } catch (const std::exception& e) {
-                VLOG(1) << e.what();
-                VLOG(1) << "Patching JSON with default patch failed:\n" << defaultPatch.dump(4);
-                throw std::runtime_error("Patching JSON with default patch failed:\n" + defaultPatch.dump(4) + "\nWhat: " + e.what());
-            }
+        try {
+            defaultPatch = validator.validate(mappingJson);
         } catch (const std::exception& e) {
-            VLOG(1) << "  Validating JSON failed:\n" << mappingJson.dump(4);
-            VLOG(1) << "    " << e.what();
-            throw std::runtime_error("Validating JSON failed:\n" + mappingJson.dump(4) + "\nWhat: " + e.what());
+            throw std::runtime_error("Validating JSON failed: Mapping JSON = " + mappingJson.dump(4) + "\n" + e.what());
+        }
+
+        try {
+            mappingJson = mappingJson.patch(defaultPatch);
+        } catch (const std::exception& e) {
+            throw std::runtime_error("Patching JSON with default patch failed: Default patch = " + defaultPatch.dump(4) + "\n" + e.what());
         }
 
         bool mustReconnect = this->mappingJson["connection"] != mappingJson["connection"];
