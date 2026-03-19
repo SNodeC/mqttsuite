@@ -58,7 +58,7 @@ target_compile_options(
 find_package(nlohmann_json 3.7.0 REQUIRED)
 find_package(
     snodec
-    COMPONENTS mqtt
+    COMPONENTS mqtt http-server-express
     REQUIRED
 )
 
@@ -117,8 +117,9 @@ endif()
 target_include_directories(mqtt-mapping PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 target_link_libraries(
-    mqtt-mapping PUBLIC snodec::mqtt nlohmann_json_schema_validator
-                        nlohmann_json::nlohmann_json
+    mqtt-mapping
+    PUBLIC snodec::mqtt nlohmann_json_schema_validator
+           nlohmann_json::nlohmann_json snodec::http-server-express
 )
 
 set_target_properties(mqtt-mapping PROPERTIES POSITION_INDEPENDENT_CODE ON)

@@ -61,21 +61,13 @@ namespace mqtt::mqttintegrator::websocket {
     }
 
     iot::mqtt::client::SubProtocol* SubProtocolFactory::create(web::websocket::SubProtocolContext* subProtocolContext) {
-        iot::mqtt::client::SubProtocol* subProtocol = nullptr;
-
         mqtt::lib::ConfigMqttIntegrator* config = utils::Config::configRoot.getSubCommand<mqtt::lib::ConfigMqttIntegrator>();
 
-        if (config->getMqttMapper() != nullptr) {
-            subProtocol = new iot::mqtt::client::SubProtocol(
-                subProtocolContext,
-                getName(),
-                new mqtt::mqttintegrator::lib::Mqtt(subProtocolContext->getSocketConnection()->getConnectionName(),
-                                                    config->getConnection(),
-                                                    config->getMqttMapper(),
-                                                    config->getSessionStore()));
-        }
-
-        return subProtocol;
+        return new iot::mqtt::client::SubProtocol(
+            subProtocolContext,
+            getName(),
+            new mqtt::mqttintegrator::lib::Mqtt(
+                subProtocolContext->getSocketConnection()->getConnectionName(), config->getMqttMapper(), config->getSessionStore()));
     }
 
 } // namespace mqtt::mqttintegrator::websocket

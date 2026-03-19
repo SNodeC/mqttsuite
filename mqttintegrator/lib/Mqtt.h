@@ -49,15 +49,24 @@
 
 namespace mqtt::lib {
     class MqttMapper;
-}
+    namespace admin {
+        struct ReloadResult;
+    }
+} // namespace mqtt::lib
+
+namespace iot::mqtt {
+    class Topic;
+} // namespace iot::mqtt
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <cstddef>
-#include <nlohmann/json_fwd.hpp>
+#include <list>
+#include <memory>
 #include <queue>
 #include <set>
 #include <string>
+#include <utility>
 #include <vector>
 
 #endif
@@ -67,12 +76,11 @@ namespace mqtt::mqttintegrator::lib {
     class Mqtt : public iot::mqtt::client::Mqtt {
     public:
         explicit Mqtt(const std::string& connectionName,
-                      const nlohmann::json& connectionJson,
-                      mqtt::lib::MqttMapper* mqttMapper,
+                      std::shared_ptr<mqtt::lib::MqttMapper> mqttMapper,
                       const std::string& sessionStoreFileName);
 
         ~Mqtt() override;
-        static void reloadAll();
+        static mqtt::lib::admin::ReloadResult updateSubscriptions(bool mustReconnect);
 
     private:
         using Super = iot::mqtt::client::Mqtt;
@@ -84,11 +92,23 @@ namespace mqtt::mqttintegrator::lib {
             utils::Timeval delay;
         };
 
-        struct EarlierFirst {
-            bool operator()(const ScheduledPublish& a, const ScheduledPublish& b) const;
-        };
+        void onConnected() final;
+        [[nodiscard]] bool onSignal(int signum) final;
+
+        void onConnack(const iot::mqtt::packets::Connack& connack) final;
+        void onPublish(const iot::mqtt::packets::Publish& publish) final;
+
+        std::pair<std::size_t, std::size_t> resubscribe();
+
+        std::shared_ptr<mqtt::lib::MqttMapper> mqttMapper;
+        std::list<iot::mqtt::Topic> currentSubscriptions;
 
         class DelayedQueue {
+        private:
+            struct EarlierFirst {
+                bool operator()(const ScheduledPublish& a, const ScheduledPublish& b) const;
+            };
+
         public:
             explicit DelayedQueue(Mqtt* mqtt);
             ~DelayedQueue();
@@ -107,19 +127,9 @@ namespace mqtt::mqttintegrator::lib {
             core::timer::Timer delayTimer;
             void processDue();
             void armDelayTimer();
-        };
+        } delayedQueue;
 
-        void onConnected() final;
-        [[nodiscard]] bool onSignal(int signum) final;
-
-        void onConnack(const iot::mqtt::packets::Connack& connack) final;
-        void onPublish(const iot::mqtt::packets::Publish& publish) final;
-
-        const nlohmann::json& connectionJson;
-        mqtt::lib::MqttMapper* mqttMapper;
-        DelayedQueue delayedQueue;
-
-        static std::set<Mqtt*> instances;
+        static std::set<Mqtt*> mqttInstances;
     };
 
 } // namespace mqtt::mqttintegrator::lib

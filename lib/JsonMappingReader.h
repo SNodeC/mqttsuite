@@ -59,14 +59,12 @@ namespace mqtt::lib {
         JsonMappingReader() = delete;
 
     public:
-        static nlohmann::json& readMappingFromFile(const std::string& mapFilePath);
-
-        static const nlohmann::json& getSchema();
+        static nlohmann::json readMappingFromFile(const std::string& mapFilePath);
 
         // Admin / Live Reload Support
         static void saveDraft(const std::string& mapFilePath, const nlohmann::json& content);
         static nlohmann::json readDraftOrActive(const std::string& mapFilePath);
-        static void deployDraft(const std::string& mapFilePath);
+        static nlohmann::json deployDraft(const std::string& mapFilePath);
         static void discardDraft(const std::string& mapFilePath);
         static std::string getDraftPath(const std::string& mapFilePath);
 
@@ -81,11 +79,7 @@ namespace mqtt::lib {
         static void rollbackTo(const std::string& mapFilePath, const std::string& versionId);
 
     private:
-        static nlohmann::json mappingJsonSchema;
-        static const std::string mappingJsonSchemaString;
-
-        static nlohmann::json mapFileJson;
-        static nlohmann::json mapFileJsonDefaultPatched;
+        static nlohmann::json getDefaultPatch(const nlohmann::json& inputJson);
     };
 
 } // namespace mqtt::lib

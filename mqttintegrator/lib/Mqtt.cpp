@@ -43,6 +43,7 @@
 
 #include "Mqtt.h"
 
+#include "lib/MappingAdminRouter.h"
 #include "lib/MqttMapper.h"
 
 #include <iot/mqtt/Topic.h> // IWYU pragma: keep
@@ -50,35 +51,133 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include <algorithm>
 #include <functional>
-#include <list>
-#include <nlohmann/json.hpp>
+#include <nlohmann/json_fwd.hpp>
 
 #endif
 
 namespace mqtt::mqttintegrator::lib {
 
-    std::set<Mqtt*> Mqtt::instances;
+    std::set<Mqtt*> Mqtt::mqttInstances;
 
     Mqtt::Mqtt(const std::string& connectionName,
-               const nlohmann::json& connectionJson,
-               mqtt::lib::MqttMapper* mqttMapper,
+               std::shared_ptr<mqtt::lib::MqttMapper> mqttMapper,
                const std::string& sessionStoreFileName)
         : iot::mqtt::client::Mqtt(connectionName, //
-                                  connectionJson["client_id"],
-                                  connectionJson["keep_alive"],
+                                  mqttMapper->getConnection()["client_id"],
+                                  mqttMapper->getConnection()["keep_alive"],
                                   sessionStoreFileName)
-        , connectionJson(connectionJson)
         , mqttMapper(mqttMapper)
+        , currentSubscriptions(mqttMapper->extractSubscriptions())
         , delayedQueue(this) {
-        instances.insert(this);
+        mqttInstances.insert(this);
     }
 
     Mqtt::~Mqtt() {
-        instances.erase(this);
+        mqttInstances.erase(this);
     }
 
-    bool Mqtt::EarlierFirst::operator()(const ScheduledPublish& a, const ScheduledPublish& b) const {
+    mqtt::lib::admin::ReloadResult Mqtt::updateSubscriptions(bool mustReconnect) {
+        mqtt::lib::admin::ReloadResult reloadResult;
+
+        reloadResult.instances = mqttInstances.size();
+        if (mustReconnect) {
+            reloadResult.mode = "reconnect";
+        } else {
+            reloadResult.mode = "hot";
+        }
+
+        for (Mqtt* mqtt : mqttInstances) {
+            if (mustReconnect) {
+                mqtt->sendDisconnect();
+            } else {
+                auto [subscribeCount, unsubscribeCount] = mqtt->resubscribe();
+
+                reloadResult.subscribed += subscribeCount;
+                reloadResult.unsubscribed += unsubscribeCount;
+            }
+        }
+
+        return reloadResult;
+    }
+
+    void Mqtt::onConnected() {
+        const nlohmann::json& connection = mqttMapper->getConnection();
+
+        sendConnect(connection["clean_session"],
+                    connection["will_topic"],
+                    connection["will_message"],
+                    connection["will_qos"],
+                    connection["will_retain"],
+                    connection["username"],
+                    connection["password"]);
+    }
+
+    bool Mqtt::onSignal(int signum) {
+        sendDisconnect();
+        return Super::onSignal(signum);
+    }
+
+    void Mqtt::onConnack(const iot::mqtt::packets::Connack& connack) {
+        if (connack.getReturnCode() == 0 && !connack.getSessionPresent()) {
+            sendSubscribe(currentSubscriptions);
+        }
+    }
+
+    void Mqtt::onPublish(const iot::mqtt::packets::Publish& publish) {
+        auto [immediatePublishes, scheduledPublishes] = mqttMapper->getMappings(publish);
+
+        for (const mqtt::lib::MqttMapper::ScheduledPublish& delayedPublish : scheduledPublishes) {
+            delayedQueue.delayPublish(delayedPublish.delay, delayedPublish.publish);
+        }
+
+        for (const iot::mqtt::packets::Publish& mappedPublish : immediatePublishes) {
+            sendPublish(mappedPublish.getTopic(), mappedPublish.getMessage(), mappedPublish.getQoS(), mappedPublish.getRetain());
+
+            onPublish(mappedPublish);
+        }
+    }
+
+    std::pair<std::size_t, std::size_t> Mqtt::resubscribe() {
+        std::list<iot::mqtt::Topic> newSubscriptions = mqttMapper->extractSubscriptions();
+
+        std::list<std::string> topicsToUnsubscribe;
+        for (const auto& currentTopic : currentSubscriptions) {
+            const bool existsInNew = std::any_of(newSubscriptions.begin(), newSubscriptions.end(), [&](const auto& newTopic) {
+                return currentTopic.getName() == newTopic.getName() && currentTopic.getQoS() == newTopic.getQoS();
+            });
+
+            if (!existsInNew) {
+                topicsToUnsubscribe.push_back(currentTopic.getName());
+            }
+        }
+
+        if (!topicsToUnsubscribe.empty()) {
+            sendUnsubscribe(topicsToUnsubscribe);
+        }
+
+        std::list<iot::mqtt::Topic> topicsToSubscribe;
+        for (const auto& newTopic : newSubscriptions) {
+            const bool existsInOld = std::any_of(currentSubscriptions.begin(), currentSubscriptions.end(), [&](const auto& currentTopic) {
+                return currentTopic.getName() == newTopic.getName() && currentTopic.getQoS() == newTopic.getQoS();
+            });
+
+            if (!existsInOld) {
+                topicsToSubscribe.push_back(newTopic);
+            }
+        }
+
+        if (!topicsToSubscribe.empty()) {
+            sendSubscribe(topicsToSubscribe);
+        }
+
+        currentSubscriptions = newSubscriptions;
+
+        return {topicsToSubscribe.size(), topicsToUnsubscribe.size()};
+    }
+
+    bool Mqtt::DelayedQueue::EarlierFirst::operator()(const ScheduledPublish& a, const ScheduledPublish& b) const {
         if (a.when != b.when) {
             return a.when > b.when;
         }
@@ -141,50 +240,6 @@ namespace mqtt::mqttintegrator::lib {
 
     void Mqtt::DelayedQueue::pop() {
         minHeap.pop();
-    }
-
-    void Mqtt::reloadAll() {
-        for (auto* instance : instances) {
-            instance->sendDisconnect();
-        }
-    }
-
-    void Mqtt::onConnected() {
-        sendConnect(connectionJson["clean_session"],
-                    connectionJson["will_topic"],
-                    connectionJson["will_message"],
-                    connectionJson["will_qos"],
-                    connectionJson["will_retain"],
-                    connectionJson["username"],
-                    connectionJson["password"]);
-    }
-
-    bool Mqtt::onSignal(int signum) {
-        sendDisconnect();
-        return Super::onSignal(signum);
-    }
-
-    void Mqtt::onConnack(const iot::mqtt::packets::Connack& connack) {
-        if (connack.getReturnCode() == 0 && !connack.getSessionPresent()) {
-            sendPublish("snode.c/_cfg_/connection", connectionJson.dump(), 0, true);
-
-            const std::list<iot::mqtt::Topic> topicList = mqttMapper->extractSubscriptions();
-            sendSubscribe(topicList);
-        }
-    }
-
-    void Mqtt::onPublish(const iot::mqtt::packets::Publish& publish) {
-        mqtt::lib::MqttMapper::MappedPublishes mappedPublishes = mqttMapper->publishMappings(publish);
-
-        for (const mqtt::lib::MqttMapper::ScheduledPublish& delayedPublish : mappedPublishes.second) {
-            delayedQueue.delayPublish(delayedPublish.delay, delayedPublish.publish);
-        }
-
-        for (const iot::mqtt::packets::Publish& mappedPublish : mappedPublishes.first) {
-            sendPublish(mappedPublish.getTopic(), mappedPublish.getMessage(), mappedPublish.getQoS(), mappedPublish.getRetain());
-
-            onPublish(mappedPublish);
-        }
     }
 
 } // namespace mqtt::mqttintegrator::lib

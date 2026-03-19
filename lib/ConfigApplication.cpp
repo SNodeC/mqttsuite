@@ -45,8 +45,9 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <map>
-#include <nlohmann/json.hpp>
+#include "log/Logger.h"
+
+#include <stdexcept>
 
 #endif
 
@@ -55,22 +56,26 @@ namespace mqtt::lib {
     template <typename ConcretConfigApplication>
     ConfigApplication::ConfigApplication(utils::SubCommand* parent, ConcretConfigApplication* concretConfigApplication)
         : utils::SubCommand(parent, concretConfigApplication, "Applications")
-        , mappingFileOpt( //
-              addOptionFunction(
+        , mqttMapper(std::make_shared<MqttMapper>())
+        , mappingFileOpt(        //
+              addOptionFunction( //
                   "--mqtt-mapping-file",
-                  [this](const std::string& value) {
-                      mappingRootJson = JsonMappingReader::readMappingFromFile(value);
-                      if (mappingRootJson.contains("mapping")) {
-                          mqttMapper = std::make_unique<MqttMapper>(mappingRootJson["mapping"]);
-                      } else {
-                          mqttMapper.reset();
+                  [this](const std::string& mappingFile) {
+                      try {
+                          mqttMapper->setMapping(JsonMappingReader::readMappingFromFile(mappingFile));
+                      } catch (std::runtime_error& e) {
+                          LOG(ERROR) << "Applying mapping description file " << mappingFile << "\nWhat: " << e.what();
                       }
                   },
                   "MQTT mapping file (json format) for integration",
                   "filename",
-                  CLI::ExistingFile))
+                  !CLI::ExistingDirectory))
         , sessionStoreOpt( //
-              addOption("--mqtt-session-store", "Path to file for the persistent session store", "filename", !CLI::ExistingDirectory)) {
+              addOption(   //
+                  "--mqtt-session-store",
+                  "Path to file for the persistent session store",
+                  "filename",
+                  !CLI::ExistingDirectory)) {
     }
 
     ConfigApplication::~ConfigApplication() {
@@ -86,27 +91,34 @@ namespace mqtt::lib {
         return sessionStoreOpt->as<std::string>();
     }
 
-    ConfigApplication& ConfigApplication::setMappingFile(const std::string& mappingFile) {
+    bool ConfigApplication::setMappingFile(const std::string& mappingFile) { // can throw
         setDefaultValue(mappingFileOpt, mappingFile);
-        required(mappingFileOpt, false);
 
-        mappingFileOpt->required(false);
-
-        return *this;
+        return setMapping(JsonMappingReader::readMappingFromFile(mappingFile));
     }
 
     std::string ConfigApplication::getMappingFile() const {
         return mappingFileOpt->as<std::string>();
     }
 
-    MqttMapper* ConfigApplication::getMqttMapper() const {
-        return mqttMapper.get();
+    bool ConfigApplication::setMapping(const nlohmann::json& mappingJson) { // can throw
+        required(mappingFileOpt, false);
+
+        return mqttMapper->setMapping(mappingJson);
+    }
+
+    const std::shared_ptr<MqttMapper> ConfigApplication::getMqttMapper() const {
+        return mqttMapper;
     }
 
     ConfigMqttBroker::ConfigMqttBroker(utils::SubCommand* parent)
-        : ConfigApplication(parent, this) {
-        htmlRootOpt = addOption("--html-root", "HTML root directory", "directory", CLI::ExistingDirectory);
-
+        : ConfigApplication(parent, this)
+        , htmlRootOpt(   //
+              addOption( //
+                  "--html-root",
+                  "HTML root directory",
+                  "directory",
+                  CLI::ExistingDirectory)) {
         required(htmlRootOpt);
     }
 
@@ -126,10 +138,6 @@ namespace mqtt::lib {
     ConfigMqttIntegrator::ConfigMqttIntegrator(utils::SubCommand* parent)
         : ConfigApplication(parent, this) {
         required(mappingFileOpt);
-    }
-
-    const nlohmann::json& ConfigMqttIntegrator::getConnection() const {
-        return mappingRootJson["connection"];
     }
 
 } // namespace mqtt::lib

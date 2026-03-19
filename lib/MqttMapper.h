@@ -55,12 +55,16 @@ namespace inja {
     class Environment;
 }
 
+#include "nlohmann/json-schema.hpp" // IWYU pragma: export
+
 #include <cstdint>
 #include <list>
-#include <nlohmann/json_fwd.hpp> // IWYU pragma: export
+#include <nlohmann/json.hpp> // IWYU pragma: export
 #include <string>
 #include <utility>
 #include <vector>
+
+// IWYU pragma: no_include <nlohmann/json_fwd.hpp>
 
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
@@ -75,16 +79,25 @@ namespace mqtt::lib {
 
         using MappedPublishes = std::pair<std::vector<iot::mqtt::packets::Publish>, std::vector<ScheduledPublish>>;
 
-        MqttMapper(const nlohmann::json& mappingJson);
+        MqttMapper();
         MqttMapper(const MqttMapper&) = delete;
         MqttMapper& operator=(const MqttMapper&) = delete;
 
         virtual ~MqttMapper();
 
+        static const std::string& getSchema();
+
+        bool setMapping(nlohmann::json mappingJson); // can throw
+
         std::string dump();
 
+        const nlohmann::json& getConnection() const;
+
         std::list<iot::mqtt::Topic> extractSubscriptions() const;
-        MappedPublishes publishMappings(const iot::mqtt::packets::Publish& publish);
+        MappedPublishes getMappings(const iot::mqtt::packets::Publish& publish);
+
+        static const nlohmann::json validate(const nlohmann::json& json);
+        static const nlohmann::json validate(const nlohmann::json& json, nlohmann::json_schema::basic_error_handler& err);
 
     private:
         static void
@@ -95,25 +108,29 @@ namespace mqtt::lib {
         nlohmann::json findMatchingTopicLevel(const nlohmann::json& topicLevel, const std::string& topic);
 
         void publishMappedTemplate(const nlohmann::json& templateMapping, nlohmann::json& json, MappedPublishes& mappedPublishes);
-        void publishMappedTemplates(const nlohmann::json& templateMapping,
-                                    nlohmann::json& json,
-                                    const iot::mqtt::packets::Publish& publish,
-                                    MappedPublishes& mappedPublishes);
+        void getTemplateMappings(const nlohmann::json& templateMapping,
+                                 nlohmann::json& json,
+                                 const iot::mqtt::packets::Publish& publish,
+                                 MappedPublishes& mappedPublishes);
 
         static void publishMappedMessage(
             const std::string& topic, const std::string& message, uint8_t qoS, bool retain, double delay, MappedPublishes& mappedPublishes);
         static void publishMappedMessage(const nlohmann::json& staticMapping,
                                          const iot::mqtt::packets::Publish& publish,
                                          MappedPublishes& mappedPublishes);
-        static void publishMappedMessages(const nlohmann::json& staticMapping,
-                                          const iot::mqtt::packets::Publish& publish,
-                                          MappedPublishes& mappedPublishes);
+        static void getStaticMappings(const nlohmann::json& staticMapping,
+                                      const iot::mqtt::packets::Publish& publish,
+                                      MappedPublishes& mappedPublishes);
 
-        const nlohmann::json& mappingJson;
+        nlohmann::json mappingJson;
 
         std::list<void*> pluginHandles;
 
         inja::Environment* injaEnvironment; // We need it as pointer as it must be removed befor unloading the plugin libraries
+
+        static const nlohmann::json_schema::json_validator validator;
+
+        static const std::string mappingJsonSchemaString;
     };
 
 } // namespace mqtt::lib

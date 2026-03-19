@@ -171,7 +171,7 @@ target_include_directories(mqttintegrator PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 
 target_link_libraries(
     mqttintegrator
-    PUBLIC ${MQTTINTEGRATOR_LINK_LIBS} mqtt-mapping mqtt-integrator
+    PUBLIC ${MQTTINTEGRATOR_LINK_LIBS} mqtt-integrator
            snodec::http-server-express-legacy-in
            snodec::http-server-express-tls-in
 )

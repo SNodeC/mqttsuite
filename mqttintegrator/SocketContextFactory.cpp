@@ -61,18 +61,11 @@ namespace mqtt::mqttintegrator {
     }
 
     core::socket::stream::SocketContext* SocketContextFactory::create(core::socket::stream::SocketConnection* socketConnection) {
-        iot::mqtt::SocketContext* socketContext = nullptr;
-
         mqtt::lib::ConfigMqttIntegrator* config = utils::Config::configRoot.getSubCommand<mqtt::lib::ConfigMqttIntegrator>();
 
-        if (config->getMqttMapper() != nullptr) {
-            socketContext = new iot::mqtt::SocketContext(
-                socketConnection,
-                new mqtt::mqttintegrator::lib::Mqtt(
-                    socketConnection->getConnectionName(), config->getConnection(), config->getMqttMapper(), sessionStoreFileName));
-        }
-
-        return socketContext;
+        return new iot::mqtt::SocketContext(
+            socketConnection,
+            new mqtt::mqttintegrator::lib::Mqtt(socketConnection->getConnectionName(), config->getMqttMapper(), sessionStoreFileName));
     }
 
 } // namespace mqtt::mqttintegrator

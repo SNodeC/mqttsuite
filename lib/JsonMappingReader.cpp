@@ -43,9 +43,11 @@
 
 #include "JsonMappingReader.h"
 
+#include "MqttMapper.h"
+
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include "nlohmann/json-schema.hpp"
+// #include "nlohmann/json-schema.hpp"
 
 #include <algorithm>
 #include <chrono>
@@ -57,7 +59,6 @@
 #include <iomanip>
 #include <log/Logger.h>
 #include <map>
-#include <nlohmann/json.hpp>
 #include <sstream>
 #include <stdexcept>
 
@@ -67,69 +68,39 @@ namespace mqtt::lib {
 
     namespace fs = std::filesystem;
 
-#include "mapping-schema.json.h" // definition of mappingJsonSchemaString
+    nlohmann::json JsonMappingReader::readMappingFromFile(const std::string& mapFilePath) {
+        nlohmann::json mapFileJson;
 
-    nlohmann::json JsonMappingReader::mappingJsonSchema = nlohmann::json::parse(mappingJsonSchemaString);
+        if (!mapFilePath.empty()) {
+            std::ifstream mapFile(mapFilePath);
 
-    nlohmann::json JsonMappingReader::mapFileJson;
-    nlohmann::json JsonMappingReader::mapFileJsonDefaultPatched;
+            if (mapFile.is_open()) {
+                VLOG(1) << "MappingFilePath: " << mapFilePath;
 
-    nlohmann::json& JsonMappingReader::readMappingFromFile(const std::string& mapFilePath) {
-        if (mapFileJson.empty()) {
-            if (!mapFilePath.empty()) {
-                std::ifstream mapFile(mapFilePath);
-
-                if (mapFile.is_open()) {
-                    VLOG(1) << "MappingFilePath: " << mapFilePath;
-
-                    try {
-                        mapFile >> mapFileJson;
-
-                        try {
-                            const nlohmann::json_schema::json_validator validator(
-                                mappingJsonSchema, nullptr, nlohmann::json_schema::default_string_format_check);
-
-                            try {
-                                const nlohmann::json defaultPatch = validator.validate(mapFileJson);
-
-                                try {
-                                    mapFileJsonDefaultPatched = mapFileJson.patch(defaultPatch);
-                                    VLOG(0) << "Patched: \n" << mapFileJson.dump(4);
-                                } catch (const std::exception& e) {
-                                    VLOG(1) << e.what();
-                                    VLOG(1) << "Patching JSON with default patch failed:\n" << defaultPatch.dump(4);
-                                    mapFileJson.clear();
-                                }
-                            } catch (const std::exception& e) {
-                                VLOG(1) << "  Validating JSON failed:\n" << mapFileJson.dump(4);
-                                VLOG(1) << "    " << e.what();
-                                mapFileJson.clear();
-                            }
-                        } catch (const std::exception& e) {
-                            VLOG(1) << e.what();
-                            VLOG(1) << "Setting root json mapping schema failed:\n" << mappingJsonSchema.dump(4);
-                            mapFileJson.clear();
-                        }
-                    } catch (const std::exception& e) {
-                        VLOG(1) << "JSON map file parsing failed: " << e.what() << " at " << mapFile.tellg();
-                        mapFileJson.clear();
-                    }
-
+                try {
+                    mapFile >> mapFileJson;
+                } catch (const std::exception& e) {
                     mapFile.close();
-                } else {
-                    VLOG(1) << "MappingFilePath: " << mapFilePath << " not found";
+
+                    VLOG(1) << "JSON map file parsing failed: " << e.what() << " at " << mapFile.tellg();
+                    throw std::runtime_error("JSON map file parsing faile at: " + std::to_string(mapFile.tellg()) + "\nWhat: " + e.what());
                 }
+
+                mapFile.close();
             } else {
-                VLOG(1) << "MappingFilePath empty";
+                VLOG(1) << "MappingFile: " << mapFilePath << " not found";
             }
+        } else {
+            VLOG(1) << "MappingFile not set";
+            throw std::runtime_error("MappingFile not set");
         }
 
-        return mapFileJsonDefaultPatched;
+        return mapFileJson;
     }
 
-    const nlohmann::json& JsonMappingReader::getSchema() {
-        return mappingJsonSchema;
-    }
+    //    const std::string& JsonMappingReader::getSchema() {
+    //        return mappingJsonSchemaString;
+    //    }
 
     std::string JsonMappingReader::getDraftPath(const std::string& mapFilePath) {
         return mapFilePath + ".draft";
@@ -162,15 +133,16 @@ namespace mqtt::lib {
         return j;
     }
 
-    void JsonMappingReader::deployDraft(const std::string& mapFilePath) {
+    nlohmann::json JsonMappingReader::deployDraft(const std::string& mapFilePath) {
         std::string draftPath = getDraftPath(mapFilePath);
         if (!fs::exists(draftPath))
-            return;
+            return nlohmann::json();
+
+        nlohmann::json j;
 
         // 1. Inject creation timestamp into draft
         try {
             std::ifstream f(draftPath);
-            nlohmann::json j;
             f >> j;
             f.close();
 
@@ -228,8 +200,7 @@ namespace mqtt::lib {
         // 4. Promote draft to active
         fs::rename(draftPath, mapFilePath);
 
-        // Invalidate cache so next readMappingFromFile reloads it
-        mapFileJson.clear();
+        return j;
     }
 
     void JsonMappingReader::discardDraft(const std::string& mapFilePath) {
@@ -310,9 +281,7 @@ namespace mqtt::lib {
             std::ifstream f(backupPath);
             nlohmann::json j;
             f >> j;
-            const nlohmann::json_schema::json_validator validator(
-                mappingJsonSchema, nullptr, nlohmann::json_schema::default_string_format_check);
-            validator.validate(j);
+            MqttMapper::validate(j);
         } catch (const std::exception& e) {
             throw std::runtime_error(std::string("Cannot rollback: Version is invalid against current schema: ") + e.what());
         }
@@ -322,8 +291,6 @@ namespace mqtt::lib {
 
         // Delete any existing draft to avoid confusion
         discardDraft(mapFilePath);
-
-        mapFileJson.clear();
     }
 
 } // namespace mqtt::lib

@@ -49,9 +49,10 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <memory>
-#include <nlohmann/json.hpp>
 #include <string>
 #include <string_view>
+
+// IWYU pragma: no_include <nlohmann/json_fwd.hpp>
 
 #endif
 
@@ -66,17 +67,18 @@ namespace mqtt::lib {
         ConfigApplication& setSessionStore(const std::string& sessionStore);
         std::string getSessionStore() const;
 
-        ConfigApplication& setMappingFile(const std::string& mappingFile);
+        bool setMappingFile(const std::string& mappingFile); // can throw
         std::string getMappingFile() const;
 
-        MqttMapper* getMqttMapper() const;
+        bool setMapping(const nlohmann::json& json); // can throw
+
+        const std::shared_ptr<MqttMapper> getMqttMapper() const;
 
     protected:
+        std::shared_ptr<MqttMapper> mqttMapper;
+
         CLI::Option* mappingFileOpt;
         CLI::Option* sessionStoreOpt;
-
-        std::unique_ptr<MqttMapper> mqttMapper;
-        nlohmann::json mappingRootJson;
     };
 
     class ConfigMqttBroker : public ConfigApplication {
@@ -99,8 +101,6 @@ namespace mqtt::lib {
         constexpr static std::string_view DESCRIPTION{"Configuration for Application mqttintegrator"};
 
         ConfigMqttIntegrator(utils::SubCommand* parent);
-
-        const nlohmann::json& getConnection() const;
     };
 
 } // namespace mqtt::lib
