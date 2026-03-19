@@ -48,6 +48,7 @@
 
 #include <cstddef>
 #include <functional>
+#include <nlohmann/json_fwd.hpp>
 #include <string>
 
 #endif // DOXYGEN_SHOULD_SKIP_THIS
@@ -68,7 +69,7 @@ namespace mqtt::lib::admin {
     };
 
     // Callback to trigger reload in the main application
-    using ReloadCallback = std::function<ReloadResult()>;
+    using ReloadCallback = std::function<ReloadResult(const nlohmann::json&)>;
 
     // Creates and returns a Router that handles /config/* endpoints.
     express::Router makeMappingAdminRouter(const std::string& mappingFilePath, const AdminOptions& opt, ReloadCallback onDeploy);

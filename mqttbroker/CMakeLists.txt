@@ -187,8 +187,8 @@ file(GLOB_RECURSE WEB_ASSETS "${CMAKE_CURRENT_SOURCE_DIR}/html/*.html"
 target_sources(mqttbroker PRIVATE ${WEB_ASSETS})
 
 target_link_libraries(
-    mqttbroker PUBLIC ${MQTTBROKER_LINK_LIBS} snodec::mqtt-server mqtt-mapping
-                      mqtt-broker fmt
+    mqttbroker PUBLIC ${MQTTBROKER_LINK_LIBS} snodec::mqtt-server mqtt-broker
+                      fmt
 )
 
 install(TARGETS mqttbroker RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})

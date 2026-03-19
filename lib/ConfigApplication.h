@@ -70,7 +70,6 @@ namespace mqtt::lib {
         bool setMappingFile(const std::string& mappingFile); // can throw
         std::string getMappingFile() const;
 
-        bool reloadMapping();                        // can throw
         bool setMapping(const nlohmann::json& json); // can throw
 
         const std::shared_ptr<MqttMapper> getMqttMapper() const;

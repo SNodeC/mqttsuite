@@ -126,13 +126,13 @@ namespace mqtt::mqttintegrator::lib {
     }
 
     void Mqtt::onPublish(const iot::mqtt::packets::Publish& publish) {
-        mqtt::lib::MqttMapper::MappedPublishes mappedPublishes = mqttMapper->publishMappings(publish);
+        auto [immediatePublishes, scheduledPublishes] = mqttMapper->getMappings(publish);
 
-        for (const mqtt::lib::MqttMapper::ScheduledPublish& delayedPublish : mappedPublishes.second) {
+        for (const mqtt::lib::MqttMapper::ScheduledPublish& delayedPublish : scheduledPublishes) {
             delayedQueue.delayPublish(delayedPublish.delay, delayedPublish.publish);
         }
 
-        for (const iot::mqtt::packets::Publish& mappedPublish : mappedPublishes.first) {
+        for (const iot::mqtt::packets::Publish& mappedPublish : immediatePublishes) {
             sendPublish(mappedPublish.getTopic(), mappedPublish.getMessage(), mappedPublish.getQoS(), mappedPublish.getRetain());
 
             onPublish(mappedPublish);
@@ -140,19 +140,6 @@ namespace mqtt::mqttintegrator::lib {
     }
 
     std::pair<std::size_t, std::size_t> Mqtt::resubscribe() {
-        struct ReloadResult {
-            std::string mode{"hot"};
-            std::string reason{"mapping-only"};
-            bool partialHotReload{false};
-            std::size_t instances{0};
-            std::size_t subscriptionsAddedOrChanged{0};
-            std::size_t removedSubscriptionsNotApplied{0};
-            std::size_t droppedDelayedPublishes{0};
-            std::size_t disconnectedInstances{0};
-        };
-
-        mqtt::lib::admin::ReloadResult result;
-
         std::list<iot::mqtt::Topic> newSubscriptions = mqttMapper->extractSubscriptions();
 
         std::list<std::string> topicsToUnsubscribe;

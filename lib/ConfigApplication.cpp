@@ -64,7 +64,7 @@ namespace mqtt::lib {
                       try {
                           mqttMapper->setMapping(JsonMappingReader::readMappingFromFile(mappingFile));
                       } catch (std::runtime_error& e) {
-                          PLOG(ERROR) << "Applying mapping description file " << mappingFile << "\nWhat: " << e.what();
+                          LOG(ERROR) << "Applying mapping description file " << mappingFile << "\nWhat: " << e.what();
                       }
                   },
                   "MQTT mapping file (json format) for integration",
@@ -101,10 +101,6 @@ namespace mqtt::lib {
         return mappingFileOpt->as<std::string>();
     }
 
-    bool ConfigApplication::reloadMapping() { // can throw
-        return mqttMapper->setMapping(JsonMappingReader::readMappingFromFile(getMappingFile()));
-    }
-
     bool ConfigApplication::setMapping(const nlohmann::json& mappingJson) { // can throw
         required(mappingFileOpt, false);
 
@@ -117,11 +113,12 @@ namespace mqtt::lib {
 
     ConfigMqttBroker::ConfigMqttBroker(utils::SubCommand* parent)
         : ConfigApplication(parent, this)
-        , htmlRootOpt(addOption( //
-              "--html-root",
-              "HTML root directory",
-              "directory",
-              CLI::ExistingDirectory)) {
+        , htmlRootOpt(   //
+              addOption( //
+                  "--html-root",
+                  "HTML root directory",
+                  "directory",
+                  CLI::ExistingDirectory)) {
         required(htmlRootOpt);
     }
 

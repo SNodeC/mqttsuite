@@ -40,7 +40,7 @@
 function(make_includable INPUT_FILE OUTPUT_FILE)
     file(READ ${INPUT_FILE} CONTENT)
     string(REGEX REPLACE "[ \t\r\n]" "" CONTENT "${CONTENT}")
-    set(CONTENT "const std::string JsonMappingReader::mappingJsonSchemaString=R\"(${CONTENT})\";\n")
+    set(CONTENT "const std::string MqttMapper::mappingJsonSchemaString=R\"(${CONTENT})\";\n")
     file(WRITE ${OUTPUT_FILE} "${CONTENT}")
 endfunction(make_includable)
 

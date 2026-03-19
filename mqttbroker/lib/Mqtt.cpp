@@ -152,7 +152,7 @@ namespace mqtt::mqttbroker::lib {
         MqttModel::instance().publishMessage(publish.getTopic(), publish.getMessage(), publish.getQoS(), publish.getRetain());
 
         if (mqttMapper != nullptr) {
-            mqtt::lib::MqttMapper::MappedPublishes mappedPublishes = mqttMapper->publishMappings(publish);
+            mqtt::lib::MqttMapper::MappedPublishes mappedPublishes = mqttMapper->getMappings(publish);
 
             for (const mqtt::lib::MqttMapper::ScheduledPublish& delayedPublish : mappedPublishes.second) {
                 delayedQueue.delayPublish(delayedPublish.delay, delayedPublish.publish);

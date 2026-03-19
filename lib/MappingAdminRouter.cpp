@@ -42,6 +42,7 @@
 #include "MappingAdminRouter.h"
 
 #include "JsonMappingReader.h"
+#include "MqttMapper.h"
 
 #include <express/middleware/BasicAuthentication.h>
 #include <express/middleware/JsonMiddleware.h>
@@ -53,8 +54,6 @@
 #include <exception>
 #include <filesystem>
 #include <fstream>
-#include <nlohmann/json-schema.hpp>
-#include <nlohmann/json.hpp>
 #include <vector>
 
 // IWYU pragma: no_include <nlohmann/detail/json_ref.hpp>
@@ -67,14 +66,13 @@ namespace mqtt::lib::admin {
 
     express::Router makeMappingAdminRouter(const std::string& mappingFilePath, const AdminOptions& opt, ReloadCallback onDeploy) {
         express::Router api;
-        const auto& schema = JsonMappingReader::getSchema();
 
         api.use(express::middleware::JsonMiddleware());
         api.use(express::middleware::BasicAuthentication(opt.user, opt.pass, opt.realm));
 
         // GET /schema
-        api.get("/schema", [schema] APPLICATION(req, res) {
-            res->status(200).json(schema);
+        api.get("/schema", [] APPLICATION(req, res) {
+            res->status(200).send(MqttMapper::getSchema());
         });
 
         // GET /config
@@ -129,11 +127,11 @@ namespace mqtt::lib::admin {
         // POST /config/deploy
         api.post("/config/deploy", [mappingFilePath, onDeploy] APPLICATION(req, res) {
             try {
-                JsonMappingReader::deployDraft(mappingFilePath);
+                nlohmann::json newMappingJson = JsonMappingReader::deployDraft(mappingFilePath);
 
                 ReloadResult reloadResult;
                 if (onDeploy) {
-                    reloadResult = onDeploy();
+                    reloadResult = onDeploy(newMappingJson);
                 }
 
                 res->status(200).json({{"status", "deploy-ack"},
@@ -153,7 +151,7 @@ namespace mqtt::lib::admin {
                 auto document = nlohmann::json::parse(bodyStr);
 
                 nlohmann::json_schema::basic_error_handler err;
-                JsonMappingReader::validator.validate(document, err);
+                MqttMapper::validate(document, err);
 
                 if (err) {
                     res->status(422).json({{"valid", false}, {"error", "Validation failed"}});
@@ -185,7 +183,7 @@ namespace mqtt::lib::admin {
                 draftFile >> draftDocument;
 
                 nlohmann::json_schema::basic_error_handler err;
-                JsonMappingReader::validator.validate(draftDocument, err);
+                MqttMapper::validate(draftDocument, err);
 
                 if (err) {
                     res->status(422).json({{"valid", false}, {"error", "Draft validation failed"}, {"path", draftPath}});
@@ -213,7 +211,7 @@ namespace mqtt::lib::admin {
 
                 ReloadResult reloadResult;
                 if (onDeploy) {
-                    reloadResult = onDeploy(); // Trigger hot-reload
+                    reloadResult = onDeploy(jsonBody); // Trigger hot-reload
                 }
 
                 res->status(200).json({{"status", "deploy-ack"},

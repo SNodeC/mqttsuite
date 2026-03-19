@@ -50,6 +50,7 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <cmath>
+#include <exception>
 
 #ifdef __GNUC__
 #pragma GCC diagnostic push
@@ -89,14 +90,45 @@
 
 namespace mqtt::lib {
 
+#include "mapping-schema.json.h" // definition of mappingJsonSchemaString
+
+    const nlohmann::json_schema::json_validator
+        MqttMapper::validator(nlohmann::json::parse(mappingJsonSchemaString), nullptr, nlohmann::json_schema::default_string_format_check);
+
     MqttMapper::MqttMapper()
         : injaEnvironment(new inja::Environment) {
     }
 
-    bool MqttMapper::setMapping(const nlohmann::json& mappingJson) { // can throw
-        bool mustReconnect = this->mappingJson["connection"] != mappingJson["connection"];
+    MqttMapper::~MqttMapper() {
+        delete injaEnvironment;
 
-        this->mappingJson = mappingJson;
+        for (void* pluginHandle : pluginHandles) {
+            core::DynamicLoader::dlClose(pluginHandle);
+        }
+    }
+
+    const std::string& MqttMapper::getSchema() {
+        return mappingJsonSchemaString;
+    }
+
+    bool MqttMapper::setMapping(nlohmann::json mappingJson) { // can throw
+        try {
+            const nlohmann::json defaultPatch = validator.validate(mappingJson);
+
+            try {
+                mappingJson = mappingJson.patch(defaultPatch);
+            } catch (const std::exception& e) {
+                VLOG(1) << e.what();
+                VLOG(1) << "Patching JSON with default patch failed:\n" << defaultPatch.dump(4);
+                throw std::runtime_error("Patching JSON with default patch failed:\n" + defaultPatch.dump(4) + "\nWhat: " + e.what());
+            }
+        } catch (const std::exception& e) {
+            VLOG(1) << "  Validating JSON failed:\n" << mappingJson.dump(4);
+            VLOG(1) << "    " << e.what();
+            throw std::runtime_error("Validating JSON failed:\n" + mappingJson.dump(4) + "\nWhat: " + e.what());
+        }
+
+        bool mustReconnect = this->mappingJson["connection"] != mappingJson["connection"];
 
         delete injaEnvironment;
 
@@ -107,9 +139,9 @@ namespace mqtt::lib {
 
         injaEnvironment = new inja::Environment;
 
-        if (mappingJson["mapping"].contains("plugins")) {
-            VLOG(1) << "Loading plugins ...";
+        this->mappingJson = mappingJson;
 
+        if (mappingJson["mapping"].contains("plugins")) {
             for (const nlohmann::json& pluginJson : mappingJson["mapping"]["plugins"]) {
                 const std::string plugin = pluginJson;
 
@@ -169,14 +201,6 @@ namespace mqtt::lib {
         return mustReconnect;
     }
 
-    MqttMapper::~MqttMapper() {
-        delete injaEnvironment;
-
-        for (void* pluginHandle : pluginHandles) {
-            core::DynamicLoader::dlClose(pluginHandle);
-        }
-    }
-
     std::string MqttMapper::dump() {
         return mappingJson.dump();
     }
@@ -193,7 +217,15 @@ namespace mqtt::lib {
         return topicList;
     }
 
-    MqttMapper::MappedPublishes MqttMapper::publishMappings(const iot::mqtt::packets::Publish& publish) {
+    const nlohmann::json MqttMapper::validate(const nlohmann::json& json) {
+        return validator.validate(json);
+    }
+
+    const nlohmann::json MqttMapper::validate(const nlohmann::json& json, nlohmann::json_schema::basic_error_handler& err) {
+        return validator.validate(json, err);
+    }
+
+    MqttMapper::MappedPublishes MqttMapper::getMappings(const iot::mqtt::packets::Publish& publish) {
         MappedPublishes mappedPublishes;
         if (mappingJson.contains("mapping") && !mappingJson["mapping"].empty()) {
             nlohmann::json matchingTopicLevel = findMatchingTopicLevel(mappingJson["mapping"]["topic_level"], publish.getTopic());
@@ -209,7 +241,7 @@ namespace mqtt::lib {
                     VLOG(1) << "  QoS: " << static_cast<uint16_t>(publish.getQoS());
                     VLOG(1) << "  Retain: " << publish.getRetain();
 
-                    publishMappedMessages(subscription["static"], publish, mappedPublishes);
+                    getStaticMappings(subscription["static"], publish, mappedPublishes);
                 }
 
                 if (subscription.contains("value")) {
@@ -223,7 +255,7 @@ namespace mqtt::lib {
                     nlohmann::json json;
                     json["message"] = publish.getMessage();
 
-                    publishMappedTemplates(subscription["value"], json, publish, mappedPublishes);
+                    getTemplateMappings(subscription["value"], json, publish, mappedPublishes);
                 }
 
                 if (subscription.contains("json")) {
@@ -238,7 +270,7 @@ namespace mqtt::lib {
                         nlohmann::json json;
                         json["message"] = nlohmann::json::parse(publish.getMessage());
 
-                        publishMappedTemplates(subscription["json"], json, publish, mappedPublishes);
+                        getTemplateMappings(subscription["json"], json, publish, mappedPublishes);
                     } catch (const nlohmann::json::parse_error& e) {
                         VLOG(1) << "  Parsing message into json failed: " << publish.getMessage();
                         VLOG(1) << "     What: " << e.what() << '\n'
@@ -363,10 +395,10 @@ namespace mqtt::lib {
         }
     }
 
-    void MqttMapper::publishMappedTemplates(const nlohmann::json& templateMapping,
-                                            nlohmann::json& json,
-                                            const iot::mqtt::packets::Publish& publish,
-                                            MappedPublishes& mappedPublishes) {
+    void MqttMapper::getTemplateMappings(const nlohmann::json& templateMapping,
+                                         nlohmann::json& json,
+                                         const iot::mqtt::packets::Publish& publish,
+                                         MappedPublishes& mappedPublishes) {
         json["topic"] = publish.getTopic();
         json["qos"] = publish.getQoS();
         json["retain"] = publish.getRetain();
@@ -444,9 +476,9 @@ namespace mqtt::lib {
         }
     }
 
-    void MqttMapper::publishMappedMessages(const nlohmann::json& staticMapping,
-                                           const iot::mqtt::packets::Publish& publish,
-                                           MappedPublishes& mappedPublishes) {
+    void MqttMapper::getStaticMappings(const nlohmann::json& staticMapping,
+                                       const iot::mqtt::packets::Publish& publish,
+                                       MappedPublishes& mappedPublishes) {
         if (staticMapping.is_object()) {
             publishMappedMessage(staticMapping, publish, mappedPublishes);
         } else if (staticMapping.is_array()) {
