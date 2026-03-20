@@ -50,7 +50,6 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <exception>
 #include <string>
 
 #endif
@@ -63,17 +62,9 @@ namespace mqtt::mqttintegrator {
     core::socket::stream::SocketContext* SocketContextFactory::create(core::socket::stream::SocketConnection* socketConnection) {
         mqtt::lib::ConfigMqttIntegrator* config = utils::Config::configRoot.getSubCommand<mqtt::lib::ConfigMqttIntegrator>();
 
-        core::socket::stream::SocketContext* socketContext = nullptr;
-
-        try {
-            socketContext = new iot::mqtt::SocketContext(socketConnection,
-                                                         new mqtt::mqttintegrator::lib::Mqtt(socketConnection->getConnectionName(),
-                                                                                             config->getMqttMapper(),
-                                                                                             config->getSessionStore()));
-        } catch (const std::exception&) {
-        }
-
-        return socketContext;
+        return new iot::mqtt::SocketContext(
+            socketConnection,
+            new mqtt::mqttintegrator::lib::Mqtt(socketConnection->getConnectionName(), config->getMqttMapper(), config->getSessionStore()));
     }
 
 } // namespace mqtt::mqttintegrator
