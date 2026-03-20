@@ -189,7 +189,7 @@ namespace mqtt::lib {
                     VLOG(1) << "  Loading plugin done: " << plugin;
                 } else {
                     VLOG(1) << "  Error loading plugin: " << plugin;
-                    throw std::runtime_error("Loading plugin: " + plugin);
+                    throw std::runtime_error("Error loading plugin '" + plugin + "': " + core::DynamicLoader::dlError());
                 }
             }
 
