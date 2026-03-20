@@ -112,8 +112,6 @@ namespace mqtt::lib {
     }
 
     bool MqttMapper::setMapping(nlohmann::json mappingJson) { // can throw
-        bool mustReconnect = true;
-
         delete injaEnvironment;
 
         for (void* handle : pluginHandles) {
@@ -137,7 +135,7 @@ namespace mqtt::lib {
             throw std::runtime_error("Patching JSON with default patch failed: Default patch = " + defaultPatch.dump(4) + "\n" + e.what());
         }
 
-        mustReconnect = this->mappingJson["connection"] != mappingJson["connection"];
+        bool mustReconnect = this->mappingJson["connection"] != mappingJson["connection"];
 
         this->mappingJson = mappingJson;
 
