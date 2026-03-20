@@ -90,9 +90,6 @@ namespace mqtt::lib {
             } else {
                 VLOG(1) << "MappingFile: " << mapFilePath << " not found";
             }
-        } else {
-            VLOG(1) << "MappingFile not set";
-            throw std::runtime_error("MappingFile not set");
         }
 
         return mapFileJson;
@@ -191,10 +188,12 @@ namespace mqtt::lib {
                 }
             } catch (...) {
             }
-        }
 
-        // 4. Promote draft to active
-        fs::rename(draftPath, mapFilePath);
+            // 4. Promote draft to active
+            fs::rename(draftPath, mapFilePath);
+        } else {
+            fs::remove(draftPath);
+        }
 
         return j;
     }
