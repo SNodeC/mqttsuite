@@ -76,7 +76,7 @@ namespace mqtt::lib {
         };
 
         static std::vector<VersionEntry> getHistory(const std::string& mapFilePath);
-        static void rollbackTo(const std::string& mapFilePath, const std::string& versionId);
+        static nlohmann::json rollbackTo(const std::string& mapFilePath, const std::string& versionId);
 
     private:
         static nlohmann::json getDefaultPatch(const nlohmann::json& inputJson);

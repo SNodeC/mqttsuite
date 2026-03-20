@@ -100,11 +100,10 @@
 
 #include <web/http/http_utils.h>
 //
-#include <log/Logger.h>
-//
 #include <nlohmann/json.hpp>
 // IWYU pragma: no_include <nlohmann/json_fwd.hpp>
-// IWYU pragma: no_include <nlohmann/detail/json_ref.hpp>
+//
+#include <log/Logger.h>
 //
 #include <utility>
 

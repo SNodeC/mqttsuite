@@ -83,7 +83,6 @@
 
 #include <log/Logger.h>
 //
-#include <nlohmann/json_fwd.hpp>
 #include <utility>
 
 #endif
@@ -188,13 +187,8 @@ int main(int argc, char* argv[]) {
     core::SNodeC::init(argc, argv);
 
     // Instanciate Admin Router for Mapping Management
-    express::Router router = mqtt::lib::admin::makeMappingAdminRouter(
-        configMqttIntegrator->getMappingFile(),
-        mqtt::lib::admin::AdminOptions{},
-        [configMqttIntegrator](const nlohmann::json& newMappingJson) -> mqtt::lib::admin::ReloadResult {
-            bool mustReconnect = configMqttIntegrator->setMapping(newMappingJson); // throws in case of an error during loading
-                                                                                   // or validation. This exeption is catched
-                                                                                   // in the MappingAdminRouter
+    express::Router router =
+        mqtt::lib::admin::makeMappingAdminRouter(configMqttIntegrator, mqtt::lib::admin::AdminOptions{}, [](bool mustReconnect) {
             return mqtt::mqttintegrator::lib::Mqtt::updateSubscriptions(mustReconnect);
         });
 

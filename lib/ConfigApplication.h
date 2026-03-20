@@ -42,17 +42,18 @@
 #ifndef APPS_MQTTBROKER_MQTTBRIDGE_CONFIGBRIDGE_H
 #define APPS_MQTTBROKER_MQTTBRIDGE_CONFIGBRIDGE_H
 
-#include "MqttMapper.h"
+namespace mqtt::lib {
+    class MqttMapper;
+}
 
 #include <utils/SubCommand.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <memory>
+#include <nlohmann/json_fwd.hpp>
 #include <string>
 #include <string_view>
-
-// IWYU pragma: no_include <nlohmann/json_fwd.hpp>
 
 #endif
 

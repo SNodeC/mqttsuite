@@ -50,7 +50,7 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <stdexcept>
+#include <exception>
 #include <string>
 
 #endif

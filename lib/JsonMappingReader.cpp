@@ -98,10 +98,6 @@ namespace mqtt::lib {
         return mapFileJson;
     }
 
-    //    const std::string& JsonMappingReader::getSchema() {
-    //        return mappingJsonSchemaString;
-    //    }
-
     std::string JsonMappingReader::getDraftPath(const std::string& mapFilePath) {
         return mapFilePath + ".draft";
     }
@@ -267,7 +263,9 @@ namespace mqtt::lib {
         return history;
     }
 
-    void JsonMappingReader::rollbackTo(const std::string& mapFilePath, const std::string& versionId) {
+    nlohmann::json JsonMappingReader::rollbackTo(const std::string& mapFilePath, const std::string& versionId) {
+        nlohmann::json j;
+
         fs::path versionDir = fs::path(mapFilePath).parent_path() / "versions";
         std::string baseName = fs::path(mapFilePath).filename().string();
         fs::path backupPath = versionDir / (baseName + "." + versionId);
@@ -279,7 +277,6 @@ namespace mqtt::lib {
         // Validate before rollback
         try {
             std::ifstream f(backupPath);
-            nlohmann::json j;
             f >> j;
             MqttMapper::validate(j);
         } catch (const std::exception& e) {
@@ -291,6 +288,8 @@ namespace mqtt::lib {
 
         // Delete any existing draft to avoid confusion
         discardDraft(mapFilePath);
+
+        return j;
     }
 
 } // namespace mqtt::lib

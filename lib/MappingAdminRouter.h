@@ -42,13 +42,16 @@
 #ifndef MQTTBROKER_LIB_MAPPINGADMINROUTER_H
 #define MQTTBROKER_LIB_MAPPINGADMINROUTER_H
 
+namespace mqtt::lib {
+    class ConfigApplication;
+}
+
 #include <express/Router.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <cstddef>
 #include <functional>
-#include <nlohmann/json_fwd.hpp>
 #include <string>
 
 #endif // DOXYGEN_SHOULD_SKIP_THIS
@@ -69,10 +72,10 @@ namespace mqtt::lib::admin {
     };
 
     // Callback to trigger reload in the main application
-    using ReloadCallback = std::function<ReloadResult(const nlohmann::json&)>;
+    using ReloadCallback = std::function<ReloadResult(bool)>;
 
     // Creates and returns a Router that handles /config/* endpoints.
-    express::Router makeMappingAdminRouter(const std::string& mappingFilePath, const AdminOptions& opt, ReloadCallback onDeploy);
+    express::Router makeMappingAdminRouter(ConfigApplication* configApplication, const AdminOptions& opt, ReloadCallback onDeploy = {});
 
 } // namespace mqtt::lib::admin
 

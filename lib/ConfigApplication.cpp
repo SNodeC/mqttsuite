@@ -42,10 +42,9 @@
 #include "ConfigApplication.h"
 
 #include "JsonMappingReader.h"
+#include "MqttMapper.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-
-#include "log/Logger.h"
 
 #include <stdexcept>
 
@@ -61,10 +60,14 @@ namespace mqtt::lib {
               addOptionFunction( //
                   "--mqtt-mapping-file",
                   [this](const std::string& mappingFile) {
-                      try {
-                          mqttMapper->setMapping(JsonMappingReader::readMappingFromFile(mappingFile));
-                      } catch (std::runtime_error& e) {
-                          LOG(ERROR) << "Applying mapping description file " << mappingFile << "\nWhat: " << e.what();
+                      if (!mappingFile.empty()) {
+                          try {
+                              mqttMapper->setMapping(JsonMappingReader::readMappingFromFile(mappingFile));
+                          } catch (std::runtime_error& e) {
+                              throw CLI::ValidationError(
+                                  getName(),
+                                  std::string("The mapping description in '" + mappingFile + "' does not conform to the mapping schema"));
+                          }
                       }
                   },
                   "MQTT mapping file (json format) for integration",

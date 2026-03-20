@@ -41,6 +41,7 @@
 
 #include "MappingAdminRouter.h"
 
+#include "ConfigApplication.h"
 #include "JsonMappingReader.h"
 #include "MqttMapper.h"
 
@@ -50,7 +51,6 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-//
 #include <exception>
 #include <filesystem>
 #include <fstream>
@@ -60,11 +60,9 @@
 
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
-using nlohmann::json;
-
 namespace mqtt::lib::admin {
 
-    express::Router makeMappingAdminRouter(const std::string& mappingFilePath, const AdminOptions& opt, ReloadCallback onDeploy) {
+    express::Router makeMappingAdminRouter(ConfigApplication* configApplication, const AdminOptions& opt, ReloadCallback onDeploy) {
         express::Router api;
 
         api.use(express::middleware::JsonMiddleware());
@@ -76,27 +74,27 @@ namespace mqtt::lib::admin {
         });
 
         // GET /config
-        api.get("/config", [mappingFilePath] APPLICATION(req, res) {
+        api.get("/config", [configApplication] APPLICATION(req, res) {
             try {
-                res->status(200).json(JsonMappingReader::readDraftOrActive(mappingFilePath));
+                res->status(200).json(configApplication->getMqttMapper()->getMapping());
             } catch (const std::exception& e) {
                 res->status(500).json({{"error", "Failed to load configuration"}, {"details", e.what()}});
             }
         });
 
         // PATCH /config
-        api.patch("/config", [mappingFilePath] APPLICATION(req, res) {
+        api.patch("/config", [configApplication] APPLICATION(req, res) {
             try {
                 const std::string bodyStr(req->body.begin(), req->body.end());
-                json patchOps = json::parse(bodyStr);
+                nlohmann::json patchOps = nlohmann::json::parse(bodyStr);
 
-                json current = JsonMappingReader::readDraftOrActive(mappingFilePath);
+                nlohmann::json current = JsonMappingReader::readDraftOrActive(configApplication->getMappingFile());
                 current = current.patch(patchOps);
 
-                JsonMappingReader::saveDraft(mappingFilePath, current);
+                JsonMappingReader::saveDraft(configApplication->getMappingFile(), current);
 
-                res->status(200).json({{"status", "patched"}, {"path", mappingFilePath}});
-            } catch (const json::parse_error& e) {
+                res->status(200).json({{"status", "patched"}, {"path", configApplication->getMappingFile()}});
+            } catch (const nlohmann::json::parse_error& e) {
                 res->status(400).json({{"error", "Invalid JSON body"}, {"details", e.what()}});
             } catch (const std::exception& e) {
                 res->status(422).json({{"error", "Patch application failed"}, {"details", e.what()}});
@@ -104,20 +102,20 @@ namespace mqtt::lib::admin {
         });
 
         // POST /config (replace full draft config)
-        api.post("/config", [mappingFilePath] APPLICATION(req, res) {
+        api.post("/config", [configApplication] APPLICATION(req, res) {
             try {
                 const std::string bodyStr(req->body.begin(), req->body.end());
-                json replacement = json::parse(bodyStr);
+                nlohmann::json replacement = nlohmann::json::parse(bodyStr);
 
                 if (!replacement.is_object()) {
                     res->status(422).json({{"error", "Config replacement must be a JSON object"}});
                     return;
                 }
 
-                JsonMappingReader::saveDraft(mappingFilePath, replacement);
+                JsonMappingReader::saveDraft(configApplication->getMappingFile(), replacement);
 
-                res->status(200).json({{"status", "replaced"}, {"path", mappingFilePath}});
-            } catch (const json::parse_error& e) {
+                res->status(200).json({{"status", "replaced"}, {"path", configApplication->getMappingFile()}});
+            } catch (const nlohmann::json::parse_error& e) {
                 res->status(400).json({{"error", "Invalid JSON body"}, {"details", e.what()}});
             } catch (const std::exception& e) {
                 res->status(422).json({{"error", "Config replacement failed"}, {"details", e.what()}});
@@ -125,13 +123,16 @@ namespace mqtt::lib::admin {
         });
 
         // POST /config/deploy
-        api.post("/config/deploy", [mappingFilePath, onDeploy] APPLICATION(req, res) {
+        api.post("/config/deploy", [configApplication, onDeploy] APPLICATION(req, res) {
             try {
-                nlohmann::json newMappingJson = JsonMappingReader::deployDraft(mappingFilePath);
+                nlohmann::json newMappingJson = JsonMappingReader::deployDraft(configApplication->getMappingFile());
 
+                bool mustReconnect = configApplication->setMapping(newMappingJson); // throws in case of an error during loading
+                                                                                    // or validation. This exeption is catched
+                                                                                    // in the MappingAdminRouter
                 ReloadResult reloadResult;
                 if (onDeploy) {
-                    reloadResult = onDeploy(newMappingJson);
+                    reloadResult = onDeploy(mustReconnect);
                 }
 
                 res->status(200).json({{"status", "deploy-ack"},
@@ -164,9 +165,9 @@ namespace mqtt::lib::admin {
         });
 
         // GET /config/validateDraft
-        api.get("/config/validateDraft", [mappingFilePath] APPLICATION(req, res) {
+        api.get("/config/validateDraft", [configApplication] APPLICATION(req, res) {
             try {
-                const std::string draftPath = JsonMappingReader::getDraftPath(mappingFilePath);
+                const std::string draftPath = JsonMappingReader::getDraftPath(configApplication->getMappingFile());
 
                 if (!std::filesystem::exists(draftPath)) {
                     res->status(404).json({{"valid", false}, {"error", "No draft configuration available"}, {"path", draftPath}});
@@ -196,7 +197,7 @@ namespace mqtt::lib::admin {
         });
 
         // POST /config/rollback
-        api.post("/config/rollback", [mappingFilePath, onDeploy] APPLICATION(req, res) {
+        api.post("/config/rollback", [configApplication, onDeploy] APPLICATION(req, res) {
             try {
                 const std::string bodyStr(req->body.begin(), req->body.end());
                 auto jsonBody = nlohmann::json::parse(bodyStr);
@@ -207,11 +208,15 @@ namespace mqtt::lib::admin {
                 }
 
                 std::string versionId = jsonBody["version_id"];
-                JsonMappingReader::rollbackTo(mappingFilePath, versionId);
 
+                nlohmann::json rolledbackMappingJson = JsonMappingReader::rollbackTo(configApplication->getMappingFile(), versionId);
+
+                bool mustReconnect = configApplication->setMapping(rolledbackMappingJson); // throws in case of an error during loading
+                                                                                           // or validation. This exeption is catched
+                                                                                           // in the MappingAdminRouter
                 ReloadResult reloadResult;
                 if (onDeploy) {
-                    reloadResult = onDeploy(jsonBody); // Trigger hot-reload
+                    reloadResult = onDeploy(mustReconnect); // Trigger hot-reload
                 }
 
                 res->status(200).json({{"status", "deploy-ack"},
@@ -225,9 +230,9 @@ namespace mqtt::lib::admin {
         });
 
         // GET /config/history
-        api.get("/config/history", [mappingFilePath] APPLICATION(req, res) {
+        api.get("/config/history", [configApplication] APPLICATION(req, res) {
             try {
-                auto history = JsonMappingReader::getHistory(mappingFilePath);
+                auto history = JsonMappingReader::getHistory(configApplication->getMappingFile());
                 nlohmann::json list = nlohmann::json::array();
                 for (const auto& h : history) {
                     list.push_back({{"id", h.id}, {"comment", h.comment}, {"date", h.date}});
