@@ -129,16 +129,18 @@ static void tryRestartBridges() {
     }
 
     if (empty && activeConnectors.empty() && restart) {
-        mqtt::bridge::lib::SSEDistributor::instance().bridgesStopped();
-
         core::EventReceiver::atNextTick([]() {
-            mqtt::bridge::lib::BridgeStore::instance().activateStaged();
+            mqtt::bridge::lib::SSEDistributor::instance().bridgesStopped();
 
-            startBridges();
+            core::EventReceiver::atNextTick([]() {
+                mqtt::bridge::lib::BridgeStore::instance().activateStaged();
 
-            utils::Config::parse();
+                startBridges();
 
-            restart = false;
+                utils::Config::parse();
+
+                restart = false;
+            });
         });
     }
 }
@@ -226,7 +228,7 @@ startClient(const std::string& instanceName,
 
     Client socketClient = core::socket::stream::Client<Client>(instanceName, configurator);
 
-    socketClient.getConfig().ConfigInstance::configurable(false);
+    socketClient.getConfig().Instance::configurable(false);
     socketClient.getConfig().Remote::configurable(false);
     socketClient.getConfig().setRetry().setRetryBase(1);
     socketClient.getConfig().setReconnect();
@@ -283,7 +285,7 @@ HttpClient startClient(const std::string& name, const std::function<void(typenam
 
     configurator(httpClient.getConfig());
 
-    httpClient.getConfig().ConfigInstance::configurable(false);
+    httpClient.getConfig().Instance::configurable(false);
     httpClient.getConfig().Remote::configurable(false);
     httpClient.getConfig().setRetry().setRetryBase(1);
     httpClient.getConfig().setReconnect();
