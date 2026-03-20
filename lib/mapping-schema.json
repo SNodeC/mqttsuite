@@ -1,17 +1,56 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "type": "object",
+  "type": ["object", "null"],
+  "default": {
+    "meta": {
+      "version": "0",
+      "comment": "New mapping description",
+      "author": "anonymous"
+    },
+    "discover_prefix": "",
+    "connection": {
+      "keep_alive": 60,
+      "client_id": "",
+      "clean_session": true,
+      "will_topic": "",
+      "will_message": "",
+      "will_qos": 0,
+      "will_retain": false,
+      "username": "",
+      "password": ""
+    },
+    "mapping": {}
+  },
   "required": [
     "mapping"
   ],
   "properties": {
     "meta": {
       "type": "object",
+      "default": {
+        "version": "0",
+        "comment": "New mapping description",
+        "author": "anonymous"
+      },
       "properties": {
-        "version": { "type": "string", "description": "Auto-generated timestamp or ID" },
-        "comment": { "type": "string", "description": "User description of this configuration state" },
-        "author": { "type": "string" },
-        "created": { "type": "string", "format": "date-time" }
+        "version": {
+          "type": "string",
+          "description": "Auto-generated timestamp or ID",
+          "default": "0"
+        },
+        "comment": {
+          "type": "string",
+          "description": "User description of this configuration state",
+          "default": "New mapping description"
+        },
+        "author": {
+          "type": "string",
+          "default": "anonymous"
+        },
+        "created": {
+          "type": "string",
+          "format": "date-time"
+        }
       }
     },
     "discover_prefix": {
@@ -75,8 +114,16 @@
     "mapping": {
       "$id": "https://www.vchrist.at/mqttmapper/schemas/mapping",
       "type": "object",
-      "required": [
-        "topic_level"
+      "default": {},
+      "anyOf": [
+        {
+          "maxProperties": 0
+        },
+        {
+          "required": [
+            "topic_level"
+          ]
+        }
       ],
       "properties": {
         "plugins": {
@@ -281,8 +328,7 @@
                   "items": {
                     "type": "string"
                   },
-                  "default": [
-                  ]
+                  "default": []
                 }
               }
             },

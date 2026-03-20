@@ -123,82 +123,79 @@ namespace mqtt::lib {
 
         injaEnvironment = new inja::Environment;
 
-        if (!mappingJson.empty()) {
-            nlohmann::json defaultPatch;
+        nlohmann::json defaultPatch;
 
-            try {
-                defaultPatch = validator.validate(mappingJson);
-            } catch (const std::exception& e) {
-                throw std::runtime_error("Validating JSON failed: Mapping JSON = " + mappingJson.dump(4) + "\n" + e.what());
-            }
+        try {
+            defaultPatch = validator.validate(mappingJson);
+        } catch (const std::exception& e) {
+            throw std::runtime_error("Validating JSON failed: Mapping JSON = " + mappingJson.dump(4) + "\n" + e.what());
+        }
 
-            try {
-                mappingJson = mappingJson.patch(defaultPatch);
-            } catch (const std::exception& e) {
-                throw std::runtime_error("Patching JSON with default patch failed: Default patch = " + defaultPatch.dump(4) + "\n" +
-                                         e.what());
-            }
+        try {
+            mappingJson = mappingJson.patch(defaultPatch);
+        } catch (const std::exception& e) {
+            throw std::runtime_error("Patching JSON with default patch failed: Default patch = " + defaultPatch.dump(4) + "\n" + e.what());
+        }
 
-            mustReconnect = this->mappingJson["connection"] != mappingJson["connection"];
+        mustReconnect = this->mappingJson["connection"] != mappingJson["connection"];
 
-            this->mappingJson = mappingJson;
+        this->mappingJson = mappingJson;
 
-            if (mappingJson["mapping"].contains("plugins")) {
-                for (const nlohmann::json& pluginJson : mappingJson["mapping"]["plugins"]) {
-                    const std::string plugin = pluginJson;
+        if (mappingJson["mapping"].contains("plugins")) {
+            for (const nlohmann::json& pluginJson : mappingJson["mapping"]["plugins"]) {
+                const std::string plugin = pluginJson;
 
-                    void* handle = core::DynamicLoader::dlOpen(plugin);
+                void* handle = core::DynamicLoader::dlOpen(plugin);
 
-                    if (handle != nullptr) {
-                        pluginHandles.push_back(handle);
+                if (handle != nullptr) {
+                    pluginHandles.push_back(handle);
 
-                        VLOG(1) << "  Loading plugin: " << plugin << " ...";
+                    VLOG(1) << "  Loading plugin: " << plugin << " ...";
 
-                        const std::vector<mqtt::lib::Function>* loadedFunctions =
-                            static_cast<std::vector<mqtt::lib::Function>*>(core::DynamicLoader::dlSym(handle, "functions"));
-                        if (loadedFunctions != nullptr) {
-                            VLOG(1) << "  Registering inja 'none void callbacks'";
-                            for (const mqtt::lib::Function& function : *loadedFunctions) {
-                                VLOG(1) << "    " << function.name;
+                    const std::vector<mqtt::lib::Function>* loadedFunctions =
+                        static_cast<std::vector<mqtt::lib::Function>*>(core::DynamicLoader::dlSym(handle, "functions"));
+                    if (loadedFunctions != nullptr) {
+                        VLOG(1) << "  Registering inja 'none void callbacks'";
+                        for (const mqtt::lib::Function& function : *loadedFunctions) {
+                            VLOG(1) << "    " << function.name;
 
-                                if (function.numArgs >= 0) {
-                                    injaEnvironment->add_callback(function.name, function.numArgs, function.function);
-                                } else {
-                                    injaEnvironment->add_callback(function.name, function.function);
-                                }
+                            if (function.numArgs >= 0) {
+                                injaEnvironment->add_callback(function.name, function.numArgs, function.function);
+                            } else {
+                                injaEnvironment->add_callback(function.name, function.function);
                             }
-                            VLOG(1) << "  Registering inja 'none void callbacks done'";
-                        } else {
-                            VLOG(1) << "  No inja none 'void callbacks found' in plugin " << plugin;
                         }
-
-                        const std::vector<mqtt::lib::VoidFunction>* loadedVoidFunctions =
-                            static_cast<std::vector<mqtt::lib::VoidFunction>*>(core::DynamicLoader::dlSym(handle, "voidFunctions"));
-                        if (loadedVoidFunctions != nullptr) {
-                            VLOG(1) << "  Registering inja 'void callbacks'";
-                            for (const mqtt::lib::VoidFunction& voidFunction : *loadedVoidFunctions) {
-                                VLOG(1) << "    " << voidFunction.name;
-
-                                if (voidFunction.numArgs >= 0) {
-                                    injaEnvironment->add_void_callback(voidFunction.name, voidFunction.numArgs, voidFunction.function);
-                                } else {
-                                    injaEnvironment->add_void_callback(voidFunction.name, voidFunction.function);
-                                }
-                            }
-                            VLOG(1) << "  Registering inja 'void callbacks' done";
-                        } else {
-                            VLOG(1) << "  No inja 'void callbacks' found in plugin " << plugin;
-                        }
-
-                        VLOG(1) << "  Loading plugin done: " << plugin;
+                        VLOG(1) << "  Registering inja 'none void callbacks done'";
                     } else {
-                        VLOG(1) << "  Error loading plugin: " << plugin;
-                        throw std::runtime_error("Loading plugin: " + plugin);
+                        VLOG(1) << "  No inja none 'void callbacks found' in plugin " << plugin;
                     }
-                }
 
-                VLOG(1) << "Loading plugins done";
+                    const std::vector<mqtt::lib::VoidFunction>* loadedVoidFunctions =
+                        static_cast<std::vector<mqtt::lib::VoidFunction>*>(core::DynamicLoader::dlSym(handle, "voidFunctions"));
+                    if (loadedVoidFunctions != nullptr) {
+                        VLOG(1) << "  Registering inja 'void callbacks'";
+                        for (const mqtt::lib::VoidFunction& voidFunction : *loadedVoidFunctions) {
+                            VLOG(1) << "    " << voidFunction.name;
+
+                            if (voidFunction.numArgs >= 0) {
+                                injaEnvironment->add_void_callback(voidFunction.name, voidFunction.numArgs, voidFunction.function);
+                            } else {
+                                injaEnvironment->add_void_callback(voidFunction.name, voidFunction.function);
+                            }
+                        }
+                        VLOG(1) << "  Registering inja 'void callbacks' done";
+                    } else {
+                        VLOG(1) << "  No inja 'void callbacks' found in plugin " << plugin;
+                    }
+
+                    VLOG(1) << "  Loading plugin done: " << plugin;
+                } else {
+                    VLOG(1) << "  Error loading plugin: " << plugin;
+                    throw std::runtime_error("Loading plugin: " + plugin);
+                }
             }
+
+            VLOG(1) << "Loading plugins done";
         }
 
         return mustReconnect;
@@ -309,13 +306,15 @@ namespace mqtt::lib {
 
     void
     MqttMapper::extractSubscriptions(const nlohmann::json& mappingJson, const std::string& topic, std::list<iot::mqtt::Topic>& topicList) {
-        const nlohmann::json& topicLevels = mappingJson["topic_level"];
+        if (mappingJson.contains("topic_level")) {
+            const nlohmann::json& topicLevels = mappingJson["topic_level"];
 
-        if (topicLevels.is_object()) {
-            extractSubscription(topicLevels, topic, topicList);
-        } else {
-            for (const nlohmann::json& topicLevel : topicLevels) {
-                extractSubscription(topicLevel, topic, topicList);
+            if (topicLevels.is_object()) {
+                extractSubscription(topicLevels, topic, topicList);
+            } else {
+                for (const nlohmann::json& topicLevel : topicLevels) {
+                    extractSubscription(topicLevel, topic, topicList);
+                }
             }
         }
     }
