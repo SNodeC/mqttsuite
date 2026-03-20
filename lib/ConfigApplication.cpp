@@ -63,9 +63,9 @@ namespace mqtt::lib {
                       try {
                           mqttMapper->setMapping(JsonMappingReader::readMappingFromFile(mappingFile));
                       } catch (std::runtime_error& e) {
-                          throw CLI::ValidationError(
-                              getName(),
-                              std::string("The mapping description in '" + mappingFile + "' does not conform to the mapping schema"));
+                          throw CLI::ValidationError(getName(),
+                                                     std::string("The mapping description in '" + mappingFile +
+                                                                 "' does not conform to the mapping schema\n" + e.what()));
                       }
                   },
                   "MQTT mapping file (json format) for integration",
