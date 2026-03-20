@@ -88,6 +88,7 @@ namespace mqtt::lib {
         static const std::string& getSchema();
 
         bool setMapping(nlohmann::json mappingJson); // can throw
+        const nlohmann::json& getMapping() const;
 
         std::string dump();
 
