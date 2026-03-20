@@ -100,7 +100,7 @@ namespace mqtt::lib {
         return setMapping(JsonMappingReader::readMappingFromFile(mappingFile));
     }
 
-    std::string ConfigApplication::getMappingFile() const {
+    std::string ConfigApplication::getMappingFilename() const {
         return mappingFileOpt->as<std::string>();
     }
 

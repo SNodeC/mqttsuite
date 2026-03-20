@@ -69,7 +69,7 @@ namespace mqtt::lib {
         std::string getSessionStore() const;
 
         bool setMappingFile(const std::string& mappingFile); // can throw
-        std::string getMappingFile() const;
+        std::string getMappingFilename() const;
 
         bool setMapping(const nlohmann::json& json); // can throw
 
