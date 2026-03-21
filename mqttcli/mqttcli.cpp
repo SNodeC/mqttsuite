@@ -242,16 +242,6 @@ static void createWSConfig(net::config::ConfigInstance& config) {
 int main(int argc, char* argv[]) {
     core::SNodeC::init(argc, argv);
 
-#if defined(LINK_WEBSOCKET_STATIC) || defined(LINK_SUBPROTOCOL_STATIC)
-    web::websocket::client::SocketContextUpgradeFactory::link();
-#endif
-
-#ifdef LINK_SUBPROTOCOL_STATIC
-    web::websocket::client::SubProtocolFactorySelector::link("mqtt", mqttClientSubProtocolFactory);
-#endif
-
-    // Start of application
-
 #if defined(CONFIG_MQTTSUITE_CLI_TCP_IPV4)
     startClient<net::in::stream::legacy::SocketClient>( //
         "in-mqtt",

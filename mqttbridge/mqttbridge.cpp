@@ -564,14 +564,6 @@ static void startBridges() {
 }
 
 int main(int argc, char* argv[]) {
-#if defined(LINK_WEBSOCKET_STATIC) || defined(LINK_SUBPROTOCOL_STATIC)
-    web::websocket::client::SocketContextUpgradeFactory::link();
-#endif
-
-#ifdef LINK_SUBPROTOCOL_STATIC
-    web::websocket::client::SubProtocolFactorySelector::link("mqtt", mqttClientSubProtocolFactory);
-#endif
-
     utils::Config::configRoot.newSubCommand<mqtt::bridge::ConfigBridge>();
 
     core::SNodeC::init(argc, argv);
