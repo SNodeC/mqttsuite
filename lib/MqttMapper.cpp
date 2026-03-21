@@ -45,7 +45,6 @@
 
 #include <core/DynamicLoader.h>
 #include <iot/mqtt/Topic.h>
-#include <iot/mqtt/packets/Publish.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
