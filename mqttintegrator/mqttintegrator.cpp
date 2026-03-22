@@ -110,7 +110,7 @@ reportState(const std::string& instanceName, const core::socket::SocketAddress& 
 }
 
 template <template <typename SocketContextFactoryT, typename... ArgsT> typename SocketClientT, typename... Args>
-SocketClientT<mqtt::mqttintegrator::SocketContextFactory, Args...>
+static SocketClientT<mqtt::mqttintegrator::SocketContextFactory, Args...>
 startClient(const std::string& instanceName,
             const std::function<void(typename SocketClientT<mqtt::mqttintegrator::SocketContextFactory>::Config&)>& configurator,
             Args&&... args) {
@@ -131,7 +131,7 @@ startClient(const std::string& instanceName,
 }
 
 template <typename HttpClient>
-void startClient(const std::string& name, const std::function<void(typename HttpClient::Config&)>& configurator = nullptr) {
+HttpClient startClient(const std::string& name, const std::function<void(typename HttpClient::Config&)>& configurator = nullptr) {
     using SocketAddress = typename HttpClient::SocketAddress;
 
     const HttpClient httpClient(
@@ -171,6 +171,8 @@ void startClient(const std::string& name, const std::function<void(typename Http
     httpClient.connect([name](const SocketAddress& socketAddress, const core::socket::State& state) {
         reportState(name, socketAddress, state);
     });
+
+    return httpClient;
 }
 
 int main(int argc, char* argv[]) {

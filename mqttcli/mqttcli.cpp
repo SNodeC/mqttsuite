@@ -117,7 +117,7 @@ static void logResponse(const std::shared_ptr<web::http::client::Request>& req, 
 }
 
 template <template <typename SocketContextFactoryT, typename... ArgsT> typename SocketClient>
-SocketClient<mqtt::mqttcli::SocketContextFactory>
+static SocketClient<mqtt::mqttcli::SocketContextFactory>
 startClient(const std::string& instanceName,
             const std::function<void(typename SocketClient<mqtt::mqttcli::SocketContextFactory>::Config&)>& configurator) {
     using Client = SocketClient<mqtt::mqttcli::SocketContextFactory>;
@@ -138,7 +138,7 @@ startClient(const std::string& instanceName,
 }
 
 template <typename HttpClient>
-HttpClient startClient(const std::string& name, const std::function<void(typename HttpClient::Config&)>& configurator) {
+static HttpClient startClient(const std::string& name, const std::function<void(typename HttpClient::Config&)>& configurator) {
     using SocketAddress = typename HttpClient::SocketAddress;
 
     const HttpClient httpClient(
