@@ -115,90 +115,105 @@
 #endif
 
 static std::set<core::eventreceiver::ConnectEventReceiver*> activeConnectors;
-static std::set<std::shared_ptr<core::socket::stream::AutoConnectControl>> autoConnectControllers;
+static std::set<core::socket::stream::AutoConnectControl*> autoConnectControllers;
+static std::set<const net::config::ConfigInstance*> configInstances;
 
 static bool restart = false;
 
 static void startBridges();
 
-static void tryRestartBridges() {
+static void restartBridges() {
     bool empty = true;
 
     for (const auto& [bridgeName, bridge] : mqtt::bridge::lib::BridgeStore::instance().getBridgeMap()) {
         empty &= bridge.getMqttList().empty();
     }
 
-    if (empty && activeConnectors.empty() && restart) {
-        core::EventReceiver::atNextTick([]() {
-            mqtt::bridge::lib::SSEDistributor::instance().bridgesStopped();
+    if (empty && restart) {
+        VLOG(2) << "Restarting bridges...";
 
-            core::EventReceiver::atNextTick([]() {
-                mqtt::bridge::lib::BridgeStore::instance().activateStaged();
+        mqtt::bridge::lib::BridgeStore::instance().activateStaged();
 
-                startBridges();
+        startBridges();
 
-                utils::Config::parse();
+        utils::Config::parse();
 
-                restart = false;
-            });
-        });
+        restart = false;
+    } else {
+        VLOG(2) << "No bridge restarted";
     }
 }
 
-static void handleAutoConnectControllers(std::shared_ptr<core::socket::stream::AutoConnectControl>& autoConnectController) {
+static void handleAutoConnectControllers(core::socket::stream::AutoConnectControl* autoConnectController) {
     autoConnectControllers.insert(autoConnectController);
+    VLOG(2) << "Added: AutoConnectControl";
+
+    autoConnectController->setOnDestroy([](core::socket::stream::AutoConnectControl* autoConnectController) {
+        autoConnectControllers.erase(autoConnectController);
+        VLOG(2) << "Erased: AutoConnectControl";
+    });
 }
 
 static void handleConnector(core::eventreceiver::ConnectEventReceiver* connectEventReceiver) {
     if (connectEventReceiver->isEnabled()) {
         activeConnectors.insert(connectEventReceiver);
+        VLOG(2) << "Added: ConnectEventReceiver";
     } else {
         activeConnectors.erase(connectEventReceiver);
-
-        tryRestartBridges();
+        VLOG(2) << "Erased: ConnectEventReceiver";
     }
 }
 
-static void addBridgeBrokerConnection(core::socket::stream::SocketConnection* socketConnection) {
-    VLOG(1) << "Connection established: " << socketConnection->getInstanceName();
+static void handleConfig(net::config::ConfigInstance* configInstance) {
+    configInstances.insert(configInstance);
+    VLOG(2) << "Added: ConfigInstance: " << configInstance->getInstanceName();
+
+    configInstance->setOnDestroy([](const net::config::ConfigInstance* configInstance) {
+        configInstances.erase(configInstance);
+        VLOG(2) << "Erased: ConfigInstance: " << configInstance->getInstanceName();
+
+        if (configInstances.empty()) {
+            VLOG(2) << "All bridges stopped.";
+
+            mqtt::bridge::lib::SSEDistributor::instance().bridgesStopped();
+
+            restartBridges();
+        }
+    });
 }
 
-static void delBridgeBrokerConnection(core::socket::stream::SocketConnection* socketConnection) {
-    VLOG(1) << "Connection closed: " << socketConnection->getInstanceName();
+static bool closeBridges() {
+    if (!configInstances.empty()) {
+        mqtt::bridge::lib::SSEDistributor::instance().bridgesStopping();
 
-    tryRestartBridges();
-}
+        for (const auto& [bridgeName, bridge] : mqtt::bridge::lib::BridgeStore::instance().getBridgeMap()) {
+            mqtt::bridge::lib::SSEDistributor::instance().bridgeStopping(bridgeName);
+            for (const auto& mqtt : bridge.getMqttList()) {
+                mqtt::bridge::lib::SSEDistributor::instance().brokerDisconnecting(
+                    bridgeName, mqtt->getMqttContext()->getSocketConnection()->getInstanceName());
 
-static void closeBridges() {
-    mqtt::bridge::lib::SSEDistributor::instance().bridgesStopping();
+                mqtt->sendDisconnect();
 
-    for (const auto& [bridgeName, bridge] : mqtt::bridge::lib::BridgeStore::instance().getBridgeMap()) {
-        mqtt::bridge::lib::SSEDistributor::instance().bridgeStopping(bridgeName);
-        for (const auto& mqtt : bridge.getMqttList()) {
-            mqtt::bridge::lib::SSEDistributor::instance().brokerDisconnecting(
-                bridgeName, mqtt->getMqttContext()->getSocketConnection()->getInstanceName());
+                mqtt->getMqttContext()
+                    ->getSocketConnection()
+                    ->getConfigInstance()
+                    ->getSubCommand<net::config::ConfigPhysicalSocketClient>()
+                    ->setReconnect(false);
+            }
+        }
 
-            mqtt->sendDisconnect();
+        for (auto connectEventReceiver : activeConnectors) {
+            connectEventReceiver->stopConnect();
+        }
 
-            mqtt->getMqttContext()
-                ->getSocketConnection()
-                ->getConfigInstance()
-                ->getSubCommand<net::config::ConfigPhysicalSocketClient>()
-                ->setReconnect(false);
+        for (auto autoConnectControler : autoConnectControllers) {
+            autoConnectControler->stopReconnectAndRetry();
         }
     }
 
-    for (auto connectEventReceiver : activeConnectors) {
-        connectEventReceiver->stopConnect();
-    }
-
-    for (auto autoConnectControler : autoConnectControllers) {
-        autoConnectControler->stopReconnectAndRetry();
-    }
-
-    autoConnectControllers.clear();
-
     restart = true;
+
+    return configInstances.empty();
 }
 
 static void
@@ -220,7 +235,7 @@ reportState(const std::string& instanceName, const core::socket::SocketAddress& 
 }
 
 template <template <typename SocketContextFactoryT, typename... ArgsT> typename SocketClient>
-SocketClient<mqtt::bridge::SocketContextFactory>
+static SocketClient<mqtt::bridge::SocketContextFactory>
 startClient(const std::string& instanceName,
             const std::function<void(typename SocketClient<mqtt::bridge::SocketContextFactory>::Config&)>& configurator) {
     using Client = SocketClient<mqtt::bridge::SocketContextFactory>;
@@ -233,18 +248,12 @@ startClient(const std::string& instanceName,
     socketClient.getConfig().setRetry().setRetryBase(1);
     socketClient.getConfig().setReconnect();
 
+    handleAutoConnectControllers(socketClient.getAutoConnectController());
+    handleConfig(&socketClient.getConfig());
+
     socketClient
-        .setOnConnected([](core::socket::stream::SocketConnection* socketConnection) {
-            addBridgeBrokerConnection(socketConnection);
-        })
-        .setOnDisconnect([](core::socket::stream::SocketConnection* socketConnection) {
-            delBridgeBrokerConnection(socketConnection);
-        })
         .setOnInitState([](core::eventreceiver::ConnectEventReceiver* connectEventReceiver) {
             handleConnector(connectEventReceiver);
-        })
-        .setOnAutoConnectControl([](std::shared_ptr<core::socket::stream::AutoConnectControl> autoConnectControl) {
-            handleAutoConnectControllers(autoConnectControl);
         })
         .connect([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) {
             reportState(instanceName, socketAddress, state);
@@ -254,11 +263,11 @@ startClient(const std::string& instanceName,
 }
 
 template <typename HttpClient>
-HttpClient startClient(const std::string& name, const std::function<void(typename HttpClient::Config&)>& configurator) {
+static HttpClient startClient(const std::string& instanceName, const std::function<void(typename HttpClient::Config&)>& configurator) {
     using SocketAddress = typename HttpClient::SocketAddress;
 
     HttpClient httpClient(
-        name,
+        instanceName,
         [](const std::shared_ptr<web::http::client::MasterRequest>& req) {
             const std::string connectionName = req->getSocketContext()->getSocketConnection()->getConnectionName();
 
@@ -290,21 +299,15 @@ HttpClient startClient(const std::string& name, const std::function<void(typenam
     httpClient.getConfig().setRetry().setRetryBase(1);
     httpClient.getConfig().setReconnect();
 
+    handleAutoConnectControllers(httpClient.getAutoConnectController());
+    handleConfig(&httpClient.getConfig());
+
     httpClient
-        .setOnConnected([](core::socket::stream::SocketConnection* socketConnection) {
-            addBridgeBrokerConnection(socketConnection);
-        })
-        .setOnDisconnect([](core::socket::stream::SocketConnection* socketConnection) {
-            delBridgeBrokerConnection(socketConnection);
-        })
         .setOnInitState([](core::eventreceiver::ConnectEventReceiver* connectEventReceiver) {
             handleConnector(connectEventReceiver);
         })
-        .setOnAutoConnectControl([](std::shared_ptr<core::socket::stream::AutoConnectControl> autoConnectControl) {
-            handleAutoConnectControllers(autoConnectControl);
-        })
-        .connect([name](const SocketAddress& socketAddress, const core::socket::State& state) {
-            reportState(name, socketAddress, state);
+        .connect([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) {
+            reportState(instanceName, socketAddress, state);
         });
 
     return httpClient;
@@ -582,12 +585,14 @@ int main(int argc, char* argv[]) {
                 VLOG(1) << jsonString;
 
                 if (!restart) {
-                    closeBridges();
+                    bool idle = closeBridges();
 
                     if (mqtt::bridge::lib::BridgeStore::instance().patch(jsonPatch)) {
                         res->send(R"({"success": true, "message": "Bridge config patch applied"})"_json.dump());
 
-                        tryRestartBridges();
+                        if (idle) {
+                            restartBridges();
+                        }
                     } else {
                         res->status(404).send(R"({"success": false, "message": "Bridge config patch failed to applie"})"_json.dump());
                     }
