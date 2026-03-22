@@ -45,7 +45,6 @@
 #define APPS_MQTTBROKER_MQTTINTEGRATOR_SOCKETCONTEXT_H
 
 #include <iot/mqtt/client/Mqtt.h>
-#include <iot/mqtt/packets/Publish.h>
 
 namespace mqtt::lib {
     class MqttMapper;
@@ -56,6 +55,9 @@ namespace mqtt::lib {
 
 namespace iot::mqtt {
     class Topic;
+    namespace packets {
+        class Publish;
+    }
 } // namespace iot::mqtt
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -85,12 +87,7 @@ namespace mqtt::mqttintegrator::lib {
     private:
         using Super = iot::mqtt::client::Mqtt;
 
-        struct ScheduledPublish {
-            utils::Timeval when = 0;
-            std::size_t seq = 0;
-            iot::mqtt::packets::Publish publish;
-            utils::Timeval delay;
-        };
+        struct ScheduledPublish;
 
         void onConnected() final;
         [[nodiscard]] bool onSignal(int signum) final;

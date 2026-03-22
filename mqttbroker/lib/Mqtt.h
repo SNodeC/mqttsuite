@@ -44,12 +44,16 @@
 #ifndef MQTTBROKER_LIB_MQTT_H
 #define MQTTBROKER_LIB_MQTT_H
 
-#include <iot/mqtt/packets/Publish.h>
 #include <iot/mqtt/server/Mqtt.h>
 
-namespace iot::mqtt::server::broker {
-    class Broker;
-}
+namespace iot::mqtt {
+    namespace server::broker {
+        class Broker;
+    }
+    namespace packets {
+        class Publish;
+    }
+} // namespace iot::mqtt
 
 namespace mqtt::lib {
     class MqttMapper;
@@ -78,12 +82,7 @@ namespace mqtt::mqttbroker::lib {
         void unsubscribe(const std::string& topic);
 
     private:
-        struct ScheduledPublish {
-            utils::Timeval when;
-            std::size_t seq;
-            iot::mqtt::packets::Publish publish;
-            utils::Timeval delay;
-        };
+        struct ScheduledPublish;
 
         struct EarlierFirst {
             bool operator()(const ScheduledPublish& a, const ScheduledPublish& b) const;
@@ -97,7 +96,7 @@ namespace mqtt::mqttbroker::lib {
             void delayPublish(const utils::Timeval& delay, const iot::mqtt::packets::Publish& publish);
 
             bool empty() const;
-            ScheduledPublish const& top() const;
+            const ScheduledPublish& top() const;
             void pop();
 
         private:

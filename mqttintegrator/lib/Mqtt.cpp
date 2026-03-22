@@ -46,8 +46,9 @@
 #include "lib/MappingAdminRouter.h"
 #include "lib/MqttMapper.h"
 
-#include <iot/mqtt/Topic.h> // IWYU pragma: keep
+#include <iot/mqtt/Topic.h>
 #include <iot/mqtt/packets/Connack.h>
+#include <iot/mqtt/packets/Publish.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
@@ -60,6 +61,13 @@
 namespace mqtt::mqttintegrator::lib {
 
     std::set<Mqtt*> Mqtt::mqttInstances;
+
+    struct Mqtt::ScheduledPublish {
+        utils::Timeval when = 0;
+        std::size_t seq = 0;
+        iot::mqtt::packets::Publish publish;
+        utils::Timeval delay;
+    };
 
     Mqtt::Mqtt(const std::string& connectionName,
                std::shared_ptr<mqtt::lib::MqttMapper> mqttMapper,
