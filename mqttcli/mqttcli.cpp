@@ -119,16 +119,16 @@ static void logResponse(const std::shared_ptr<web::http::client::Request>& req, 
 template <template <typename SocketContextFactoryT, typename... ArgsT> typename SocketClient>
 static SocketClient<mqtt::mqttcli::SocketContextFactory>
 startClient(const std::string& instanceName,
-            const std::function<void(typename SocketClient<mqtt::mqttcli::SocketContextFactory>::Config&)>& configurator) {
+            const std::function<void(typename SocketClient<mqtt::mqttcli::SocketContextFactory>::Config*)>& configurator) {
     using Client = SocketClient<mqtt::mqttcli::SocketContextFactory>;
     using SocketAddress = typename Client::SocketAddress;
 
     Client socketClient = core::socket::stream::Client<Client>(instanceName, configurator);
 
-    socketClient.getConfig().setRetry();
-    socketClient.getConfig().setRetryBase(1);
-    socketClient.getConfig().setReconnect();
-    socketClient.getConfig().setDisabled();
+    socketClient.getConfig()->setRetry();
+    socketClient.getConfig()->setRetryBase(1);
+    socketClient.getConfig()->setReconnect();
+    socketClient.getConfig()->setDisabled();
 
     socketClient.connect([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) {
         reportState(instanceName, socketAddress, state);
@@ -138,7 +138,7 @@ startClient(const std::string& instanceName,
 }
 
 template <typename HttpClient>
-static HttpClient startClient(const std::string& name, const std::function<void(typename HttpClient::Config&)>& configurator) {
+static HttpClient startClient(const std::string& name, const std::function<void(typename HttpClient::Config*)>& configurator) {
     using SocketAddress = typename HttpClient::SocketAddress;
 
     const HttpClient httpClient(
@@ -189,10 +189,10 @@ static HttpClient startClient(const std::string& name, const std::function<void(
 
     configurator(httpClient.getConfig());
 
-    httpClient.getConfig().setRetry();
-    httpClient.getConfig().setRetryBase(1);
-    httpClient.getConfig().setReconnect();
-    httpClient.getConfig().setDisabled();
+    httpClient.getConfig()->setRetry();
+    httpClient.getConfig()->setRetryBase(1);
+    httpClient.getConfig()->setReconnect();
+    httpClient.getConfig()->setDisabled();
 
     httpClient.connect([name](const SocketAddress& socketAddress, const core::socket::State& state) {
         reportState(name, socketAddress, state);
@@ -201,12 +201,12 @@ static HttpClient startClient(const std::string& name, const std::function<void(
     return httpClient;
 }
 
-static void createConfig(net::config::ConfigInstance& config) {
-    config.newSubCommand<mqtt::mqttcli::lib::ConfigSession>();
-    config.newSubCommand<mqtt::mqttcli::lib::ConfigSubscribe>();
-    config.newSubCommand<mqtt::mqttcli::lib::ConfigPublish>();
+static void createConfig(net::config::ConfigInstance* config) {
+    config->newSubCommand<mqtt::mqttcli::lib::ConfigSession>();
+    config->newSubCommand<mqtt::mqttcli::lib::ConfigSubscribe>();
+    config->newSubCommand<mqtt::mqttcli::lib::ConfigPublish>();
 
-    config.setRequireCallback([config = &config]() {
+    config->setRequireCallback([config]() {
         if (!config->getDisabled() && config->getShowConfigTriggerApp() == nullptr &&
             config->getParent()->getOption("--write-config")->count() == 0) {
             const mqtt::mqttcli::lib::ConfigPublish* pubApp = config->getSubCommand<mqtt::mqttcli::lib::ConfigPublish>();
@@ -231,10 +231,10 @@ static void createConfig(net::config::ConfigInstance& config) {
     });
 }
 
-static void createWSConfig(net::config::ConfigInstance& config) {
+static void createWSConfig(net::config::ConfigInstance* config) {
     createConfig(config);
 
-    config.getSubCommand<web::http::client::ConfigHTTP>()
+    config->getSubCommand<web::http::client::ConfigHTTP>()
         ->addOption("--target", "Websocket endpoint", "string", "/ws", CLI::TypeValidator<std::string>())
         ->configurable();
 }
@@ -245,9 +245,9 @@ int main(int argc, char* argv[]) {
 #if defined(CONFIG_MQTTSUITE_CLI_TCP_IPV4)
     startClient<net::in::stream::legacy::SocketClient>( //
         "in-mqtt",
-        [](net::in::stream::legacy::config::ConfigSocketClient& config) {
-            config.Remote::setPort(1883);
-            config.setDisableNagleAlgorithm();
+        [](net::in::stream::legacy::config::ConfigSocketClient* config) {
+            config->Remote::setPort(1883);
+            config->setDisableNagleAlgorithm();
 
             createConfig(config); // cppcheck-suppress throwInEntryPoint
         });
@@ -256,9 +256,9 @@ int main(int argc, char* argv[]) {
 #if defined(CONFIG_MQTTSUITE_CLI_TLS_IPV4)
     startClient<net::in::stream::tls::SocketClient>( //
         "in-mqtts",
-        [](net::in::stream::tls::config::ConfigSocketClient& config) {
-            config.Remote::setPort(1883);
-            config.setDisableNagleAlgorithm();
+        [](net::in::stream::tls::config::ConfigSocketClient* config) {
+            config->Remote::setPort(1883);
+            config->setDisableNagleAlgorithm();
 
             createConfig(config); // cppcheck-suppress throwInEntryPoint
         });
@@ -267,9 +267,9 @@ int main(int argc, char* argv[]) {
 #if defined(CONFIG_MQTTSUITE_CLI_TCP_IPV6)
     startClient<net::in6::stream::legacy::SocketClient>( //
         "in6-mqtt",
-        [](net::in6::stream::legacy::config::ConfigSocketClient& config) {
-            config.Remote::setPort(1883);
-            config.setDisableNagleAlgorithm();
+        [](net::in6::stream::legacy::config::ConfigSocketClient* config) {
+            config->Remote::setPort(1883);
+            config->setDisableNagleAlgorithm();
 
             createConfig(config); // cppcheck-suppress throwInEntryPoint
         });
@@ -278,9 +278,9 @@ int main(int argc, char* argv[]) {
 #if defined(CONFIG_MQTTSUITE_CLI_TLS_IPV6)
     startClient<net::in6::stream::tls::SocketClient>( //
         "in6-mqtts",
-        [](net::in6::stream::tls::config::ConfigSocketClient& config) {
-            config.Remote::setPort(1883);
-            config.setDisableNagleAlgorithm();
+        [](net::in6::stream::tls::config::ConfigSocketClient* config) {
+            config->Remote::setPort(1883);
+            config->setDisableNagleAlgorithm();
 
             createConfig(config); // cppcheck-suppress throwInEntryPoint
         });
@@ -289,7 +289,7 @@ int main(int argc, char* argv[]) {
 #if defined(CONFIG_MQTTSUITE_CLI_UNIX)
     startClient<net::un::stream::legacy::SocketClient>( //
         "un-mqtt",
-        [](net::un::stream::legacy::config::ConfigSocketClient& config) {
+        [](net::un::stream::legacy::config::ConfigSocketClient* config) {
             createConfig(config); // cppcheck-suppress throwInEntryPoint
         });
 #endif
@@ -297,7 +297,7 @@ int main(int argc, char* argv[]) {
 #if defined(CONFIG_MQTTSUITE_CLI_UNIX_TLS)
     startClient<net::un::stream::tls::SocketClient>( //
         "un-mqtts",
-        [](net::un::stream::tls::config::ConfigSocketClient& config) {
+        [](net::un::stream::tls::config::ConfigSocketClient* config) {
             createConfig(config); // cppcheck-suppress throwInEntryPoint
         });
 #endif
@@ -305,9 +305,9 @@ int main(int argc, char* argv[]) {
 #if defined(CONFIG_MQTTSUITE_CLI_TCP_IPV4) && defined(CONFIG_MQTTSUITE_CLI_WS)
     startClient<web::http::legacy::in::Client>( //
         "in-wsmqtt",
-        [](net::in::stream::legacy::config::ConfigSocketClient& config) {
-            config.Remote::setPort(8080);
-            config.setDisableNagleAlgorithm();
+        [](net::in::stream::legacy::config::ConfigSocketClient* config) {
+            config->Remote::setPort(8080);
+            config->setDisableNagleAlgorithm();
 
             createWSConfig(config);
         });
@@ -316,9 +316,9 @@ int main(int argc, char* argv[]) {
 #if defined(CONFIG_MQTTSUITE_CLI_TLS_IPV4) && defined(CONFIG_MQTTSUITE_CLI_WSS)
     startClient<web::http::tls::in::Client>( //
         "in-wsmqtts",
-        [](net::in::stream::tls::config::ConfigSocketClient& config) {
-            config.Remote::setPort(8088);
-            config.setDisableNagleAlgorithm();
+        [](net::in::stream::tls::config::ConfigSocketClient* config) {
+            config->Remote::setPort(8088);
+            config->setDisableNagleAlgorithm();
 
             createWSConfig(config);
         });
@@ -327,9 +327,9 @@ int main(int argc, char* argv[]) {
 #if defined(CONFIG_MQTTSUITE_CLI_TCP_IPV6) && defined(CONFIG_MQTTSUITE_CLI_WS)
     startClient<web::http::legacy::in6::Client>( //
         "in6-wsmqtt",
-        [](net::in6::stream::legacy::config::ConfigSocketClient& config) {
-            config.Remote::setPort(8080);
-            config.setDisableNagleAlgorithm();
+        [](net::in6::stream::legacy::config::ConfigSocketClient* config) {
+            config->Remote::setPort(8080);
+            config->setDisableNagleAlgorithm();
 
             createWSConfig(config);
         });
@@ -338,9 +338,9 @@ int main(int argc, char* argv[]) {
 #if defined(CONFIG_MQTTSUITE_CLI_TLS_IPV6) && defined(CONFIG_MQTTSUITE_CLI_WSS)
     startClient<web::http::tls::in6::Client>( //
         "in6-wsmqtts",
-        [](net::in6::stream::tls::config::ConfigSocketClient& config) {
-            config.Remote::setPort(8088);
-            config.setDisableNagleAlgorithm();
+        [](net::in6::stream::tls::config::ConfigSocketClient* config) {
+            config->Remote::setPort(8088);
+            config->setDisableNagleAlgorithm();
 
             createWSConfig(config);
         });
@@ -349,7 +349,7 @@ int main(int argc, char* argv[]) {
 #if defined(CONFIG_MQTTSUITE_CLI_UNIX) && defined(CONFIG_MQTTSUITE_CLI_WS)
     startClient<web::http::legacy::un::Client>( //
         "un-wsmqtt",
-        [](net::un::stream::legacy::config::ConfigSocketClient& config) {
+        [](net::un::stream::legacy::config::ConfigSocketClient* config) {
             createWSConfig(config);
         });
 #endif
@@ -357,7 +357,7 @@ int main(int argc, char* argv[]) {
 #if defined(CONFIG_MQTTSUITE_CLI_UNIX_TLS) && defined(CONFIG_MQTTSUITE_CLI_WSS)
     startClient<web::http::tls::un::Client>( //
         "un-wsmqtts",
-        [](net::un::stream::tls::config::ConfigSocketClient& config) {
+        [](net::un::stream::tls::config::ConfigSocketClient* config) {
             createWSConfig(config);
         });
 #endif
