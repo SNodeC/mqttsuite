@@ -123,13 +123,7 @@ static bool restart = false;
 static void startBridges();
 
 static void restartBridges() {
-    bool empty = true;
-
-    for (const auto& [bridgeName, bridge] : mqtt::bridge::lib::BridgeStore::instance().getBridgeMap()) {
-        empty &= bridge.getMqttList().empty();
-    }
-
-    if (empty && restart) {
+    if (restart) {
         VLOG(2) << "Restarting bridges...";
 
         mqtt::bridge::lib::BridgeStore::instance().activateStaged();
@@ -580,17 +574,11 @@ int main(int argc, char* argv[]) {
     router.patch("/api/bridge/config", [] APPLICATION(req, res) {
         req->getAttribute<nlohmann::json>(
             [&res](nlohmann::json& jsonPatch) {
-                std::string jsonString = jsonPatch.dump(4);
-
-                VLOG(1) << jsonString;
-
                 if (!restart) {
-                    bool idle = closeBridges();
-
                     if (mqtt::bridge::lib::BridgeStore::instance().patch(jsonPatch)) {
                         res->send(R"({"success": true, "message": "Bridge config patch applied"})"_json.dump());
 
-                        if (idle) {
+                        if (closeBridges()) {
                             restartBridges();
                         }
                     } else {
