@@ -78,8 +78,7 @@ namespace mqtt::lib {
                   !CLI::ExistingDirectory)) {
     }
 
-    ConfigApplication::~ConfigApplication() {
-    }
+    ConfigApplication::~ConfigApplication() = default;
 
     ConfigApplication& ConfigApplication::setSessionStore(const std::string& sessionStore) {
         setDefaultValue(sessionStoreOpt, sessionStore);
@@ -122,6 +121,8 @@ namespace mqtt::lib {
         required(htmlRootOpt);
     }
 
+    ConfigMqttBroker::~ConfigMqttBroker() = default;
+
     ConfigMqttBroker& ConfigMqttBroker::setHtmlRoot(const std::string& htmlRoot) {
         setDefaultValue(htmlRootOpt, htmlRoot);
         required(htmlRootOpt, false);
@@ -139,5 +140,7 @@ namespace mqtt::lib {
         : ConfigApplication(parent, this) {
         required(mappingFileOpt);
     }
+
+    ConfigMqttIntegrator::~ConfigMqttIntegrator() = default;
 
 } // namespace mqtt::lib

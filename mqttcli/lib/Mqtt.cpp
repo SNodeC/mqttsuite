@@ -67,10 +67,7 @@
 
 #endif
 
-// include the single‐header JSON library:
-// https://github.com/nlohmann/json/releases
 #include <nlohmann/json.hpp>
-using json = nlohmann::json;
 
 // get current terminal width, fallback to 80
 static int getTerminalWidth() {
@@ -150,7 +147,7 @@ std::vector<std::string> static myformat(const std::string& prefix,
 
     // try parsing as JSON
     try {
-        auto j = json::parse(message);
+        auto j = nlohmann::json::parse(message);
         // pretty‐print with 2-space indent
         std::string pretty = j.dump(2);
         // split into lines
@@ -165,7 +162,7 @@ std::vector<std::string> static myformat(const std::string& prefix,
                 lines.push_back(indent + "│ " + line);
             }
         }
-    } catch (json::parse_error&) {
+    } catch (nlohmann::json::parse_error&) {
         // not JSON → wrap text
 
         // break original message on hard newlines and wrap each paragraph

@@ -89,6 +89,8 @@ namespace mqtt::lib {
 
         ConfigMqttBroker(utils::SubCommand* parent);
 
+        ~ConfigMqttBroker() override;
+
         ConfigMqttBroker& setHtmlRoot(const std::string& htmlRoot);
         std::string getHtmlRoot();
 
@@ -102,6 +104,8 @@ namespace mqtt::lib {
         constexpr static std::string_view DESCRIPTION{"Configuration for Application mqttintegrator"};
 
         ConfigMqttIntegrator(utils::SubCommand* parent);
+
+        ~ConfigMqttIntegrator() override;
     };
 
 } // namespace mqtt::lib

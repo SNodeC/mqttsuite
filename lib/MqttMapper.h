@@ -55,14 +55,17 @@ namespace inja {
     class Environment;
 }
 
-#include "nlohmann/json-schema.hpp" // IWYU pragma: export
-
 #include <cstdint>
 #include <list>
 #include <nlohmann/json.hpp> // IWYU pragma: export
 #include <string>
 #include <utility>
 #include <vector>
+
+namespace nlohmann::json_schema {
+    class json_validator;
+    class basic_error_handler;
+} // namespace nlohmann::json_schema
 
 // IWYU pragma: no_include <nlohmann/json_fwd.hpp>
 

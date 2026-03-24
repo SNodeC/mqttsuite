@@ -51,6 +51,8 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include "nlohmann/json-schema.hpp"
+
 #include <exception>
 #include <filesystem>
 #include <fstream>

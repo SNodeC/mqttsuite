@@ -56,8 +56,7 @@ namespace mqtt::mqttcli::lib {
         required(false, true);
     }
 
-    ConfigSubscribe::~ConfigSubscribe() {
-    }
+    ConfigSubscribe::~ConfigSubscribe() = default;
 
     std::list<std::string> ConfigSubscribe::getTopic() const {
         std::list<std::string> topicList = topicOpt->as<std::list<std::string>>();
@@ -89,8 +88,7 @@ namespace mqtt::mqttcli::lib {
         required(false, true);
     }
 
-    ConfigPublish::~ConfigPublish() {
-    }
+    ConfigPublish::~ConfigPublish() = default;
 
     std::string ConfigPublish::getTopic() const {
         return topicOpt->as<std::string>();
@@ -149,8 +147,7 @@ namespace mqtt::mqttcli::lib {
               setConfigurable(addOption("--password", "MQTT password", "string", CLI::TypeValidator<std::string>()), true)) {
     }
 
-    ConfigSession::~ConfigSession() {
-    }
+    ConfigSession::~ConfigSession() = default;
 
     std::string ConfigSession::getClientId() const {
         return clientIdOpt->as<std::string>();
