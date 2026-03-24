@@ -116,10 +116,16 @@ endif()
 
 target_include_directories(mqtt-mapping PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
+target_compile_options(
+    mqtt-mapping
+    PUBLIC -Wno-float-equal
+    PRIVATE $<$<CXX_COMPILER_ID:GNU>:-fno-gnu-unique>
+)
+
 target_link_libraries(
     mqtt-mapping
-    PUBLIC snodec::mqtt nlohmann_json_schema_validator
-           nlohmann_json::nlohmann_json snodec::http-server-express
+    PUBLIC snodec::mqtt snodec::http-server-express nlohmann_json::nlohmann_json
+    PRIVATE nlohmann_json_schema_validator
 )
 
 set_target_properties(mqtt-mapping PROPERTIES POSITION_INDEPENDENT_CODE ON)
@@ -127,7 +133,5 @@ set_target_properties(mqtt-mapping PROPERTIES POSITION_INDEPENDENT_CODE ON)
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     target_compile_options(mqtt-mapping PRIVATE -Wno-shadow-field)
 endif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-
-target_compile_options(mqtt-mapping PUBLIC -Wno-float-equal)
 
 add_subdirectory(plugins)

@@ -57,8 +57,13 @@ add_library(
 )
 
 target_link_libraries(
-    websocket-mqtt-client PUBLIC snodec::mqtt-client-websocket mqtt-integrator
-                                 nlohmann_json::nlohmann_json
+    websocket-mqtt-client
+    PUBLIC mqtt-integrator
+    PRIVATE snodec::mqtt-client-websocket
+)
+
+target_compile_options(
+    websocket-mqtt-client PRIVATE $<$<CXX_COMPILER_ID:GNU>:-fno-gnu-unique>
 )
 
 set_target_properties(
