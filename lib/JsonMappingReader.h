@@ -64,7 +64,7 @@ namespace mqtt::lib {
         // Admin / Live Reload Support
         static void saveDraft(const std::string& mapFilePath, const nlohmann::json& content);
         static nlohmann::json readDraftOrActive(const std::string& mapFilePath);
-        static nlohmann::json deployDraft(const std::string& mapFilePath);
+        static nlohmann::json deployDraft(const std::string& mapFilePath, bool enableVersioning = true);
         static void discardDraft(const std::string& mapFilePath);
         static std::string getDraftPath(const std::string& mapFilePath);
 

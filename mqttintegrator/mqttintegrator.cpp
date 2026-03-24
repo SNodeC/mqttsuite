@@ -81,6 +81,7 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include <exception>
 #include <log/Logger.h>
 //
 #include <utility>
@@ -90,6 +91,24 @@
 // admin API
 #include "lib/MappingAdminRouter.h"
 #include "lib/Mqtt.h"
+
+namespace {
+
+    bool isConfigTriggerActive(const char* optionName) {
+        try {
+            const CLI::Option* option = utils::Config::configRoot.getOption(optionName);
+            return option != nullptr && option->count() > 0;
+        } catch (...) {
+            return false;
+        }
+    }
+
+    bool isFrameworkControlModeRequested() {
+        return isConfigTriggerActive("--help") || isConfigTriggerActive("--show-config") || isConfigTriggerActive("--command-line") ||
+               isConfigTriggerActive("--write-config") || isConfigTriggerActive("--version") || isConfigTriggerActive("--kill");
+    }
+
+} // namespace
 
 static void
 reportState(const std::string& instanceName, const core::socket::SocketAddress& socketAddress, const core::socket::State& state) {
@@ -185,6 +204,10 @@ int main(int argc, char* argv[]) {
     mqtt::lib::ConfigMqttIntegrator* configMqttIntegrator = utils::Config::configRoot.newSubCommand<mqtt::lib::ConfigMqttIntegrator>();
 
     core::SNodeC::init(argc, argv);
+
+    if (isFrameworkControlModeRequested()) {
+        return core::SNodeC::start();
+    }
 
     // Instanciate Admin Router for Mapping Management
     express::Router router =
