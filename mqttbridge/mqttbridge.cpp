@@ -182,17 +182,12 @@ static bool closeBridges() {
 
         for (const auto& [bridgeName, bridge] : mqtt::bridge::lib::BridgeStore::instance().getBridgeMap()) {
             mqtt::bridge::lib::SSEDistributor::instance().bridgeStopping(bridgeName);
+
             for (const auto& mqtt : bridge.getMqttList()) {
                 mqtt::bridge::lib::SSEDistributor::instance().brokerDisconnecting(
                     bridgeName, mqtt->getMqttContext()->getSocketConnection()->getInstanceName());
 
                 mqtt->sendDisconnect();
-
-                mqtt->getMqttContext()
-                    ->getSocketConnection()
-                    ->getConfigInstance()
-                    ->getSubCommand<net::config::ConfigPhysicalSocketClient>()
-                    ->setReconnect(false);
             }
         }
 
