@@ -69,7 +69,7 @@ namespace mqtt::lib {
         std::string getSessionStore() const;
 
         bool setMappingFile(const std::string& mappingFile); // can throw
-        std::string getMappingFile() const;
+        std::string getMappingFilename() const;
 
         bool setMapping(const nlohmann::json& json); // can throw
 
@@ -89,6 +89,8 @@ namespace mqtt::lib {
 
         ConfigMqttBroker(utils::SubCommand* parent);
 
+        ~ConfigMqttBroker() override;
+
         ConfigMqttBroker& setHtmlRoot(const std::string& htmlRoot);
         std::string getHtmlRoot();
 
@@ -102,6 +104,8 @@ namespace mqtt::lib {
         constexpr static std::string_view DESCRIPTION{"Configuration for Application mqttintegrator"};
 
         ConfigMqttIntegrator(utils::SubCommand* parent);
+
+        ~ConfigMqttIntegrator() override;
     };
 
 } // namespace mqtt::lib

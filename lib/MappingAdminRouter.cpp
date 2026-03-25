@@ -51,6 +51,8 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include "nlohmann/json-schema.hpp"
+
 #include <exception>
 #include <filesystem>
 #include <fstream>
@@ -88,12 +90,12 @@ namespace mqtt::lib::admin {
                 const std::string bodyStr(req->body.begin(), req->body.end());
                 nlohmann::json patchOps = nlohmann::json::parse(bodyStr);
 
-                nlohmann::json current = JsonMappingReader::readDraftOrActive(configApplication->getMappingFile());
+                nlohmann::json current = configApplication->getMqttMapper()->getMapping();
                 current = current.patch(patchOps);
 
-                JsonMappingReader::saveDraft(configApplication->getMappingFile(), current);
+                JsonMappingReader::saveDraft(configApplication->getMappingFilename(), current);
 
-                res->status(200).json({{"status", "patched"}, {"path", configApplication->getMappingFile()}});
+                res->status(200).json({{"status", "patched"}, {"path", configApplication->getMappingFilename()}});
             } catch (const nlohmann::json::parse_error& e) {
                 res->status(400).json({{"error", "Invalid JSON body"}, {"details", e.what()}});
             } catch (const std::exception& e) {
@@ -112,9 +114,9 @@ namespace mqtt::lib::admin {
                     return;
                 }
 
-                JsonMappingReader::saveDraft(configApplication->getMappingFile(), replacement);
+                JsonMappingReader::saveDraft(configApplication->getMappingFilename(), replacement);
 
-                res->status(200).json({{"status", "replaced"}, {"path", configApplication->getMappingFile()}});
+                res->status(200).json({{"status", "replaced"}, {"path", configApplication->getMappingFilename()}});
             } catch (const nlohmann::json::parse_error& e) {
                 res->status(400).json({{"error", "Invalid JSON body"}, {"details", e.what()}});
             } catch (const std::exception& e) {
@@ -125,7 +127,7 @@ namespace mqtt::lib::admin {
         // POST /config/deploy
         api.post("/config/deploy", [configApplication, onDeploy] APPLICATION(req, res) {
             try {
-                nlohmann::json newMappingJson = JsonMappingReader::deployDraft(configApplication->getMappingFile());
+                nlohmann::json newMappingJson = JsonMappingReader::deployDraft(configApplication->getMappingFilename());
 
                 bool mustReconnect = configApplication->setMapping(newMappingJson); // throws in case of an error during loading
                                                                                     // or validation. This exeption is catched
@@ -167,7 +169,7 @@ namespace mqtt::lib::admin {
         // GET /config/validateDraft
         api.get("/config/validateDraft", [configApplication] APPLICATION(req, res) {
             try {
-                const std::string draftPath = JsonMappingReader::getDraftPath(configApplication->getMappingFile());
+                const std::string draftPath = JsonMappingReader::getDraftPath(configApplication->getMappingFilename());
 
                 if (!std::filesystem::exists(draftPath)) {
                     res->status(404).json({{"valid", false}, {"error", "No draft configuration available"}, {"path", draftPath}});
@@ -209,7 +211,7 @@ namespace mqtt::lib::admin {
 
                 std::string versionId = jsonBody["version_id"];
 
-                nlohmann::json rolledbackMappingJson = JsonMappingReader::rollbackTo(configApplication->getMappingFile(), versionId);
+                nlohmann::json rolledbackMappingJson = JsonMappingReader::rollbackTo(configApplication->getMappingFilename(), versionId);
 
                 bool mustReconnect = configApplication->setMapping(rolledbackMappingJson); // throws in case of an error during loading
                                                                                            // or validation. This exeption is catched
@@ -232,7 +234,7 @@ namespace mqtt::lib::admin {
         // GET /config/history
         api.get("/config/history", [configApplication] APPLICATION(req, res) {
             try {
-                auto history = JsonMappingReader::getHistory(configApplication->getMappingFile());
+                auto history = JsonMappingReader::getHistory(configApplication->getMappingFilename());
                 nlohmann::json list = nlohmann::json::array();
                 for (const auto& h : history) {
                     list.push_back({{"id", h.id}, {"comment", h.comment}, {"date", h.date}});

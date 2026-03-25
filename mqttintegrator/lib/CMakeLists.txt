@@ -53,8 +53,9 @@ add_library(mqtt-integrator SHARED Mqtt.cpp Mqtt.h)
 target_include_directories(mqtt-integrator PUBLIC ${PROJECT_SOURCE_DIR})
 
 target_link_libraries(
-    mqtt-integrator PUBLIC snodec::mqtt-client nlohmann_json::nlohmann_json
-                           mqtt-mapping
+    mqtt-integrator
+    PUBLIC snodec::mqtt-client mqtt-mapping
+    PRIVATE nlohmann_json::nlohmann_json
 )
 
 set_target_properties(

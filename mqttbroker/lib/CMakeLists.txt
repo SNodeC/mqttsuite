@@ -57,8 +57,9 @@ set_source_files_properties(
 target_include_directories(mqtt-broker PUBLIC ${PROJECT_SOURCE_DIR})
 
 target_link_libraries(
-    mqtt-broker PUBLIC snodec::mqtt-server snodec::http-server-express
-                       nlohmann_json::nlohmann_json mqtt-mapping
+    mqtt-broker
+    PUBLIC snodec::mqtt-server snodec::http-server-express mqtt-mapping
+    PRIVATE nlohmann_json::nlohmann_json
 )
 
 set_target_properties(

@@ -60,6 +60,8 @@ namespace mqtt::bridge {
 
         ConfigBridge(utils::SubCommand* parent);
 
+        ~ConfigBridge() override;
+
         void setDefinitionFile(const std::string& definitionFile);
         std::string getDefinitionFile() const;
 

@@ -60,6 +60,13 @@
 
 namespace mqtt::mqttbroker::lib {
 
+    struct Mqtt::ScheduledPublish {
+        utils::Timeval when;
+        std::size_t seq;
+        iot::mqtt::packets::Publish publish;
+        utils::Timeval delay;
+    };
+
     Mqtt::Mqtt(const std::string& connectionName,
                const std::shared_ptr<iot::mqtt::server::broker::Broker>& broker,
                const std::shared_ptr<mqtt::lib::MqttMapper>& mqttMapper)

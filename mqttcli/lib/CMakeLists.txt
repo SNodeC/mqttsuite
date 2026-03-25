@@ -53,8 +53,9 @@ add_library(mqtt-cli SHARED Mqtt.cpp Mqtt.h ConfigSections.cpp ConfigSections.h)
 target_include_directories(mqtt-cli PUBLIC ${PROJECT_SOURCE_DIR})
 
 target_link_libraries(
-    mqtt-cli PUBLIC snodec::net snodec::mqtt-client
-                    nlohmann_json::nlohmann_json
+    mqtt-cli
+    PUBLIC snodec::net snodec::mqtt-client
+    PRIVATE nlohmann_json::nlohmann_json
 )
 
 set_target_properties(

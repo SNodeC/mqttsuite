@@ -60,14 +60,11 @@ namespace mqtt::lib {
               addOptionFunction( //
                   "--mqtt-mapping-file",
                   [this](const std::string& mappingFile) {
-                      if (!mappingFile.empty()) {
-                          try {
-                              mqttMapper->setMapping(JsonMappingReader::readMappingFromFile(mappingFile));
-                          } catch (std::runtime_error& e) {
-                              throw CLI::ValidationError(
-                                  getName(),
-                                  std::string("The mapping description in '" + mappingFile + "' does not conform to the mapping schema"));
-                          }
+                      try {
+                          mqttMapper->setMapping(JsonMappingReader::readMappingFromFile(mappingFile));
+                      } catch (std::runtime_error& e) {
+                          throw CLI::ValidationError(
+                              getName(), std::string("Activating mapping description in '" + mappingFile + "' failed\nWhat: " + e.what()));
                       }
                   },
                   "MQTT mapping file (json format) for integration",
@@ -81,8 +78,7 @@ namespace mqtt::lib {
                   !CLI::ExistingDirectory)) {
     }
 
-    ConfigApplication::~ConfigApplication() {
-    }
+    ConfigApplication::~ConfigApplication() = default;
 
     ConfigApplication& ConfigApplication::setSessionStore(const std::string& sessionStore) {
         setDefaultValue(sessionStoreOpt, sessionStore);
@@ -100,7 +96,7 @@ namespace mqtt::lib {
         return setMapping(JsonMappingReader::readMappingFromFile(mappingFile));
     }
 
-    std::string ConfigApplication::getMappingFile() const {
+    std::string ConfigApplication::getMappingFilename() const {
         return mappingFileOpt->as<std::string>();
     }
 
@@ -125,6 +121,8 @@ namespace mqtt::lib {
         required(htmlRootOpt);
     }
 
+    ConfigMqttBroker::~ConfigMqttBroker() = default;
+
     ConfigMqttBroker& ConfigMqttBroker::setHtmlRoot(const std::string& htmlRoot) {
         setDefaultValue(htmlRootOpt, htmlRoot);
         required(htmlRootOpt, false);
@@ -142,5 +140,7 @@ namespace mqtt::lib {
         : ConfigApplication(parent, this) {
         required(mappingFileOpt);
     }
+
+    ConfigMqttIntegrator::~ConfigMqttIntegrator() = default;
 
 } // namespace mqtt::lib

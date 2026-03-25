@@ -56,6 +56,8 @@ namespace mqtt::bridge {
         required(bridgeDefinitionOpt);
     }
 
+    ConfigBridge::~ConfigBridge() = default;
+
     void mqtt::bridge::ConfigBridge::setDefinitionFile(const std::string& definitionFile) {
         setDefaultValue(bridgeDefinitionOpt, definitionFile);
         this->required(bridgeDefinitionOpt, false);
