@@ -53,7 +53,7 @@ namespace mqtt::mqttcli::lib {
                   ->take_all()) {
         required(topicOpt);
 
-        required(false, true);
+        forceUnrequired(true);
     }
 
     ConfigSubscribe::~ConfigSubscribe() = default;
@@ -85,7 +85,7 @@ namespace mqtt::mqttcli::lib {
         required(messageOpt);
         required(topicOpt);
 
-        required(false, true);
+        forceUnrequired(true);
     }
 
     ConfigPublish::~ConfigPublish() = default;
