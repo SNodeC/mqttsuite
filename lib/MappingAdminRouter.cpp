@@ -78,7 +78,7 @@ namespace mqtt::lib::admin {
         // GET /config
         api.get("/config", [configApplication] APPLICATION(req, res) {
             try {
-                res->status(200).json(configApplication->getMqttMapper()->getMapping());
+                res->status(200).json(configApplication->getMqttMapper()->getMappingJsonUnpatched());
             } catch (const std::exception& e) {
                 res->status(500).json({{"error", "Failed to load configuration"}, {"details", e.what()}});
             }
@@ -90,7 +90,7 @@ namespace mqtt::lib::admin {
                 const std::string bodyStr(req->body.begin(), req->body.end());
                 nlohmann::json patchOps = nlohmann::json::parse(bodyStr);
 
-                nlohmann::json current = configApplication->getMqttMapper()->getMapping();
+                nlohmann::json current = configApplication->getMqttMapper()->getMappingJsonUnpatched();
                 current = current.patch(patchOps);
 
                 JsonMappingReader::saveDraft(configApplication->getMappingFilename(), current);
