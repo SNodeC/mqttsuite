@@ -91,7 +91,8 @@ namespace mqtt::lib {
         static const std::string& getSchema();
 
         bool setMapping(nlohmann::json mappingJson); // can throw
-        const nlohmann::json& getMapping() const;
+        const nlohmann::json& getMappingJson() const;
+        const nlohmann::json& getMappingJsonUnpatched() const;
 
         std::string dump();
 
@@ -102,6 +103,7 @@ namespace mqtt::lib {
 
         static const nlohmann::json validate(const nlohmann::json& json);
         static const nlohmann::json validate(const nlohmann::json& json, nlohmann::json_schema::basic_error_handler& err);
+        static const nlohmann::json patch(const nlohmann::json& json);
 
     private:
         static void
@@ -111,22 +113,22 @@ namespace mqtt::lib {
 
         nlohmann::json findMatchingTopicLevel(const nlohmann::json& topicLevel, const std::string& topic);
 
-        void publishMappedTemplate(const nlohmann::json& templateMapping, nlohmann::json& json, MappedPublishes& mappedPublishes);
+        void getMappedTemplate(const nlohmann::json& templateMapping, nlohmann::json& json, MappedPublishes& mappedPublishes);
         void getTemplateMappings(const nlohmann::json& templateMapping,
                                  nlohmann::json& json,
                                  const iot::mqtt::packets::Publish& publish,
                                  MappedPublishes& mappedPublishes);
-
-        static void publishMappedMessage(
-            const std::string& topic, const std::string& message, uint8_t qoS, bool retain, double delay, MappedPublishes& mappedPublishes);
-        static void publishMappedMessage(const nlohmann::json& staticMapping,
-                                         const iot::mqtt::packets::Publish& publish,
-                                         MappedPublishes& mappedPublishes);
         static void getStaticMappings(const nlohmann::json& staticMapping,
                                       const iot::mqtt::packets::Publish& publish,
                                       MappedPublishes& mappedPublishes);
 
+        static void getMappedMessage(
+            const std::string& topic, const std::string& message, uint8_t qoS, bool retain, double delay, MappedPublishes& mappedPublishes);
+        static void
+        getMappedMessage(const nlohmann::json& staticMapping, const iot::mqtt::packets::Publish& publish, MappedPublishes& mappedPublishes);
+
         nlohmann::json mappingJson;
+        nlohmann::json mappingJsonUnpatched;
 
         std::list<void*> pluginHandles;
 

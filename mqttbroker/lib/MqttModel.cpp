@@ -159,8 +159,10 @@ namespace mqtt::mqttbroker::lib {
         : response(response)
         , heartbeatTimer(core::timer::Timer::intervalTimer(
               [response] {
-                  response->sendFragment(":keep-alive");
-                  response->sendFragment();
+                  if (response->isConnected()) {
+                      response->sendFragment(":keep-alive");
+                      response->sendFragment();
+                  }
               },
               39)) {
     }
