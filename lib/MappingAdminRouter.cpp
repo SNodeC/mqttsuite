@@ -132,16 +132,18 @@ namespace mqtt::lib::admin {
                 bool mustReconnect = configApplication->setMapping(newMappingJson); // throws in case of an error during loading
                                                                                     // or validation. This exeption is catched
                                                                                     // in the MappingAdminRouter
-                ReloadResult reloadResult;
                 if (onDeploy) {
-                    reloadResult = onDeploy(mustReconnect);
-                }
+                    ReloadResult reloadResult = onDeploy(mustReconnect);
 
-                res->status(200).json({{"status", "deploy-ack"},
-                                       {"reload_mode", reloadResult.mode},
-                                       {"instances", reloadResult.instances},
-                                       {"subscribed", reloadResult.subscribed},
-                                       {"unsubscribed", reloadResult.unsubscribed}});
+                    res->status(200).json({{"status", "deploy-ack"},
+                                           {"reload_mode", reloadResult.mode},
+                                           {"instances", reloadResult.instances},
+                                           {"subscribed", reloadResult.subscribed},
+                                           {"unsubscribed", reloadResult.unsubscribed}});
+                } else {
+                    res->status(200).json(
+                        {{"status", "deploy-ack"}, {"reload_mode", "none"}, {"instances", 0}, {"subscribed", 0}, {"unsubscribed", 0}});
+                }
             } catch (const std::exception& e) {
                 res->status(500).json({{"error", "Deploy failed"}, {"details", e.what()}});
             }
