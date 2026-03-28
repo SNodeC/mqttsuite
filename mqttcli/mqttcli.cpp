@@ -102,8 +102,8 @@ reportState(const std::string& instanceName, const core::socket::SocketAddress& 
 }
 
 static void logResponse(const std::shared_ptr<web::http::client::Request>& req, const std::shared_ptr<web::http::client::Response>& res) {
-    VLOG(1) << req->getSocketContext()->getSocketConnection()->getConnectionName() << " HTTP response for: " << req->method << " "
-            << req->url << " HTTP/" << req->httpMajor << "." << req->httpMinor << "\n"
+    VLOG(1) << req->getConnectionName() << " HTTP response for: " << req->method << " " << req->url << " HTTP/" << req->httpMajor << "."
+            << req->httpMinor << "\n"
             << httputils::toString(req->method,
                                    req->url,
                                    "HTTP/" + std::to_string(req->httpMajor) + "." + std::to_string(req->httpMinor),
