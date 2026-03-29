@@ -155,8 +155,9 @@ namespace mqtt::mqttbroker::lib {
         j = {{"topic", release.topic}};
     }
 
-    MqttModel::EventReceiver::EventReceiver(const std::shared_ptr<express::Response>& response)
-        : response(response)
+    MqttModel::EventReceiver::EventReceiver(std::uint64_t id, const std::shared_ptr<express::Response>& response)
+        : id(id)
+        , response(response)
         , heartbeatTimer(core::timer::Timer::intervalTimer(
               [response] {
                   if (response->isConnected()) {
@@ -169,10 +170,6 @@ namespace mqtt::mqttbroker::lib {
 
     MqttModel::EventReceiver::~EventReceiver() {
         heartbeatTimer.cancel();
-    }
-
-    bool MqttModel::EventReceiver::operator==(const EventReceiver& other) {
-        return response.lock() == other.response.lock();
     }
 
     MqttModel::MqttModel()
@@ -188,10 +185,14 @@ namespace mqtt::mqttbroker::lib {
     void MqttModel::addEventReceiver(const std::shared_ptr<express::Response>& response,
                                      [[maybe_unused]] const std::string& lastEventId,
                                      const std::shared_ptr<iot::mqtt::server::broker::Broker>& broker) {
-        auto& eventReceiver = eventReceiverList.emplace_back(response);
+        const std::uint64_t eventReceiverId = nextEventReceiverId++;
 
-        response->getSocketContext()->onDisconnected([this, &eventReceiver]() {
-            eventReceiverList.remove(eventReceiver);
+        eventReceiverList.emplace_back(eventReceiverId, response);
+
+        response->getSocketContext()->onDisconnected([this, eventReceiverId]() {
+            eventReceiverList.remove_if([eventReceiverId](const EventReceiver& eventReceiver) {
+                return eventReceiver.getId() == eventReceiverId;
+            });
         });
 
         /*

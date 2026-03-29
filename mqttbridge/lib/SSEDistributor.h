@@ -64,15 +64,18 @@ namespace mqtt::bridge::lib {
     private:
         class EventReceiver {
         public:
-            EventReceiver(const std::shared_ptr<express::Response>& response);
+            EventReceiver(std::uint64_t id, const std::shared_ptr<express::Response>& response);
 
             ~EventReceiver();
 
             std::shared_ptr<express::Response> getResponse() const;
 
-            bool operator==(const EventReceiver& other);
+            std::uint64_t getId() const {
+                return id;
+            }
 
         private:
+            std::uint64_t id;
             std::weak_ptr<express::Response> response;
 
             core::timer::Timer heartbeatTimer;
@@ -139,10 +142,10 @@ namespace mqtt::bridge::lib {
                               const std::string& event,
                               const std::string& id);
 
-        static void sendJsonEvent(const std::shared_ptr<express::Response>& response,
-                                  const nlohmann::json& json,
-                                  const std::string& event = "",
-                                  const std::string& id = "");
+        static void sendJsonEvent1(const std::shared_ptr<express::Response>& response,
+                                   const nlohmann::json& json,
+                                   const std::string& event = "",
+                                   const std::string& id = "");
         void sendEvent(const std::string& data, const std::string& event = "", const std::string& id = "");
         void sendJsonEvent(const nlohmann::json& json, const std::string& event = "", const std::string& id = "");
 
@@ -157,6 +160,7 @@ namespace mqtt::bridge::lib {
         std::chrono::time_point<std::chrono::system_clock> onlineSinceTimePoint;
         std::chrono::time_point<std::chrono::system_clock> bridgesStartTimePoint;
         uint64_t id = 0;
+        std::uint64_t nextEventReceiverId = 0;
 
         std::list<Event> replayEvents;
     };

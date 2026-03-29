@@ -73,10 +73,14 @@ namespace mqtt::bridge::lib {
 
     void SSEDistributor::addEventReceiver(const std::shared_ptr<express::Response>& response,
                                           [[maybe_unused]] const std::string& lastEventId) {
-        auto& eventReceiver = eventReceiverList.emplace_back(response);
+        const std::uint64_t eventReceiverId = nextEventReceiverId++;
 
-        response->getSocketContext()->onDisconnected([this, &eventReceiver]() {
-            eventReceiverList.remove(eventReceiver);
+        eventReceiverList.emplace_back(eventReceiverId, response);
+
+        response->getSocketContext()->onDisconnected([this, eventReceiverId]() {
+            eventReceiverList.remove_if([eventReceiverId](const EventReceiver& eventReceiver) {
+                return eventReceiver.getId() == eventReceiverId;
+            });
         });
 
         for (const auto& event : replayEvents) {
@@ -100,10 +104,10 @@ namespace mqtt::bridge::lib {
         }
     }
 
-    void SSEDistributor::sendJsonEvent(const std::shared_ptr<express::Response>& response,
-                                       const nlohmann::json& json,
-                                       const std::string& event,
-                                       const std::string& id) {
+    void SSEDistributor::sendJsonEvent1(const std::shared_ptr<express::Response>& response,
+                                        const nlohmann::json& json,
+                                        const std::string& event,
+                                        const std::string& id) {
         sendEvent(response, json.dump(), event, id);
     }
 
@@ -240,8 +244,9 @@ namespace mqtt::bridge::lib {
         return oss.str();
     }
 
-    SSEDistributor::EventReceiver::EventReceiver(const std::shared_ptr<express::Response>& response)
-        : response(response)
+    SSEDistributor::EventReceiver::EventReceiver(std::uint64_t id, const std::shared_ptr<express::Response>& response)
+        : id(id)
+        , response(response)
         , heartbeatTimer(core::timer::Timer::intervalTimer(
               [response] {
                   response->sendFragment(":keep-alive");
@@ -256,10 +261,6 @@ namespace mqtt::bridge::lib {
 
     std::shared_ptr<express::Response> SSEDistributor::EventReceiver::getResponse() const {
         return response.lock();
-    }
-
-    bool SSEDistributor::EventReceiver::operator==(const EventReceiver& other) {
-        return response.lock() == other.response.lock();
     }
 
     SSEDistributor::Event::Event(const std::string& data, const std::string& event, const std::string& id)

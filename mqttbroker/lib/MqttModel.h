@@ -76,13 +76,16 @@ namespace mqtt::mqttbroker::lib {
     private:
         class EventReceiver {
         public:
-            EventReceiver(const std::shared_ptr<express::Response>& response);
+            EventReceiver(std::uint64_t id, const std::shared_ptr<express::Response>& response);
 
             ~EventReceiver();
 
-            std::weak_ptr<express::Response> response;
+            std::uint64_t getId() const {
+                return id;
+            }
 
-            bool operator==(const EventReceiver& other);
+            std::uint64_t id;
+            std::weak_ptr<express::Response> response;
 
             core::timer::Timer heartbeatTimer;
         };
@@ -130,6 +133,7 @@ namespace mqtt::mqttbroker::lib {
         std::map<std::string, Mqtt*> modelMap;
         std::list<EventReceiver> eventReceiverList;
         std::chrono::time_point<std::chrono::system_clock> onlineSinceTimePoint;
+        std::uint64_t nextEventReceiverId = 0;
         uint64_t id = 0;
     };
 
