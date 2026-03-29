@@ -39,9 +39,9 @@
  * THE SOFTWARE.
  */
 
-#include "SocketContextFactory.h" // IWYU pragma: keep
+#include "SocketContextFactory.h"
 #include "config.h"
-#include "lib/ConfigSections.h" // IWYU pragma: keep
+#include "lib/ConfigSections.h"
 
 #ifdef LINK_SUBPROTOCOL_STATIC
 
