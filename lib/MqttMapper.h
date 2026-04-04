@@ -91,7 +91,7 @@ namespace mqtt::lib {
 
         static const std::string& getSchema();
 
-        bool setMapping(nlohmann::json mappingJson); // can throw const nlohmann::json& getMapping() const;
+        bool setMapping(nlohmann::json mappingJson); // can throw
         const nlohmann::json& getMapping() const;
 
         std::string getClientId() const;
@@ -103,7 +103,6 @@ namespace mqtt::lib {
 
         static const nlohmann::json validate(const nlohmann::json& json);
         static const nlohmann::json validate(const nlohmann::json& json, nlohmann::json_schema::basic_error_handler& err);
-        static const nlohmann::json patch(const nlohmann::json& json);
 
     private:
         static void
@@ -111,13 +110,13 @@ namespace mqtt::lib {
         static void
         extractSubscriptions(const nlohmann::json& mappingJson, const std::string& topic, std::list<iot::mqtt::Topic>& topicList);
 
-        nlohmann::json findMatchingTopicLevel(const nlohmann::json& topicLevel, const std::string& topic);
+        nlohmann::json findMatchingTopicLevel(const nlohmann::json& topicLevel, const std::string& topic) const;
 
-        void getMappedTemplate(const nlohmann::json& templateMapping, nlohmann::json& json, MappedPublishes& mappedPublishes);
+        void getMappedTemplate(const nlohmann::json& templateMapping, nlohmann::json& json, MappedPublishes& mappedPublishes) const;
         void getTemplateMappings(const nlohmann::json& templateMapping,
                                  nlohmann::json& json,
                                  const iot::mqtt::packets::Publish& publish,
-                                 MappedPublishes& mappedPublishes);
+                                 MappedPublishes& mappedPublishes) const;
         static void getStaticMappings(const nlohmann::json& staticMapping,
                                       const iot::mqtt::packets::Publish& publish,
                                       MappedPublishes& mappedPublishes);
@@ -132,7 +131,7 @@ namespace mqtt::lib {
 
         std::list<void*> pluginHandles;
 
-        inja::Environment* injaEnvironment; // We need it as pointer as it must be removed befor unloading the plugin libraries
+        inja::Environment* injaEnvironment; // We need it as pointer as it must be destroyed befor unloading the plugin libraries
 
         static const nlohmann::json_schema::json_validator validator;
 

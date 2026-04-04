@@ -98,6 +98,7 @@ namespace mqtt::lib {
 
     MqttMapper::MqttMapper()
         : injaEnvironment(new inja::Environment) {
+        setMapping({});
     }
 
     MqttMapper::~MqttMapper() {
@@ -129,10 +130,14 @@ namespace mqtt::lib {
             throw std::runtime_error("Validating JSON failed: Mapping JSON = " + mappingJson.dump(4) + "\n" + e.what());
         }
 
-        nlohmann::json oldMappingJson = mappingJson;
+        nlohmann::json oldMappingJson = this->mappingJson;
         try {
             this->mappingJson = mappingJson.patch(defaultPatch);
-            this->mappingJsonUnpatched = mappingJson;
+            if (mappingJson.empty()) {
+                this->mappingJsonUnpatched = this->mappingJson;
+            } else {
+                this->mappingJsonUnpatched = mappingJson;
+            }
         } catch (const std::exception& e) {
             throw std::runtime_error("Patching JSON with default patch failed: Default patch = " + defaultPatch.dump(4) + "\n" + e.what());
         }
@@ -140,6 +145,7 @@ namespace mqtt::lib {
         bool mustReconnect = this->mappingJson["connection"] != oldMappingJson["connection"];
 
         if (mappingJson["mapping"].contains("plugins")) {
+            VLOG(1) << "Loading plugins ...";
             for (const nlohmann::json& pluginJson : mappingJson["mapping"]["plugins"]) {
                 const std::string plugin = pluginJson;
 
@@ -329,7 +335,7 @@ namespace mqtt::lib {
         }
     }
 
-    nlohmann::json MqttMapper::findMatchingTopicLevel(const nlohmann::json& topicLevel, const std::string& topic) {
+    nlohmann::json MqttMapper::findMatchingTopicLevel(const nlohmann::json& topicLevel, const std::string& topic) const {
         nlohmann::json foundTopicLevel;
 
         if (topicLevel.is_object()) {
@@ -356,7 +362,8 @@ namespace mqtt::lib {
         return foundTopicLevel;
     }
 
-    void MqttMapper::getMappedTemplate(const nlohmann::json& templateMapping, nlohmann::json& json, MappedPublishes& mappedPublishes) {
+    void
+    MqttMapper::getMappedTemplate(const nlohmann::json& templateMapping, nlohmann::json& json, MappedPublishes& mappedPublishes) const {
         const std::string& mappingTemplate = templateMapping["mapping_template"];
         const std::string& mappedTopic = templateMapping["mapped_topic"];
 
@@ -414,7 +421,7 @@ namespace mqtt::lib {
     void MqttMapper::getTemplateMappings(const nlohmann::json& templateMapping,
                                          nlohmann::json& json,
                                          const iot::mqtt::packets::Publish& publish,
-                                         MappedPublishes& mappedPublishes) {
+                                         MappedPublishes& mappedPublishes) const {
         json["topic"] = publish.getTopic();
         json["qos"] = publish.getQoS();
         json["retain"] = publish.getRetain();

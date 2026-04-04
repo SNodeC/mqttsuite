@@ -51,7 +51,6 @@ namespace mqtt::lib {
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <memory>
-#include <nlohmann/json_fwd.hpp>
 #include <string>
 #include <string_view>
 
@@ -68,12 +67,16 @@ namespace mqtt::lib {
         ConfigApplication& setSessionStore(const std::string& sessionStore);
         std::string getSessionStore() const;
 
-        bool setMappingFile(const std::string& mappingFile); // can throw
-        std::string getMappingFilename() const;
-
-        bool setMapping(const nlohmann::json& json); // can throw
-
         const std::shared_ptr<MqttMapper> getMqttMapper() const;
+        bool setMappingFile(const std::string& mapFilename); // can throw
+        std::string getMappingFilename() const;
+        bool setMapping(const std::string& mapping) const; // can throw
+        std::string getMapping(int indent = 2) const;
+
+        bool persistMapping() const;
+
+    private:
+        bool loadMapping(const std::string mapFilename); // can throw
 
     protected:
         std::shared_ptr<MqttMapper> mqttMapper;
@@ -82,7 +85,7 @@ namespace mqtt::lib {
         CLI::Option* sessionStoreOpt;
 
     private:
-        static nlohmann::json readMappingFromFile(const std::string& mapFilePath);
+        std::string mapFilename;
     };
 
     class ConfigMqttBroker : public ConfigApplication {

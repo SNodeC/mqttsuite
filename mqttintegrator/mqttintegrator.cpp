@@ -178,6 +178,43 @@ HttpClient startClient(const std::string& name, const std::function<void(typenam
 int main(int argc, char* argv[]) {
     mqtt::lib::ConfigMqttIntegrator* configMqttIntegrator = utils::Config::configRoot.newSubCommand<mqtt::lib::ConfigMqttIntegrator>();
 
+    configMqttIntegrator->setMappingFile("mapping.json"); // Load mapping from mapping.json. (can throw)
+
+    configMqttIntegrator->setMapping( // Override mapping from mapping.json with a in-code mapping (can throw)
+        R"(
+              {
+                "discover_prefix": "",
+                "connection": {
+                  "keep_alive": 60,
+                  "client_id": "",
+                  "clean_session": true,
+                  "will_topic": "",
+                  "will_message": "",
+                  "will_qos": 0,
+                  "will_retain": false
+                },
+                "mapping": {
+                  "plugins": [],
+                  "topic_level": [{
+                    "name": "value",
+                    "subscription": {
+                      "value": {
+                        "mapped_topic": "mapping/json",
+                        "mapping_template": "{\"state\":\"{{message}}\"}"
+                      }
+                    }
+                  }]
+                }
+              }
+            )");
+    /*
+        if (configMqttIntegrator->persistMapping()) {
+            VLOG(0) << "Mapping persisted successfully";
+        } else {
+            VLOG(0) << "Mapping deploy acknowledged but not persisted";
+        }
+    */
+
     core::SNodeC::init(argc, argv);
 
     // Instanciate Admin Router for Mapping Management

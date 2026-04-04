@@ -161,12 +161,10 @@ namespace mqtt::lib {
                 }
             } catch (...) {
             }
-
-            // 4. Promote draft to active
-            fs::rename(draftPath, mapFilePath);
-        } else {
-            fs::remove(draftPath);
         }
+
+        // 4. Erase draft file
+        fs::remove(draftPath);
 
         return j;
     }

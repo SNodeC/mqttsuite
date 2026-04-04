@@ -129,9 +129,11 @@ namespace mqtt::lib::admin {
             try {
                 nlohmann::json newMappingJson = JsonMappingReader::deployDraft(configApplication->getMappingFilename());
 
-                bool mustReconnect = configApplication->setMapping(newMappingJson); // throws in case of an error during loading
-                                                                                    // or validation. This exeption is catched
-                                                                                    // in the MappingAdminRouter
+                bool mustReconnect = configApplication->getMqttMapper()->setMapping(newMappingJson); // throws in case of an error during
+                                                                                                     // loading or validation. This exeption
+                                                                                                     // is catched in the MappingAdminRouter
+                configApplication->persistMapping();
+
                 if (onDeploy) {
                     ReloadResult reloadResult = onDeploy(mustReconnect);
 
@@ -215,9 +217,12 @@ namespace mqtt::lib::admin {
 
                 nlohmann::json rolledbackMappingJson = JsonMappingReader::rollbackTo(configApplication->getMappingFilename(), versionId);
 
-                bool mustReconnect = configApplication->setMapping(rolledbackMappingJson); // throws in case of an error during loading
+                bool mustReconnect =
+                    configApplication->getMqttMapper()->setMapping(rolledbackMappingJson); // throws in case of an error during loading
                                                                                            // or validation. This exeption is catched
                                                                                            // in the MappingAdminRouter
+                configApplication->persistMapping();
+
                 ReloadResult reloadResult;
                 if (onDeploy) {
                     reloadResult = onDeploy(mustReconnect); // Trigger hot-reload

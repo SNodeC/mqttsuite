@@ -49,8 +49,11 @@
 
 #include <exception>
 #include <fstream>
+#include <iterator>
 #include <map>
 #include <stdexcept>
+//
+#include <nlohmann/json_fwd.hpp>
 
 #endif
 
@@ -63,12 +66,17 @@ namespace mqtt::lib {
         , mappingFileOpt(        //
               addOptionFunction( //
                   "--mqtt-mapping-file",
-                  [this](const std::string& mappingFile) {
+                  [this](const std::string& mappFilename) {
                       try {
-                          mqttMapper->setMapping(readMappingFromFile(mappingFile));
+                          loadMapping(mappFilename);
                       } catch (std::runtime_error& e) {
-                          throw CLI::ValidationError(
-                              getName(), std::string("Activating mapping description in '" + mappingFile + "' failed\nWhat: " + e.what()));
+                          this->mapFilename.clear();
+
+                          throw CLI::ValidationError(getName(),
+                                                     std::string("Activating mapping description in '" + mappFilename +
+                                                                 "' failed\n"
+                                                                 "What: " +
+                                                                 e.what()));
                       }
                   },
                   "MQTT mapping file (json format) for integration",
@@ -94,53 +102,84 @@ namespace mqtt::lib {
         return sessionStoreOpt->as<std::string>();
     }
 
-    bool ConfigApplication::setMappingFile(const std::string& mappingFile) { // can throw
-        setDefaultValue(mappingFileOpt, mappingFile);
-
-        return setMapping(readMappingFromFile(mappingFile));
-    }
-
-    std::string ConfigApplication::getMappingFilename() const {
-        return mappingFileOpt->as<std::string>();
-    }
-
-    bool ConfigApplication::setMapping(const nlohmann::json& mappingJson) { // can throw
-        required(mappingFileOpt, false);
-
-        return mqttMapper->setMapping(mappingJson);
-    }
-
     const std::shared_ptr<MqttMapper> ConfigApplication::getMqttMapper() const {
         return mqttMapper;
     }
 
-    nlohmann::json ConfigApplication::readMappingFromFile(const std::string& mapFilePath) {
-        nlohmann::json mappingJson;
+    bool ConfigApplication::setMappingFile(const std::string& mapFilename) {
+        setDefaultValue(mappingFileOpt, mapFilename);
 
-        if (!mapFilePath.empty()) {
-            std::ifstream mapFile(mapFilePath);
+        return loadMapping(mapFilename);
+    }
+
+    std::string ConfigApplication::getMappingFilename() const {
+        return mapFilename;
+    }
+
+    bool ConfigApplication::setMapping(const std::string& mapping) const {
+        return mqttMapper->setMapping(nlohmann::json::parse(mapping));
+    }
+
+    std::string ConfigApplication::getMapping(int indent) const {
+        return mqttMapper->getMapping().dump(indent);
+    }
+
+    bool ConfigApplication::persistMapping() const {
+        bool success = false;
+
+        std::ofstream mapFile(mapFilename, std::ios::trunc);
+        if (mapFile.is_open()) {
+            try {
+                mapFile << getMapping();
+
+                success = true;
+
+                VLOG(1) << "Write mapping file seccess";
+            } catch (const std::exception& e) {
+                VLOG(1) << "Write mapping file failed: " << e.what();
+            }
+
+            mapFile.close();
+        } else {
+            VLOG(1) << "Cannot open mapping file for writing: " << mapFilename;
+        }
+
+        return success;
+    }
+
+    bool ConfigApplication::loadMapping(const std::string mapFilename) {
+        VLOG(1) << "Mapping file: " << mapFilename;
+
+        this->mapFilename = mapFilename;
+
+        bool mustReconnect = true;
+
+        if (!mapFilename.empty()) {
+            std::ifstream mapFile(mapFilename);
 
             if (mapFile.is_open()) {
-                VLOG(1) << "Mapping file: " << mapFilePath;
-
                 try {
-                    mapFile >> mappingJson;
+                    mustReconnect = setMapping({std::istreambuf_iterator<char>(mapFile), std::istreambuf_iterator<char>()});
 
-                    VLOG(1) << "Mapping file parsing seccess";
+                    mapFile.close();
+
+                    VLOG(1) << "Load mapping file success";
                 } catch (const std::exception& e) {
                     mapFile.close();
 
-                    VLOG(1) << "Mapping file parsing failed: " << e.what() << " at " << mapFile.tellg();
-                    throw std::runtime_error("JSON map file parsing faile at: " + std::to_string(mapFile.tellg()) + "\nWhat: " + e.what());
+                    throw std::runtime_error("Loading mapping description from '" + mapFilename +
+                                             "' failed\n"
+                                             "What: " +
+                                             e.what());
                 }
 
-                mapFile.close();
             } else {
-                VLOG(1) << "Mapping file: " << mapFilePath << " not found";
+                VLOG(1) << "Mapping file '" + mapFilename +
+                               "' not found. Please provide a valid mapping file with the option --mqtt-mapping-file";
             }
         }
 
-        return mappingJson;
+        return mustReconnect;
     }
 
     ConfigMqttBroker::ConfigMqttBroker(utils::SubCommand* parent)
@@ -171,7 +210,6 @@ namespace mqtt::lib {
 
     ConfigMqttIntegrator::ConfigMqttIntegrator(utils::SubCommand* parent)
         : ConfigApplication(parent, this) {
-        required(mappingFileOpt);
     }
 
     ConfigMqttIntegrator::~ConfigMqttIntegrator() = default;
