@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MQTTSuite Orchestrator</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; background: #f3f5f7; color: #1f2937; }
+    header { background: #0f172a; color: #fff; padding: 14px 18px; }
+    .layout { display: grid; grid-template-columns: 360px 1fr; min-height: calc(100vh - 58px); }
+    aside, main { padding: 16px; }
+    .card { background: #fff; border-radius: 10px; padding: 12px; margin-bottom: 12px; box-shadow: 0 2px 10px rgba(0,0,0,.08); }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    button { cursor: pointer; padding: 8px 10px; border: 0; border-radius: 6px; background: #2563eb; color: #fff; }
+    input, textarea { width: 100%; margin-top: 6px; margin-bottom: 8px; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; }
+    pre { overflow: auto; background: #0f172a; color: #dbeafe; border-radius: 8px; padding: 10px; min-height: 120px; }
+    ul { margin: 0; padding-left: 18px; max-height: 240px; overflow: auto; }
+    .hint { font-size: 12px; color: #4b5563; }
+  </style>
+</head>
+<body>
+  <header><strong>MQTTSuite IoT Dataflow Orchestrator (Node-RED style blocks)</strong></header>
+  <div class="layout">
+    <aside>
+      <div class="card">
+        <h3>Building Blocks</h3>
+        <div class="hint" id="blockCount"></div>
+        <ul id="blocks"></ul>
+      </div>
+
+      <div class="card">
+        <h3>Create Demo Home Scenario</h3>
+        <label>Scenario ID</label>
+        <input id="scenarioId" value="home-evening-v2" />
+        <button id="createScenario">Create / Update</button>
+      </div>
+
+      <div class="card">
+        <h3>Execute Scenario</h3>
+        <label>Scenario ID</label>
+        <input id="execScenarioId" value="home-evening-v2" />
+        <label>Execution Input JSON</label>
+        <textarea id="execPayload" rows="8">{
+  "inputs": [
+    {"nodeId": "mqtt-in", "input": "payload", "value": {"temperature": 24.2}},
+    {"nodeId": "mqtt-in", "input": "topic", "value": "home/living/sensor"},
+    {"nodeId": "threshold", "input": "value", "value": 24.2},
+    {"nodeId": "scene", "input": "name", "value": "evening"},
+    {"nodeId": "light", "input": "brightness", "value": 75}
+  ]
+}</textarea>
+        <div class="row">
+          <button id="executeScenario">Execute</button>
+          <button id="loadTelemetry">Telemetry</button>
+        </div>
+      </div>
+    </aside>
+
+    <main>
+      <div class="card">
+        <h3>Scenarios</h3>
+        <button id="reload">Reload Scenarios</button>
+        <pre id="scenarios"></pre>
+      </div>
+      <div class="card">
+        <h3>Execution / Telemetry Result</h3>
+        <pre id="selected"></pre>
+      </div>
+    </main>
+  </div>
+<script>
+const apiRoot = '/api/orchestrator';
+
+async function loadBlocks() {
+  const data = await fetch(`${apiRoot}/blocks`).then(r => r.json());
+  const list = document.getElementById('blocks');
+  list.innerHTML = '';
+  document.getElementById('blockCount').textContent = `${data.blocks.length} block types available`;
+  for (const block of data.blocks) {
+    const li = document.createElement('li');
+    li.textContent = `${block.type} (${block.category})`;
+    list.appendChild(li);
+  }
+}
+
+async function loadScenarios() {
+  const data = await fetch(`${apiRoot}/scenarios`).then(r => r.json());
+  document.getElementById('scenarios').textContent = JSON.stringify(data, null, 2);
+}
+
+function buildDemoScenario(id) {
+  return {
+    id,
+    domain: 'home-automation',
+    nodes: [
+      { id: 'mqtt-in', type: 'mqtt.source', config: { topic: 'home/living/sensor' } },
+      { id: 'threshold', type: 'logic.threshold', config: { threshold: 23 } },
+      { id: 'scene', type: 'home.scene', config: { name: 'evening' } },
+      { id: 'light', type: 'home.light', config: { room: 'living-room' } },
+      { id: 'mqtt-out', type: 'mqtt.sink', config: { defaultTopic: 'home/living/light/cmd' } }
+    ],
+    routes: [
+      { fromNode: 'threshold', fromOutput: 'isAbove', toNode: 'light', toInput: 'switch' },
+      { fromNode: 'scene', fromOutput: 'activated', toNode: 'light', toInput: 'switch' },
+      { fromNode: 'light', fromOutput: 'state', toNode: 'mqtt-out', toInput: 'payload' }
+    ]
+  };
+}
+
+async function createScenario() {
+  const id = document.getElementById('scenarioId').value.trim();
+  const scenario = buildDemoScenario(id);
+  const response = await fetch(`${apiRoot}/scenarios`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(scenario)
+  });
+  const payload = await response.json();
+  document.getElementById('selected').textContent = JSON.stringify(payload, null, 2);
+  await loadScenarios();
+}
+
+async function executeScenario() {
+  const id = document.getElementById('execScenarioId').value.trim();
+  const body = JSON.parse(document.getElementById('execPayload').value);
+  const response = await fetch(`${apiRoot}/scenarios/${id}/execute`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  const payload = await response.json();
+  document.getElementById('selected').textContent = JSON.stringify(payload, null, 2);
+}
+
+async function loadTelemetry() {
+  const id = document.getElementById('execScenarioId').value.trim();
+  const payload = await fetch(`${apiRoot}/scenarios/${id}/telemetry`).then(r => r.json());
+  document.getElementById('selected').textContent = JSON.stringify(payload, null, 2);
+}
+
+document.getElementById('createScenario').addEventListener('click', createScenario);
+document.getElementById('reload').addEventListener('click', loadScenarios);
+document.getElementById('executeScenario').addEventListener('click', executeScenario);
+document.getElementById('loadTelemetry').addEventListener('click', loadTelemetry);
+
+loadBlocks();
+loadScenarios();
+</script>
+</body>
+</html>

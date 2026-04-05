@@ -296,9 +296,18 @@ Follow the SNode.C installation guide:
 
 ```sh
 sudo apt update
-sudo apt install libfmt-dev
+sudo apt install libfmt-dev libssl-dev
 # Recommended for building:
 # sudo apt install git cmake build-essential ninja-build pkg-config
+```
+
+### Install nlohmann-json from upstream
+
+```sh
+git clone https://github.com/nlohmann/json.git
+cmake -S json -B json/build -G Ninja \
+  -DJSON_BuildTests=OFF -DCMAKE_BUILD_TYPE=Release
+sudo cmake --install json/build
 ```
 
 ### Build & Install MQTTSuite
@@ -307,11 +316,11 @@ sudo apt install libfmt-dev
 mkdir mqttsuite
 cd mqttsuite
 git clone --recurse-submodules https://github.com/SNodeC/mqttsuite.git
-mkdir build
-cd build
-cmake ../mqttsuite        # optionally: -G Ninja -DCMAKE_BUILD_TYPE=Release
-make -j"$(nproc)"         # or: ninja
-sudo make install         # or: sudo ninja install
+cd mqttsuite
+git submodule update --init --recursive
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j"$(nproc)"
+sudo cmake --install build
 sudo ldconfig
 ```
 
@@ -2072,3 +2081,16 @@ mqttcli <instance> [tls …] remote|local <endpoint-options> (sub …)? (pub …
 ## Notes
 
 - **Protocol:** MQTT **3.1.1** (align your client expectations accordingly).
+
+## mqttorchestrator (new)
+
+`mqttorchestrator` is a new application that introduces a block-based IoT orchestration engine for MQTTSuite.
+
+- Building blocks are JSON-described with shared input/output/telemetry objects.
+- Scenarios define nodes + routes for dataflow graphs.
+- Flows can be executed through the REST API with runtime trace + telemetry output.
+- A REST API and web UI are provided for creating and executing home-automation scenarios.
+
+Core endpoints: `/api/orchestrator/blocks`, `/api/orchestrator/scenarios`, `/api/orchestrator/scenarios/:id/execute`, `/api/orchestrator/scenarios/:id/telemetry`.
+
+See `docs/architecture/mqttorchestrator-design.md` for detailed design and review notes.
