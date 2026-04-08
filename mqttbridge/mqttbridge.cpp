@@ -114,9 +114,7 @@
 
 #endif
 
-static std::set<core::eventreceiver::ConnectEventReceiver*> activeConnectors;
-static std::set<core::socket::stream::AutoConnectControl*> autoConnectControllers;
-static std::set<const net::config::ConfigInstance*> configInstances;
+static std::map<uint64_t, core::socket::stream::FlowController*> flowControllers;
 
 static bool restart = false;
 
@@ -138,46 +136,24 @@ static void restartBridges() {
     }
 }
 
-static void handleAutoConnectControllers(core::socket::stream::AutoConnectControl* autoConnectController) {
-    autoConnectControllers.insert(autoConnectController);
-    VLOG(2) << "Added: AutoConnectControl";
+static void handleFlowControllers(core::socket::stream::ClientFlowController* clientFlowController) {
+    flowControllers.emplace(clientFlowController->getId(), clientFlowController);
+    VLOG(2) << "Added FlowController for: [" << clientFlowController->getId() << "] " << clientFlowController->getInstanceName();
 
-    autoConnectController->setOnDestroy([](core::socket::stream::AutoConnectControl* autoConnectController) {
-        autoConnectControllers.erase(autoConnectController);
-        VLOG(2) << "Erased: AutoConnectControl";
-    });
-}
+    clientFlowController->onFlowCompleted([instanceName = clientFlowController->getInstanceName()](uint64_t id) {
+        flowControllers.erase(id);
+        VLOG(2) << "Erased FlowController of: [" << id << "] " << instanceName;
 
-static void handleConnector(core::eventreceiver::ConnectEventReceiver* connectEventReceiver) {
-    if (connectEventReceiver->isEnabled()) {
-        activeConnectors.insert(connectEventReceiver);
-        VLOG(2) << "Added: ConnectEventReceiver";
-    } else {
-        activeConnectors.erase(connectEventReceiver);
-        VLOG(2) << "Erased: ConnectEventReceiver";
-    }
-}
-
-static void handleConfig(net::config::ConfigInstance* configInstance) {
-    configInstances.insert(configInstance);
-    VLOG(2) << "Added: ConfigInstance: " << configInstance->getInstanceName();
-
-    configInstance->setOnDestroy([](const net::config::ConfigInstance* configInstance) {
-        configInstances.erase(configInstance);
-        VLOG(2) << "Erased: ConfigInstance: " << configInstance->getInstanceName();
-
-        if (configInstances.empty()) {
-            VLOG(2) << "All bridges stopped";
-
-            mqtt::bridge::lib::SSEDistributor::instance().bridgesStopped();
-
+        if (flowControllers.empty() && restart) {
             restartBridges();
         }
     });
 }
 
 static bool closeBridges() {
-    if (!configInstances.empty()) {
+    restart = true;
+
+    if (!flowControllers.empty()) {
         mqtt::bridge::lib::SSEDistributor::instance().bridgesStopping();
 
         for (const auto& [bridgeName, bridge] : mqtt::bridge::lib::BridgeStore::instance().getBridgeMap()) {
@@ -191,18 +167,14 @@ static bool closeBridges() {
             }
         }
 
-        for (auto connectEventReceiver : activeConnectors) {
-            connectEventReceiver->stopConnect();
-        }
+        for (auto& [id, flowController] : flowControllers) {
+            VLOG(1) << "Terminating Flow of: [" << flowController->getId() << "] " << flowController->getInstanceName();
 
-        for (auto autoConnectControler : autoConnectControllers) {
-            autoConnectControler->stopReconnectAndRetry();
+            flowController->terminateFlow();
         }
     }
 
-    restart = true;
-
-    return configInstances.empty();
+    return flowControllers.empty();
 }
 
 static void
@@ -237,16 +209,11 @@ static SocketClient<mqtt::bridge::SocketContextFactory> startClient( //
     socketClient.getConfig()->setRetry()->setRetryBase(1);
     socketClient.getConfig()->setReconnect();
 
-    handleAutoConnectControllers(socketClient.getAutoConnectController());
-    handleConfig(socketClient.getConfig());
+    handleFlowControllers(socketClient.getFlowController());
 
-    socketClient
-        .setOnInitState([](core::eventreceiver::ConnectEventReceiver* connectEventReceiver) {
-            handleConnector(connectEventReceiver);
-        })
-        .connect([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) {
-            reportState(instanceName, socketAddress, state);
-        });
+    socketClient.connect([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) {
+        reportState(instanceName, socketAddress, state);
+    });
 
     return socketClient;
 }
@@ -290,16 +257,11 @@ static HttpClient startClient( //
     httpClient.getConfig()->setRetry()->setRetryBase(1);
     httpClient.getConfig()->setReconnect();
 
-    handleAutoConnectControllers(httpClient.getAutoConnectController());
-    handleConfig(httpClient.getConfig());
+    handleFlowControllers(httpClient.getFlowController());
 
-    httpClient
-        .setOnInitState([](core::eventreceiver::ConnectEventReceiver* connectEventReceiver) {
-            handleConnector(connectEventReceiver);
-        })
-        .connect([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) {
-            reportState(instanceName, socketAddress, state);
-        });
+    httpClient.connect([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) {
+        reportState(instanceName, socketAddress, state);
+    });
 
     return httpClient;
 }
