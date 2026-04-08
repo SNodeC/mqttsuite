@@ -114,7 +114,7 @@
 
 #endif
 
-static std::map<uint64_t, core::socket::stream::FlowController*> flowControllers;
+static std::map<uint64_t, core::socket::stream::ClientFlowController*> flowControllers;
 
 static bool restart = false;
 
