@@ -140,7 +140,7 @@ static void handleFlowControllers(core::socket::stream::ClientFlowController* cl
     flowControllers.emplace(clientFlowController->getId(), clientFlowController);
     VLOG(2) << "Added FlowController for: [" << clientFlowController->getId() << "] " << clientFlowController->getInstanceName();
 
-    clientFlowController->onFlowCompleted([instanceName = clientFlowController->getInstanceName()](uint64_t id) {
+    clientFlowController->setOnFlowCompleted([instanceName = clientFlowController->getInstanceName()](uint64_t id) {
         flowControllers.erase(id);
         VLOG(2) << "Erased FlowController of: [" << id << "] " << instanceName;
 
