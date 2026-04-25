@@ -205,6 +205,7 @@ static void createConfig(net::config::ConfigInstance* config) {
     config->newSubCommand<mqtt::mqttcli::lib::ConfigSession>();
     config->newSubCommand<mqtt::mqttcli::lib::ConfigSubscribe>();
     config->newSubCommand<mqtt::mqttcli::lib::ConfigPublish>();
+    config->newSubCommand<mqtt::mqttcli::lib::ConfigDatabase>();
 
     config->setRequireCallback([config]() {
         if (!config->getDisabled() && config->getShowConfigTriggerApp() == nullptr &&

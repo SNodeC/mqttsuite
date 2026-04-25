@@ -45,16 +45,22 @@
 #include <iot/mqtt/packets/Connack.h>
 #include <iot/mqtt/packets/Publish.h>
 #include <iot/mqtt/packets/Suback.h>
+#include <utils/base64.h>
+
+// IWYU pragma: no_include <nlohmann/detail/iterators/iter_impl.hpp>
+// IWYU pragma: no_include <nlohmann/json_fwd.hpp>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <algorithm>
 #include <cstring>
+#include <functional>
 #include <iterator>
 #include <list>
 #include <log/Logger.h>
 #include <map>
-#include <nlohmann/json_fwd.hpp>
+#include <mysql.h>
+#include <nlohmann/json.hpp>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -66,8 +72,6 @@
 #include <vector>
 
 #endif
-
-#include <nlohmann/json.hpp>
 
 // get current terminal width, fallback to 80
 static int getTerminalWidth() {
@@ -136,8 +140,6 @@ std::vector<std::string> static myformat(const std::string& prefix,
     if (wrapped.empty()) {
         wrapped.push_back("");
     }
-
-    //    lines.insert(lines.end(), wrapped.begin(), wrapped.end());
 
     bool first = true;
     for (const auto& line : wrapped) {
@@ -229,8 +231,36 @@ namespace mqtt::mqttcli::lib {
                const std::string& pubTopic,
                const std::string& pubMessage,
                bool pubRetain,
+               const std::string& database,
+               const std::string& usernameDb,
+               const std::string& passwordDb,
+               const std::string& host,
+               uint16_t port,
+               const std::string& socket,
+               uint32_t flags,
                const std::string& sessionStoreFileName)
         : iot::mqtt::client::Mqtt(connectionName, clientId, keepAlive, sessionStoreFileName)
+        , mariaDB(
+              {
+                  // Connection detail
+                  .connectionName = connectionName,
+                  .hostname = host,
+                  .username = usernameDb,
+                  .password = passwordDb,
+                  .database = database,
+                  .port = port,
+                  .socket = socket,
+                  .flags = flags,
+              },
+              [&connectionName = this->connectionName](const database::mariadb::MariaDBState& state) {
+                  if (state.connected) {
+                      VLOG(0) << connectionName << " MariaDB: Connected";
+                  } else if (state.error != 0) {
+                      VLOG(0) << connectionName << " MariaDB: " << state.errorMessage << " [" << state.error << "]";
+                  } else {
+                      VLOG(0) << connectionName << " MariaDB: Lost connection";
+                  }
+              })
         , qoSDefault(qoSDefault)
         , cleanSession(cleanSession)
         , willTopic(willTopic)
@@ -351,14 +381,6 @@ namespace mqtt::mqttcli::lib {
         }
     }
 
-    void Mqtt::onSuback(const iot::mqtt::packets::Suback& suback) {
-        VLOG(1) << "MQTT Suback";
-
-        for (auto returnCode : suback.getReturnCodes()) {
-            VLOG(0) << "  r: " << static_cast<int>(returnCode);
-        }
-    }
-
     void Mqtt::onPublish(const iot::mqtt::packets::Publish& publish) {
         std::string prefix = "MQTT Publish";
         std::string headLine = publish.getTopic() + " │ QoS: " + std::to_string(static_cast<uint16_t>(publish.getQoS())) +
@@ -366,6 +388,62 @@ namespace mqtt::mqttcli::lib {
                                " │ Dup: " + (publish.getDup() != 0 ? "true" : "false");
 
         VLOG(0) << formatAsLogString(prefix, headLine, publish.getMessage());
+
+        try {
+            nlohmann::json messageAsJSON = nlohmann::json::parse(publish.getMessage());
+
+            // Here you can analyse and retrieve data from the json (j
+            // and decide on base of the fPort what to do with the data
+            // Maybe store it into a particular db table ...
+            // E.g.:
+
+            VLOG(0) << "ApplicationId: " << messageAsJSON["end_device_ids"]["application_ids"]["application_id"];
+
+            VLOG(0) << "Uplink message field\n" << messageAsJSON["uplink_message"].dump(4);
+            VLOG(0) << "Decoded payload field\n" << messageAsJSON["uplink_message"]["decoded_payload"].dump(4);
+
+            VLOG(0) << "DeviceID: " << messageAsJSON["end_device_ids"]["device_id"];
+            VLOG(0) << "DeviceEUI: " << messageAsJSON["end_device_ids"]["dev_eui"];
+            VLOG(0) << "Received at: " << messageAsJSON["received_at"];
+            for (const auto& rx_metadata : messageAsJSON["uplink_message"]["rx_metadata"]) {
+                VLOG(0) << "Received via GW: " << rx_metadata["gateway_ids"]["gateway_id"];
+            }
+
+            VLOG(0) << "MessageCnt: " << messageAsJSON["uplink_message"]["f_cnt"];
+            VLOG(0) << "F-Port field: " << messageAsJSON["uplink_message"]["f_port"];
+            VLOG(0) << "Frm payload field: " << messageAsJSON["uplink_message"]["frm_payload"];
+            VLOG(0) << "Frm payload base64 decoded: " << base64::base64_decode(messageAsJSON["uplink_message"]["frm_payload"]);
+        } catch (const nlohmann::json::parse_error& error) {
+            VLOG(0) << "Message is not a valid JSON: " << error.what();
+        } catch (const nlohmann::json::exception& error) {
+            VLOG(0) << "Error accessing JSON fields: " << error.what();
+        }
+
+        // This insert is just a dummy insert ...
+        mariaDB.exec(
+            "INSERT INTO `snodec`(`username`, `password`) VALUES ('Annett','" + publish.getMessage() + "')",
+            [&mariaDB = this->mariaDB, &connectionName = this->connectionName](void) -> void {
+                VLOG(0) << connectionName << " MariaDB: Query completed";
+                mariaDB.affectedRows(
+                    [](my_ulonglong affectedRows) -> void {
+                        VLOG(0) << "  query affected rows: " << affectedRows;
+                    },
+                    [](const std::string& errorString, unsigned int errorNumber) -> void {
+                        VLOG(0) << "  query affected rows failed: " << errorString << " : " << errorNumber;
+                    });
+            },
+            [&connectionName = this->connectionName](const std::string& errorString, unsigned int errorNumber) -> void {
+                VLOG(0) << connectionName << " MariaDB: Query failed: " << errorString << " : " << errorNumber;
+            });
+        // End of dummy insert
+    };
+
+    void Mqtt::onSuback(const iot::mqtt::packets::Suback& suback) {
+        VLOG(1) << "MQTT Suback";
+
+        for (auto returnCode : suback.getReturnCodes()) {
+            VLOG(0) << "  r: " << static_cast<int>(returnCode);
+        }
     }
 
     void Mqtt::onPuback([[maybe_unused]] const iot::mqtt::packets::Puback& puback) {

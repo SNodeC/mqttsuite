@@ -54,6 +54,46 @@
 
 namespace mqtt::mqttcli::lib {
 
+    class ConfigDatabase : public utils::SubCommand {
+    public:
+        constexpr static std::string_view NAME{"db"};
+        constexpr static std::string_view DESCRIPTION{"Configuration for the database connection (MariaDB/MySql)"};
+
+        ConfigDatabase(utils::SubCommand* parent);
+
+        ~ConfigDatabase() override;
+
+        std::string getHost() const;
+        const ConfigDatabase& setHost(const std::string& host);
+
+        std::string getUsername() const;
+        const ConfigDatabase& setUsername(const std::string& username);
+
+        std::string getPassword() const;
+        const ConfigDatabase& setPassword(const std::string& password);
+
+        std::string getDatabase() const;
+        const ConfigDatabase& setDatabase(const std::string& database);
+
+        uint16_t getPort() const;
+        const ConfigDatabase& setPort(uint16_t port);
+
+        std::string getSocket() const;
+        const ConfigDatabase& setSocket(const std::string& socket);
+
+        uint32_t getFlags() const;
+        const ConfigDatabase& setFlags(uint32_t flags);
+
+    private:
+        CLI::Option* hostOpt;
+        CLI::Option* usernameOpt;
+        CLI::Option* passwordOpt;
+        CLI::Option* databaseOpt;
+        CLI::Option* portOpt;
+        CLI::Option* socketOpt;
+        CLI::Option* flagsOpt;
+    };
+
     class ConfigSubscribe : public utils::SubCommand {
     public:
         constexpr static std::string_view NAME{"sub"};

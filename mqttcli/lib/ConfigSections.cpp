@@ -249,4 +249,104 @@ namespace mqtt::mqttcli::lib {
         return *this;
     }
 
+    ConfigDatabase::ConfigDatabase(SubCommand* parent)
+        : SubCommand(parent, this, "Database connection")
+        , hostOpt(setConfigurable(
+              addOption("--host", "Hostname or IP-Address of Server", "hostname|IPv4", CLI::TypeValidator<std::string>()), true))
+        , usernameOpt(setConfigurable(
+              addOption("--username", "Username for database connection", "string", CLI::TypeValidator<std::string>()), true))
+        , passwordOpt(setConfigurable(
+              addOption("--password", "Password for database connection", "string", CLI::TypeValidator<std::string>()), true))
+        , databaseOpt(setConfigurable(
+              addOption("--database", "Database name for database connection", "string", CLI::TypeValidator<std::string>()), true))
+        , portOpt(setConfigurable(
+              addOption("--port", "Port number for database connection", "uint16_t", 3306, CLI::TypeValidator<uint16_t>()), true))
+        , socketOpt(setConfigurable(addOption("--socket",
+                                              "Socket file for database connection (overrides hostname and port)",
+                                              "string",
+                                              "/run/mysqld/mysqld.sock",
+                                              CLI::TypeValidator<std::string>()),
+                                    true))
+        , flagsOpt(setConfigurable(
+              addOption("--flags",
+                        "Connection flags for database connection (see https://mariadb.com/kb/en/mariadb-connection-flags/)",
+                        "uint32_t",
+                        "0",
+                        CLI::TypeValidator<uint32_t>()),
+              true)) {
+    }
+
+    ConfigDatabase::~ConfigDatabase() {
+    }
+
+    std::string ConfigDatabase::getHost() const {
+        return hostOpt->as<std::string>();
+    }
+
+    const ConfigDatabase& ConfigDatabase::setHost(const std::string& host) {
+        hostOpt->default_val(host)->clear();
+
+        return *this;
+    }
+
+    std::string ConfigDatabase::getUsername() const {
+        return usernameOpt->as<std::string>();
+    }
+
+    const ConfigDatabase& ConfigDatabase::setUsername(const std::string& username) {
+        usernameOpt->default_val(username)->clear();
+
+        return *this;
+    }
+
+    std::string ConfigDatabase::getPassword() const {
+        return passwordOpt->as<std::string>();
+    }
+
+    const ConfigDatabase& ConfigDatabase::setPassword(const std::string& password) {
+        passwordOpt->default_val(password)->clear();
+
+        return *this;
+    }
+
+    std::string ConfigDatabase::getDatabase() const {
+        return databaseOpt->as<std::string>();
+    }
+
+    const ConfigDatabase& ConfigDatabase::setDatabase(const std::string& database) {
+        databaseOpt->default_val(database)->clear();
+
+        return *this;
+    }
+
+    uint16_t ConfigDatabase::getPort() const {
+        return portOpt->as<uint16_t>();
+    }
+
+    const ConfigDatabase& ConfigDatabase::setPort(uint16_t port) {
+        portOpt->default_val(port)->clear();
+
+        return *this;
+    }
+
+    std::string ConfigDatabase::getSocket() const {
+        return socketOpt->as<std::string>();
+    }
+
+    const ConfigDatabase& ConfigDatabase::setSocket(const std::string& socket) {
+        socketOpt->default_val(socket)->clear();
+
+        return *this;
+    }
+
+    uint32_t ConfigDatabase::getFlags() const {
+        return flagsOpt->as<uint32_t>();
+    }
+
+    const ConfigDatabase& ConfigDatabase::setFlags(uint32_t flags) {
+        flagsOpt->default_val(flags)->clear();
+
+        return *this;
+    }
+
 } // namespace mqtt::mqttcli::lib

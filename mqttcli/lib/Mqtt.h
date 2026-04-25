@@ -42,6 +42,7 @@
 #ifndef APPS_MQTTBROKER_MQTT_SOCKETCONTEXT_H
 #define APPS_MQTTBROKER_MQTT_SOCKETCONTEXT_H
 
+#include <database/mariadb/MariaDBClient.h>
 #include <iot/mqtt/client/Mqtt.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -70,7 +71,14 @@ namespace mqtt::mqttcli::lib {
                       const std::list<std::string>& subTopics,
                       const std::string& pubTopic,
                       const std::string& pubMessage,
-                      bool pubRetain = false,
+                      bool pubRetain,
+                      const std::string& database,
+                      const std::string& usernameDb,
+                      const std::string& passwordDb,
+                      const std::string& host,
+                      uint16_t port,
+                      const std::string& socket,
+                      uint32_t flags,
                       const std::string& sessionStoreFileName = "");
 
     private:
@@ -79,11 +87,13 @@ namespace mqtt::mqttcli::lib {
         void onConnected() final;
         [[nodiscard]] bool onSignal(int signum) final;
 
-        void onPublish(const iot::mqtt::packets::Publish& publish) final;
         void onConnack(const iot::mqtt::packets::Connack& connack) final;
+        void onPublish(const iot::mqtt::packets::Publish& publish) final;
         void onSuback(const iot::mqtt::packets::Suback& suback) final;
         void onPuback(const iot::mqtt::packets::Puback& puback) final;
         void onPubcomp(const iot::mqtt::packets::Pubcomp& pubcomp) final;
+
+        database::mariadb::MariaDBClient mariaDB;
 
         const uint8_t qoSDefault;
         const bool cleanSession;

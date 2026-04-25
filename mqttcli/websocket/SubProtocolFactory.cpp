@@ -61,31 +61,38 @@ namespace mqtt::mqttcli::websocket {
     }
 
     iot::mqtt::client::SubProtocol* SubProtocolFactory::create(web::websocket::SubProtocolContext* subProtocolContext) {
-        const lib::ConfigSession* configSession =
-            subProtocolContext->getSocketConnection()->getConfigInstance()->getSubCommand<lib::ConfigSession>();
-        const lib::ConfigSubscribe* configSubscribe =
-            subProtocolContext->getSocketConnection()->getConfigInstance()->getSubCommand<lib::ConfigSubscribe>();
-        const lib::ConfigPublish* configPublish =
-            subProtocolContext->getSocketConnection()->getConfigInstance()->getSubCommand<lib::ConfigPublish>();
+        const net::config::ConfigInstance* configInstance = subProtocolContext->getSocketConnection()->getConfigInstance();
+
+        const lib::ConfigSession* configSession = configInstance->getSubCommand<lib::ConfigSession>();
+        const lib::ConfigSubscribe* configSubscribe = configInstance->getSubCommand<lib::ConfigSubscribe>();
+        const lib::ConfigPublish* configPublish = configInstance->getSubCommand<lib::ConfigPublish>();
+        const lib::ConfigDatabase* configDatabase = configInstance->getSubCommand<lib::ConfigDatabase>();
 
         return new iot::mqtt::client::SubProtocol(
             subProtocolContext,
             getName(),
-            new ::mqtt::mqttcli::lib::Mqtt(subProtocolContext->getSocketConnection()->getConnectionName(),
-                                           configSession->getClientId(),
-                                           configSession->getQoS(),
-                                           configSession->getKeepAlive(),
-                                           !configSession->getRetainSession(),
-                                           configSession->getWillTopic(),
-                                           configSession->getWillMessage(),
-                                           configSession->getWillQoS(),
-                                           configSession->getWillRetain(),
-                                           configSession->getUsername(),
-                                           configSession->getPassword(),
-                                           configSubscribe->getTopic(),
-                                           configPublish->getTopic(),
-                                           configPublish->getMessage(),
-                                           configPublish->getRetain()));
+            new mqtt::mqttcli::lib::Mqtt(subProtocolContext->getSocketConnection()->getConnectionName(),
+                                         configSession->getClientId(),
+                                         configSession->getQoS(),
+                                         configSession->getKeepAlive(),
+                                         !configSession->getRetainSession(),
+                                         configSession->getWillTopic(),
+                                         configSession->getWillMessage(),
+                                         configSession->getWillQoS(),
+                                         configSession->getWillRetain(),
+                                         configSession->getUsername(),
+                                         configSession->getPassword(),
+                                         configSubscribe->getTopic(),
+                                         configPublish->getTopic(),
+                                         configPublish->getMessage(),
+                                         configPublish->getRetain(),
+                                         configDatabase->getDatabase(),
+                                         configDatabase->getUsername(),
+                                         configDatabase->getPassword(),
+                                         configDatabase->getHost(),
+                                         configDatabase->getPort(),
+                                         configDatabase->getSocket(),
+                                         configDatabase->getFlags()));
     }
 
 } // namespace mqtt::mqttcli::websocket

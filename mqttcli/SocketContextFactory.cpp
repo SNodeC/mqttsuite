@@ -57,26 +57,36 @@
 namespace mqtt::mqttcli {
 
     core::socket::stream::SocketContext* SocketContextFactory::create(core::socket::stream::SocketConnection* socketConnection) {
-        const lib::ConfigSession* configSession = socketConnection->getConfigInstance()->getSubCommand<lib::ConfigSession>();
-        const lib::ConfigSubscribe* configSubscribe = socketConnection->getConfigInstance()->getSubCommand<lib::ConfigSubscribe>();
-        const lib::ConfigPublish* configPublish = socketConnection->getConfigInstance()->getSubCommand<lib::ConfigPublish>();
+        const net::config::ConfigInstance* configInstance = socketConnection->getConfigInstance();
+
+        const lib::ConfigSession* configSession = configInstance->getSubCommand<lib::ConfigSession>();
+        const lib::ConfigSubscribe* configSubscribe = configInstance->getSubCommand<lib::ConfigSubscribe>();
+        const lib::ConfigPublish* configPublish = configInstance->getSubCommand<lib::ConfigPublish>();
+        const lib::ConfigDatabase* configDatabase = configInstance->getSubCommand<lib::ConfigDatabase>();
 
         return new iot::mqtt::SocketContext(socketConnection,
-                                            new ::mqtt::mqttcli::lib::Mqtt(socketConnection->getConnectionName(),
-                                                                           configSession->getClientId(),
-                                                                           configSession->getQoS(),
-                                                                           configSession->getKeepAlive(),
-                                                                           !configSession->getRetainSession(),
-                                                                           configSession->getWillTopic(),
-                                                                           configSession->getWillMessage(),
-                                                                           configSession->getWillQoS(),
-                                                                           configSession->getWillRetain(),
-                                                                           configSession->getUsername(),
-                                                                           configSession->getPassword(),
-                                                                           configSubscribe->getTopic(),
-                                                                           configPublish->getTopic(),
-                                                                           configPublish->getMessage(),
-                                                                           configPublish->getRetain()));
+                                            new mqtt::mqttcli::lib::Mqtt(socketConnection->getConnectionName(),
+                                                                         configSession->getClientId(),
+                                                                         configSession->getQoS(),
+                                                                         configSession->getKeepAlive(),
+                                                                         !configSession->getRetainSession(),
+                                                                         configSession->getWillTopic(),
+                                                                         configSession->getWillMessage(),
+                                                                         configSession->getWillQoS(),
+                                                                         configSession->getWillRetain(),
+                                                                         configSession->getUsername(),
+                                                                         configSession->getPassword(),
+                                                                         configSubscribe->getTopic(),
+                                                                         configPublish->getTopic(),
+                                                                         configPublish->getMessage(),
+                                                                         configPublish->getRetain(),
+                                                                         configDatabase->getDatabase(),
+                                                                         configDatabase->getUsername(),
+                                                                         configDatabase->getPassword(),
+                                                                         configDatabase->getHost(),
+                                                                         configDatabase->getPort(),
+                                                                         configDatabase->getSocket(),
+                                                                         configDatabase->getFlags()));
     }
 
 } // namespace mqtt::mqttcli
