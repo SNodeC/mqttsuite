@@ -423,17 +423,17 @@ namespace mqtt::mqttcli::lib {
         mariaDB.exec(
             "INSERT INTO `snodec`(`username`, `password`) VALUES ('Annett','" + publish.getMessage() + "')",
             [&mariaDB = this->mariaDB, &connectionName = this->connectionName](void) -> void {
-                VLOG(0) << connectionName << " MariaDB: Query completed";
+                VLOG(0) << connectionName << " MariaDB: exec completed";
                 mariaDB.affectedRows(
                     [](my_ulonglong affectedRows) -> void {
-                        VLOG(0) << "  query affected rows: " << affectedRows;
+                        VLOG(0) << "  exec affected rows: " << affectedRows;
                     },
                     [](const std::string& errorString, unsigned int errorNumber) -> void {
-                        VLOG(0) << "  query affected rows failed: " << errorString << " : " << errorNumber;
+                        VLOG(0) << "  exec affected rows failed: " << errorString << " : " << errorNumber;
                     });
             },
             [&connectionName = this->connectionName](const std::string& errorString, unsigned int errorNumber) -> void {
-                VLOG(0) << connectionName << " MariaDB: Query failed: " << errorString << " : " << errorNumber;
+                VLOG(0) << connectionName << " MariaDB: exec failed: " << errorString << " : " << errorNumber;
             });
         // End of dummy insert
     };
