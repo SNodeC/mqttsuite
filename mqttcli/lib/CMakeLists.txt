@@ -17,24 +17,6 @@
 # ---------------------------------------------------------------------------
 #
 # MIT License
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
 
 cmake_minimum_required(VERSION 3.14)
 
@@ -44,24 +26,33 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(nlohmann_json 3.7.0 REQUIRED)
 find_package(
     snodec
-    COMPONENTS mqtt-client db-mariadb
+    COMPONENTS mqtt-client db-mariadb http-server-express
     REQUIRED
 )
 
-add_library(mqtt-cli SHARED Mqtt.cpp Mqtt.h ConfigSections.cpp ConfigSections.h)
+add_library(
+    mqtt-cli SHARED
+    Mqtt.cpp
+    Mqtt.h
+    ConfigSections.cpp
+    ConfigSections.h
+    TtnUplink.cpp
+    TtnUplink.h
+    DashboardModel.cpp
+    DashboardModel.h
+)
 
 target_include_directories(mqtt-cli PUBLIC ${PROJECT_SOURCE_DIR})
 
 target_link_libraries(
-    mqtt-cli PUBLIC snodec::mqtt-client nlohmann_json::nlohmann_json
-                    snodec::db-mariadb mqtt-mapping
+    mqtt-cli
+    PUBLIC snodec::mqtt-client snodec::db-mariadb snodec::http-server-express
+           nlohmann_json::nlohmann_json mqtt-mapping
 )
 
 set_target_properties(
-    mqtt-cli
-    PROPERTIES VERSION ${MQTTSuite_VERSION}
-               VERSION ${MQTTSuite_VERSION}
-               SOVERSION ${MQTTSUITE_SOVERSION}
+    mqtt-cli PROPERTIES VERSION ${MQTTSuite_VERSION} SOVERSION
+                                                    ${MQTTSUITE_SOVERSION}
 )
 
 install(TARGETS mqtt-cli RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR})
