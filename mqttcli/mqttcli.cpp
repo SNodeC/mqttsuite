@@ -57,22 +57,13 @@
 #ifdef CONFIG_MQTTSUITE_CLI_UNIX
 #include <express/legacy/un/Server.h>
 #endif
-#ifdef CONFIG_MQTTSUITE_CLI_TLS_IPV4
-#include <express/tls/in/Server.h>
-#endif
-#ifdef CONFIG_MQTTSUITE_CLI_TLS_IPV6
-#include <express/tls/in6/Server.h>
-#endif
-#ifdef CONFIG_MQTTSUITE_CLI_UNIX_TLS
-#include <express/tls/un/Server.h>
-#endif
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <log/Logger.h>
 //
 #include <list>
-#include <string>
+#include <utility>
 
 #endif
 
