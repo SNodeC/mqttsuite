@@ -7,39 +7,12 @@
  * under the terms of the GNU General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option)
  * any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program. If not, see <https://www.gnu.org/licenses/>.
- */
-
-/*
- * MIT License
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
  */
 
 #include "Mqtt.h"
+
+#include "DashboardModel.h"
+#include "TtnUplink.h"
 
 #include <iot/mqtt/Topic.h>
 #include <iot/mqtt/packets/Connack.h>
@@ -61,6 +34,7 @@
 #include <map>
 #include <mysql.h>
 #include <nlohmann/json.hpp>
+#include <optional>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -73,7 +47,6 @@
 
 #endif
 
-// get current terminal width, fallback to 80
 static int getTerminalWidth() {
     int termWidth = 80;
 
@@ -85,7 +58,6 @@ static int getTerminalWidth() {
     return termWidth;
 }
 
-// split one paragraph of text into lines of at most `width` characters
 static std::vector<std::string> wrapParagraph(const std::string& text, std::size_t width) {
     std::istringstream words(text);
     std::string word, line;
@@ -108,25 +80,12 @@ static std::vector<std::string> wrapParagraph(const std::string& text, std::size
     return lines;
 }
 
-///
-/// Formats:
-///   prefix ┬ headLine
-///          ├ <first message line>
-///          │ <middle lines>
-///          └ <last message line>
-///
-/// If `message` parses as JSON, we pretty‐print it (indent=2).
-/// Otherwise we wrap it to the terminal width.
-///
-/// Returns the whole formatted string (with trailing newline on each line).
-///
 std::vector<std::string> static myformat(const std::string& prefix,
                                          const std::string& headLine,
                                          const std::string& message,
                                          std::size_t initialPrefixLength = 0) {
-    // how many spaces before the box‐drawing char on subsequent lines?
     const size_t prefixLen = prefix.size();
-    const size_t indentCount = prefixLen + 1; // +1 for the space before ┬, +33 for easylogging++ prefix format
+    const size_t indentCount = prefixLen + 1;
     const std::string indent(indentCount, ' ');
 
     std::vector<std::string> lines;
@@ -147,12 +106,9 @@ std::vector<std::string> static myformat(const std::string& prefix,
         first = false;
     }
 
-    // try parsing as JSON
     try {
         auto j = nlohmann::json::parse(message);
-        // pretty‐print with 2-space indent
         std::string pretty = j.dump(2);
-        // split into lines
         std::istringstream prettyIStringStream(pretty);
 
         for (auto [line, lineNumnber] = std::tuple{std::string(""), 0}; std::getline(prettyIStringStream, line); lineNumnber++) {
@@ -165,9 +121,6 @@ std::vector<std::string> static myformat(const std::string& prefix,
             }
         }
     } catch (nlohmann::json::parse_error&) {
-        // not JSON → wrap text
-
-        // break original message on hard newlines and wrap each paragraph
         std::istringstream messageIStringStream(message);
         std::vector<std::string> allLines;
         for (std::string line; std::getline(messageIStringStream, line);) {
@@ -184,7 +137,6 @@ std::vector<std::string> static myformat(const std::string& prefix,
             allLines.pop_back();
         }
 
-        // emit with ├, │ and └
         for (std::size_t lineNumber = 0; lineNumber < allLines.size(); ++lineNumber) {
             if (lineNumber == 0 && lineNumber + 1 != allLines.size()) {
                 lines.push_back(indent + "├ " + allLines[lineNumber]);
@@ -199,7 +151,6 @@ std::vector<std::string> static myformat(const std::string& prefix,
     return lines;
 }
 
-// 2025-05-28 17:46:11 0000000014358
 static const std::string formatAsLogString(const std::string& prefix, const std::string& headLine, const std::string& message) {
     std::ostringstream formatAsLogStringStream;
 
@@ -215,6 +166,32 @@ static const std::string formatAsLogString(const std::string& prefix, const std:
 }
 
 namespace mqtt::mqttcli::lib {
+
+    namespace {
+
+        [[nodiscard]] std::string sqlDouble(double value) {
+            std::ostringstream valueStream;
+            valueStream.precision(17);
+            valueStream << value;
+
+            return valueStream.str();
+        }
+
+        [[nodiscard]] std::string buildScalarInsertSql(const ScalarMeasurement& measurement) {
+            return "INSERT INTO `measurements`(`received_at`, `application_id`, `device_id`, `f_port`, `value`) VALUES (" +
+                   sqlQuote(toMariaDbTimestamp(measurement.receivedAt)) + ", " + sqlQuote(measurement.applicationId) + ", " +
+                   sqlQuote(measurement.deviceId) + ", " + std::to_string(measurement.fPort) + ", " + sqlDouble(measurement.value) + ")";
+        }
+
+        [[nodiscard]] std::string buildGpsInsertSql(const GpsPosition& position) {
+            return "INSERT INTO `gps_positions`(`received_at`, `application_id`, `device_id`, `latitude`, `longitude`, `altitude`, `hdop`) "
+                   "VALUES (" +
+                   sqlQuote(toMariaDbTimestamp(position.receivedAt)) + ", " + sqlQuote(position.applicationId) + ", " +
+                   sqlQuote(position.deviceId) + ", " + sqlDouble(position.latitude) + ", " + sqlDouble(position.longitude) + ", " +
+                   sqlNullableDouble(position.altitude) + ", " + sqlNullableDouble(position.hdop) + ")";
+        }
+
+    } // namespace
 
     Mqtt::Mqtt(const std::string& connectionName,
                const std::string& clientId,
@@ -242,7 +219,6 @@ namespace mqtt::mqttcli::lib {
         : iot::mqtt::client::Mqtt(connectionName, clientId, keepAlive, sessionStoreFileName)
         , mariaDB(
               {
-                  // Connection detail
                   .connectionName = connectionName,
                   .hostname = host,
                   .username = usernameDb,
@@ -392,50 +368,88 @@ namespace mqtt::mqttcli::lib {
         try {
             nlohmann::json messageAsJSON = nlohmann::json::parse(publish.getMessage());
 
-            // Here you can analyse and retrieve data from the json (j
-            // and decide on base of the fPort what to do with the data
-            // Maybe store it into a particular db table ...
-            // E.g.:
-
             VLOG(0) << "ApplicationId: " << messageAsJSON["end_device_ids"]["application_ids"]["application_id"];
-
             VLOG(0) << "Uplink message field\n" << messageAsJSON["uplink_message"].dump(4);
             VLOG(0) << "Decoded payload field\n" << messageAsJSON["uplink_message"]["decoded_payload"].dump(4);
-
             VLOG(0) << "DeviceID: " << messageAsJSON["end_device_ids"]["device_id"];
-            VLOG(0) << "DeviceEUI: " << messageAsJSON["end_device_ids"]["dev_eui"];
-            VLOG(0) << "Received at: " << messageAsJSON["received_at"];
-            for (const auto& rx_metadata : messageAsJSON["uplink_message"]["rx_metadata"]) {
-                VLOG(0) << "Received via GW: " << rx_metadata["gateway_ids"]["gateway_id"];
+            VLOG(0) << "DeviceEUI: " << messageAsJSON["end_device_ids"].value("dev_eui", "");
+            VLOG(0) << "Received at: " << messageAsJSON.value("received_at", "");
+
+            if (messageAsJSON["uplink_message"].contains("rx_metadata")) {
+                for (const auto& rx_metadata : messageAsJSON["uplink_message"]["rx_metadata"]) {
+                    VLOG(0) << "Received via GW: " << rx_metadata["gateway_ids"]["gateway_id"];
+                }
             }
 
-            VLOG(0) << "MessageCnt: " << messageAsJSON["uplink_message"]["f_cnt"];
+            VLOG(0) << "MessageCnt: " << messageAsJSON["uplink_message"].value("f_cnt", 0);
             VLOG(0) << "F-Port field: " << messageAsJSON["uplink_message"]["f_port"];
-            VLOG(0) << "Frm payload field: " << messageAsJSON["uplink_message"]["frm_payload"];
-            VLOG(0) << "Frm payload base64 decoded: " << base64::base64_decode(messageAsJSON["uplink_message"]["frm_payload"]);
+            if (messageAsJSON["uplink_message"].contains("frm_payload")) {
+                VLOG(0) << "Frm payload field: " << messageAsJSON["uplink_message"]["frm_payload"];
+                VLOG(0) << "Frm payload base64 decoded: " << base64::base64_decode(messageAsJSON["uplink_message"]["frm_payload"]);
+            }
+
+            std::string errorMessage;
+            std::optional<TtnUplink> uplink = parseTtnUplink(messageAsJSON, errorMessage);
+            if (!uplink.has_value()) {
+                VLOG(0) << connectionName << " TTN uplink ignored: " << errorMessage;
+                DashboardModel::instance().publishStorageError(errorMessage);
+                return;
+            }
+
+            if (uplink->scalarMeasurement.has_value()) {
+                const ScalarMeasurement measurement = *uplink->scalarMeasurement;
+                const std::string sql = buildScalarInsertSql(measurement);
+
+                mariaDB.exec(
+                    sql,
+                    [&mariaDB = this->mariaDB, connectionName = this->connectionName, measurement](void) -> void {
+                        VLOG(0) << connectionName << " MariaDB: scalar measurement insert completed";
+                        DashboardModel::instance().publishScalarMeasurement(measurement);
+                        mariaDB.affectedRows(
+                            [](my_ulonglong affectedRows) -> void {
+                                VLOG(0) << "  exec affected rows: " << affectedRows;
+                            },
+                            [](const std::string& errorString, unsigned int errorNumber) -> void {
+                                VLOG(0) << "  exec affected rows failed: " << errorString << " : " << errorNumber;
+                            });
+                    },
+                    [connectionName = this->connectionName, uplink](const std::string& errorString, unsigned int errorNumber) -> void {
+                        const std::string message = "MariaDB scalar measurement insert failed: " + errorString + " : " + std::to_string(errorNumber);
+                        VLOG(0) << connectionName << " " << message;
+                        DashboardModel::instance().publishStorageError(message, uplink);
+                    });
+            }
+
+            if (uplink->gpsPosition.has_value()) {
+                const GpsPosition position = *uplink->gpsPosition;
+                const std::string sql = buildGpsInsertSql(position);
+
+                mariaDB.exec(
+                    sql,
+                    [&mariaDB = this->mariaDB, connectionName = this->connectionName, position](void) -> void {
+                        VLOG(0) << connectionName << " MariaDB: GPS position insert completed";
+                        DashboardModel::instance().publishGpsPosition(position);
+                        mariaDB.affectedRows(
+                            [](my_ulonglong affectedRows) -> void {
+                                VLOG(0) << "  exec affected rows: " << affectedRows;
+                            },
+                            [](const std::string& errorString, unsigned int errorNumber) -> void {
+                                VLOG(0) << "  exec affected rows failed: " << errorString << " : " << errorNumber;
+                            });
+                    },
+                    [connectionName = this->connectionName, uplink](const std::string& errorString, unsigned int errorNumber) -> void {
+                        const std::string message = "MariaDB GPS position insert failed: " + errorString + " : " + std::to_string(errorNumber);
+                        VLOG(0) << connectionName << " " << message;
+                        DashboardModel::instance().publishStorageError(message, uplink);
+                    });
+            }
         } catch (const nlohmann::json::parse_error& error) {
             VLOG(0) << "Message is not a valid JSON: " << error.what();
+            DashboardModel::instance().publishStorageError(std::string("Message is not a valid JSON: ") + error.what());
         } catch (const nlohmann::json::exception& error) {
             VLOG(0) << "Error accessing JSON fields: " << error.what();
+            DashboardModel::instance().publishStorageError(std::string("Error accessing JSON fields: ") + error.what());
         }
-
-        // This insert is just a dummy insert ...
-        mariaDB.exec(
-            "INSERT INTO `snodec`(`username`, `password`) VALUES ('Annett','" + publish.getMessage() + "')",
-            [&mariaDB = this->mariaDB, &connectionName = this->connectionName](void) -> void {
-                VLOG(0) << connectionName << " MariaDB: exec completed";
-                mariaDB.affectedRows(
-                    [](my_ulonglong affectedRows) -> void {
-                        VLOG(0) << "  exec affected rows: " << affectedRows;
-                    },
-                    [](const std::string& errorString, unsigned int errorNumber) -> void {
-                        VLOG(0) << "  exec affected rows failed: " << errorString << " : " << errorNumber;
-                    });
-            },
-            [&connectionName = this->connectionName](const std::string& errorString, unsigned int errorNumber) -> void {
-                VLOG(0) << connectionName << " MariaDB: exec failed: " << errorString << " : " << errorNumber;
-            });
-        // End of dummy insert
     };
 
     void Mqtt::onSuback(const iot::mqtt::packets::Suback& suback) {
