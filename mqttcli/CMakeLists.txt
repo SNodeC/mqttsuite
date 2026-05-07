@@ -17,30 +17,9 @@
 # ---------------------------------------------------------------------------
 #
 # MIT License
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
 
 cmake_minimum_required(VERSION 3.14)
 
-# dep_option(NAME HELP_TEXT DEFAULT DEP1 [DEP2 ...]) - If all DEPs are TRUE →
-# create a normal CACHE BOOL option (visible in GUI). - Else → remove the cache
-# entry (so it disappears from GUI) and force the var OFF.
 function(dep_option NAME HELP DEFAULT)
     set(options)
     set(oneValueArgs)
@@ -49,7 +28,6 @@ function(dep_option NAME HELP DEFAULT)
         DO "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN}
     )
 
-    # Remaining args after DEFAULT are the dependency vars
     set(_deps_ok TRUE)
     foreach(d ${DO_UNPARSED_ARGUMENTS})
         if(NOT ${d})
@@ -58,7 +36,6 @@ function(dep_option NAME HELP DEFAULT)
     endforeach()
 
     if(_deps_ok)
-        # Create/keep a visible option; preserve -D overrides
         if(DEFINED ${NAME})
             set(_cur "${${NAME}}")
             option(${NAME} "${HELP}" ${DEFAULT})
@@ -71,7 +48,6 @@ function(dep_option NAME HELP DEFAULT)
         endif()
         mark_as_advanced(CLEAR ${NAME})
     else()
-        # Hide by removing cache entry; also force normal var OFF for if() logic
         if(DEFINED ${NAME})
             unset(${NAME} CACHE)
         endif()
@@ -79,7 +55,7 @@ function(dep_option NAME HELP DEFAULT)
             OFF
             PARENT_SCOPE
         )
-        set(${NAME} OFF) # local too
+        set(${NAME} OFF)
     endif()
 endfunction()
 
@@ -88,7 +64,6 @@ option(CONFIG_MQTTSUITE_CLI_TCP_IPV6 "MQTTSuite mqtt-cli TCP IPv6" ON)
 option(CONFIG_MQTTSUITE_CLI_UNIX "MQTTSuite mqtt-cli Unix" ON)
 option(CONFIG_MQTTSUITE_CLI_WS "MQTTSuite mqtt-cli WebSocket" ON)
 
-# Dependent TLS/WSS toggles (only visible when the mqtt-cli is ON)
 dep_option(
     CONFIG_MQTTSUITE_CLI_TLS_IPV4 "SSL/TLS (IPv4)" ON
     CONFIG_MQTTSUITE_CLI_TCP_IPV4
@@ -110,23 +85,23 @@ dep_option(
 
 set(MQTTCLI_COMPONENTS "")
 set(MQTTCLI_LINK_LIBS "")
-# Common nets
+
 if(CONFIG_MQTTSUITE_CLI_TCP_IPV4)
-    list(APPEND MQTTCLI_COMPONENTS net-in-stream-legacy)
+    list(APPEND MQTTCLI_COMPONENTS net-in-stream-legacy http-server-express-legacy-in)
     if(CONFIG_MQTTSUITE_CLI_TLS_IPV4)
-        list(APPEND MQTTCLI_COMPONENTS net-in-stream-tls)
+        list(APPEND MQTTCLI_COMPONENTS net-in-stream-tls http-server-express-tls-in)
     endif()
 endif()
 if(CONFIG_MQTTSUITE_CLI_TCP_IPV6)
-    list(APPEND MQTTCLI_COMPONENTS net-in6-stream-legacy)
+    list(APPEND MQTTCLI_COMPONENTS net-in6-stream-legacy http-server-express-legacy-in6)
     if(CONFIG_MQTTSUITE_CLI_TLS_IPV6)
-        list(APPEND MQTTCLI_COMPONENTS net-in6-stream-tls)
+        list(APPEND MQTTCLI_COMPONENTS net-in6-stream-tls http-server-express-tls-in6)
     endif()
 endif()
 if(CONFIG_MQTTSUITE_CLI_UNIX)
-    list(APPEND MQTTCLI_COMPONENTS net-un-stream-legacy)
+    list(APPEND MQTTCLI_COMPONENTS net-un-stream-legacy http-server-express-legacy-un)
     if(CONFIG_MQTTSUITE_CLI_UNIX_TLS)
-        list(APPEND MQTTCLI_COMPONENTS net-un-stream-tls)
+        list(APPEND MQTTCLI_COMPONENTS net-un-stream-tls http-server-express-tls-un)
     endif()
 endif()
 if(CONFIG_MQTTSUITE_CLI_WS OR CONFIG_MQTTSUITE_CLI_WSS)
@@ -158,12 +133,35 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR}/generated)
 set(MQTT_CPP mqttcli.cpp SocketContextFactory.cpp)
 set(MQTT_H SocketContextFactory.h)
 
+set_property(
+    SOURCE mqttcli.cpp
+    APPEND
+    PROPERTY COMPILE_DEFINITIONS
+             CMAKE_INSTALL_PREFIX=\"${CMAKE_INSTALL_PREFIX}\"
+)
+
 add_executable(mqttcli ${MQTT_CPP} ${MQTT_H})
 
 target_include_directories(mqttcli PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+
+file(GLOB_RECURSE WEB_ASSETS "${CMAKE_CURRENT_SOURCE_DIR}/html/*.html"
+     "${CMAKE_CURRENT_SOURCE_DIR}/html/*.css"
+     "${CMAKE_CURRENT_SOURCE_DIR}/html/*.js"
+)
+
+target_sources(mqttcli PRIVATE ${WEB_ASSETS})
 
 target_link_libraries(
     mqttcli PUBLIC ${MQTTCLI_LINK_LIBS} snodec::mqtt-client mqtt-cli
 )
 
 install(TARGETS mqttcli RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+install(
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/html/
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/var/www/mqttsuite/mqttcli
+    FILES_MATCHING
+    PATTERN "*.html"
+    PATTERN "*.css"
+    PATTERN "*.js"
+)
