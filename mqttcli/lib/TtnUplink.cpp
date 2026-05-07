@@ -16,8 +16,10 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <algorithm>
+#include <exception>
+#include <map>
+#include <nlohmann/detail/json_ref.hpp>
 #include <sstream>
-#include <stdexcept>
 
 #endif
 
