@@ -11,14 +11,17 @@
 
 #include "DashboardModel.h"
 
+#include "lib/TtnUplink.h"
+
 #include <express/Response.h>
 #include <nlohmann/json.hpp>
 #include <web/http/server/SocketContext.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include <functional>
 #include <log/Logger.h>
-#include <utility>
+#include <nlohmann/detail/json_ref.hpp>
 
 #endif
 
