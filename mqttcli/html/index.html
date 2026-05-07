@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Water Buoy Dashboard</title>
+    <link rel="stylesheet" href="./dashboard.css" />
+  </head>
+  <body>
+    <main class="page">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">MQTTSuite mqttcli</p>
+          <h1>Water Buoy Dashboard</h1>
+          <p class="subtitle">Realtime values from TTN uplinks stored by mqttcli.</p>
+        </div>
+        <div id="connection-state" class="status status-waiting">connecting</div>
+      </header>
+
+      <section class="grid cards">
+        <article class="card" data-field="temperature_c">
+          <span class="label">Water temperature</span>
+          <strong class="value" id="temperature_c">—</strong>
+          <span class="meta" id="temperature_c_meta">waiting for fPort 2</span>
+        </article>
+        <article class="card" data-field="ph_level">
+          <span class="label">pH</span>
+          <strong class="value" id="ph_level">—</strong>
+          <span class="meta" id="ph_level_meta">waiting for fPort 3</span>
+        </article>
+        <article class="card" data-field="tds_ppm">
+          <span class="label">TDS</span>
+          <strong class="value" id="tds_ppm">—</strong>
+          <span class="meta" id="tds_ppm_meta">waiting for fPort 4</span>
+        </article>
+        <article class="card" data-field="turbidity_ntu">
+          <span class="label">Turbidity</span>
+          <strong class="value" id="turbidity_ntu">—</strong>
+          <span class="meta" id="turbidity_ntu_meta">waiting for fPort 5</span>
+        </article>
+        <article class="card" data-field="ph_board_temperature_c">
+          <span class="label">PH4502C board temperature</span>
+          <strong class="value" id="ph_board_temperature_c">—</strong>
+          <span class="meta" id="ph_board_temperature_c_meta">waiting for fPort 6</span>
+        </article>
+      </section>
+
+      <section class="panel">
+        <h2>Latest GPS position</h2>
+        <div class="gps-grid">
+          <div><span>Latitude</span><strong id="gps_latitude">—</strong></div>
+          <div><span>Longitude</span><strong id="gps_longitude">—</strong></div>
+          <div><span>Altitude</span><strong id="gps_altitude">—</strong></div>
+          <div><span>HDOP</span><strong id="gps_hdop">—</strong></div>
+        </div>
+        <p class="meta" id="gps_meta">waiting for fPort 1</p>
+        <a id="gps_map" class="button hidden" target="_blank" rel="noreferrer">Open in OpenStreetMap</a>
+      </section>
+
+      <section class="panel">
+        <h2>Recent events</h2>
+        <div id="events" class="events"></div>
+      </section>
+    </main>
+
+    <script src="./dashboard.js"></script>
+  </body>
+</html>
