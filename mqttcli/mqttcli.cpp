@@ -7,41 +7,12 @@
  * under the terms of the GNU General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option)
  * any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program. If not, see <https://www.gnu.org/licenses/>.
- */
-
-/*
- * MIT License
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
  */
 
 #include "SocketContextFactory.h"
 #include "config.h"
 #include "lib/ConfigSections.h"
+#include "lib/DashboardModel.h"
 
 #ifdef LINK_SUBPROTOCOL_STATIC
 
@@ -58,6 +29,7 @@
 #endif
 
 #include <core/SNodeC.h>
+#include <express/middleware/StaticMiddleware.h>
 #include <net/config/ConfigInstance.h>
 //
 #include <net/in/stream/legacy/SocketClient.h>
@@ -75,11 +47,31 @@
 #include <web/http/tls/in6/Client.h>
 #include <web/http/tls/un/Client.h>
 
+#ifdef CONFIG_MQTTSUITE_CLI_TCP_IPV4
+#include <express/legacy/in/Server.h>
+#endif
+#ifdef CONFIG_MQTTSUITE_CLI_TCP_IPV6
+#include <express/legacy/in6/Server.h>
+#endif
+#ifdef CONFIG_MQTTSUITE_CLI_UNIX
+#include <express/legacy/un/Server.h>
+#endif
+#ifdef CONFIG_MQTTSUITE_CLI_TLS_IPV4
+#include <express/tls/in/Server.h>
+#endif
+#ifdef CONFIG_MQTTSUITE_CLI_TLS_IPV6
+#include <express/tls/in6/Server.h>
+#endif
+#ifdef CONFIG_MQTTSUITE_CLI_UNIX_TLS
+#include <express/tls/un/Server.h>
+#endif
+
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <log/Logger.h>
 //
 #include <list>
+#include <string>
 
 #endif
 
@@ -87,7 +79,7 @@ static void
 reportState(const std::string& instanceName, const core::socket::SocketAddress& socketAddress, const core::socket::State& state) {
     switch (state) {
         case core::socket::State::OK:
-            VLOG(1) << instanceName << ": connected to '" << socketAddress.toString() << "'";
+            VLOG(1) << instanceName << ": connected/listening on '" << socketAddress.toString() << "'";
             break;
         case core::socket::State::DISABLED:
             VLOG(1) << instanceName << ": disabled";
@@ -99,6 +91,50 @@ reportState(const std::string& instanceName, const core::socket::SocketAddress& 
             VLOG(1) << instanceName << ": " << socketAddress.toString() << ": " << state.what();
             break;
     }
+}
+
+static express::Router getDashboardRouter(const std::string& webRoot) {
+    const express::Router router;
+
+    router.get("/api/water-buoy/events", [] APPLICATION(req, res) {
+        if (web::http::ciContains(req->get("Accept"), "text/event-stream")) {
+            res->set({{"Content-Type", "text/event-stream"},
+                      {"Cache-Control", "no-cache"},
+                      {"Connection", "keep-alive"},
+                      {"Access-Control-Allow-Origin", "*"}});
+
+            res->sendHeader();
+
+            mqtt::mqttcli::lib::DashboardModel::instance().addEventReceiver(res, req->get("Last-Event-ID"));
+        } else {
+            res->redirect("/dashboard/index.html");
+        }
+    });
+
+    router.get("/sse", [] APPLICATION(req, res) {
+        if (web::http::ciContains(req->get("Accept"), "text/event-stream")) {
+            res->set("Content-Type", "text/event-stream")
+                .set("Cache-Control", "no-cache")
+                .set("Connection", "keep-alive");
+            res->sendHeader();
+
+            mqtt::mqttcli::lib::DashboardModel::instance().addEventReceiver(res, req->get("Last-Event-ID"));
+        } else {
+            res->redirect("/dashboard/index.html");
+        }
+    });
+
+    router.get("/", [] APPLICATION(req, res) {
+        res->redirect("/dashboard/index.html");
+    });
+
+    router.use("/dashboard", express::middleware::StaticMiddleware(webRoot));
+
+    router.get("*", [] APPLICATION(req, res) {
+        res->redirect("/dashboard/index.html");
+    });
+
+    return router;
 }
 
 static void logResponse(const std::shared_ptr<web::http::client::Request>& req, const std::shared_ptr<web::http::client::Response>& res) {
@@ -244,67 +280,67 @@ int main(int argc, char* argv[]) {
     core::SNodeC::init(argc, argv);
 
 #if defined(CONFIG_MQTTSUITE_CLI_TCP_IPV4)
-    startClient<net::in::stream::legacy::SocketClient>( //
+    startClient<net::in::stream::legacy::SocketClient>(
         "in-mqtt",
         [](net::in::stream::legacy::config::ConfigSocketClient* config) {
             config->Remote::setPort(1883);
             config->setDisableNagleAlgorithm();
 
-            createConfig(config); // cppcheck-suppress throwInEntryPoint
+            createConfig(config);
         });
 #endif
 
 #if defined(CONFIG_MQTTSUITE_CLI_TLS_IPV4)
-    startClient<net::in::stream::tls::SocketClient>( //
+    startClient<net::in::stream::tls::SocketClient>(
         "in-mqtts",
         [](net::in::stream::tls::config::ConfigSocketClient* config) {
             config->Remote::setPort(1883);
             config->setDisableNagleAlgorithm();
 
-            createConfig(config); // cppcheck-suppress throwInEntryPoint
+            createConfig(config);
         });
 #endif
 
 #if defined(CONFIG_MQTTSUITE_CLI_TCP_IPV6)
-    startClient<net::in6::stream::legacy::SocketClient>( //
+    startClient<net::in6::stream::legacy::SocketClient>(
         "in6-mqtt",
         [](net::in6::stream::legacy::config::ConfigSocketClient* config) {
             config->Remote::setPort(1883);
             config->setDisableNagleAlgorithm();
 
-            createConfig(config); // cppcheck-suppress throwInEntryPoint
+            createConfig(config);
         });
 #endif
 
 #if defined(CONFIG_MQTTSUITE_CLI_TLS_IPV6)
-    startClient<net::in6::stream::tls::SocketClient>( //
+    startClient<net::in6::stream::tls::SocketClient>(
         "in6-mqtts",
         [](net::in6::stream::tls::config::ConfigSocketClient* config) {
             config->Remote::setPort(1883);
             config->setDisableNagleAlgorithm();
 
-            createConfig(config); // cppcheck-suppress throwInEntryPoint
+            createConfig(config);
         });
 #endif
 
 #if defined(CONFIG_MQTTSUITE_CLI_UNIX)
-    startClient<net::un::stream::legacy::SocketClient>( //
+    startClient<net::un::stream::legacy::SocketClient>(
         "un-mqtt",
         [](net::un::stream::legacy::config::ConfigSocketClient* config) {
-            createConfig(config); // cppcheck-suppress throwInEntryPoint
+            createConfig(config);
         });
 #endif
 
 #if defined(CONFIG_MQTTSUITE_CLI_UNIX_TLS)
-    startClient<net::un::stream::tls::SocketClient>( //
+    startClient<net::un::stream::tls::SocketClient>(
         "un-mqtts",
         [](net::un::stream::tls::config::ConfigSocketClient* config) {
-            createConfig(config); // cppcheck-suppress throwInEntryPoint
+            createConfig(config);
         });
 #endif
 
 #if defined(CONFIG_MQTTSUITE_CLI_TCP_IPV4) && defined(CONFIG_MQTTSUITE_CLI_WS)
-    startClient<web::http::legacy::in::Client>( //
+    startClient<web::http::legacy::in::Client>(
         "in-wsmqtt",
         [](net::in::stream::legacy::config::ConfigSocketClient* config) {
             config->Remote::setPort(8080);
@@ -315,7 +351,7 @@ int main(int argc, char* argv[]) {
 #endif
 
 #if defined(CONFIG_MQTTSUITE_CLI_TLS_IPV4) && defined(CONFIG_MQTTSUITE_CLI_WSS)
-    startClient<web::http::tls::in::Client>( //
+    startClient<web::http::tls::in::Client>(
         "in-wsmqtts",
         [](net::in::stream::tls::config::ConfigSocketClient* config) {
             config->Remote::setPort(8088);
@@ -326,7 +362,7 @@ int main(int argc, char* argv[]) {
 #endif
 
 #if defined(CONFIG_MQTTSUITE_CLI_TCP_IPV6) && defined(CONFIG_MQTTSUITE_CLI_WS)
-    startClient<web::http::legacy::in6::Client>( //
+    startClient<web::http::legacy::in6::Client>(
         "in6-wsmqtt",
         [](net::in6::stream::legacy::config::ConfigSocketClient* config) {
             config->Remote::setPort(8080);
@@ -337,7 +373,7 @@ int main(int argc, char* argv[]) {
 #endif
 
 #if defined(CONFIG_MQTTSUITE_CLI_TLS_IPV6) && defined(CONFIG_MQTTSUITE_CLI_WSS)
-    startClient<web::http::tls::in6::Client>( //
+    startClient<web::http::tls::in6::Client>(
         "in6-wsmqtts",
         [](net::in6::stream::tls::config::ConfigSocketClient* config) {
             config->Remote::setPort(8088);
@@ -348,7 +384,7 @@ int main(int argc, char* argv[]) {
 #endif
 
 #if defined(CONFIG_MQTTSUITE_CLI_UNIX) && defined(CONFIG_MQTTSUITE_CLI_WS)
-    startClient<web::http::legacy::un::Client>( //
+    startClient<web::http::legacy::un::Client>(
         "un-wsmqtt",
         [](net::un::stream::legacy::config::ConfigSocketClient* config) {
             createWSConfig(config);
@@ -356,10 +392,48 @@ int main(int argc, char* argv[]) {
 #endif
 
 #if defined(CONFIG_MQTTSUITE_CLI_UNIX_TLS) && defined(CONFIG_MQTTSUITE_CLI_WSS)
-    startClient<web::http::tls::un::Client>( //
+    startClient<web::http::tls::un::Client>(
         "un-wsmqtts",
         [](net::un::stream::tls::config::ConfigSocketClient* config) {
             createWSConfig(config);
+        });
+#endif
+
+    const std::string htmlRoot = std::string(CMAKE_INSTALL_PREFIX) + "/var/www/mqttsuite/mqttcli";
+    const express::Router router = getDashboardRouter(htmlRoot);
+
+#ifdef CONFIG_MQTTSUITE_CLI_TCP_IPV4
+    express::legacy::in::Server(
+        "in-http",
+        router,
+        reportState,
+        [](net::in::stream::legacy::config::ConfigSocketServer* config) {
+            config->setPort(8080);
+            config->setRetry();
+            config->setDisableNagleAlgorithm();
+        });
+#endif
+
+#ifdef CONFIG_MQTTSUITE_CLI_TCP_IPV6
+    express::legacy::in6::Server(
+        "in6-http",
+        router,
+        reportState,
+        [](net::in6::stream::legacy::config::ConfigSocketServer* config) {
+            config->setPort(8080);
+            config->setRetry();
+            config->setDisableNagleAlgorithm();
+            config->setIPv6Only();
+        });
+#endif
+
+#ifdef CONFIG_MQTTSUITE_CLI_UNIX
+    express::legacy::un::Server(
+        "un-http",
+        router,
+        reportState,
+        [](net::un::stream::legacy::config::ConfigSocketServer* config) {
+            config->setSunPath("/tmp/" + utils::Config::getApplicationName() + "-" + config->getInstanceName());
         });
 #endif
 
