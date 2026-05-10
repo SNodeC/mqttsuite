@@ -11,13 +11,19 @@
 
 #include "MariaDbStorage.h"
 
+#include "lib/MqttMessage.h"
+#include "lib/StoragePlan.h"
+
 #include <nlohmann/json.hpp>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <algorithm>
 #include <cctype>
+#include <exception>
+#include <functional>
 #include <log/Logger.h>
+#include <map>
 #include <sstream>
 #include <stdexcept>
 #include <utility>

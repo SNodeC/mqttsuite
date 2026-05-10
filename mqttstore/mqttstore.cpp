@@ -29,7 +29,6 @@
 
 #include <core/SNodeC.h>
 #include <net/config/ConfigInstance.h>
-#include <utils/Config.h>
 //
 #include <net/in/stream/legacy/SocketClient.h>
 #include <net/in/stream/tls/SocketClient.h>
@@ -49,7 +48,6 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <log/Logger.h>
-#include <memory>
 
 #endif
 
@@ -141,7 +139,11 @@ static HttpClient startClient(const std::string& name, const std::function<void(
                     VLOG(1) << "  Request was: " << req->method << " " << req->url << " HTTP/" << req->httpMajor << "." << req->httpMinor;
                 });
         },
-        configurator);
+        []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req) {
+            VLOG(1) << "Session ended";
+        });
+
+    configurator(httpClient.getConfig());
 
     httpClient.getConfig()->setRetry();
     httpClient.getConfig()->setRetryBase(1);
@@ -156,25 +158,15 @@ static HttpClient startClient(const std::string& name, const std::function<void(
 }
 
 static void createConfig(net::config::ConfigInstance* config) {
-    config->newSubCommand<mqtt::mqttstore::lib::ConfigSession>();
-    config->newSubCommand<mqtt::mqttstore::lib::ConfigSubscribe>();
-    config->newSubCommand<mqtt::mqttstore::lib::ConfigDatabase>();
-    config->newSubCommand<mqtt::mqttstore::lib::ConfigStorage>();
+    config //
+        ->newSubCommand<mqtt::mqttstore::lib::ConfigSession>();
 
-    config->setRequireCallback([config]() {
-        if (!config->getDisabled() && config->getShowConfigTriggerApp() == nullptr &&
-            config->getParent()->getOption("--write-config")->count() == 0) {
-            const mqtt::mqttstore::lib::ConfigSubscribe* subApp = config->getSubCommand<mqtt::mqttstore::lib::ConfigSubscribe>();
+    config //
+        ->newSubCommand<mqtt::mqttstore::lib::ConfigSubscribe>();
 
-            if (subApp->getTopic().empty()) {
-                throw CLI::RequiresError(config->getParent()->getName() + ":" + config->getInstanceName() + " requires sub --topic",
-                                         CLI::ExitCodes::RequiresError);
-            }
-
-            VLOG(0) << "[" << Color::Code::FG_LIGHT_GREEN << "Success" << Color::Code::FG_DEFAULT << "] Bootstrap of "
-                    << config->getInstanceName() << ": mqttstore";
-        }
-    });
+    config //
+        ->newSubCommand<mqtt::mqttstore::lib::ConfigDatabase>()
+        ->newSubCommand<mqtt::mqttstore::lib::ConfigStorage>();
 }
 
 static void createWSConfig(net::config::ConfigInstance* config) {

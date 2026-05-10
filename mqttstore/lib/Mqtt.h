@@ -14,13 +14,16 @@
 
 #include "MariaDbStorage.h"
 
+namespace mqtt::mqttstore::lib {
+    class StoragePlan;
+}
+
 #include <iot/mqtt/client/Mqtt.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <cstdint>
 #include <list>
-#include <memory>
 #include <string>
 
 #endif

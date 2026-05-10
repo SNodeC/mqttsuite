@@ -12,10 +12,13 @@
 #ifndef MQTTSTORE_LIB_MARIADBSTORAGE_H
 #define MQTTSTORE_LIB_MARIADBSTORAGE_H
 
-#include "MqttMessage.h"
 #include "StoragePlan.h"
 
 #include <database/mariadb/MariaDBClient.h>
+
+namespace mqtt::mqttstore::lib {
+    struct MqttMessage;
+}
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 

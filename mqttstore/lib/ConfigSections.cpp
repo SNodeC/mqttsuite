@@ -93,7 +93,6 @@ namespace mqtt::mqttstore::lib {
                                    true)
                        ->take_all()) {
         required(topicOpt);
-        forceUnrequired(true);
     }
 
     ConfigSubscribe::~ConfigSubscribe() = default;
@@ -169,7 +168,6 @@ namespace mqtt::mqttstore::lib {
         , projectionFileOpt(setConfigurable(
               addOption("--projection-file", "Optional JSON file describing typed projections", "filename", !CLI::ExistingDirectory),
               true)) {
-        forceUnrequired(true);
     }
 
     ConfigStorage::~ConfigStorage() = default;

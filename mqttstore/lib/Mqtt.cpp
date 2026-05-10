@@ -11,6 +11,10 @@
 
 #include "Mqtt.h"
 
+#include "lib/MariaDbStorage.h"
+#include "lib/MqttMessage.h" // IWYU pragma: keep
+#include "lib/StoragePlan.h"
+
 #include <iot/mqtt/Topic.h>
 #include <iot/mqtt/packets/Connack.h>
 #include <iot/mqtt/packets/Publish.h>

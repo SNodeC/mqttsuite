@@ -11,12 +11,13 @@
 
 #include "StoragePlan.h"
 
-#include <nlohmann/json.hpp>
-
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <fstream>
 #include <iterator>
+#include <map>
+#include <nlohmann/detail/iterators/iter_impl.hpp>
+#include <nlohmann/json.hpp>
 #include <sstream>
 #include <stdexcept>
 
