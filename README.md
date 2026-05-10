@@ -2179,9 +2179,14 @@ Example projection file:
 
 Projection notes:
 
+- `--projection-file` is an option of the `storage` configuration section, so place it after the `storage` subcommand in the SNode.C-style command line.
+- The file is read during startup. Restart MQTTStore after changing the projection file.
+- The file may either contain a top-level `projections` array, as shown above, or the array itself.
 - `topic` uses MQTT-style `+` and `#` matching.
 - `topic_level` is zero-based, so `normalized/boiler/temperature` has topic level `1 == boiler`.
+- `literal` writes a constant string value.
 - `json_pointer` uses RFC-6901 style paths as implemented by `nlohmann::json::json_pointer`.
+- Shorthand column mappings such as `"value": "/value"` are accepted and mean `json_pointer: "/value"`. Use the object form when you need `required`, `topic_level`, or `literal`.
 - Projection tables are intentionally not auto-created because they are domain schemas. Create and migrate them explicitly.
 - SQL identifiers are restricted to alphanumeric characters and `_` before they are quoted.
 
@@ -2198,6 +2203,80 @@ CREATE TABLE sensor_measurements (
     INDEX idx_device_metric_time (device_id, metric, received_at)
 );
 ```
+
+### Copy-paste `--projection-file` example
+
+The following minimal example stores every incoming MQTT message in `mqtt_messages` and additionally projects JSON telemetry from `normalized/<device>/temperature` into `sensor_measurements`. It assumes a local broker on `127.0.0.1:1883` and a MariaDB schema named `mqtt`.
+
+1. Create the typed table once:
+
+   ```sql
+   CREATE TABLE IF NOT EXISTS sensor_measurements (
+       id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+       device_id VARCHAR(255) NOT NULL,
+       metric VARCHAR(255) NOT NULL,
+       value DOUBLE NOT NULL,
+       unit VARCHAR(64) NULL,
+       received_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+       INDEX idx_device_metric_time (device_id, metric, received_at)
+   );
+   ```
+
+2. Save the projection definition where the MQTTStore process can read it:
+
+   ```bash
+   sudo install -d -m 0755 /etc/mqttsuite
+   sudo tee /etc/mqttsuite/mqttstore-projections.json >/dev/null <<'JSON'
+   {
+     "projections": [
+       {
+         "name": "room_temperature",
+         "topic": "normalized/+/temperature",
+         "table": "sensor_measurements",
+         "columns": {
+           "device_id": { "topic_level": 1, "required": true },
+           "metric": { "literal": "temperature" },
+           "value": { "json_pointer": "/value", "required": true },
+           "unit": { "json_pointer": "/unit" }
+         }
+       }
+     ]
+   }
+   JSON
+   ```
+
+3. Start MQTTStore and pass the file in the `storage` section:
+
+   ```bash
+   mqttstore in-mqtt \
+     remote --host 127.0.0.1 --port 1883 \
+     session --client-id mqttstore-projection-demo \
+     sub --topic 'normalized/#' \
+     db --host 127.0.0.1 --database mqtt --username mqttstore --password secret \
+     storage --raw-table mqtt_messages \
+             --auto-create-raw-table true \
+             --projection-file /etc/mqttsuite/mqttstore-projections.json
+   ```
+
+4. Publish a matching JSON payload:
+
+   ```bash
+   mqttcli in-mqtt \
+     remote --host 127.0.0.1 --port 1883 \
+     pub --topic 'normalized/boiler/temperature' \
+         --message '{"value":63.4,"unit":"C"}'
+   ```
+
+5. Verify the projected row:
+
+   ```sql
+   SELECT device_id, metric, value, unit
+   FROM sensor_measurements
+   ORDER BY id DESC
+   LIMIT 1;
+   ```
+
+   Expected result: `boiler`, `temperature`, `63.4`, `C`. The raw MQTT envelope is still inserted into `mqtt_messages` independently of the projection.
 
 ## Recommended production flow
 

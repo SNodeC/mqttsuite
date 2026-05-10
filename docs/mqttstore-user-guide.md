@@ -134,11 +134,16 @@ Projection file example:
 
 Projection rules:
 
+- `--projection-file` belongs to the `storage` configuration section, so in SNode.C command-line syntax it must be written after the `storage` subcommand.
+- MQTTStore reads the projection file at startup. Restart the service after editing the file.
+- The JSON file may contain either a top-level `projections` array or the array itself.
 - `topic` uses MQTT topic-filter syntax with `+` and `#`.
 - `topic_level` is zero-based. For `normalized/boiler/temperature`, level `0` is `normalized`, level `1` is `boiler`, and level `2` is `temperature`.
 - `literal` writes a constant string value.
 - `json_pointer` reads from the parsed JSON payload using JSON Pointer syntax, for example `/value` or `/battery/voltage`.
+- Shorthand column mappings such as `"value": "/value"` are accepted and mean `json_pointer: "/value"`. Use the object form when you need `required`, `topic_level`, or `literal`.
 - `required: true` inserts `NULL` when the source is missing; without `required`, missing values are skipped.
+- Projection inserts are attempted only for valid JSON payloads whose MQTT topic matches the projection filter; the raw MQTT envelope is inserted separately.
 
 ## 4. Start MQTTStore with automatic raw-table generation
 
@@ -174,6 +179,87 @@ mqttstore in-mqtt \
           --auto-create-raw-table true \
           --projection-file /etc/mqttsuite/mqttstore-projections.json
 ```
+
+### Working `--projection-file` walkthrough
+
+This is the smallest end-to-end projection example. It keeps raw storage enabled and adds one typed projection for temperature telemetry published to `normalized/<device>/temperature`.
+
+1. Create the typed projection table once if you did not already create it in section 3:
+
+   ```sql
+   CREATE TABLE IF NOT EXISTS mqttsuite_store.sensor_measurements (
+       id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+       device_id VARCHAR(255) NOT NULL,
+       metric VARCHAR(255) NOT NULL,
+       value DOUBLE NOT NULL,
+       unit VARCHAR(64) NULL,
+       received_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+       INDEX idx_device_metric_time (device_id, metric, received_at)
+   );
+   ```
+
+2. Create the projection file on the host that runs MQTTStore:
+
+   ```bash
+   sudo install -d -m 0755 /etc/mqttsuite
+   sudo tee /etc/mqttsuite/mqttstore-projections.json >/dev/null <<'JSON'
+   {
+     "projections": [
+       {
+         "name": "room_temperature",
+         "topic": "normalized/+/temperature",
+         "table": "sensor_measurements",
+         "columns": {
+           "device_id": { "topic_level": 1, "required": true },
+           "metric": { "literal": "temperature" },
+           "value": { "json_pointer": "/value", "required": true },
+           "unit": { "json_pointer": "/unit" }
+         }
+       }
+     ]
+   }
+   JSON
+   ```
+
+3. Start MQTTStore with the file in the `storage` section:
+
+   ```bash
+   mqttstore in-mqtt \
+     remote --host 127.0.0.1 --port 1883 \
+     session --client-id mqttstore-projection-demo \
+     sub --topic 'normalized/#' \
+     db --host 127.0.0.1 \
+        --database mqttsuite_store \
+        --username mqttstore \
+        --password 'replace-with-a-long-random-password' \
+     storage --raw-table mqtt_messages \
+             --auto-create-raw-table true \
+             --projection-file /etc/mqttsuite/mqttstore-projections.json
+   ```
+
+4. Publish a matching message from another terminal:
+
+   ```bash
+   mosquitto_pub -h 127.0.0.1 -p 1883 \
+     -t 'normalized/boiler/temperature' \
+     -m '{"value":63.4,"unit":"C","source":"demo"}'
+   ```
+
+5. Confirm both writes in MariaDB:
+
+   ```sql
+   SELECT topic, payload_format, payload_text
+   FROM mqtt_messages
+   ORDER BY id DESC
+   LIMIT 1;
+
+   SELECT device_id, metric, value, unit
+   FROM sensor_measurements
+   ORDER BY id DESC
+   LIMIT 1;
+   ```
+
+   The projected row should contain `boiler`, `temperature`, `63.4`, and `C`. If the raw row appears but the projection row does not, check that the payload is valid JSON, the topic matches `normalized/+/temperature`, the JSON Pointer `/value` exists, and the `sensor_measurements` table already exists.
 
 For MQTT over WebSockets:
 
