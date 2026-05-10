@@ -1,0 +1,15 @@
+{
+  "projections": [
+    {
+      "name": "room_temperature",
+      "topic": "normalized/+/temperature",
+      "table": "sensor_measurements",
+      "columns": {
+        "device_id": { "topic_level": 1, "required": true },
+        "metric": { "literal": "temperature" },
+        "value": { "json_pointer": "/value", "required": true },
+        "unit": { "json_pointer": "/unit" }
+      }
+    }
+  ]
+}

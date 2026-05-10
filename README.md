@@ -6,7 +6,7 @@
 
 # Overview
 
-The [**MQTTSuite**](https://snodec.github.io/mqttsuite-doc/html/index.html) is a lightweight, production-ready MQTT 3.1.1 integration system composed of four focused applications
+The [**MQTTSuite**](https://snodec.github.io/mqttsuite-doc/html/index.html) is a lightweight, production-ready MQTT 3.1.1 integration system composed of five focused applications
 
 **MQTTBroker**
 
@@ -31,6 +31,12 @@ The [**MQTTSuite**](https://snodec.github.io/mqttsuite-doc/html/index.html) is a
 - *Role:* Command-line client
 
 - *Highlights:* Subscribe to topics and/or publish messages
+
+**MQTTStore**
+
+- *Role:* Generic MQTT-to-MariaDB persistence service
+
+- *Highlights:* Subscribes to arbitrary MQTT topic filters; stores raw MQTT envelopes; optionally projects JSON payload fields into typed tables
 
 powered by [**SNode.C**](https://github.com/SNodeC/snode.c), a single-threaded, single-tasking C++ networking framework. All of these applications have built-in support for encrypted and unencrypted stream sockets and WebSockets over IPv4/IPv6 and UNIX domain sockets.
 
@@ -195,6 +201,7 @@ Volker Christian ([me@vchrist.at](mailto:me@vchrist.at), [volker.christian@fh-ha
          * [network (transport selection + addressing)](#network-transport-selection--addressing)
    * [Best Practices &amp; Validation Tips](#best-practices--validation-tips)
 * [MQTTCli](#mqttcli)
+* [MQTTStore](#mqttstore)
    * [Quick Start (Recommended Flow)](#quick-start-recommended-flow-4)
    * [Command Structure](#command-structure)
    * [Supported Transports](#supported-transports-2)
@@ -2072,3 +2079,130 @@ mqttcli <instance> [tls …] remote|local <endpoint-options> (sub …)? (pub …
 ## Notes
 
 - **Protocol:** MQTT **3.1.1** (align your client expectations accordingly).
+
+
+---
+
+# MQTTStore
+
+For a full operational walkthrough, including automatic raw-table generation, MariaDB user grants, projection tables, and example MQTT traffic, see [`docs/mqttstore-user-guide.md`](docs/mqttstore-user-guide.md).
+
+**MQTTStore** is the generic persistence service for the recommended MQTTSuite data pipeline:
+
+```text
+MQTT devices -> mqttbroker -> optional mqttintegrator normalization -> mqttstore -> MariaDB
+```
+
+The service is intentionally schema-neutral at the MQTT boundary. Every accepted publish can be stored as a raw MQTT envelope before any domain-specific interpretation happens. Optional projections can then copy selected JSON fields into operator-managed typed tables.
+
+## What gets stored
+
+The automatically managed raw table defaults to `mqtt_messages` and contains:
+
+| Column | Purpose |
+| ------ | ------- |
+| `id` | Monotonic database id. |
+| `received_at` | MariaDB receive timestamp with microsecond precision. |
+| `source_instance` | MQTTSuite connection instance, e.g. `in-mqtt`. |
+| `topic` | MQTT topic. |
+| `qos` | MQTT QoS of the received publish. |
+| `retain_flag` | Whether the publish was retained by the broker. |
+| `dup_flag` | MQTT duplicate flag. |
+| `packet_identifier` | MQTT packet identifier where available. |
+| `payload` | Original MQTT payload bytes as `LONGBLOB`. |
+| `payload_text` | Original payload as text when it is safe to expose as text. |
+| `payload_json` | Parsed JSON payload when parsing succeeds, otherwise `NULL`. |
+| `payload_format` | `json`, `text`, or `binary`. |
+
+This means TTN, Zigbee2MQTT, Home Assistant, shell-published test payloads, and vendor-specific MQTT messages all follow the same durable ingestion path.
+
+## Quick start
+
+```bash
+mqttstore in-mqtt \
+            remote --host 127.0.0.1 \
+                   --port 1883 \
+            session --client-id mqttstore-local \
+            sub --topic '#' \
+            db --host 127.0.0.1 \
+               --database mqtt \
+               --username mqttstore \
+               --password secret \
+            storage --raw-table mqtt_messages \
+                    --auto-create-raw-table true
+```
+
+For MQTT over WebSockets:
+
+```bash
+mqttstore in-wsmqtt \
+            remote --host 127.0.0.1 \
+                   --port 8080 \
+            sub --topic 'normalized/#' \
+            http --target /ws \
+            db --database mqtt \
+               --username mqttstore \
+               --password secret
+```
+
+## Optional typed projections
+
+Raw storage is the safe default. When you also want analytics-friendly typed tables, pass a projection file (for example `mqttstore/examples/projections.json`):
+
+```bash
+mqttstore in-mqtt \
+            remote --host broker.local \
+            sub --topic 'normalized/#' \
+            db --database mqtt --username mqttstore --password secret \
+            storage --projection-file /etc/mqttsuite/mqttstore-projections.json
+```
+
+Example projection file:
+
+```json
+{
+  "projections": [
+    {
+      "name": "room_temperature",
+      "topic": "normalized/+/temperature",
+      "table": "sensor_measurements",
+      "columns": {
+        "device_id": { "topic_level": 1, "required": true },
+        "metric": { "literal": "temperature" },
+        "value": { "json_pointer": "/value", "required": true },
+        "unit": { "json_pointer": "/unit" }
+      }
+    }
+  ]
+}
+```
+
+Projection notes:
+
+- `topic` uses MQTT-style `+` and `#` matching.
+- `topic_level` is zero-based, so `normalized/boiler/temperature` has topic level `1 == boiler`.
+- `json_pointer` uses RFC-6901 style paths as implemented by `nlohmann::json::json_pointer`.
+- Projection tables are intentionally not auto-created because they are domain schemas. Create and migrate them explicitly.
+- SQL identifiers are restricted to alphanumeric characters and `_` before they are quoted.
+
+A possible projection table for the example above is:
+
+```sql
+CREATE TABLE sensor_measurements (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    device_id VARCHAR(255) NOT NULL,
+    metric VARCHAR(255) NOT NULL,
+    value DOUBLE NOT NULL,
+    unit VARCHAR(64) NULL,
+    received_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    INDEX idx_device_metric_time (device_id, metric, received_at)
+);
+```
+
+## Recommended production flow
+
+1. Let devices publish vendor-native MQTT payloads to **MQTTBroker**.
+2. Use **MQTTIntegrator** when you need stable, normalized topics/payloads.
+3. Point **MQTTStore** at the normalized topic tree.
+4. Always keep raw storage enabled for audit/replay.
+5. Add projections only for fields that need fast reporting, dashboards, or alerts.
