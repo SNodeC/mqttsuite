@@ -17,7 +17,33 @@
 
 #include <core/socket/stream/SocketConnection.h>
 #include <net/config/ConfigInstance.h>
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
+#include <string>
+
+#endif
 #include <web/websocket/SubProtocolContext.h>
+
+namespace {
+
+    struct StorageOptions {
+        std::string rawTable = "mqtt_messages";
+        bool autoCreateRawTable = true;
+        std::string projectionFile;
+    };
+
+    StorageOptions getStorageOptions(const mqtt::mqttstore::lib::ConfigStorage* configStorage) {
+        if (configStorage == nullptr) {
+            return {};
+        }
+
+        return {.rawTable = configStorage->getRawTable(),
+                .autoCreateRawTable = configStorage->getAutoCreateRawTable(),
+                .projectionFile = configStorage->getProjectionFile()};
+    }
+
+} // namespace
 
 namespace mqtt::mqttstore::websocket {
 
@@ -34,6 +60,7 @@ namespace mqtt::mqttstore::websocket {
         const lib::ConfigSubscribe* configSubscribe = configInstance->getSubCommand<lib::ConfigSubscribe>();
         const lib::ConfigDatabase* configDatabase = configInstance->getSubCommand<lib::ConfigDatabase>();
         const lib::ConfigStorage* configStorage = configInstance->getSubCommand<lib::ConfigStorage>();
+        const StorageOptions storageOptions = getStorageOptions(configStorage);
 
         return new iot::mqtt::client::SubProtocol(
             subProtocolContext,
@@ -57,9 +84,9 @@ namespace mqtt::mqttstore::websocket {
                                             .port = configDatabase->getPort(),
                                             .socket = configDatabase->getSocket(),
                                             .flags = configDatabase->getFlags()},
-                                           configStorage->getRawTable(),
-                                           configStorage->getAutoCreateRawTable(),
-                                           lib::StoragePlan::fromFile(configStorage->getProjectionFile()),
+                                           storageOptions.rawTable,
+                                           storageOptions.autoCreateRawTable,
+                                           lib::StoragePlan::fromFile(storageOptions.projectionFile),
                                            configSession->getSessionStore()));
     }
 

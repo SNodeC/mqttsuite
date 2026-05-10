@@ -169,6 +169,7 @@ namespace mqtt::mqttstore::lib {
         , projectionFileOpt(setConfigurable(
               addOption("--projection-file", "Optional JSON file describing typed projections", "filename", !CLI::ExistingDirectory),
               true)) {
+        forceUnrequired(true);
     }
 
     ConfigStorage::~ConfigStorage() = default;
