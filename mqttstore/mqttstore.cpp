@@ -158,15 +158,10 @@ static HttpClient startClient(const std::string& name, const std::function<void(
 }
 
 static void createConfig(net::config::ConfigInstance* config) {
-    config //
-        ->newSubCommand<mqtt::mqttstore::lib::ConfigSession>();
-
-    config //
-        ->newSubCommand<mqtt::mqttstore::lib::ConfigSubscribe>();
-
-    config //
-        ->newSubCommand<mqtt::mqttstore::lib::ConfigDatabase>()
-        ->newSubCommand<mqtt::mqttstore::lib::ConfigStorage>();
+    config->newSubCommand<mqtt::mqttstore::lib::ConfigSession>();
+    config->newSubCommand<mqtt::mqttstore::lib::ConfigSubscribe>();
+    config->newSubCommand<mqtt::mqttstore::lib::ConfigDatabase>();
+    config->newSubCommand<mqtt::mqttstore::lib::ConfigStorage>();
 }
 
 static void createWSConfig(net::config::ConfigInstance* config) {
