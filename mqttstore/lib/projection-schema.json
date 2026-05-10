@@ -1,0 +1,91 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://www.vchrist.at/mqttsuite/schemas/mqttstore-projections.json",
+  "title": "MQTTStore projection configuration",
+  "description": "Typed projection definitions for MQTTStore JSON payloads.",
+  "oneOf": [
+    { "$ref": "#/definitions/projectionArray" },
+    {
+      "type": "object",
+      "required": ["projections"],
+      "additionalProperties": false,
+      "properties": {
+        "projections": { "$ref": "#/definitions/projectionArray" }
+      }
+    }
+  ],
+  "definitions": {
+    "projectionArray": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/projection" }
+    },
+    "projection": {
+      "type": "object",
+      "required": ["topic", "table", "columns"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Optional human-readable projection name used in log messages."
+        },
+        "topic": {
+          "type": "string",
+          "minLength": 1,
+          "description": "MQTT topic filter that selects messages for this projection."
+        },
+        "table": {
+          "$ref": "#/definitions/sqlIdentifier",
+          "description": "Target MariaDB table name."
+        },
+        "columns": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": { "$ref": "#/definitions/columnMapping" },
+          "propertyNames": { "$ref": "#/definitions/sqlIdentifier" }
+        }
+      }
+    },
+    "columnMapping": {
+      "description": "Either a JSON Pointer string shorthand or an object describing one column source.",
+      "oneOf": [
+        { "$ref": "#/definitions/jsonPointer" },
+        { "$ref": "#/definitions/columnMappingObject" }
+      ]
+    },
+    "columnMappingObject": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "json_pointer": { "$ref": "#/definitions/jsonPointer" },
+        "topic_level": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Zero-based MQTT topic level copied into the column."
+        },
+        "literal": {
+          "type": "string",
+          "description": "Constant string value copied into the column."
+        },
+        "required": {
+          "type": "boolean",
+          "default": false,
+          "description": "When true, insert NULL if the configured source is missing."
+        }
+      },
+      "oneOf": [
+        { "required": ["json_pointer"] },
+        { "required": ["topic_level"] },
+        { "required": ["literal"] }
+      ]
+    },
+    "jsonPointer": {
+      "type": "string",
+      "pattern": "^/.*$",
+      "description": "Non-empty RFC-6901 JSON Pointer into the MQTT payload. MQTTStore expects pointers such as /value or /battery/voltage."
+    },
+    "sqlIdentifier": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_]+$"
+    }
+  }
+}

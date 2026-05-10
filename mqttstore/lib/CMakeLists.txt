@@ -19,6 +19,17 @@ find_package(
     REQUIRED
 )
 
+# Create projection-schema.json.h in case projection-schema.json has changed on disk.
+add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/projection-schema.json.h
+    COMMAND
+        ${CMAKE_COMMAND} -DTARGET_PATH=${CMAKE_CURRENT_BINARY_DIR} -P
+        ${CMAKE_CURRENT_SOURCE_DIR}/cmake/recreate-projection-schema-json-h.cmake
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/projection-schema.json
+    COMMENT "Creating ${CMAKE_CURRENT_BINARY_DIR}/projection-schema.json.h"
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
 add_library(
     mqtt-store SHARED
     ConfigSections.cpp
@@ -30,13 +41,19 @@ add_library(
     MqttMessage.h
     StoragePlan.cpp
     StoragePlan.h
+    projection-schema.json.h
 )
 
-target_include_directories(mqtt-store PUBLIC ${PROJECT_SOURCE_DIR})
+target_include_directories(mqtt-store
+    PUBLIC ${PROJECT_SOURCE_DIR}
+    PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
+)
 
 target_link_libraries(
-    mqtt-store PUBLIC snodec::mqtt-client snodec::db-mariadb
-                      nlohmann_json::nlohmann_json
+    mqtt-store
+    PUBLIC snodec::mqtt-client snodec::db-mariadb
+           nlohmann_json::nlohmann_json
+    PRIVATE nlohmann_json_schema_validator
 )
 
 set_target_properties(

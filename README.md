@@ -2183,9 +2183,14 @@ Example projection file:
 
 Projection notes:
 
+- `--projection-file` is an option of the `storage` configuration section, so place it after the `storage` subcommand in the SNode.C-style command line.
+- The file is read and validated against `mqttstore/lib/projection-schema.json` during startup. MQTTStore fails fast if the file is malformed or does not match the schema. Restart MQTTStore after changing the projection file.
+- The file may either contain a top-level `projections` array, as shown above, or the array itself.
 - `topic` uses MQTT-style `+` and `#` matching.
 - `topic_level` is zero-based, so `normalized/boiler/temperature` has topic level `1 == boiler`.
-- `json_pointer` uses RFC-6901 style paths as implemented by `nlohmann::json::json_pointer`.
+- `literal` writes a constant string value.
+- `json_pointer` uses non-empty RFC-6901 style paths that start with `/`, as implemented by `nlohmann::json::json_pointer`.
+- Shorthand column mappings such as `"value": "/value"` are accepted and mean `json_pointer: "/value"`. Use the object form when you need `required`, `topic_level`, or `literal`.
 - Projection tables are intentionally not auto-created because they are domain schemas. Create and migrate them explicitly.
 - SQL identifiers are restricted to alphanumeric characters and `_` before they are quoted.
 
