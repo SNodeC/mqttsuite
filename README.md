@@ -6,7 +6,7 @@
 
 # Overview
 
-The [**MQTTSuite**](https://snodec.github.io/mqttsuite-doc/html/index.html) is a lightweight, production-ready MQTT 3.1.1 integration system composed of four focused applications
+The [**MQTTSuite**](https://snodec.github.io/mqttsuite-doc/html/index.html) is a lightweight, production-ready MQTT 3.1.1 integration system composed of five focused applications
 
 **MQTTBroker**
 
@@ -26,6 +26,12 @@ The [**MQTTSuite**](https://snodec.github.io/mqttsuite-doc/html/index.html) is a
 
 - *Highlights:* Multiple logical bridges; connects to multiple brokers per bridge; selectively bridges topics among them; loop prevention
 
+**MQTTStore**
+
+- *Role:* Generic MQTT-to-MariaDB persistence service
+
+- *Highlights:* Subscribes to arbitrary MQTT topics and stores raw message envelopes with optional JSON payload capture; intended as the durable sink after broker/integrator normalization
+
 **MQTTCli**
 
 - *Role:* Command-line client
@@ -36,7 +42,7 @@ powered by [**SNode.C**](https://github.com/SNodeC/snode.c), a single-threaded, 
 
 Thanks to its small footprint, MQTTSuite is especially suitable for resource-constrained systems (embedded Linux, routers, SBCs).
 
-Because these are fully featured tools, they can also be used as foundations for developing specialized MQTT applications. One example is extending *MQTTCli* to persist incoming JSON messages in a database.
+Because these are fully featured tools, they can also be used as foundations for developing specialized MQTT applications. The suite now includes *MQTTStore* as the dedicated generic persistence service for storing arbitrary MQTT traffic in MariaDB.
 
 
 ## License
@@ -194,6 +200,12 @@ Volker Christian ([me@vchrist.at](mailto:me@vchrist.at), [volker.christian@fh-ha
          * [topics (subscriptions for a broker)](#topics-subscriptions-for-a-broker)
          * [network (transport selection + addressing)](#network-transport-selection--addressing)
    * [Best Practices &amp; Validation Tips](#best-practices--validation-tips)
+* [MQTTStore](#mqttstore)
+   * [Recommended Pipeline](#recommended-pipeline)
+   * [Quick Start](#quick-start)
+   * [Raw Message Table](#raw-message-table)
+   * [Configuration](#configuration)
+   * [Operational Guidance](#operational-guidance)
 * [MQTTCli](#mqttcli)
    * [Quick Start (Recommended Flow)](#quick-start-recommended-flow-4)
    * [Command Structure](#command-structure)
@@ -1879,6 +1891,94 @@ Exactly **one** address object (`in`/`in6`/`un`/`rc`/`l2`) must be present, cons
   - **No forwarding:** Check the *source broker’s* `topics[]` filter and verify the *other* brokers subscribe to the forwarded, prefixed paths.  
   - **Echo storms:** Add prefixes and enable loop prevention on both sides; avoid subscribing to your own bridged prefix everywhere.  
   - **WS handshake failures:** Wrong target or missing subprotocol.
+
+---
+
+
+# MQTTStore
+
+**MQTTStore** is the generic persistence service of **MQTTSuite**. It subscribes to MQTT topics, stores every incoming publish as a raw MQTT message envelope, and keeps device/vendor interpretation out of the storage hot path. For production systems, use **MQTTIntegrator** before MQTTStore when vendor-specific payloads need to be normalized first.
+
+## Recommended Pipeline
+
+```text
+MQTT devices -> MQTTBroker -> MQTTIntegrator (optional normalize) -> MQTTStore -> MariaDB
+```
+
+This keeps responsibilities clear: the broker accepts traffic, the integrator maps topics and payloads into a canonical shape, and MQTTStore persists the resulting stream without hard-coded TTN, LoRaWAN, water-buoy, or device-specific assumptions.
+
+## Quick Start
+
+Create the database and a least-privilege user, then start MQTTStore against a local broker:
+
+```bash
+mqttstore in-mqtt \
+    remote --host 127.0.0.1 \
+           --port 1883 \
+    session --client-id mqttstore-local \
+    sub --topic '#' \
+    db --database mqtt \
+       --username mqttstore \
+       --password secret \
+    storage --table mqtt_messages \
+            --auto-create=true
+```
+
+Topic QoS can be overridden per subscription with the same `topic##qos` convention used by the CLI:
+
+```bash
+mqttstore in-mqtt remote --host 127.0.0.1 sub --topic 'sensors/###1'
+```
+
+## Raw Message Table
+
+When `storage --auto-create=true` is enabled, MQTTStore creates a MariaDB table similar to:
+
+```sql
+CREATE TABLE mqtt_messages (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    received_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    source_instance VARCHAR(255) NULL,
+    client_id VARCHAR(255) NULL,
+    topic VARCHAR(1024) NOT NULL,
+    qos TINYINT UNSIGNED NOT NULL,
+    retain_flag BOOLEAN NOT NULL,
+    dup_flag BOOLEAN NOT NULL,
+    packet_identifier INT UNSIGNED NULL,
+    payload_format ENUM('json','text','binary') NOT NULL,
+    payload_blob LONGBLOB NOT NULL,
+    payload_text LONGTEXT NULL,
+    payload_json JSON NULL
+);
+```
+
+`payload_blob` is always populated and is the lossless source of truth for arbitrary MQTT payload bytes. `payload_json` is populated only when the MQTT payload parses as JSON and `--store-payload-json` is enabled. Non-JSON payloads are still stored instead of being rejected; payloads containing NUL bytes are marked as `binary` and omit `payload_text`.
+
+## Configuration
+
+MQTTStore uses the same instance model as the other applications:
+
+- `in-mqtt`, `in-mqtts` for IPv4 TCP/TLS MQTT.
+- `in6-mqtt`, `in6-mqtts` for IPv6 TCP/TLS MQTT.
+- `un-mqtt`, `un-mqtts` for UNIX domain sockets.
+- `in-wsmqtt`, `in-wsmqtts`, `in6-wsmqtt`, `in6-wsmqtts`, `un-wsmqtt`, `un-wsmqtts` for MQTT over WebSockets.
+
+Important subcommands:
+
+| Subcommand | Purpose | Key options |
+| ---------- | ------- | ----------- |
+| `session` | MQTT session behavior | `--client-id`, `--qos`, `--retain-session`, `--keep-alive`, will and credential options |
+| `sub` | MQTT subscriptions to persist | `--topic` one or more topic filters |
+| `db` | MariaDB connection | `--host`, `--port`, `--socket`, `--database`, `--username`, `--password`, `--flags` |
+| `storage` | Raw persistence behavior | `--table`, `--auto-create`, `--store-payload-text`, `--store-payload-json` |
+
+## Operational Guidance
+
+- Store raw MQTT envelopes first; add typed projection tables later if needed.
+- Normalize heterogeneous device payloads with MQTTIntegrator before storage.
+- Keep database credentials out of shell history and prefer service-managed secrets in production.
+- Subscribe narrowly in production where possible; use `#` for discovery and debugging.
+- Preserve retained-message semantics by checking `retain_flag` in downstream queries.
 
 ---
 
