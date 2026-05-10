@@ -13,6 +13,9 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include "nlohmann/json-schema.hpp"
+
+#include <exception>
 #include <fstream>
 #include <iterator>
 #include <map>
@@ -25,7 +28,21 @@
 
 namespace mqtt::mqttstore::lib {
 
+#include "projection-schema.json.h" // IWYU pragma: keep
+
     namespace {
+
+        void validateProjectionConfiguration(const nlohmann::json& json) {
+            try {
+                const nlohmann::json projectionJsonSchema = nlohmann::json::parse(projectionJsonSchemaString);
+                const nlohmann::json_schema::json_validator validator(
+                    projectionJsonSchema, nullptr, nlohmann::json_schema::default_string_format_check);
+
+                static_cast<void>(validator.validate(json));
+            } catch (const std::exception& exception) {
+                throw std::runtime_error("Validating mqttstore projection file failed: " + std::string(exception.what()));
+            }
+        }
 
         [[nodiscard]] std::vector<std::string> splitTopic(const std::string& topic) {
             std::vector<std::string> result;
@@ -58,6 +75,8 @@ namespace mqtt::mqttstore::lib {
     }
 
     StoragePlan StoragePlan::fromJson(const nlohmann::json& json) {
+        validateProjectionConfiguration(json);
+
         StoragePlan plan;
 
         const nlohmann::json& projectionsJson = json.contains("projections") ? json.at("projections") : json;

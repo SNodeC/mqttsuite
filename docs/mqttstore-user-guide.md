@@ -135,12 +135,12 @@ Projection file example:
 Projection rules:
 
 - `--projection-file` belongs to the `storage` configuration section, so in SNode.C command-line syntax it must be written after the `storage` subcommand.
-- MQTTStore reads the projection file at startup. Restart the service after editing the file.
+- MQTTStore reads and validates the projection file against `mqttstore/lib/projection-schema.json` at startup. The service fails fast if the file is malformed or does not match the schema. Restart the service after editing the file.
 - The JSON file may contain either a top-level `projections` array or the array itself.
 - `topic` uses MQTT topic-filter syntax with `+` and `#`.
 - `topic_level` is zero-based. For `normalized/boiler/temperature`, level `0` is `normalized`, level `1` is `boiler`, and level `2` is `temperature`.
 - `literal` writes a constant string value.
-- `json_pointer` reads from the parsed JSON payload using JSON Pointer syntax, for example `/value` or `/battery/voltage`.
+- `json_pointer` reads from the parsed JSON payload using non-empty JSON Pointer syntax that starts with `/`, for example `/value` or `/battery/voltage`.
 - Shorthand column mappings such as `"value": "/value"` are accepted and mean `json_pointer: "/value"`. Use the object form when you need `required`, `topic_level`, or `literal`.
 - `required: true` inserts `NULL` when the source is missing; without `required`, missing values are skipped.
 - Projection inserts are attempted only for valid JSON payloads whose MQTT topic matches the projection filter; the raw MQTT envelope is inserted separately.
