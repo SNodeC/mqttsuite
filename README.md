@@ -201,7 +201,6 @@ Volker Christian ([me@vchrist.at](mailto:me@vchrist.at), [volker.christian@fh-ha
          * [network (transport selection + addressing)](#network-transport-selection--addressing)
    * [Best Practices &amp; Validation Tips](#best-practices--validation-tips)
 * [MQTTCli](#mqttcli)
-* [MQTTStore](#mqttstore)
    * [Quick Start (Recommended Flow)](#quick-start-recommended-flow-4)
    * [Command Structure](#command-structure)
    * [Supported Transports](#supported-transports-2)
@@ -216,9 +215,14 @@ Volker Christian ([me@vchrist.at](mailto:me@vchrist.at), [volker.christian@fh-ha
       * [Persist once (optional)](#persist-once-optional)
    * [Handy Patterns](#handy-patterns)
    * [Notes](#notes-3)
+* [MQTTStore](#mqttstore)
+   * [What gets stored](#what-gets-stored)
+   * [Quick start](#quick-start)
+   * [Optional typed projections](#optional-typed-projections)
+   * [Recommended production flow](#recommended-production-flow)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: runner, at: Fri Nov 21 08:21:11 UTC 2025 -->
+<!-- Added by: runner, at: Sun May 10 22:07:43 UTC 2026 -->
 
 <!--te-->
 
