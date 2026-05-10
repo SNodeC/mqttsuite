@@ -21,7 +21,10 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include <exception>
+#include <log/Logger.h>
 #include <string>
+#include <utility>
 
 #endif
 
@@ -55,6 +58,13 @@ namespace mqtt::mqttstore {
         const lib::ConfigDatabase* configDatabase = configInstance->getSubCommand<lib::ConfigDatabase>();
         const lib::ConfigStorage* configStorage = configInstance->getSubCommand<lib::ConfigStorage>();
         const StorageOptions storageOptions = getStorageOptions(configStorage);
+        lib::StoragePlan storagePlan;
+        try {
+            storagePlan = lib::StoragePlan::fromFile(storageOptions.projectionFile);
+        } catch (const std::exception& exception) {
+            VLOG(0) << socketConnection->getConnectionName() << " MQTTStore startup failed: " << exception.what();
+            throw;
+        }
 
         return new iot::mqtt::SocketContext(socketConnection,
                                             new mqtt::mqttstore::lib::Mqtt(socketConnection->getConnectionName(),
@@ -78,7 +88,7 @@ namespace mqtt::mqttstore {
                                                                             .flags = configDatabase->getFlags()},
                                                                            storageOptions.rawTable,
                                                                            storageOptions.autoCreateRawTable,
-                                                                           lib::StoragePlan::fromFile(storageOptions.projectionFile),
+                                                                           std::move(storagePlan),
                                                                            configSession->getSessionStore()));
     }
 

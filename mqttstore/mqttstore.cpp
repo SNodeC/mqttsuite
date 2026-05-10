@@ -47,6 +47,9 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include <cstdlib>
+#include <exception>
+#include <iostream>
 #include <log/Logger.h>
 
 #endif
@@ -172,7 +175,7 @@ static void createWSConfig(net::config::ConfigInstance* config) {
         ->configurable();
 }
 
-int main(int argc, char* argv[]) {
+static int run(int argc, char* argv[]) {
     core::SNodeC::init(argc, argv);
 
 #ifdef CONFIG_MQTTSUITE_STORE_TCP_IPV4
@@ -264,4 +267,16 @@ int main(int argc, char* argv[]) {
 #endif
 
     return core::SNodeC::start();
+}
+
+int main(int argc, char* argv[]) {
+    try {
+        return run(argc, argv);
+    } catch (const std::exception& exception) {
+        std::cerr << "mqttstore: fatal startup error: " << exception.what() << std::endl;
+        return EXIT_FAILURE;
+    } catch (...) {
+        std::cerr << "mqttstore: fatal startup error: unknown exception" << std::endl;
+        return EXIT_FAILURE;
+    }
 }

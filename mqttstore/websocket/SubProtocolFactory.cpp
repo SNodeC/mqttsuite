@@ -20,6 +20,10 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include <exception>
+#include <log/Logger.h>
+#include <utility>
+
 #endif
 #include <web/websocket/SubProtocolContext.h>
 
@@ -59,6 +63,13 @@ namespace mqtt::mqttstore::websocket {
         const lib::ConfigDatabase* configDatabase = configInstance->getSubCommand<lib::ConfigDatabase>();
         const lib::ConfigStorage* configStorage = configInstance->getSubCommand<lib::ConfigStorage>();
         const StorageOptions storageOptions = getStorageOptions(configStorage);
+        lib::StoragePlan storagePlan;
+        try {
+            storagePlan = lib::StoragePlan::fromFile(storageOptions.projectionFile);
+        } catch (const std::exception& exception) {
+            VLOG(0) << subProtocolContext->getSocketConnection()->getConnectionName() << " MQTTStore startup failed: " << exception.what();
+            throw;
+        }
 
         return new iot::mqtt::client::SubProtocol(
             subProtocolContext,
@@ -84,7 +95,7 @@ namespace mqtt::mqttstore::websocket {
                                             .flags = configDatabase->getFlags()},
                                            storageOptions.rawTable,
                                            storageOptions.autoCreateRawTable,
-                                           lib::StoragePlan::fromFile(storageOptions.projectionFile),
+                                           std::move(storagePlan),
                                            configSession->getSessionStore()));
     }
 

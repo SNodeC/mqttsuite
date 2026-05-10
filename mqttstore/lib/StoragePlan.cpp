@@ -23,6 +23,7 @@
 #include <nlohmann/json.hpp>
 #include <sstream>
 #include <stdexcept>
+#include <vector>
 
 #endif
 
@@ -32,13 +33,53 @@ namespace mqtt::mqttstore::lib {
 
     namespace {
 
+        [[nodiscard]] std::string jsonSummary(const nlohmann::json& json) {
+            std::string summary = json.dump();
+            constexpr std::size_t maxSummaryLength = 160;
+            if (summary.size() > maxSummaryLength) {
+                summary.resize(maxSummaryLength);
+                summary += "...";
+            }
+
+            return summary;
+        }
+
+        class ProjectionValidationErrorHandler : public nlohmann::json_schema::basic_error_handler {
+        public:
+            void error(const nlohmann::json::json_pointer& pointer, const nlohmann::json& instance, const std::string& message) override {
+                nlohmann::json_schema::basic_error_handler::error(pointer, instance, message);
+
+                std::ostringstream error;
+                error << "  - " << pointer << ": " << message << " (value: " << jsonSummary(instance) << ")";
+                errors.push_back(error.str());
+            }
+
+            [[nodiscard]] std::string message() const {
+                std::string result;
+                for (const std::string& error : errors) {
+                    result += (result.empty() ? "" : "\n") + error;
+                }
+
+                return result;
+            }
+
+        private:
+            std::vector<std::string> errors;
+        };
+
         void validateProjectionConfiguration(const nlohmann::json& json) {
             try {
                 const nlohmann::json projectionJsonSchema = nlohmann::json::parse(projectionJsonSchemaString);
                 const nlohmann::json_schema::json_validator validator(
                     projectionJsonSchema, nullptr, nlohmann::json_schema::default_string_format_check);
+                ProjectionValidationErrorHandler errorHandler;
 
-                static_cast<void>(validator.validate(json));
+                static_cast<void>(validator.validate(json, errorHandler));
+                if (errorHandler) {
+                    throw std::runtime_error("Validating mqttstore projection file failed:\n" + errorHandler.message());
+                }
+            } catch (const std::runtime_error&) {
+                throw;
             } catch (const std::exception& exception) {
                 throw std::runtime_error("Validating mqttstore projection file failed: " + std::string(exception.what()));
             }
@@ -71,7 +112,18 @@ namespace mqtt::mqttstore::lib {
             throw std::runtime_error("Cannot open mqttstore projection file '" + fileName + "'");
         }
 
-        return fromJson(nlohmann::json::parse(std::string(std::istreambuf_iterator<char>(planFile), std::istreambuf_iterator<char>())));
+        nlohmann::json planJson;
+        try {
+            planJson = nlohmann::json::parse(std::string(std::istreambuf_iterator<char>(planFile), std::istreambuf_iterator<char>()));
+        } catch (const nlohmann::json::parse_error& exception) {
+            throw std::runtime_error("Cannot parse mqttstore projection file '" + fileName + "': " + exception.what());
+        }
+
+        try {
+            return fromJson(planJson);
+        } catch (const std::exception& exception) {
+            throw std::runtime_error("Cannot load mqttstore projection file '" + fileName + "': " + exception.what());
+        }
     }
 
     StoragePlan StoragePlan::fromJson(const nlohmann::json& json) {
