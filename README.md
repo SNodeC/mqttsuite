@@ -6,7 +6,7 @@
 
 # Overview
 
-The [**MQTTSuite**](https://snodec.github.io/mqttsuite-doc/html/index.html) is a lightweight, production-ready MQTT 3.1.1 integration system composed of four focused applications
+The [**MQTTSuite**](https://snodec.github.io/mqttsuite-doc/html/index.html) is a lightweight, production-ready MQTT 3.1.1 integration system composed of five focused applications
 
 **MQTTBroker**
 
@@ -26,6 +26,12 @@ The [**MQTTSuite**](https://snodec.github.io/mqttsuite-doc/html/index.html) is a
 
 - *Highlights:* Multiple logical bridges; connects to multiple brokers per bridge; selectively bridges topics among them; loop prevention
 
+**MQTTStore**
+
+- *Role:* Generic MQTT-to-MariaDB persistence service
+
+- *Highlights:* Subscribes to arbitrary MQTT topics, stores the raw MQTT envelope and payload, and optionally projects scalar JSON fields into a query-friendly key/value table
+
 **MQTTCli**
 
 - *Role:* Command-line client
@@ -36,7 +42,7 @@ powered by [**SNode.C**](https://github.com/SNodeC/snode.c), a single-threaded, 
 
 Thanks to its small footprint, MQTTSuite is especially suitable for resource-constrained systems (embedded Linux, routers, SBCs).
 
-Because these are fully featured tools, they can also be used as foundations for developing specialized MQTT applications. One example is extending *MQTTCli* to persist incoming JSON messages in a database.
+Because these are fully featured tools, they can also be used as foundations for developing specialized MQTT applications. For durable ingestion, *MQTTStore* can persist arbitrary MQTT traffic in MariaDB while *MQTTIntegrator* optionally normalizes vendor-specific topics and payloads first.
 
 
 ## License
@@ -194,6 +200,10 @@ Volker Christian ([me@vchrist.at](mailto:me@vchrist.at), [volker.christian@fh-ha
          * [topics (subscriptions for a broker)](#topics-subscriptions-for-a-broker)
          * [network (transport selection + addressing)](#network-transport-selection--addressing)
    * [Best Practices &amp; Validation Tips](#best-practices--validation-tips)
+* [MQTTStore](#mqttstore)
+   * [Purpose](#purpose-2)
+   * [Quick Start](#quick-start)
+   * [Recommended Pipeline](#recommended-pipeline)
 * [MQTTCli](#mqttcli)
    * [Quick Start (Recommended Flow)](#quick-start-recommended-flow-4)
    * [Command Structure](#command-structure)
@@ -858,6 +868,50 @@ mqttcli in-mqtt \
 - **Uniform instances:** Every listener (TCPv4/v6, UNIX, WS) is an *instance* with consistent options (listen address/port or path, TLS, limits). This keeps deployments predictable.
 - **Predictable defaults:** Conventional ports (`1883/8883`, `8080/8088`) and request targets (`/` or `/ws`) make client configuration straightforward.
 - **Persist-once workflow:** Use `-w` once, then keep day-to-day ops minimal and repeatable.
+
+---
+
+# MQTTStore
+
+## Purpose
+
+**MQTTStore** is the generic persistence stage for an MQTT ingestion pipeline:
+
+```text
+MQTT devices -> MQTTBroker -> MQTTIntegrator (optional normalization) -> MQTTStore -> MariaDB
+```
+
+Unlike the Water-Buoy/TTN prototype logic in `mqttcli`, MQTTStore does not require a vendor-specific JSON shape. It stores every received publish as a raw MQTT envelope containing the topic, QoS, retain flag, duplicate flag, packet identifier, connection instance, raw payload text, base64 payload, and parsed JSON payload when the payload is valid JSON.
+
+When JSON projection is enabled, MQTTStore also flattens scalar JSON fields into `<raw_table>_fields` so dashboards and analytics can query common values without losing the original message.
+
+## Quick Start
+
+```bash
+mqttstore in-mqtt \
+    remote --host 127.0.0.1 --port 1883 \
+    session --client-id mqttstore-main --retain-session true --qos 1 \
+    sub --topic '#' \
+    db --database mqtt --username mqttstore --password secret \
+    storage --table mqtt_messages --create-schema true --project-json true
+```
+
+The default storage schema creates:
+
+- `mqtt_messages` for raw MQTT envelopes and payloads.
+- `mqtt_messages_fields` for optional scalar JSON projections.
+
+`mqtt_messages.payload_base64` is always populated, which preserves arbitrary MQTT payload bytes even when the payload is not JSON.
+
+## Recommended Pipeline
+
+Use MQTTIntegrator before MQTTStore when device payloads need normalization:
+
+1. MQTT devices publish vendor-specific topics/payloads.
+2. MQTTBroker receives the traffic.
+3. MQTTIntegrator optionally maps topics and payloads into a canonical schema.
+4. MQTTStore subscribes to the canonical topics and persists both raw messages and JSON projections.
+5. MariaDB serves audits, dashboards, analytics, or downstream ETL.
 
 ---
 

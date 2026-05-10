@@ -1,0 +1,174 @@
+/*
+ * MQTTSuite - A lightweight MQTT Integration System
+ * Copyright (C) Volker Christian <me@vchrist.at>
+ *               2022, 2023, 2024, 2025, 2026
+ *
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option)
+ * any later version.
+ */
+
+#include "Mqtt.h"
+
+#include <iot/mqtt/Topic.h>
+#include <iot/mqtt/packets/Connack.h>
+#include <iot/mqtt/packets/Publish.h>
+#include <iot/mqtt/packets/Suback.h>
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
+#include <algorithm>
+#include <chrono>
+#include <cstdint>
+#include <cstring>
+#include <iterator>
+#include <log/Logger.h>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+#include <utils/system/signal.h>
+
+#endif
+
+namespace mqtt::mqttstore::lib {
+
+    namespace {
+
+        [[nodiscard]] uint8_t getQos(const std::string& qoSString) {
+            const unsigned long qoS = std::stoul(qoSString);
+
+            if (qoS > 2) {
+                throw std::out_of_range("qos " + qoSString + " not in range [0..2]");
+            }
+
+            return static_cast<uint8_t>(qoS);
+        }
+
+        [[nodiscard]] std::string createMessageId(const std::string& connectionName, uint16_t packetIdentifier) {
+            static std::uint64_t sequence = 0;
+            const auto now = std::chrono::system_clock::now().time_since_epoch();
+            const auto micros = std::chrono::duration_cast<std::chrono::microseconds>(now).count();
+
+            std::ostringstream id;
+            id << connectionName << '-' << micros << '-' << packetIdentifier << '-' << sequence++;
+
+            return id.str();
+        }
+
+    } // namespace
+
+    Mqtt::Mqtt(const std::string& connectionName,
+               const std::string& clientId,
+               uint8_t qoSDefault,
+               uint16_t keepAlive,
+               bool cleanSession,
+               const std::string& willTopic,
+               const std::string& willMessage,
+               uint8_t willQoS,
+               bool willRetain,
+               const std::string& username,
+               const std::string& password,
+               const std::list<std::string>& subTopics,
+               const std::string& database,
+               const std::string& usernameDb,
+               const std::string& passwordDb,
+               const std::string& host,
+               uint16_t port,
+               const std::string& socket,
+               uint32_t flags,
+               const std::string& table,
+               bool createSchema,
+               bool projectJson,
+               const std::string& sessionStoreFileName)
+        : iot::mqtt::client::Mqtt(connectionName, clientId, keepAlive, sessionStoreFileName)
+        , store(connectionName, database, usernameDb, passwordDb, host, port, socket, flags, table, createSchema, projectJson)
+        , qoSDefault(qoSDefault)
+        , cleanSession(cleanSession)
+        , willTopic(willTopic)
+        , willMessage(willMessage)
+        , willQoS(willQoS)
+        , willRetain(willRetain)
+        , username(username)
+        , password(password)
+        , subTopics(subTopics) {
+        VLOG(1) << "MQTTStore client id: " << clientId;
+        VLOG(1) << "  Keep Alive: " << keepAlive;
+        VLOG(1) << "  Clean Session: " << cleanSession;
+        VLOG(1) << "  Will Topic: " << willTopic;
+        VLOG(1) << "  Will QoS: " << static_cast<uint16_t>(willQoS);
+        VLOG(1) << "  Will Retain " << willRetain;
+        VLOG(1) << "  Username: " << username;
+    }
+
+    void Mqtt::onConnected() {
+        VLOG(1) << "MQTT: Initiating persistent store session";
+
+        sendConnect(cleanSession, willTopic, willMessage, willQoS, willRetain, username, password);
+    }
+
+    bool Mqtt::onSignal(int signum) {
+        VLOG(1) << "MQTT: On Exit due to '" << strsignal(signum) << "' (SIG" << utils::system::sigabbrev_np(signum) << " = " << signum
+                << ")";
+
+        sendDisconnect();
+
+        return Super::onSignal(signum);
+    }
+
+    void Mqtt::onConnack(const iot::mqtt::packets::Connack& connack) {
+        if (connack.getReturnCode() != 0) {
+            sendDisconnect();
+            return;
+        }
+
+        try {
+            std::list<iot::mqtt::Topic> topicList;
+            std::transform(subTopics.begin(),
+                           subTopics.end(),
+                           std::back_inserter(topicList),
+                           [qoSDefault = this->qoSDefault](const std::string& compositTopic) -> iot::mqtt::Topic {
+                               std::size_t pos = compositTopic.rfind("##");
+
+                               const std::string topic = compositTopic.substr(0, pos);
+                               uint8_t qoS = qoSDefault;
+
+                               if (pos != std::string::npos) {
+                                   qoS = getQos(compositTopic.substr(pos + 2));
+                               }
+
+                               VLOG(0) << "MQTTStore subscribe: QoS " << static_cast<int>(qoS) << " | " << topic;
+
+                               return iot::mqtt::Topic(topic, qoS);
+                           });
+
+            sendSubscribe(topicList);
+        } catch (const std::logic_error& error) {
+            VLOG(0) << "MQTTStore subscription setup failed: " << error.what();
+            sendDisconnect();
+        }
+    }
+
+    void Mqtt::onPublish(const iot::mqtt::packets::Publish& publish) {
+        VLOG(1) << "MQTTStore received topic=" << publish.getTopic() << " qos=" << static_cast<uint16_t>(publish.getQoS())
+                << " retain=" << publish.getRetain() << " dup=" << publish.getDup();
+
+        store.store(MqttMessage{.messageId = createMessageId(connectionName, publish.getPacketIdentifier()),
+                                .connectionName = connectionName,
+                                .topic = publish.getTopic(),
+                                .payload = publish.getMessage(),
+                                .qoS = publish.getQoS(),
+                                .retain = publish.getRetain() != 0,
+                                .dup = publish.getDup() != 0,
+                                .packetIdentifier = publish.getPacketIdentifier()});
+    }
+
+    void Mqtt::onSuback(const iot::mqtt::packets::Suback& suback) {
+        VLOG(1) << "MQTTStore Suback";
+
+        for (auto returnCode : suback.getReturnCodes()) {
+            VLOG(0) << "  r: " << static_cast<int>(returnCode);
+        }
+    }
+
+} // namespace mqtt::mqttstore::lib
