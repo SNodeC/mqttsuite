@@ -2085,6 +2085,8 @@ mqttcli <instance> [tls …] remote|local <endpoint-options> (sub …)? (pub …
 
 # MQTTStore
 
+For a full operational walkthrough, including automatic raw-table generation, MariaDB user grants, projection tables, and example MQTT traffic, see [`docs/mqttstore-user-guide.md`](docs/mqttstore-user-guide.md).
+
 **MQTTStore** is the generic persistence service for the recommended MQTTSuite data pipeline:
 
 ```text
