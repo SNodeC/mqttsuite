@@ -2184,7 +2184,7 @@ Example projection file:
 Projection notes:
 
 - `--projection-file` is an option of the `storage` configuration section, so place it after the `storage` subcommand in the SNode.C-style command line.
-- The file is read and validated against `mqttstore/lib/projection-schema.json` during startup. MQTTStore fails fast if the file is malformed or does not match the schema. Restart MQTTStore after changing the projection file.
+- The file is read and validated against `mqttstore/lib/projection-schema.json` during startup. MQTTStore fails fast, reports the projection file path plus schema error locations, and exits with a non-zero status if the file is malformed or does not match the schema. Restart MQTTStore after changing the projection file.
 - The file may either contain a top-level `projections` array, as shown above, or the array itself.
 - `topic` uses MQTT-style `+` and `#` matching.
 - `topic_level` is zero-based, so `normalized/boiler/temperature` has topic level `1 == boiler`.
