@@ -38,58 +38,42 @@
 
 cmake_minimum_required(VERSION 3.14)
 
-project(
-    MQTTSuite
-    DESCRIPTION "A lightweight MQTT Integration System"
-    VERSION 1.0.1
-)
-set(MQTTSUITE_SOVERSION ${MQTTSuite_VERSION_MAJOR})
-
-include(GNUInstallDirs)
-
-set(ignoreMe ${CMAKE_VERBOSE_MAKEFILE})
-
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
-
-include(format)
-include(doxygen)
-include(uninstall)
-include(iwyu)
-
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_compile_options(
-    -Werror
-    -Wall
-    -Wextra
-    -Wconversion
-    -Wuninitialized
-    -Wunreachable-code
-    -Wfloat-equal
-    -fexec-charset=UTF-8
-    -Wno-shadow # yes we do
-    -Wno-psabi # needed for RaspberryPi
-    $<$<CXX_COMPILER_ID:Clang>:-Weverything>
-    $<$<CXX_COMPILER_ID:Clang>:-Wno-c++98-compat-pedantic>
-    $<$<CXX_COMPILER_ID:Clang>:-Wno-exit-time-destructors>
-    $<$<CXX_COMPILER_ID:Clang>:-Wno-global-constructors>
-    $<$<CXX_COMPILER_ID:Clang>:-Wno-shadow-field>
-    $<$<CXX_COMPILER_ID:Clang>:-Wno-padded>
-    $<$<CXX_COMPILER_ID:Clang>:-Wno-documentation-unknown-command>
-    $<$<AND:$<CXX_COMPILER_ID:Clang>,$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,16.0>>:-Wno-unsafe-buffer-usage>
-    $<$<AND:$<CXX_COMPILER_ID:Clang>,$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,18.0>>:-Wno-switch-default>
+find_package(nlohmann_json 3.7.0 REQUIRED)
+find_package(
+    snodec
+    COMPONENTS net mqtt-client-websocket
+    REQUIRED
 )
 
-add_link_options(LINKER:--no-undefined)
+set(MQTTSTORESUBPROTOCOL_CPP SubProtocolFactory.cpp)
+set(MQTTSTORESUBPROTOCOL_H SubProtocolFactory.h)
 
-# add_compile_options(-fsanitize=address,undefined -fno-omit-frame-pointer -g)
-# add_link_options(-fsanitize=address,undefined) export
-# LD_PRELOAD=/usr/lib/gcc/x86_64-linux-gnu/15/libasan.s
+add_library(
+    websocket-mqtt-store-client SHARED ${MQTTSTORESUBPROTOCOL_CPP}
+                                       ${MQTTSTORESUBPROTOCOL_H}
+)
 
-add_subdirectory(lib)
-add_subdirectory(mqttbroker)
-add_subdirectory(mqttintegrator)
-add_subdirectory(mqttbridge)
-add_subdirectory(mqttcli)
-add_subdirectory(mqttstore)
+target_compile_options(
+    websocket-mqtt-store-client
+    PRIVATE $<$<CXX_COMPILER_ID:GNU>:-fno-gnu-unique>
+)
+
+target_link_libraries(
+    websocket-mqtt-store-client
+    PUBLIC snodec::net mqtt-store
+    PRIVATE snodec::mqtt-client-websocket
+)
+
+set_target_properties(
+    websocket-mqtt-store-client
+    PROPERTIES OUTPUT_NAME "snodec-websocket-mqtt-client"
+               VERSION ${MQTTSuite_VERSION}
+               SOVERSION ${SNODEC_SOVERSION}
+)
+
+install(TARGETS websocket-mqtt-store-client
+        LIBRARY DESTINATION ${WEBSOCKET_SUBPROTOCOL_INSTALL_LIBDIR}/mqttstore/
+)
