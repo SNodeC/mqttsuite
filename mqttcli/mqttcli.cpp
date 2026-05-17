@@ -203,32 +203,7 @@ static HttpClient startClient(const std::string& name, const std::function<void(
 
 static void createConfig(net::config::ConfigInstance* config) {
     config->newSubCommand<mqtt::mqttcli::lib::ConfigSession>();
-    config->newSubCommand<mqtt::mqttcli::lib::ConfigSubscribe>();
-    config->newSubCommand<mqtt::mqttcli::lib::ConfigPublish>();
-
-    config->setRequireCallback([config]() {
-        if (!config->getDisabled() && config->getShowConfigTriggerApp() == nullptr &&
-            config->getParent()->getOption("--write-config")->count() == 0) {
-            const mqtt::mqttcli::lib::ConfigPublish* pubApp = config->getSubCommand<mqtt::mqttcli::lib::ConfigPublish>();
-            const mqtt::mqttcli::lib::ConfigSubscribe* subApp = config->getSubCommand<mqtt::mqttcli::lib::ConfigSubscribe>();
-
-            if (pubApp->getTopic().empty() && subApp->getTopic().empty()) {
-                throw CLI::RequiresError(config->getParent()->getName() + ":" + config->getInstanceName() +
-                                             " requires at least one of {sub | pub}",
-                                         CLI::ExitCodes::RequiresError);
-            }
-
-            if (!pubApp->getTopic().empty()) {
-                VLOG(0) << "[" << Color::Code::FG_LIGHT_GREEN << "Success" << Color::Code::FG_DEFAULT << "] " << "Bootstrap of "
-                        << config->getInstanceName() << ":pub";
-            }
-
-            if (!subApp->getTopic().empty()) {
-                VLOG(0) << "[" << Color::Code::FG_LIGHT_GREEN << "Success" << Color::Code::FG_DEFAULT << "] " << "Bootstrap of "
-                        << config->getInstanceName() << ":sub";
-            }
-        }
-    });
+    config->newSubCommand<mqtt::mqttcli::lib::ConfigApplications>();
 }
 
 static void createWSConfig(net::config::ConfigInstance* config) {
