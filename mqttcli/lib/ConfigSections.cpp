@@ -43,32 +43,9 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <memory>
-
 #endif
 
 namespace mqtt::mqttcli::lib {
-    namespace {
-
-        std::shared_ptr<utils::AppWithPtr> makeConfigApplicationsApp(mqtt::mqttcli::lib::ConfigApplications* configApplications) {
-            auto app = std::make_shared<utils::AppWithPtr>(std::string(mqtt::mqttcli::lib::ConfigApplications::DESCRIPTION),
-                                                           std::string(mqtt::mqttcli::lib::ConfigApplications::NAME),
-                                                           configApplications);
-            app->require_subcommand(1, 2);
-
-            return app;
-        }
-
-    } // namespace
-
-    ConfigApplications::ConfigApplications(utils::SubCommand* parent)
-        : utils::SubCommand(parent, makeConfigApplicationsApp(this), "Applications (at least one required)") {
-        newSubCommand<ConfigSubscribe>();
-        newSubCommand<ConfigPublish>();
-    }
-
-    ConfigApplications::~ConfigApplications() = default;
-
     ConfigSubscribe::ConfigSubscribe(utils::SubCommand* parent)
         : utils::SubCommand(parent, this, "Applications (at least one required)")
         , topicOpt( //

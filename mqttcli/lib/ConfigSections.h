@@ -54,16 +54,6 @@
 
 namespace mqtt::mqttcli::lib {
 
-    class ConfigApplications : public utils::SubCommand {
-    public:
-        constexpr static std::string_view NAME{""};
-        constexpr static std::string_view DESCRIPTION{"MQTT application commands"};
-
-        ConfigApplications(utils::SubCommand* parent);
-
-        ~ConfigApplications() override;
-    };
-
     class ConfigSubscribe : public utils::SubCommand {
     public:
         constexpr static std::string_view NAME{"sub"};
