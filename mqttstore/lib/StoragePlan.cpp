@@ -19,12 +19,12 @@
 #include <fstream>
 #include <iterator>
 #include <map>
-#include <nlohmann/detail/iterators/iter_impl.hpp>
-#include <nlohmann/detail/json_pointer.hpp>
 #include <nlohmann/json.hpp>
 #include <sstream>
 #include <stdexcept>
 #include <vector>
+
+// IWYU pragma: no_include <nlohmann/detail/iterators/iter_impl.hpp>
 
 #endif
 
@@ -51,7 +51,7 @@ namespace mqtt::mqttstore::lib {
                 nlohmann::json_schema::basic_error_handler::error(pointer, instance, message);
 
                 std::ostringstream error;
-                error << "  - " << pointer << ": " << message << " (value: " << jsonSummary(instance) << ")";
+                error << "  - " << pointer.to_string() << ": " << message << " (value: " << jsonSummary(instance) << ")";
                 errors.push_back(error.str());
             }
 
