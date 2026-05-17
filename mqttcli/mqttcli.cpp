@@ -203,25 +203,7 @@ static HttpClient startClient(const std::string& name, const std::function<void(
 
 static void createConfig(net::config::ConfigInstance* config) {
     config->newSubCommand<mqtt::mqttcli::lib::ConfigSession>();
-    config->newSubCommand<mqtt::mqttcli::lib::ConfigSubscribe>();
-    config->newSubCommand<mqtt::mqttcli::lib::ConfigPublish>();
-
-    config->finalCallback([config]() {
-        if (!config->getDisabled() && config->getHelpTriggerApp() == nullptr && config->getShowConfigTriggerApp() == nullptr &&
-            config->getCommandlineTriggerApp() == nullptr && config->getParent()->getOption("--write-config")->count() == 0) {
-            const mqtt::mqttcli::lib::ConfigPublish* pubApp = config->getSubCommand<mqtt::mqttcli::lib::ConfigPublish>();
-            const mqtt::mqttcli::lib::ConfigSubscribe* subApp = config->getSubCommand<mqtt::mqttcli::lib::ConfigSubscribe>();
-
-            if (pubApp->getTopic().empty() && subApp->getTopic().empty()) {
-                const std::string configName = config->getParent()->getName().empty()
-                                                   ? config->getInstanceName()
-                                                   : config->getParent()->getName() + ":" + config->getInstanceName();
-
-                throw CLI::RequiredError(configName + " requires at least one application subcommand: sub or pub",
-                                         CLI::ExitCodes::RequiredError);
-            }
-        }
-    });
+    config->newSubCommand<mqtt::mqttcli::lib::ConfigApplications>();
 }
 
 static void createWSConfig(net::config::ConfigInstance* config) {
