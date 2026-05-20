@@ -77,7 +77,7 @@ namespace mqtt::bridge::lib {
 
         eventReceiverList.emplace_back(eventReceiverId, response);
 
-        response->getSocketContext()->onDisconnected([this, eventReceiverId]() {
+        response->getSocketContext()->setOnDisconnected([this, eventReceiverId]() {
             eventReceiverList.remove_if([eventReceiverId](const EventReceiver& eventReceiver) {
                 return eventReceiver.getId() == eventReceiverId;
             });
