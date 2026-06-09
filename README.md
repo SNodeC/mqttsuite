@@ -75,7 +75,6 @@ Volker Christian ([me@vchrist.at](mailto:me@vchrist.at), [volker.christian@fh-ha
          * [Optional (useful for development/QA)](#optional-useful-for-developmentqa)
       * [Mandatory Libraries and Frameworks](#mandatory-libraries-and-frameworks)
          * [Frameworks](#frameworks)
-         * [Libraries](#libraries)
       * [Bundled (no separate installation required)](#bundled-no-separate-installation-required)
    * [Installation on Debian-Style Systems (x86-64, ARM)](#installation-on-debian-style-systems-x86-64-arm)
       * [Install SNode.C](#install-snodec)
@@ -222,7 +221,7 @@ Volker Christian ([me@vchrist.at](mailto:me@vchrist.at), [volker.christian@fh-ha
    * [Recommended production flow](#recommended-production-flow)
 
 <!-- Created by https://github.com/ekalinin/github-markdown-toc -->
-<!-- Added by: runner, at: Mon May 11 01:07:01 UTC 2026 -->
+<!-- Added by: runner, at: Tue Jun  9 08:47:01 UTC 2026 -->
 
 <!--te-->
 
