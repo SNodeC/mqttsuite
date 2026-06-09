@@ -287,10 +287,6 @@ Some tools and libraries must be present. A few libraries are bundled within MQT
 
 - **SNode.C** – Simple NODE in C++: <https://github.com/SNodeC/snode.c>
 
-#### Libraries
-
-- **libfmt** (≥ 11.0.0) development files — <https://github.com/fmtlib/fmt>
-
 ### Bundled (no separate installation required)
 
 - **JSON Schema Validator for Modern C++** — <https://github.com/pboettch/json-schema-validator>
@@ -307,9 +303,8 @@ Follow the SNode.C installation guide:
 
 ```sh
 sudo apt update
-sudo apt install libfmt-dev
 # Recommended for building:
-# sudo apt install git cmake build-essential ninja-build pkg-config
+sudo apt install git cmake build-essential ninja-build pkg-config
 ```
 
 ### Build & Install MQTTSuite

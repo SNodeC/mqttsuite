@@ -156,7 +156,6 @@ add_subdirectory(lib)
 add_subdirectory(websocket)
 
 find_package(nlohmann_json 3.7.0 REQUIRED)
-find_package(fmt REQUIRED)
 find_package(
     snodec 1.0.0 REQUIRED COMPONENTS ${MQTTBROKER_COMPONENTS} mqtt-server
 )
@@ -188,7 +187,6 @@ target_sources(mqttbroker PRIVATE ${WEB_ASSETS})
 
 target_link_libraries(
     mqttbroker PUBLIC ${MQTTBROKER_LINK_LIBS} snodec::mqtt-server mqtt-broker
-                      fmt
 )
 
 install(TARGETS mqttbroker RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
