@@ -177,7 +177,7 @@ namespace mqtt::mqttstore::lib {
 
     std::optional<nlohmann::json> MariaDbStorage::parsePayload(const std::string& payload) {
         try {
-            return nlohmann::json::parse(payload);
+            return std::make_optional<nlohmann::json>(nlohmann::json::parse(payload));
         } catch (const nlohmann::json::parse_error&) {
             return std::nullopt;
         }
