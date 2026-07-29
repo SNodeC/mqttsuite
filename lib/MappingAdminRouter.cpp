@@ -325,6 +325,8 @@ namespace {
             respondRevisionConflict(res, e.what(), [&]() -> std::optional<std::uint64_t> {
                 return configApplication->getMqttMapper()->getRevision();
             });
+        } catch (const std::invalid_argument& e) {
+            res->status(422).json({{"error", "Deploy validation failed"}, {"details", e.what()}});
         } catch (const std::exception& e) {
             res->status(500).json({{"error", "Deploy failed"}, {"details", e.what()}});
         }
