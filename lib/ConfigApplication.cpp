@@ -47,14 +47,55 @@
 
 #include "log/Logger.h"
 
+#include <cerrno>
 #include <exception>
+#include <fcntl.h>
+#include <filesystem>
 #include <fstream>
 #include <map>
 #include <stdexcept>
+#include <system_error>
+#include <unistd.h>
 
 #endif
 
 namespace mqtt::lib {
+
+    namespace {
+
+        namespace fs = std::filesystem;
+
+        void fsyncPath(const fs::path& path) {
+            const int fd = ::open(path.c_str(), O_RDONLY);
+            if (fd < 0) {
+                throw std::system_error(errno, std::generic_category(), "open for fsync failed: " + path.string());
+            }
+
+            if (::fsync(fd) != 0) {
+                const int err = errno;
+                ::close(fd);
+                throw std::system_error(err, std::generic_category(), "fsync failed: " + path.string());
+            }
+
+            ::close(fd);
+        }
+
+        void fsyncDirectory(const fs::path& directoryPath) {
+            const int fd = ::open(directoryPath.c_str(), O_RDONLY | O_DIRECTORY);
+            if (fd < 0) {
+                throw std::system_error(errno, std::generic_category(), "open directory for fsync failed: " + directoryPath.string());
+            }
+
+            if (::fsync(fd) != 0) {
+                const int err = errno;
+                ::close(fd);
+                throw std::system_error(err, std::generic_category(), "directory fsync failed: " + directoryPath.string());
+            }
+
+            ::close(fd);
+        }
+
+    } // namespace
 
     template <typename ConcretConfigApplication>
     ConfigApplication::ConfigApplication(utils::SubCommand* parent, ConcretConfigApplication* concretConfigApplication)
@@ -107,22 +148,32 @@ namespace mqtt::lib {
     bool ConfigApplication::persistMapping() const {
         bool success = false;
 
-        std::ofstream mapFile(mappFilename, std::ios::trunc);
-        if (mapFile.is_open()) {
-            try {
+        if (mappFilename.empty()) {
+            return success;
+        }
+
+        try {
+            const fs::path targetPath(mappFilename);
+            const fs::path parentDir = targetPath.parent_path().empty() ? fs::path(".") : targetPath.parent_path();
+            const fs::path tempPath = mappFilename + ".tmp";
+
+            {
+                std::ofstream mapFile(tempPath, std::ios::trunc);
+                if (!mapFile.is_open()) {
+                    throw std::runtime_error("Cannot open temp file for writing: " + tempPath.string());
+                }
                 mapFile << mqttMapper->getMapping().dump(2);
-                mapFile.close();
-
-                VLOG(1) << "Write mapping file seccess";
-
-                success = true;
-            } catch (const std::exception& e) {
-                mapFile.close();
-
-                VLOG(1) << "Write mapping file failed: " << e.what();
             }
-        } else {
-            VLOG(1) << "Cannot open mapping file for writing: " << mappFilename;
+
+            fsyncPath(tempPath);
+            fs::rename(tempPath, targetPath);
+            fsyncDirectory(parentDir);
+
+            VLOG(1) << "Write mapping file success";
+
+            success = true;
+        } catch (const std::exception& e) {
+            VLOG(1) << "Write mapping file failed: " << e.what();
         }
 
         return success;
