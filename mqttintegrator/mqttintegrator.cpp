@@ -81,7 +81,7 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <log/Logger.h>
+#include "lib/SemanticLog.h"
 //
 #include <utility>
 
@@ -95,16 +95,16 @@ static void
 reportState(const std::string& instanceName, const core::socket::SocketAddress& socketAddress, const core::socket::State& state) {
     switch (state) {
         case core::socket::State::OK:
-            VLOG(1) << instanceName << ": connected to '" << socketAddress.toString() << "'";
+            mqttsuite::semantic::integratorLog().debug() << instanceName << ": connected to '" << socketAddress.toString() << "'";
             break;
         case core::socket::State::DISABLED:
-            VLOG(1) << instanceName << ": disabled";
+            mqttsuite::semantic::integratorLog().debug() << instanceName << ": disabled";
             break;
         case core::socket::State::ERROR:
-            VLOG(1) << instanceName << ": " << socketAddress.toString() << ": " << state.what();
+            mqttsuite::semantic::integratorLog().debug() << instanceName << ": " << socketAddress.toString() << ": " << state.what();
             break;
         case core::socket::State::FATAL:
-            VLOG(1) << instanceName << ": " << socketAddress.toString() << ": " << state.what();
+            mqttsuite::semantic::integratorLog().debug() << instanceName << ": " << socketAddress.toString() << ": " << state.what();
             break;
     }
 }
@@ -145,19 +145,19 @@ HttpClient startClient(const std::string& name, const std::function<void(typenam
                 "/ws",
                 "websocket",
                 [connectionName](bool success) {
-                    VLOG(1) << connectionName << ": HTTP Upgrade (http -> websocket||"
-                            << "mqtt" << ") start " << (success ? "success" : "failed");
+                    mqttsuite::semantic::integratorLog().debug() << connectionName << ": HTTP Upgrade (http -> websocket||"
+                                                                 << "mqtt" << ") start " << (success ? "success" : "failed");
                 },
                 []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req,
                    [[maybe_unused]] const std::shared_ptr<web::http::client::Response>& res,
                    [[maybe_unused]] bool success) {
                 },
                 [connectionName](const std::shared_ptr<web::http::client::Request>&, const std::string& message) {
-                    VLOG(1) << connectionName << ": Request parse error: " << message;
+                    mqttsuite::semantic::integratorLog().debug() << connectionName << ": Request parse error: " << message;
                 });
         },
         []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req) {
-            VLOG(1) << "Session ended";
+            mqttsuite::semantic::integratorLog().debug() << "Session ended";
         });
 
     if (configurator != nullptr) {
@@ -209,9 +209,9 @@ int main(int argc, char* argv[]) {
             )");
     /*
         if (configMqttIntegrator->persistMapping()) {
-            VLOG(0) << "Mapping persisted successfully";
+            mqttsuite::semantic::integratorLog().info() << "Mapping persisted successfully";
         } else {
-            VLOG(0) << "Mapping deploy acknowledged but not persisted";
+            mqttsuite::semantic::integratorLog().info() << "Mapping deploy acknowledged but not persisted";
         }
     */
 

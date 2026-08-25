@@ -18,11 +18,12 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include "lib/SemanticLog.h"
+
 #include <algorithm>
 #include <cctype>
 #include <exception>
 #include <functional>
-#include <log/Logger.h>
 #include <map>
 #include <sstream>
 #include <stdexcept>
@@ -71,11 +72,12 @@ namespace mqtt::mqttstore::lib {
               },
               [connectionName = this->connectionName](const database::mariadb::MariaDBState& state) {
                   if (state.connected) {
-                      VLOG(0) << connectionName << " MariaDB: connected";
+                      mqttsuite::semantic::storeLog().info() << connectionName << " MariaDB: connected";
                   } else if (state.error != 0) {
-                      VLOG(0) << connectionName << " MariaDB: " << state.errorMessage << " [" << state.error << "]";
+                      mqttsuite::semantic::storeLog().info()
+                          << connectionName << " MariaDB: " << state.errorMessage << " [" << state.error << "]";
                   } else {
-                      VLOG(0) << connectionName << " MariaDB: lost connection";
+                      mqttsuite::semantic::storeLog().info() << connectionName << " MariaDB: lost connection";
                   }
               })
         , rawTable(std::move(rawTable))
@@ -96,7 +98,8 @@ namespace mqtt::mqttstore::lib {
         mariaDB.exec(
             rawInsertSql,
             [connectionName = this->connectionName, topic = message.topic]() -> void {
-                VLOG(1) << connectionName << " MariaDB: stored raw MQTT message for topic '" << topic << "'";
+                mqttsuite::semantic::storeLog().debug()
+                    << connectionName << " MariaDB: stored raw MQTT message for topic '" << topic << "'";
             },
             [connectionName = this->connectionName](const std::string& errorString, unsigned int errorNumber) -> void {
                 execLogFailure(connectionName, "raw MQTT message insert", errorString, errorNumber);
@@ -261,7 +264,8 @@ namespace mqtt::mqttstore::lib {
                                         const std::string& operation,
                                         const std::string& errorString,
                                         unsigned int errorNumber) {
-        VLOG(0) << connectionName << " MariaDB " << operation << " failed: " << errorString << " : " << errorNumber;
+        mqttsuite::semantic::storeLog().info() << connectionName << " MariaDB " << operation << " failed: " << errorString << " : "
+                                               << errorNumber;
     }
 
     void MariaDbStorage::createRawTable() {
@@ -286,7 +290,7 @@ namespace mqtt::mqttstore::lib {
         mariaDB.exec(
             sql,
             [connectionName = this->connectionName, rawTable = this->rawTable]() -> void {
-                VLOG(0) << connectionName << " MariaDB: ensured raw MQTT table '" << rawTable << "'";
+                mqttsuite::semantic::storeLog().info() << connectionName << " MariaDB: ensured raw MQTT table '" << rawTable << "'";
             },
             [connectionName = this->connectionName](const std::string& errorString, unsigned int errorNumber) -> void {
                 execLogFailure(connectionName, "raw MQTT table creation", errorString, errorNumber);
@@ -304,14 +308,16 @@ namespace mqtt::mqttstore::lib {
                 mariaDB.exec(
                     sql,
                     [connectionName = this->connectionName, projectionName = projection->name]() -> void {
-                        VLOG(1) << connectionName << " MariaDB: projection insert completed for '" << projectionName << "'";
+                        mqttsuite::semantic::storeLog().debug()
+                            << connectionName << " MariaDB: projection insert completed for '" << projectionName << "'";
                     },
                     [connectionName = this->connectionName, projectionName = projection->name](const std::string& errorString,
                                                                                                unsigned int errorNumber) -> void {
                         execLogFailure(connectionName, "projection '" + projectionName + "' insert", errorString, errorNumber);
                     });
             } catch (const std::exception& error) {
-                VLOG(0) << connectionName << " MariaDB projection '" << projection->name << "' skipped: " << error.what();
+                mqttsuite::semantic::storeLog().info()
+                    << connectionName << " MariaDB projection '" << projection->name << "' skipped: " << error.what();
             }
         }
     }

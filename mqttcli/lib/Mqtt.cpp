@@ -48,11 +48,12 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include "lib/SemanticLog.h"
+
 #include <algorithm>
 #include <cstring>
 #include <iterator>
 #include <list>
-#include <log/Logger.h>
 #include <map>
 #include <nlohmann/json_fwd.hpp>
 #include <sstream>
@@ -243,26 +244,26 @@ namespace mqtt::mqttcli::lib {
         , pubTopic(pubTopic)
         , pubMessage(pubMessage)
         , pubRetain(pubRetain) {
-        VLOG(1) << "Client Id: " << clientId;
-        VLOG(1) << "  Keep Alive: " << keepAlive;
-        VLOG(1) << "  Clean Session: " << cleanSession;
-        VLOG(1) << "  Will Topic: " << willTopic;
-        VLOG(1) << "  Will Message: " << willMessage;
-        VLOG(1) << "  Will QoS: " << static_cast<uint16_t>(willQoS);
-        VLOG(1) << "  Will Retain " << willRetain;
-        VLOG(1) << "  Username: " << username;
-        VLOG(1) << "  Password: " << password;
+        mqttsuite::semantic::cliLog().debug() << "Client Id: " << clientId;
+        mqttsuite::semantic::cliLog().debug() << "  Keep Alive: " << keepAlive;
+        mqttsuite::semantic::cliLog().debug() << "  Clean Session: " << cleanSession;
+        mqttsuite::semantic::cliLog().debug() << "  Will Topic: " << willTopic;
+        mqttsuite::semantic::cliLog().debug() << "  Will Message: " << willMessage;
+        mqttsuite::semantic::cliLog().debug() << "  Will QoS: " << static_cast<uint16_t>(willQoS);
+        mqttsuite::semantic::cliLog().debug() << "  Will Retain " << willRetain;
+        mqttsuite::semantic::cliLog().debug() << "  Username: " << username;
+        mqttsuite::semantic::cliLog().debug() << "  Password: " << password;
     }
 
     void Mqtt::onConnected() {
-        VLOG(1) << "MQTT: Initiating Session";
+        mqttsuite::semantic::cliLog().debug() << "MQTT: Initiating Session";
 
         sendConnect(cleanSession, willTopic, willMessage, willQoS, willRetain, username, password);
     }
 
     bool Mqtt::onSignal(int signum) {
-        VLOG(1) << "MQTT: On Exit due to '" << strsignal(signum) << "' (SIG" << utils::system::sigabbrev_np(signum) << " = " << signum
-                << ")";
+        mqttsuite::semantic::cliLog().debug() << "MQTT: On Exit due to '" << strsignal(signum) << "' (SIG"
+                                              << utils::system::sigabbrev_np(signum) << " = " << signum << ")";
 
         sendDisconnect();
 
@@ -284,7 +285,7 @@ namespace mqtt::mqttcli::lib {
             bool sendDisconnectFlag = true;
 
             if (!subTopics.empty()) {
-                VLOG(0) << "MQTT Subscribe";
+                mqttsuite::semantic::cliLog().info() << "MQTT Subscribe";
 
                 try {
                     std::list<iot::mqtt::Topic> topicList;
@@ -301,13 +302,14 @@ namespace mqtt::mqttcli::lib {
                                            try {
                                                qoS = getQos(compositTopic.substr(pos + 2));
                                            } catch (const std::logic_error& error) {
-                                               VLOG(0) << "[" << Color::Code::FG_RED << "Error" << Color::Code::FG_DEFAULT
-                                                       << "] Malformed composit topic: " << compositTopic << "\n"
-                                                       << error.what();
+                                               mqttsuite::semantic::cliLog().info()
+                                                   << "[" << Color::Code::FG_RED << "Error" << Color::Code::FG_DEFAULT
+                                                   << "] Malformed composit topic: " << compositTopic << "\n"
+                                                   << error.what();
                                                throw;
                                            }
                                        }
-                                       VLOG(0) << "  t: " << static_cast<int>(qoS) << " | " << topic;
+                                       mqttsuite::semantic::cliLog().info() << "  t: " << static_cast<int>(qoS) << " | " << topic;
                                        return iot::mqtt::Topic(topic, qoS);
                                    });
                     sendSubscribe(topicList);
@@ -318,7 +320,7 @@ namespace mqtt::mqttcli::lib {
             }
 
             if (!pubTopic.empty()) {
-                VLOG(0) << "MQTT Publish";
+                mqttsuite::semantic::cliLog().info() << "MQTT Publish";
 
                 std::size_t pos = pubTopic.rfind("##");
 
@@ -331,9 +333,9 @@ namespace mqtt::mqttcli::lib {
                         try {
                             qoS = getQos(pubTopic.substr(pos + 2));
                         } catch (const std::logic_error& error) {
-                            VLOG(0) << "[" << Color::Code::FG_RED << "Error" << Color::Code::FG_DEFAULT
-                                    << "] Malformed composit topic: " << pubTopic << "\n"
-                                    << error.what();
+                            mqttsuite::semantic::cliLog().info() << "[" << Color::Code::FG_RED << "Error" << Color::Code::FG_DEFAULT
+                                                                 << "] Malformed composit topic: " << pubTopic << "\n"
+                                                                 << error.what();
                             throw;
                         }
                     }
@@ -352,10 +354,10 @@ namespace mqtt::mqttcli::lib {
     }
 
     void Mqtt::onSuback(const iot::mqtt::packets::Suback& suback) {
-        VLOG(1) << "MQTT Suback";
+        mqttsuite::semantic::cliLog().debug() << "MQTT Suback";
 
         for (auto returnCode : suback.getReturnCodes()) {
-            VLOG(0) << "  r: " << static_cast<int>(returnCode);
+            mqttsuite::semantic::cliLog().info() << "  r: " << static_cast<int>(returnCode);
         }
     }
 
@@ -365,7 +367,7 @@ namespace mqtt::mqttcli::lib {
                                " │ Retain: " + (publish.getRetain() != 0 ? "true" : "false") +
                                " │ Dup: " + (publish.getDup() != 0 ? "true" : "false");
 
-        VLOG(0) << formatAsLogString(prefix, headLine, publish.getMessage());
+        mqttsuite::semantic::cliLog().info() << formatAsLogString(prefix, headLine, publish.getMessage());
     }
 
     void Mqtt::onPuback([[maybe_unused]] const iot::mqtt::packets::Puback& puback) {
