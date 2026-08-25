@@ -55,11 +55,12 @@
 
 // IWYU pragma: no_include <nlohmann/detail/json_ref.hpp>
 
+#include "lib/SemanticLog.h"
+
 #include <cstdint>
 #include <ctime>
 #include <functional>
 #include <iomanip>
-#include <log/Logger.h>
 #include <sstream>
 #include <utility>
 
@@ -333,7 +334,7 @@ namespace mqtt::mqttbroker::lib {
     }
 
     void MqttModel::sendJsonEvent(const nlohmann::json& json, const std::string& event, const std::string& id) const {
-        VLOG(0) << "Server sent event: " << event << "\n" << json.dump(4);
+        mqttsuite::semantic::brokerLog().info() << "Server sent event: " << event << "\n" << json.dump(4);
 
         sendEvent(json.dump(), event, id);
     }

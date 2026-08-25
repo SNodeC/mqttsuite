@@ -45,7 +45,7 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include "log/Logger.h"
+#include "lib/SemanticLog.h"
 
 #include <exception>
 #include <fstream>
@@ -134,21 +134,21 @@ namespace mqtt::lib {
 
                 success = true;
 
-                VLOG(1) << "Write mapping file seccess";
+                mqttsuite::semantic::mappingLog().debug() << "Write mapping file seccess";
             } catch (const std::exception& e) {
-                VLOG(1) << "Write mapping file failed: " << e.what();
+                mqttsuite::semantic::mappingLog().debug() << "Write mapping file failed: " << e.what();
             }
 
             mapFile.close();
         } else {
-            VLOG(1) << "Cannot open mapping file for writing: " << mapFilename;
+            mqttsuite::semantic::mappingLog().debug() << "Cannot open mapping file for writing: " << mapFilename;
         }
 
         return success;
     }
 
     bool ConfigApplication::loadMapping(const std::string mapFilename) {
-        VLOG(1) << "Mapping file: " << mapFilename;
+        mqttsuite::semantic::mappingLog().debug() << "Mapping file: " << mapFilename;
 
         this->mapFilename = mapFilename;
 
@@ -163,7 +163,7 @@ namespace mqtt::lib {
 
                     mapFile.close();
 
-                    VLOG(1) << "Load mapping file success";
+                    mqttsuite::semantic::mappingLog().debug() << "Load mapping file success";
                 } catch (const std::exception& e) {
                     mapFile.close();
 
@@ -174,8 +174,9 @@ namespace mqtt::lib {
                 }
 
             } else {
-                VLOG(1) << "Mapping file '" + mapFilename +
-                               "' not found. Please provide a valid mapping file with the option --mqtt-mapping-file";
+                mqttsuite::semantic::mappingLog().debug()
+                    << "Mapping file '" + mapFilename +
+                           "' not found. Please provide a valid mapping file with the option --mqtt-mapping-file";
             }
         }
 

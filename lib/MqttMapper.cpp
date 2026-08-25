@@ -78,8 +78,9 @@
 #pragma GCC diagnostic pop
 #endif
 
+#include "lib/SemanticLog.h"
+
 #include <algorithm>
-#include <log/Logger.h>
 #include <map>
 #include <nlohmann/json.hpp>
 #include <stdexcept>
@@ -145,7 +146,7 @@ namespace mqtt::lib {
         bool mustReconnect = this->mappingJson["connection"] != oldMappingJson["connection"];
 
         if (mappingJson["mapping"].contains("plugins")) {
-            VLOG(1) << "Loading plugins ...";
+            mqttsuite::semantic::mappingLog().debug() << "Loading plugins ...";
             for (const nlohmann::json& pluginJson : mappingJson["mapping"]["plugins"]) {
                 const std::string plugin = pluginJson;
 
@@ -154,14 +155,14 @@ namespace mqtt::lib {
                 if (handle != nullptr) {
                     pluginHandles.push_back(handle);
 
-                    VLOG(1) << "  Loading plugin: " << plugin << " ...";
+                    mqttsuite::semantic::mappingLog().debug() << "  Loading plugin: " << plugin << " ...";
 
                     const std::vector<mqtt::lib::Function>* loadedFunctions =
                         static_cast<std::vector<mqtt::lib::Function>*>(core::DynamicLoader::dlSym(handle, "functions"));
                     if (loadedFunctions != nullptr) {
-                        VLOG(1) << "  Registering inja 'none void callbacks'";
+                        mqttsuite::semantic::mappingLog().debug() << "  Registering inja 'none void callbacks'";
                         for (const mqtt::lib::Function& function : *loadedFunctions) {
-                            VLOG(1) << "    " << function.name;
+                            mqttsuite::semantic::mappingLog().debug() << "    " << function.name;
 
                             if (function.numArgs >= 0) {
                                 injaEnvironment->add_callback(function.name, function.numArgs, function.function);
@@ -169,17 +170,17 @@ namespace mqtt::lib {
                                 injaEnvironment->add_callback(function.name, function.function);
                             }
                         }
-                        VLOG(1) << "  Registering inja 'none void callbacks done'";
+                        mqttsuite::semantic::mappingLog().debug() << "  Registering inja 'none void callbacks done'";
                     } else {
-                        VLOG(1) << "  No inja none 'void callbacks found' in plugin " << plugin;
+                        mqttsuite::semantic::mappingLog().debug() << "  No inja none 'void callbacks found' in plugin " << plugin;
                     }
 
                     const std::vector<mqtt::lib::VoidFunction>* loadedVoidFunctions =
                         static_cast<std::vector<mqtt::lib::VoidFunction>*>(core::DynamicLoader::dlSym(handle, "voidFunctions"));
                     if (loadedVoidFunctions != nullptr) {
-                        VLOG(1) << "  Registering inja 'void callbacks'";
+                        mqttsuite::semantic::mappingLog().debug() << "  Registering inja 'void callbacks'";
                         for (const mqtt::lib::VoidFunction& voidFunction : *loadedVoidFunctions) {
-                            VLOG(1) << "    " << voidFunction.name;
+                            mqttsuite::semantic::mappingLog().debug() << "    " << voidFunction.name;
 
                             if (voidFunction.numArgs >= 0) {
                                 injaEnvironment->add_void_callback(voidFunction.name, voidFunction.numArgs, voidFunction.function);
@@ -187,19 +188,19 @@ namespace mqtt::lib {
                                 injaEnvironment->add_void_callback(voidFunction.name, voidFunction.function);
                             }
                         }
-                        VLOG(1) << "  Registering inja 'void callbacks' done";
+                        mqttsuite::semantic::mappingLog().debug() << "  Registering inja 'void callbacks' done";
                     } else {
-                        VLOG(1) << "  No inja 'void callbacks' found in plugin " << plugin;
+                        mqttsuite::semantic::mappingLog().debug() << "  No inja 'void callbacks' found in plugin " << plugin;
                     }
 
-                    VLOG(1) << "  Loading plugin done: " << plugin;
+                    mqttsuite::semantic::mappingLog().debug() << "  Loading plugin done: " << plugin;
                 } else {
-                    VLOG(1) << "  Error loading plugin: " << plugin;
+                    mqttsuite::semantic::mappingLog().debug() << "  Error loading plugin: " << plugin;
                     throw std::runtime_error("Error loading plugin '" + plugin + "': " + core::DynamicLoader::dlError());
                 }
             }
 
-            VLOG(1) << "Loading plugins done";
+            mqttsuite::semantic::mappingLog().debug() << "Loading plugins done";
         }
 
         return mustReconnect;
@@ -246,23 +247,23 @@ namespace mqtt::lib {
                 const nlohmann::json& subscription = matchingTopicLevel["subscription"];
 
                 if (subscription.contains("static")) {
-                    VLOG(1) << "Topic mapping found for:";
-                    VLOG(1) << "  Type: static";
-                    VLOG(1) << "  Topic: " << publish.getTopic();
-                    VLOG(1) << "  Message: " << publish.getMessage();
-                    VLOG(1) << "  QoS: " << static_cast<uint16_t>(publish.getQoS());
-                    VLOG(1) << "  Retain: " << publish.getRetain();
+                    mqttsuite::semantic::mappingLog().debug() << "Topic mapping found for:";
+                    mqttsuite::semantic::mappingLog().debug() << "  Type: static";
+                    mqttsuite::semantic::mappingLog().debug() << "  Topic: " << publish.getTopic();
+                    mqttsuite::semantic::mappingLog().debug() << "  Message: " << publish.getMessage();
+                    mqttsuite::semantic::mappingLog().debug() << "  QoS: " << static_cast<uint16_t>(publish.getQoS());
+                    mqttsuite::semantic::mappingLog().debug() << "  Retain: " << publish.getRetain();
 
                     getStaticMappings(subscription["static"], publish, mappedPublishes);
                 }
 
                 if (subscription.contains("value")) {
-                    VLOG(1) << "Topic mapping found for:";
-                    VLOG(1) << "  Type: value";
-                    VLOG(1) << "  Topic: " << publish.getTopic();
-                    VLOG(1) << "  Message: " << publish.getMessage();
-                    VLOG(1) << "  QoS: " << static_cast<uint16_t>(publish.getQoS());
-                    VLOG(1) << "  Retain: " << publish.getRetain();
+                    mqttsuite::semantic::mappingLog().debug() << "Topic mapping found for:";
+                    mqttsuite::semantic::mappingLog().debug() << "  Type: value";
+                    mqttsuite::semantic::mappingLog().debug() << "  Topic: " << publish.getTopic();
+                    mqttsuite::semantic::mappingLog().debug() << "  Message: " << publish.getMessage();
+                    mqttsuite::semantic::mappingLog().debug() << "  QoS: " << static_cast<uint16_t>(publish.getQoS());
+                    mqttsuite::semantic::mappingLog().debug() << "  Retain: " << publish.getRetain();
 
                     nlohmann::json json;
                     json["message"] = publish.getMessage();
@@ -271,12 +272,12 @@ namespace mqtt::lib {
                 }
 
                 if (subscription.contains("json")) {
-                    VLOG(1) << "Topic mapping found for:";
-                    VLOG(1) << "  Type: json";
-                    VLOG(1) << "  Topic: " << publish.getTopic();
-                    VLOG(1) << "  Message: " << publish.getMessage();
-                    VLOG(1) << "  QoS: " << static_cast<uint16_t>(publish.getQoS());
-                    VLOG(1) << "  Retain: " << publish.getRetain();
+                    mqttsuite::semantic::mappingLog().debug() << "Topic mapping found for:";
+                    mqttsuite::semantic::mappingLog().debug() << "  Type: json";
+                    mqttsuite::semantic::mappingLog().debug() << "  Topic: " << publish.getTopic();
+                    mqttsuite::semantic::mappingLog().debug() << "  Message: " << publish.getMessage();
+                    mqttsuite::semantic::mappingLog().debug() << "  QoS: " << static_cast<uint16_t>(publish.getQoS());
+                    mqttsuite::semantic::mappingLog().debug() << "  Retain: " << publish.getRetain();
 
                     try {
                         nlohmann::json json;
@@ -284,10 +285,10 @@ namespace mqtt::lib {
 
                         getTemplateMappings(subscription["json"], json, publish, mappedPublishes);
                     } catch (const nlohmann::json::parse_error& e) {
-                        VLOG(1) << "  Parsing message into json failed: " << publish.getMessage();
-                        VLOG(1) << "     What: " << e.what() << '\n'
-                                << "     Exception Id: " << e.id << '\n'
-                                << "     Byte position of error: " << e.byte;
+                        mqttsuite::semantic::mappingLog().debug() << "  Parsing message into json failed: " << publish.getMessage();
+                        mqttsuite::semantic::mappingLog().debug() << "     What: " << e.what() << '\n'
+                                                                  << "     Exception Id: " << e.id << '\n'
+                                                                  << "     Byte position of error: " << e.byte;
                     }
                 }
             }
@@ -372,14 +373,14 @@ namespace mqtt::lib {
             const std::string renderedTopic = injaEnvironment->render(mappedTopic, json);
             json["mapped_topic"] = renderedTopic;
 
-            VLOG(1) << "  Mapped topic template: " << mappedTopic;
-            VLOG(1) << "    -> " << renderedTopic;
+            mqttsuite::semantic::mappingLog().debug() << "  Mapped topic template: " << mappedTopic;
+            mqttsuite::semantic::mappingLog().debug() << "    -> " << renderedTopic;
 
             try {
                 // Render message
                 const std::string renderedMessage = injaEnvironment->render(mappingTemplate, json);
-                VLOG(1) << "  Mapped message template: " << mappingTemplate;
-                VLOG(1) << "    -> " << renderedMessage;
+                mqttsuite::semantic::mappingLog().debug() << "  Mapped message template: " << mappingTemplate;
+                mqttsuite::semantic::mappingLog().debug() << "    -> " << renderedMessage;
 
                 const nlohmann::json& suppressions = templateMapping["suppressions"];
                 const bool retain = templateMapping["retain"];
@@ -389,32 +390,33 @@ namespace mqtt::lib {
                     const uint8_t qoS = templateMapping["qos"];
                     const double delay = templateMapping["delay"];
 
-                    VLOG(1) << "  Send mapping:" << (delay > 0 ? " delayed" : "");
-                    VLOG(1) << "    Topic: " << renderedTopic;
-                    VLOG(1) << "    Message: " << renderedMessage << "";
-                    VLOG(1) << "    QoS: " << static_cast<int>(qoS);
-                    VLOG(1) << "    retain: " << retain;
-                    VLOG(1) << "    Delay: " << delay;
+                    mqttsuite::semantic::mappingLog().debug() << "  Send mapping:" << (delay > 0 ? " delayed" : "");
+                    mqttsuite::semantic::mappingLog().debug() << "    Topic: " << renderedTopic;
+                    mqttsuite::semantic::mappingLog().debug() << "    Message: " << renderedMessage << "";
+                    mqttsuite::semantic::mappingLog().debug() << "    QoS: " << static_cast<int>(qoS);
+                    mqttsuite::semantic::mappingLog().debug() << "    retain: " << retain;
+                    mqttsuite::semantic::mappingLog().debug() << "    Delay: " << delay;
 
                     getMappedMessage(renderedTopic, renderedMessage, qoS, retain, delay, mappedPublishes);
                 } else {
-                    VLOG(1) << "    Rendered message: '" << renderedMessage << "' in suppression list:";
+                    mqttsuite::semantic::mappingLog().debug() << "    Rendered message: '" << renderedMessage << "' in suppression list:";
                     for (const nlohmann::json& item : suppressions) {
-                        VLOG(1) << "         '" << item.get<std::string>() << "'";
+                        mqttsuite::semantic::mappingLog().debug() << "         '" << item.get<std::string>() << "'";
                     }
-                    VLOG(1) << "  Send mapping: suppressed";
+                    mqttsuite::semantic::mappingLog().debug() << "  Send mapping: suppressed";
                 }
             } catch (const inja::InjaError& e) {
-                VLOG(1) << "  Message template rendering failed: " << mappingTemplate << " : " << json.dump();
-                VLOG(1) << "    What: " << e.what();
-                VLOG(1) << "    INJA: " << e.type << ": " << e.message;
-                VLOG(1) << "    INJA (line:column):" << e.location.line << ":" << e.location.column;
+                mqttsuite::semantic::mappingLog().debug()
+                    << "  Message template rendering failed: " << mappingTemplate << " : " << json.dump();
+                mqttsuite::semantic::mappingLog().debug() << "    What: " << e.what();
+                mqttsuite::semantic::mappingLog().debug() << "    INJA: " << e.type << ": " << e.message;
+                mqttsuite::semantic::mappingLog().debug() << "    INJA (line:column):" << e.location.line << ":" << e.location.column;
             }
         } catch (const inja::InjaError& e) {
-            VLOG(1) << "  Topic template rendering failed: " << mappingTemplate << " : " << json.dump();
-            VLOG(1) << "    What: " << e.what();
-            VLOG(1) << "    INJA: " << e.type << ": " << e.message;
-            VLOG(1) << "    INJA (line:column):" << e.location.line << ":" << e.location.column;
+            mqttsuite::semantic::mappingLog().debug() << "  Topic template rendering failed: " << mappingTemplate << " : " << json.dump();
+            mqttsuite::semantic::mappingLog().debug() << "    What: " << e.what();
+            mqttsuite::semantic::mappingLog().debug() << "    INJA: " << e.type << ": " << e.message;
+            mqttsuite::semantic::mappingLog().debug() << "    INJA (line:column):" << e.location.line << ":" << e.location.column;
         }
     }
 
@@ -428,7 +430,7 @@ namespace mqtt::lib {
         json["package_identifier"] = publish.getPacketIdentifier();
 
         try {
-            VLOG(1) << "  Render data: " << json.dump();
+            mqttsuite::semantic::mappingLog().debug() << "  Render data: " << json.dump();
 
             if (templateMapping.is_object()) {
                 getMappedTemplate(templateMapping, json, mappedPublishes);
@@ -438,7 +440,7 @@ namespace mqtt::lib {
                 }
             }
         } catch (const nlohmann::json::exception& e) {
-            VLOG(1) << "JSON Exception during Render data:\n" << e.what();
+            mqttsuite::semantic::mappingLog().debug() << "JSON Exception during Render data:\n" << e.what();
         }
     }
 
@@ -456,16 +458,16 @@ namespace mqtt::lib {
 
     void MqttMapper::getMappedMessage(
         const std::string& topic, const std::string& message, uint8_t qoS, bool retain, double delay, MappedPublishes& mappedPublishes) {
-        VLOG(1) << "  Mapped topic:";
-        VLOG(1) << "    -> " << topic;
-        VLOG(1) << "  Mapped message:";
-        VLOG(1) << "    -> " << message;
-        VLOG(1) << "  Send mapping:" << (delay > 0 ? " delayed" : "");
-        VLOG(1) << "    Topic: " << topic;
-        VLOG(1) << "    Message: " << message;
-        VLOG(1) << "    QoS: " << static_cast<int>(qoS);
-        VLOG(1) << "    retain: " << retain;
-        VLOG(1) << "    Delay: " << delay;
+        mqttsuite::semantic::mappingLog().debug() << "  Mapped topic:";
+        mqttsuite::semantic::mappingLog().debug() << "    -> " << topic;
+        mqttsuite::semantic::mappingLog().debug() << "  Mapped message:";
+        mqttsuite::semantic::mappingLog().debug() << "    -> " << message;
+        mqttsuite::semantic::mappingLog().debug() << "  Send mapping:" << (delay > 0 ? " delayed" : "");
+        mqttsuite::semantic::mappingLog().debug() << "    Topic: " << topic;
+        mqttsuite::semantic::mappingLog().debug() << "    Message: " << message;
+        mqttsuite::semantic::mappingLog().debug() << "    QoS: " << static_cast<int>(qoS);
+        mqttsuite::semantic::mappingLog().debug() << "    retain: " << retain;
+        mqttsuite::semantic::mappingLog().debug() << "    Delay: " << delay;
 
         if (delay < 0.0) {
             std::get<0>(mappedPublishes).emplace_back(0, topic, message, qoS, false, retain);
@@ -479,7 +481,7 @@ namespace mqtt::lib {
                                       MappedPublishes& mappedPublishes) {
         const nlohmann::json& messageMapping = staticMapping["message_mapping"];
 
-        VLOG(1) << "  Message mapping: " << messageMapping.dump();
+        mqttsuite::semantic::mappingLog().debug() << "  Message mapping: " << messageMapping.dump();
 
         if (messageMapping.is_object()) {
             if (messageMapping["message"] == publish.getMessage()) {
@@ -490,7 +492,7 @@ namespace mqtt::lib {
                                  staticMapping["delay"],
                                  mappedPublishes);
             } else {
-                VLOG(1) << "    no matching mapped message found";
+                mqttsuite::semantic::mappingLog().debug() << "    no matching mapped message found";
             }
         } else {
             const nlohmann::json::const_iterator matchedMessageMappingIterator =
@@ -506,7 +508,7 @@ namespace mqtt::lib {
                                  staticMapping["delay"],
                                  mappedPublishes);
             } else {
-                VLOG(1) << "    no matching mapped message found";
+                mqttsuite::semantic::mappingLog().debug() << "    no matching mapped message found";
             }
         }
     }

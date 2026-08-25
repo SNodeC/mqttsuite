@@ -21,8 +21,9 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include "lib/SemanticLog.h"
+
 #include <exception>
-#include <log/Logger.h>
 #include <string>
 #include <utility>
 
@@ -62,7 +63,8 @@ namespace mqtt::mqttstore {
         try {
             storagePlan = lib::StoragePlan::fromFile(storageOptions.projectionFile);
         } catch (const std::exception& exception) {
-            VLOG(0) << socketConnection->getConnectionName() << " MQTTStore startup failed: " << exception.what();
+            mqttsuite::semantic::storeLog().info()
+                << socketConnection->getConnectionName() << " MQTTStore startup failed: " << exception.what();
             throw;
         }
 

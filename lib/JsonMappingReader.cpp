@@ -49,6 +49,8 @@
 
 // #include "nlohmann/json-schema.hpp"
 
+#include "lib/SemanticLog.h"
+
 #include <algorithm>
 #include <chrono>
 #include <compare>
@@ -57,7 +59,6 @@
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
-#include <log/Logger.h>
 #include <map>
 #include <sstream>
 #include <stdexcept>
@@ -126,7 +127,7 @@ namespace mqtt::lib {
             out << j.dump(2);
             out.close();
         } catch (const std::exception& e) {
-            VLOG(1) << "Failed to inject metadata into draft: " << e.what();
+            mqttsuite::semantic::mappingLog().debug() << "Failed to inject metadata into draft: " << e.what();
         }
 
         // 2. Backup current active file

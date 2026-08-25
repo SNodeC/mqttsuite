@@ -59,6 +59,8 @@ include(iwyu)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+include_directories(${PROJECT_SOURCE_DIR})
+
 add_compile_options(
     -Werror
     -Wall
