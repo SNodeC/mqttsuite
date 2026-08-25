@@ -148,7 +148,7 @@ add_subdirectory(websocket)
 
 find_package(nlohmann_json 3.7.0 REQUIRED)
 find_package(
-    snodec 1.0.0 REQUIRED
+    snodec 2.0.0 REQUIRED
     COMPONENTS ${MQTTBRIDGE_COMPONENTS} http-server-express-legacy-in
                http-server-express-tls-in mqtt
     OPTIONAL_COMPONENTS net-l2-stream-legacy net-rc-stream-legacy

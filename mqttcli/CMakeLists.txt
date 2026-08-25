@@ -147,7 +147,7 @@ add_subdirectory(lib)
 add_subdirectory(websocket)
 
 find_package(nlohmann_json 3.7.0 REQUIRED)
-find_package(snodec 1.0.0 REQUIRED COMPONENTS ${MQTTCLI_COMPONENTS} mqtt-client)
+find_package(snodec 2.0.0 REQUIRED COMPONENTS ${MQTTCLI_COMPONENTS} mqtt-client)
 
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/cmake/config.h.in
