@@ -19,8 +19,8 @@
 #ifndef MQTTSUITE_SEMANTICLOG_H
 #define MQTTSUITE_SEMANTICLOG_H
 
-#include "log/LogScopeOwner.h" // IWYU pragma: export
-#include "log/Logger.h"        // IWYU pragma: export
+#include <log/LogScopeOwner.h> // IWYU pragma: export
+#include <log/Logger.h>        // IWYU pragma: export
 
 namespace mqttsuite::semantic {
 

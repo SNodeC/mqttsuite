@@ -47,6 +47,8 @@
 
 #include "lib/SemanticLog.h"
 
+#include <nlohmann/json-schema.hpp>
+
 #include <cmath>
 #include <exception>
 #include <fstream>
