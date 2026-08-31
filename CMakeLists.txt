@@ -61,6 +61,12 @@ if(UNIX AND NOT APPLE)
     set(CMAKE_INSTALL_RPATH_USE_LINK_PATH OFF)
 endif()
 
+option(MQTTSUITE_BUILD_TESTS "Build focused MQTTSuite regression tests" OFF)
+if(MQTTSUITE_BUILD_TESTS)
+    include(CTest)
+    enable_testing()
+endif()
+
 set(ignoreMe ${CMAKE_VERBOSE_MAKEFILE})
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
@@ -109,3 +115,7 @@ add_subdirectory(mqttintegrator)
 add_subdirectory(mqttbridge)
 add_subdirectory(mqttcli)
 add_subdirectory(mqttstore)
+
+if(MQTTSUITE_BUILD_TESTS)
+    add_subdirectory(tests)
+endif()
