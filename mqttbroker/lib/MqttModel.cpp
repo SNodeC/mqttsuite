@@ -7,36 +7,6 @@
  * under the terms of the GNU General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option)
  * any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program. If not, see <https://www.gnu.org/licenses/>.
- */
-
-/*
- * MIT License
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
  */
 
 #include "MqttModel.h"
@@ -53,13 +23,10 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-// IWYU pragma: no_include <nlohmann/detail/json_ref.hpp>
-
 #include "lib/SemanticLog.h"
 
 #include <cstdint>
 #include <ctime>
-#include <functional>
 #include <iomanip>
 #include <sstream>
 #include <utility>
@@ -70,31 +37,6 @@ struct tm;
 
 namespace mqtt::mqttbroker::lib {
 
-    /*
-        {
-            "clientId": "sensor-01",
-            "protocol": "MQTT",
-            "since": "2025-12-25 10:30:00 UTC",
-            "duration": "2 days, 03:45:12",
-            "connectionName": "mqtt_connection_12345",
-            "localAddress": "127.0.0.1:1883",
-            "remoteAddress": "192.168.1.45:54321",
-            "cleanSession": true,
-            "connectFlags": 194,
-            "username": "sensor_user",
-            "usernameFlag": true,
-            "password": "secret123",
-            "passwordFlag": true,
-            "keepAlive": 60,
-            "protocolLevel": 4,
-            "loopPrevention": true,
-            "willMessage": "sensor-01 disconnected unexpectedly",
-            "willTopic": "sensors/status/sensor-01",
-            "willQoS": 1,
-            "willFlag": true,
-            "willRetain": true
-        }
-    */
     static void to_json(nlohmann::json& j, const Mqtt* mqtt) {
         j = {{"clientId", mqtt->getClientId()},
              {"connectionName", mqtt->getConnectionName()},
@@ -102,7 +44,6 @@ namespace mqtt::mqttbroker::lib {
              {"connectFlags", mqtt->getConnectFlags()},
              {"username", mqtt->getUsername()},
              {"usernameFlag", mqtt->getUsernameFlag()},
-             {"password", mqtt->getPassword()},
              {"passwordFlag", mqtt->getPasswordFlag()},
              {"keepAlive", mqtt->getKeepAlive()},
              {"protocol", mqtt->getProtocol()},
@@ -125,8 +66,8 @@ namespace mqtt::mqttbroker::lib {
         uint8_t qoS;
     };
 
-    static void to_json(nlohmann::json& j, const subscribe& subscribe) {
-        j = {{"clientId", subscribe.clientId}, {"topic", subscribe.topic}, {"qos", subscribe.qoS}};
+    static void to_json(nlohmann::json& j, const subscribe& value) {
+        j = {{"clientId", value.clientId}, {"topic", value.topic}, {"qos", value.qoS}};
     }
 
     struct unsubscribe {
@@ -134,8 +75,8 @@ namespace mqtt::mqttbroker::lib {
         const std::string& topic;
     };
 
-    static void to_json(nlohmann::json& j, const unsubscribe& unsubscribe) {
-        j = {{"clientId", unsubscribe.clientId}, {"topic", unsubscribe.topic}};
+    static void to_json(nlohmann::json& j, const unsubscribe& value) {
+        j = {{"clientId", value.clientId}, {"topic", value.topic}};
     }
 
     struct retaine {
@@ -144,16 +85,16 @@ namespace mqtt::mqttbroker::lib {
         uint8_t qoS;
     };
 
-    static void to_json(nlohmann::json& j, const retaine& retaine) {
-        j = {{"topic", retaine.topic}, {"message", retaine.message}, {"qos", retaine.qoS}};
+    static void to_json(nlohmann::json& j, const retaine& value) {
+        j = {{"topic", value.topic}, {"message", value.message}, {"qos", value.qoS}};
     }
 
     struct release {
         const std::string& topic;
     };
 
-    static void to_json(nlohmann::json& j, const release& release) {
-        j = {{"topic", release.topic}};
+    static void to_json(nlohmann::json& j, const release& value) {
+        j = {{"topic", value.topic}};
     }
 
     MqttModel::EventReceiver::EventReceiver(std::uint64_t id, const std::shared_ptr<express::Response>& response)
@@ -179,7 +120,6 @@ namespace mqtt::mqttbroker::lib {
 
     MqttModel& MqttModel::instance() {
         static MqttModel mqttModel;
-
         return mqttModel;
     }
 
@@ -187,7 +127,6 @@ namespace mqtt::mqttbroker::lib {
                                      [[maybe_unused]] const std::string& lastEventId,
                                      const std::shared_ptr<iot::mqtt::server::broker::Broker>& broker) {
         const std::uint64_t eventReceiverId = nextEventReceiverId++;
-
         eventReceiverList.emplace_back(eventReceiverId, response);
 
         response->getSocketContext()->setOnDisconnected([this, eventReceiverId]() {
@@ -196,39 +135,14 @@ namespace mqtt::mqttbroker::lib {
             });
         });
 
-        /*
-            {
-                "title": "MQTTBroker",
-                "creator": {
-                    "name": "Volker Christian",
-                    "url": "https://github.com/VolkerChristian/"
-                },
-                "broker": {
-                    "name": "MQTTBroker",
-                    "url": "https://github.com/SNodeC/mqttsuite/tree/master/mqttbroker"
-                },
-                "suite": {
-                    "name": "MQTTSuite",
-                    "url": "https://github.com/SNodeC/mqttsuite"
-                },
-                "snodec": {
-                    "name": "SNode.C",
-                    "url": "https://github.com/SNodeC/snode.c"
-                },
-                "since": "2025-12-25 10:30:00 UTC",
-                "duration": "2 days, 03:45:12"
-            }
-        */
         sendJsonEvent(response,
-                      {
-                          {"title", "MQTTBroker"},
-                          {"creator", {{"name", "Volker Christian"}, {"url", "https://github.com/VolkerChristian"}}},
-                          {"broker", {{"name", "MQTTBroker"}, {"url", "https://github.com/SNodeC/mqttsuite/tree/master/mqttbroker"}}},
-                          {"suite", {{"name", "MQTTSuite"}, {"url", "https://github.com/SNodeC/mqttsuite"}}},
-                          {"snodec", {{"name", "SNode.C"}, {"url", "https://github.com/SNodeC/snode.c"}}},
-                          {"since", onlineSince()},
-                          {"duration", onlineDuration()},
-                      },
+                      {{"title", "MQTTBroker"},
+                       {"creator", {{"name", "Volker Christian"}, {"url", "https://github.com/VolkerChristian"}}},
+                       {"broker", {{"name", "MQTTBroker"}, {"url", "https://github.com/SNodeC/mqttsuite/tree/master/mqttbroker"}}},
+                       {"suite", {{"name", "MQTTSuite"}, {"url", "https://github.com/SNodeC/mqttsuite"}}},
+                       {"snodec", {{"name", "SNode.C"}, {"url", "https://github.com/SNodeC/snode.c"}}},
+                       {"since", onlineSince()},
+                       {"duration", onlineDuration()}},
                       "ui-initialize",
                       std::to_string(id++));
 
@@ -249,14 +163,12 @@ namespace mqtt::mqttbroker::lib {
 
     void MqttModel::connectClient(Mqtt* mqtt) {
         modelMap.emplace(mqtt->getClientId(), mqtt);
-
         sendJsonEvent(mqtt, "client-connected", std::to_string(id++));
     }
 
     void MqttModel::disconnectClient(const std::string& clientId) {
         if (modelMap.contains(clientId)) {
             sendJsonEvent(modelMap[clientId], "client-disconnected", std::to_string(id++));
-
             modelMap.erase(clientId);
         }
     }
@@ -285,12 +197,10 @@ namespace mqtt::mqttbroker::lib {
 
     Mqtt* MqttModel::getMqtt(const std::string& clientId) const {
         Mqtt* mqtt = nullptr;
-
         auto modelIt = modelMap.find(clientId);
         if (modelIt != modelMap.end()) {
             mqtt = modelIt->second;
         }
-
         return mqtt;
     }
 
@@ -334,23 +244,19 @@ namespace mqtt::mqttbroker::lib {
     }
 
     void MqttModel::sendJsonEvent(const nlohmann::json& json, const std::string& event, const std::string& id) const {
-        mqttsuite::semantic::brokerLog().info() << "Server sent event: " << event << "\n" << json.dump(4);
-
+        mqttsuite::semantic::brokerLog().info() << "Server sent event: " << event;
         sendEvent(json.dump(), event, id);
     }
 
     std::string MqttModel::timePointToString(const std::chrono::time_point<std::chrono::system_clock>& timePoint) {
         std::time_t time = std::chrono::system_clock::to_time_t(timePoint);
-        std::tm* tm_ptr = std::gmtime(&time);
+        std::tm* tmPtr = std::gmtime(&time);
 
         char buffer[100];
         std::string onlineSince = "Formatting error";
-
-        // Format: "2025-02-02 14:30:00"
-        if (std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", tm_ptr)) {
+        if (std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", tmPtr)) {
             onlineSince = std::string(buffer) + " UTC";
         }
-
         return onlineSince;
     }
 
@@ -359,23 +265,19 @@ namespace mqtt::mqttbroker::lib {
         using seconds_duration_type = std::chrono::duration<std::chrono::seconds::rep>::rep;
 
         seconds_duration_type totalSeconds = std::chrono::duration_cast<std::chrono::seconds>(later - bevore).count();
-
-        // Compute days, hours, minutes, and seconds
-        seconds_duration_type days = totalSeconds / 86400; // 86400 seconds in a day
+        seconds_duration_type days = totalSeconds / 86400;
         seconds_duration_type remainder = totalSeconds % 86400;
         seconds_duration_type hours = remainder / 3600;
-        remainder = remainder % 3600;
+        remainder %= 3600;
         seconds_duration_type minutes = remainder / 60;
         seconds_duration_type seconds = remainder % 60;
 
-        // Format the components into a string using stringstream
         std::ostringstream oss;
         if (days > 0) {
             oss << days << " day" << (days == 1 ? "" : "s") << ", ";
         }
         oss << std::setw(2) << std::setfill('0') << hours << ":" << std::setw(2) << std::setfill('0') << minutes << ":" << std::setw(2)
             << std::setfill('0') << seconds;
-
         return oss.str();
     }
 
