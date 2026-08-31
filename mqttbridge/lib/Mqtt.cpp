@@ -49,7 +49,7 @@
 #include <cstdint>
 #include <cstring>
 #include <iot/mqtt/packets/Connack.h>
-#include <log/Logger.h>
+#include <SemanticLog.h>
 #include <utils/system/signal.h>
 
 #endif
@@ -62,17 +62,17 @@ namespace mqtt::bridge::lib {
                                   broker.getKeepAlive(),
                                   broker.getSessionStoreFileName())
         , broker(broker) {
-        VLOG(1) << "Client Id: " << clientId;
-        VLOG(1) << "  Keep Alive: " << keepAlive;
-        VLOG(1) << "  Prefix: " << broker.getPrefix();
-        VLOG(1) << "  Clean Session: " << broker.getCleanSession();
-        VLOG(1) << "  Will Topic: " << broker.getWillTopic();
-        VLOG(1) << "  Will Message: " << broker.getWillMessage();
-        VLOG(1) << "  Will QoS: " << static_cast<uint16_t>(broker.getWillQoS());
-        VLOG(1) << "  Will Retain " << broker.getWillRetain();
-        VLOG(1) << "  Username: " << broker.getUsername();
-        VLOG(1) << "  Password: " << broker.getPassword();
-        VLOG(1) << "  Loop Prevention: " << broker.getLoopPrevention();
+        snode::semantic::appLog().trace() << "Client Id: " << clientId;
+        snode::semantic::appLog().trace() << "  Keep Alive: " << keepAlive;
+        snode::semantic::appLog().trace() << "  Prefix: " << broker.getPrefix();
+        snode::semantic::appLog().trace() << "  Clean Session: " << broker.getCleanSession();
+        snode::semantic::appLog().trace() << "  Will Topic: " << broker.getWillTopic();
+        snode::semantic::appLog().trace() << "  Will Message: " << broker.getWillMessage();
+        snode::semantic::appLog().trace() << "  Will QoS: " << static_cast<uint16_t>(broker.getWillQoS());
+        snode::semantic::appLog().trace() << "  Will Retain " << broker.getWillRetain();
+        snode::semantic::appLog().trace() << "  Username: " << broker.getUsername();
+        snode::semantic::appLog().trace() << "  Password: " << broker.getPassword();
+        snode::semantic::appLog().trace() << "  Loop Prevention: " << broker.getLoopPrevention();
     }
 
     const Broker& Mqtt::getBroker() const {
@@ -80,7 +80,7 @@ namespace mqtt::bridge::lib {
     }
 
     void Mqtt::onConnected() {
-        VLOG(1) << "MQTT: Initiating Session";
+        snode::semantic::appLog().trace() << "MQTT: Initiating Session";
 
         sendConnect(broker.getCleanSession(),
                     broker.getWillTopic(),
@@ -94,11 +94,11 @@ namespace mqtt::bridge::lib {
 
     void Mqtt::onDisconnected() {
         broker.getBridge().removeMqtt(this);
-        VLOG(1) << "MQTT: Disconnected";
+        snode::semantic::appLog().trace() << "MQTT: Disconnected";
     }
 
     bool Mqtt::onSignal(int signum) {
-        VLOG(1) << "MQTT: On Exit due to '" << strsignal(signum) << "' (SIG" << utils::system::sigabbrev_np(signum) << " = " << signum
+        snode::semantic::appLog().trace() << "MQTT: On Exit due to '" << strsignal(signum) << "' (SIG" << utils::system::sigabbrev_np(signum) << " = " << signum
                 << ")";
 
         sendDisconnect();

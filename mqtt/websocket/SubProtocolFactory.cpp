@@ -44,7 +44,7 @@
 #include "lib/Mqtt.h"
 
 #include <core/socket/stream/SocketConnection.h>
-#include <log/Logger.h>
+#include <SemanticLog.h>
 #include <net/config/ConfigInstance.h>
 #include <web/websocket/SubProtocolContext.h>
 
@@ -95,7 +95,7 @@ namespace mqtt::mqtt::websocket {
                                             pubApp != nullptr ? pubApp->get_option("--message")->as<std::string>() : "",
                                             pubApp != nullptr ? pubApp->get_option("--retain")->as<bool>() : false));
         } else {
-            VLOG(0) << "[" << Color::Code::FG_RED << "Error" << Color::Code::FG_DEFAULT << "] "
+            snode::semantic::appLog().trace() << "[" << Color::Code::FG_RED << "Error" << Color::Code::FG_DEFAULT << "] "
                     << subProtocolContext->getSocketConnection()->getConnectionName() << ": one of 'sub' or 'pub' is required";
         }
 

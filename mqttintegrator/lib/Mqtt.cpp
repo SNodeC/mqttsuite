@@ -48,7 +48,7 @@
 
 #include <cstring>
 #include <list>
-#include <log/Logger.h>
+#include <SemanticLog.h>
 #include <map>
 #include <nlohmann/json.hpp>
 #include <utils/system/signal.h>
@@ -67,19 +67,19 @@ namespace mqtt::mqttintegrator::lib {
                                   sessionStoreFileName)
         , mqtt::lib::MqttMapper(mappingJson)
         , connectionJson(connectionJson) {
-        VLOG(1) << "Client Id: " << clientId;
-        VLOG(1) << "  Keep Alive: " << keepAlive;
-        VLOG(1) << "  Clean Session: " << connectionJson["clean_session"];
-        VLOG(1) << "  Will Topic: " << connectionJson["will_topic"];
-        VLOG(1) << "  Will Message: " << connectionJson["will_message"];
-        VLOG(1) << "  Will QoS: " << static_cast<uint16_t>(connectionJson["will_qos"]);
-        VLOG(1) << "  Will Retain " << connectionJson["will_retain"];
-        VLOG(1) << "  Username: " << connectionJson["username"];
-        VLOG(1) << "  Password: " << connectionJson["password"];
+        snode::semantic::appLog().trace() << "Client Id: " << clientId;
+        snode::semantic::appLog().trace() << "  Keep Alive: " << keepAlive;
+        snode::semantic::appLog().trace() << "  Clean Session: " << connectionJson["clean_session"];
+        snode::semantic::appLog().trace() << "  Will Topic: " << connectionJson["will_topic"];
+        snode::semantic::appLog().trace() << "  Will Message: " << connectionJson["will_message"];
+        snode::semantic::appLog().trace() << "  Will QoS: " << static_cast<uint16_t>(connectionJson["will_qos"]);
+        snode::semantic::appLog().trace() << "  Will Retain " << connectionJson["will_retain"];
+        snode::semantic::appLog().trace() << "  Username: " << connectionJson["username"];
+        snode::semantic::appLog().trace() << "  Password: " << connectionJson["password"];
     }
 
     void Mqtt::onConnected() {
-        VLOG(1) << "MQTT: Initiating Session";
+        snode::semantic::appLog().trace() << "MQTT: Initiating Session";
 
         sendConnect(connectionJson["clean_session"],
                     connectionJson["will_topic"],
@@ -91,7 +91,7 @@ namespace mqtt::mqttintegrator::lib {
     }
 
     bool Mqtt::onSignal(int signum) {
-        VLOG(1) << "MQTT: On Exit due to '" << strsignal(signum) << "' (SIG" << utils::system::sigabbrev_np(signum) << " = " << signum
+        snode::semantic::appLog().trace() << "MQTT: On Exit due to '" << strsignal(signum) << "' (SIG" << utils::system::sigabbrev_np(signum) << " = " << signum
                 << ")";
 
         sendDisconnect();
@@ -106,7 +106,7 @@ namespace mqtt::mqttintegrator::lib {
             const std::list<iot::mqtt::Topic> topicList = MqttMapper::extractSubscriptions();
 
             for (const iot::mqtt::Topic& topic : topicList) {
-                VLOG(1) << "MQTT: Subscribe Topic: " << topic.getName() << ", qoS: " << static_cast<uint16_t>(topic.getQoS());
+                snode::semantic::appLog().trace() << "MQTT: Subscribe Topic: " << topic.getName() << ", qoS: " << static_cast<uint16_t>(topic.getQoS());
             }
 
             sendSubscribe(topicList);

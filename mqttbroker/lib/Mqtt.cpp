@@ -48,7 +48,7 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <log/Logger.h>
+#include <SemanticLog.h>
 
 #endif
 
@@ -62,7 +62,7 @@ namespace mqtt::mqttbroker::lib {
     }
 
     void Mqtt::onConnect([[maybe_unused]] const iot::mqtt::packets::Connect& connect) {
-        VLOG(1) << "MQTT: Connected";
+        snode::semantic::appLog().trace() << "MQTT: Connected";
 
         MqttModel::instance().addClient(clientId, this);
     }
@@ -76,7 +76,7 @@ namespace mqtt::mqttbroker::lib {
     void Mqtt::onDisconnected() {
         MqttModel::instance().delClient(clientId);
 
-        VLOG(1) << "MQTT: Disconnected";
+        snode::semantic::appLog().trace() << "MQTT: Disconnected";
     }
 
     void Mqtt::publishMapping(const std::string& topic, const std::string& message, uint8_t qoS, bool retain) {
