@@ -27,7 +27,7 @@
 
 #include <cstring>
 #include <list>
-#include <log/Logger.h>
+#include <SemanticLog.h>
 #include <map>
 #include <nlohmann/json.hpp>
 #include <stdexcept>
@@ -50,25 +50,25 @@ namespace mqtt::mqttintegrator::lib {
         , willRetain(connectionJson["will_retain"])
         , username(connectionJson["username"])
         , password(connectionJson["password"]) {
-        LOG(TRACE) << "Keep Alive: " << keepAlive;
-        LOG(TRACE) << "Client Id: " << clientId;
-        LOG(TRACE) << "Clean Session: " << cleanSession;
-        LOG(TRACE) << "Will Topic: " << willTopic;
-        LOG(TRACE) << "Will Message: " << willMessage;
-        LOG(TRACE) << "Will QoS: " << static_cast<uint16_t>(willQoS);
-        LOG(TRACE) << "Will Retain " << willRetain;
-        LOG(TRACE) << "Username: " << username;
-        LOG(TRACE) << "Password: " << password;
+        snode::semantic::appLog().trace() << "Keep Alive: " << keepAlive;
+        snode::semantic::appLog().trace() << "Client Id: " << clientId;
+        snode::semantic::appLog().trace() << "Clean Session: " << cleanSession;
+        snode::semantic::appLog().trace() << "Will Topic: " << willTopic;
+        snode::semantic::appLog().trace() << "Will Message: " << willMessage;
+        snode::semantic::appLog().trace() << "Will QoS: " << static_cast<uint16_t>(willQoS);
+        snode::semantic::appLog().trace() << "Will Retain " << willRetain;
+        snode::semantic::appLog().trace() << "Username: " << username;
+        snode::semantic::appLog().trace() << "Password: " << password;
     }
 
     void Mqtt::onConnected() {
-        VLOG(1) << "MQTT: Initiating Session";
+        snode::semantic::appLog().trace() << "MQTT: Initiating Session";
 
         sendConnect(keepAlive, clientId, cleanSession, willTopic, willMessage, willQoS, willRetain, username, password);
     }
 
     void Mqtt::onExit(int signum) {
-        VLOG(1) << "MQTT: On Exit due to '" << strsignal(signum) << "' (SIG" << utils::system::sigabbrev_np(signum) << " = " << signum
+        snode::semantic::appLog().trace() << "MQTT: On Exit due to '" << strsignal(signum) << "' (SIG" << utils::system::sigabbrev_np(signum) << " = " << signum
                 << ")";
 
         sendDisconnect();
@@ -81,7 +81,7 @@ namespace mqtt::mqttintegrator::lib {
             std::list<iot::mqtt::Topic> topicList = MqttMapper::extractSubscriptions();
 
             for (const iot::mqtt::Topic& topic : topicList) {
-                VLOG(1) << "MQTT: Subscribe Topic: " << topic.getName() << ", qoS: " << static_cast<uint16_t>(topic.getQoS());
+                snode::semantic::appLog().trace() << "MQTT: Subscribe Topic: " << topic.getName() << ", qoS: " << static_cast<uint16_t>(topic.getQoS());
             }
 
             sendSubscribe(topicList);

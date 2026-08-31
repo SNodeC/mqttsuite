@@ -30,7 +30,7 @@
 #include <dlfcn.h>
 // #include <functional>
 #include <initializer_list>
-#include <log/Logger.h>
+#include <SemanticLog.h>
 #include <map>
 #include <nlohmann/json.hpp>
 #include <stdexcept>
@@ -46,11 +46,11 @@ namespace mqtt::lib {
     MqttMapper::MqttMapper(const nlohmann::json& mappingJson)
         : mappingJson(mappingJson) {
         if (mappingJson.contains("plugins")) {
-            VLOG(1) << "Loading plugins ...";
+            snode::semantic::appLog().trace() << "Loading plugins ...";
 
             for (const nlohmann::json& pluginJson : mappingJson["plugins"]) {
                 std::string plugin = pluginJson;
-                VLOG(1) << "  Loading plugin: " << plugin;
+                snode::semantic::appLog().trace() << "  Loading plugin: " << plugin;
 
                 void* handle = dlOpen(plugin, RTLD_LOCAL | RTLD_LAZY);
 
@@ -58,9 +58,9 @@ namespace mqtt::lib {
                     std::vector<mqtt::lib::Function>* functions =
                         static_cast<std::vector<mqtt::lib::Function>*>(dlsym(handle, "functions"));
                     if (functions != nullptr) {
-                        VLOG(0) << "  Registering none void functions";
+                        snode::semantic::appLog().trace() << "  Registering none void functions";
                         for (const mqtt::lib::Function& function : *functions) {
-                            VLOG(1) << "    Registering Function " << function.name;
+                            snode::semantic::appLog().trace() << "    Registering Function " << function.name;
 
                             if (function.numArgs >= 0) {
                                 injaEnvironment.add_callback(function.name, function.numArgs, function.function);
@@ -68,17 +68,17 @@ namespace mqtt::lib {
                                 injaEnvironment.add_callback(function.name, function.function);
                             }
                         }
-                        VLOG(0) << "  Registering none functions done";
+                        snode::semantic::appLog().trace() << "  Registering none functions done";
                     } else {
-                        VLOG(1) << "  No none void functions found in plugin " << plugin;
+                        snode::semantic::appLog().trace() << "  No none void functions found in plugin " << plugin;
                     }
 
                     std::vector<mqtt::lib::VoidFunction>* voidFunctions =
                         static_cast<std::vector<mqtt::lib::VoidFunction>*>(dlsym(handle, "voidFunctions"));
                     if (voidFunctions != nullptr) {
-                        VLOG(0) << "  Registering void functions";
+                        snode::semantic::appLog().trace() << "  Registering void functions";
                         for (const mqtt::lib::VoidFunction& voidFunction : *voidFunctions) {
-                            VLOG(1) << "    Registering VoidFunction " << voidFunction.name;
+                            snode::semantic::appLog().trace() << "    Registering VoidFunction " << voidFunction.name;
 
                             if (voidFunction.numArgs >= 0) {
                                 injaEnvironment.add_void_callback(voidFunction.name, voidFunction.numArgs, voidFunction.function);
@@ -86,18 +86,18 @@ namespace mqtt::lib {
                                 injaEnvironment.add_void_callback(voidFunction.name, voidFunction.function);
                             }
                         }
-                        VLOG(0) << "  Registering void functions done";
+                        snode::semantic::appLog().trace() << "  Registering void functions done";
                     } else {
-                        VLOG(1) << "  No void functions found in plugin " << plugin;
+                        snode::semantic::appLog().trace() << "  No void functions found in plugin " << plugin;
                     }
                 } else {
-                    VLOG(1) << "  Error loading plugin: " << plugin;
+                    snode::semantic::appLog().trace() << "  Error loading plugin: " << plugin;
                 }
 
-                VLOG(1) << "  Loading plugin done: " << plugin;
+                snode::semantic::appLog().trace() << "  Loading plugin done: " << plugin;
             }
 
-            VLOG(1) << "Loading plugins done";
+            snode::semantic::appLog().trace() << "Loading plugins done";
         }
     }
 
@@ -124,19 +124,19 @@ namespace mqtt::lib {
                 const nlohmann::json& subscription = matchingTopicLevel["subscription"];
 
                 if (subscription.contains("static")) {
-                    VLOG(1) << "Topic mapping found:";
-                    VLOG(1) << "  Type: static";
-                    VLOG(1) << "  Topic: " << publish.getTopic();
-                    VLOG(1) << "  Message: " << publish.getMessage();
+                    snode::semantic::appLog().trace() << "Topic mapping found:";
+                    snode::semantic::appLog().trace() << "  Type: static";
+                    snode::semantic::appLog().trace() << "  Topic: " << publish.getTopic();
+                    snode::semantic::appLog().trace() << "  Message: " << publish.getMessage();
 
                     publishMappedMessages(subscription["static"], publish);
                 }
 
                 if (subscription.contains("value")) {
-                    VLOG(1) << "Topic mapping found:";
-                    VLOG(1) << "  Type: value";
-                    VLOG(1) << "  Topic: " << publish.getTopic();
-                    VLOG(1) << "  Message: " << publish.getMessage();
+                    snode::semantic::appLog().trace() << "Topic mapping found:";
+                    snode::semantic::appLog().trace() << "  Type: value";
+                    snode::semantic::appLog().trace() << "  Topic: " << publish.getTopic();
+                    snode::semantic::appLog().trace() << "  Message: " << publish.getMessage();
 
                     nlohmann::json json;
                     json["message"] = publish.getMessage();
@@ -145,10 +145,10 @@ namespace mqtt::lib {
                 }
 
                 if (subscription.contains("json")) {
-                    VLOG(1) << "Topic mapping found";
-                    VLOG(1) << "  Type: json";
-                    VLOG(1) << "  Topic: " << publish.getTopic();
-                    VLOG(1) << "  Message: " << publish.getMessage();
+                    snode::semantic::appLog().trace() << "Topic mapping found";
+                    snode::semantic::appLog().trace() << "  Type: json";
+                    snode::semantic::appLog().trace() << "  Topic: " << publish.getTopic();
+                    snode::semantic::appLog().trace() << "  Message: " << publish.getMessage();
 
                     try {
                         nlohmann::json json;
@@ -156,8 +156,8 @@ namespace mqtt::lib {
 
                         publishMappedTemplates(subscription["json"], json, publish);
                     } catch (const nlohmann::json::parse_error& e) {
-                        LOG(ERROR) << "  Parsing message into json failed: " << publish.getMessage();
-                        LOG(ERROR) << "     What: " << e.what() << '\n'
+                        snode::semantic::appLog().error() << "  Parsing message into json failed: " << publish.getMessage();
+                        snode::semantic::appLog().error() << "     What: " << e.what() << '\n'
                                    << "     Exception Id: " << e.id << '\n'
                                    << "     Byte position of error: " << e.byte;
                     }
@@ -232,14 +232,14 @@ namespace mqtt::lib {
             std::string renderedTopic = injaEnvironment.render(mappedTopic, json);
             json["mapped_topic"] = renderedTopic;
 
-            VLOG(1) << "  Mapped topic template: " << mappedTopic;
-            VLOG(1) << "    -> " << renderedTopic;
+            snode::semantic::appLog().trace() << "  Mapped topic template: " << mappedTopic;
+            snode::semantic::appLog().trace() << "    -> " << renderedTopic;
 
             try {
                 // Render message
                 std::string renderedMessage = injaEnvironment.render(mappingTemplate, json);
-                VLOG(1) << "  Mapped message template: " << mappingTemplate;
-                VLOG(1) << "    -> " << renderedMessage;
+                snode::semantic::appLog().trace() << "  Mapped message template: " << mappingTemplate;
+                snode::semantic::appLog().trace() << "    -> " << renderedMessage;
 
                 const nlohmann::json& suppressions = templateMapping["suppressions"];
                 bool retain = templateMapping.value("retain", publish.getRetain());
@@ -248,31 +248,31 @@ namespace mqtt::lib {
                     (retain && renderedMessage == "")) {
                     uint8_t qoS = templateMapping.value("qos", publish.getQoS());
 
-                    VLOG(1) << "  Send mapping:";
-                    VLOG(1) << "    Topic: " << renderedTopic;
-                    VLOG(1) << "    Message: " << renderedMessage << "";
-                    VLOG(1) << "    qos: " << static_cast<int>(qoS);
-                    VLOG(1) << "    retain: " << retain;
+                    snode::semantic::appLog().trace() << "  Send mapping:";
+                    snode::semantic::appLog().trace() << "    Topic: " << renderedTopic;
+                    snode::semantic::appLog().trace() << "    Message: " << renderedMessage << "";
+                    snode::semantic::appLog().trace() << "    qos: " << static_cast<int>(qoS);
+                    snode::semantic::appLog().trace() << "    retain: " << retain;
 
                     publishMapping(renderedTopic, renderedMessage, qoS, retain);
                 } else {
-                    VLOG(1) << "    rendered message '" << renderedMessage << "' in suppression list:";
+                    snode::semantic::appLog().trace() << "    rendered message '" << renderedMessage << "' in suppression list:";
                     for (const nlohmann::json& item : suppressions) {
-                        VLOG(1) << "         '" << item.get<std::string>() << "'";
+                        snode::semantic::appLog().trace() << "         '" << item.get<std::string>() << "'";
                     }
-                    VLOG(1) << "  send mapping: suppressed";
+                    snode::semantic::appLog().trace() << "  send mapping: suppressed";
                 }
             } catch (const inja::InjaError& e) {
-                LOG(ERROR) << "  Message template rendering failed: " << mappingTemplate << " : " << json.dump();
-                LOG(ERROR) << "    What: " << e.what();
-                LOG(ERROR) << "    INJA: " << e.type << ": " << e.message;
-                LOG(ERROR) << "    INJA (line:column):" << e.location.line << ":" << e.location.column;
+                snode::semantic::appLog().error() << "  Message template rendering failed: " << mappingTemplate << " : " << json.dump();
+                snode::semantic::appLog().error() << "    What: " << e.what();
+                snode::semantic::appLog().error() << "    INJA: " << e.type << ": " << e.message;
+                snode::semantic::appLog().error() << "    INJA (line:column):" << e.location.line << ":" << e.location.column;
             }
         } catch (const inja::InjaError& e) {
-            LOG(ERROR) << "  Topic template rendering failed: " << mappingTemplate << " : " << json.dump();
-            LOG(ERROR) << "    What: " << e.what();
-            LOG(ERROR) << "    INJA: " << e.type << ": " << e.message;
-            LOG(ERROR) << "    INJA (line:column):" << e.location.line << ":" << e.location.column;
+            snode::semantic::appLog().error() << "  Topic template rendering failed: " << mappingTemplate << " : " << json.dump();
+            snode::semantic::appLog().error() << "    What: " << e.what();
+            snode::semantic::appLog().error() << "    INJA: " << e.type << ": " << e.message;
+            snode::semantic::appLog().error() << "    INJA (line:column):" << e.location.line << ":" << e.location.column;
         }
     }
 
@@ -284,7 +284,7 @@ namespace mqtt::lib {
         json["retain"] = publish.getRetain();
         json["package_identifier"] = publish.getPacketIdentifier();
 
-        VLOG(0) << "  Render data: " << json.dump();
+        snode::semantic::appLog().trace() << "  Render data: " << json.dump();
 
         if (templateMapping.is_object()) {
             publishMappedTemplate(templateMapping, json, publish);
@@ -302,15 +302,15 @@ namespace mqtt::lib {
         bool retain = staticMapping.value("retain", publish.getRetain());
         uint8_t qoS = staticMapping.value("qos", publish.getQoS());
 
-        VLOG(1) << "  Mapped topic:";
-        VLOG(1) << "    -> " << mappedTopic;
-        VLOG(1) << "  Mapped message:";
-        VLOG(1) << "    -> " << message;
-        VLOG(1) << "  Send mapping:";
-        VLOG(1) << "    Topic: " << mappedTopic;
-        VLOG(1) << "    Message: " << message;
-        VLOG(1) << "    qos: " << static_cast<int>(qoS);
-        VLOG(1) << "    retain: " << retain;
+        snode::semantic::appLog().trace() << "  Mapped topic:";
+        snode::semantic::appLog().trace() << "    -> " << mappedTopic;
+        snode::semantic::appLog().trace() << "  Mapped message:";
+        snode::semantic::appLog().trace() << "    -> " << message;
+        snode::semantic::appLog().trace() << "  Send mapping:";
+        snode::semantic::appLog().trace() << "    Topic: " << mappedTopic;
+        snode::semantic::appLog().trace() << "    Message: " << message;
+        snode::semantic::appLog().trace() << "    qos: " << static_cast<int>(qoS);
+        snode::semantic::appLog().trace() << "    retain: " << retain;
 
         publishMapping(mappedTopic, message, qoS, retain);
     }
@@ -318,13 +318,13 @@ namespace mqtt::lib {
     void MqttMapper::publishMappedMessage(const nlohmann::json& staticMapping, const iot::mqtt::packets::Publish& publish) {
         const nlohmann::json& messageMapping = staticMapping["message_mapping"];
 
-        VLOG(0) << "  Message mapping: " << messageMapping.dump();
+        snode::semantic::appLog().trace() << "  Message mapping: " << messageMapping.dump();
 
         if (messageMapping.is_object()) {
             if (messageMapping["message"] == publish.getMessage()) {
                 publishMappedMessage(staticMapping, messageMapping["mapped_message"], publish);
             } else {
-                VLOG(1) << "    no matching mapped message found";
+                snode::semantic::appLog().trace() << "    no matching mapped message found";
             }
         } else {
             const nlohmann::json::const_iterator matchedMessageMappingIterator =
@@ -335,7 +335,7 @@ namespace mqtt::lib {
             if (matchedMessageMappingIterator != messageMapping.end()) {
                 publishMappedMessage(staticMapping, (*matchedMessageMappingIterator)["mapped_message"], publish);
             } else {
-                VLOG(1) << "    no matching mapped message found";
+                snode::semantic::appLog().trace() << "    no matching mapped message found";
             }
         }
     }

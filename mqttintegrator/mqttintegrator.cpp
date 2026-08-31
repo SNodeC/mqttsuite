@@ -24,7 +24,7 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <cstdlib>
-#include <log/Logger.h>
+#include <SemanticLog.h>
 #include <string>
 #include <utils/Config.h>
 
@@ -47,18 +47,18 @@ int main(int argc, char* argv[]) {
         inMqttTlsIntegrator.connect([](const SocketAddress& socketAddress, const core::socket::State& state) -> void {
             switch (state) {
                 case core::socket::State::OK:
-                    VLOG(1) << "mqtttlsintegrator: connected to '" << socketAddress.toString() << "': " << state.what();
+                    snode::semantic::appLog().trace() << "mqtttlsintegrator: connected to '" << socketAddress.toString() << "': " << state.what();
                     break;
                 case core::socket::State::DISABLED:
-                    VLOG(1) << "mqtttlsintegrator: disabled";
+                    snode::semantic::appLog().trace() << "mqtttlsintegrator: disabled";
                     break;
                 case core::socket::State::ERROR:
-                    VLOG(1) << "mqtttlsintegrator: " << socketAddress.toString() << ": non critical error occurred";
-                    VLOG(1) << "    " << state.what();
+                    snode::semantic::appLog().trace() << "mqtttlsintegrator: " << socketAddress.toString() << ": non critical error occurred";
+                    snode::semantic::appLog().trace() << "    " << state.what();
                     break;
                 case core::socket::State::FATAL:
-                    VLOG(1) << "mqtttlsintegrator: " << socketAddress.toString() << ": critical error occurred";
-                    VLOG(1) << "    " << state.what();
+                    snode::semantic::appLog().trace() << "mqtttlsintegrator: " << socketAddress.toString() << ": critical error occurred";
+                    snode::semantic::appLog().trace() << "    " << state.what();
                     break;
             }
         });
