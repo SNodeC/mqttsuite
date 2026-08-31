@@ -343,20 +343,36 @@ namespace mqtt::lib {
             const std::string::size_type slashPosition = topic.find('/');
             const std::string topicLevelName = topic.substr(0, slashPosition);
 
-            if (topicLevel["name"] == topicLevelName || topicLevel["name"] == "+" || topicLevel["name"] == "#") {
+            if (topicLevel["name"] == "#") {
+                foundTopicLevel = topicLevel;
+            } else if (topicLevel["name"] == topicLevelName || topicLevel["name"] == "+") {
                 if (slashPosition == std::string::npos) {
                     foundTopicLevel = topicLevel;
+
+                    if (!topicLevel.contains("subscription") && topicLevel.contains("topic_level")) {
+                        const nlohmann::json& childTopicLevel = topicLevel["topic_level"];
+
+                        if (childTopicLevel.is_object()) {
+                            if (childTopicLevel["name"] == "#") {
+                                foundTopicLevel = childTopicLevel;
+                            }
+                        } else if (childTopicLevel.is_array()) {
+                            for (auto childTopicLevelEntry = childTopicLevel.cbegin();
+                                 childTopicLevelEntry != childTopicLevel.cend() && foundTopicLevel == topicLevel;
+                                 ++childTopicLevelEntry) {
+                                if ((*childTopicLevelEntry)["name"] == "#") {
+                                    foundTopicLevel = *childTopicLevelEntry;
+                                }
+                            }
+                        }
+                    }
                 } else if (topicLevel.contains("topic_level")) {
                     foundTopicLevel = findMatchingTopicLevel(topicLevel["topic_level"], topic.substr(slashPosition + 1));
                 }
             }
         } else if (topicLevel.is_array()) {
-            for (const nlohmann::json& topicLevelEntry : topicLevel) {
-                foundTopicLevel = findMatchingTopicLevel(topicLevelEntry, topic);
-
-                if (!foundTopicLevel.empty()) {
-                    break;
-                }
+            for (auto topicLevelEntry = topicLevel.cbegin(); topicLevelEntry != topicLevel.cend() && foundTopicLevel.empty(); ++topicLevelEntry) {
+                foundTopicLevel = findMatchingTopicLevel(*topicLevelEntry, topic);
             }
         }
 
