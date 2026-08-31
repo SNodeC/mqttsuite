@@ -47,7 +47,7 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include "lib/SemanticLog.h"
+#include "lib/Log.h"
 
 #include <cstdlib>
 #include <exception>
@@ -59,22 +59,22 @@ static void
 reportState(const std::string& instanceName, const core::socket::SocketAddress& socketAddress, const core::socket::State& state) {
     switch (state) {
         case core::socket::State::OK:
-            mqttsuite::semantic::storeLog().debug() << instanceName << ": connected to '" << socketAddress.toString() << "'";
+            mqttsuite::log::storeLog().debug() << instanceName << ": connected to '" << socketAddress.toString() << "'";
             break;
         case core::socket::State::DISABLED:
-            mqttsuite::semantic::storeLog().debug() << instanceName << ": disabled";
+            mqttsuite::log::storeLog().debug() << instanceName << ": disabled";
             break;
         case core::socket::State::ERROR:
-            mqttsuite::semantic::storeLog().debug() << instanceName << ": " << socketAddress.toString() << ": " << state.what();
+            mqttsuite::log::storeLog().debug() << instanceName << ": " << socketAddress.toString() << ": " << state.what();
             break;
         case core::socket::State::FATAL:
-            mqttsuite::semantic::storeLog().debug() << instanceName << ": " << socketAddress.toString() << ": " << state.what();
+            mqttsuite::log::storeLog().debug() << instanceName << ": " << socketAddress.toString() << ": " << state.what();
             break;
     }
 }
 
 static void logResponse(const std::shared_ptr<web::http::client::Request>& req, const std::shared_ptr<web::http::client::Response>& res) {
-    mqttsuite::semantic::storeLog().debug()
+    mqttsuite::log::storeLog().debug()
         << req->getConnectionName() << " HTTP response for: " << req->method << " " << req->url << " HTTP/" << req->httpMajor << "."
         << req->httpMinor << "\n"
         << httputils::toString(req->method,
@@ -131,23 +131,23 @@ static HttpClient startClient(const std::string& name, const std::function<void(
                 target,
                 "websocket",
                 [connectionName](bool success) {
-                    mqttsuite::semantic::storeLog().debug()
+                    mqttsuite::log::storeLog().debug()
                         << connectionName << ": HTTP Upgrade (http -> websocket||mqtt) start " << (success ? "success" : "failed");
                 },
                 [connectionName](const std::shared_ptr<web::http::client::Request>& req,
                                  const std::shared_ptr<web::http::client::Response>& res,
                                  bool success) {
                     logResponse(req, res);
-                    mqttsuite::semantic::storeLog().debug() << connectionName << ": HTTP Upgrade " << (success ? "success" : "failed");
+                    mqttsuite::log::storeLog().debug() << connectionName << ": HTTP Upgrade " << (success ? "success" : "failed");
                 },
                 [connectionName](const std::shared_ptr<web::http::client::Request>& req, const std::string& message) {
-                    mqttsuite::semantic::storeLog().debug() << connectionName << ": Response parse error: " << message;
-                    mqttsuite::semantic::storeLog().debug()
+                    mqttsuite::log::storeLog().debug() << connectionName << ": Response parse error: " << message;
+                    mqttsuite::log::storeLog().debug()
                         << "  Request was: " << req->method << " " << req->url << " HTTP/" << req->httpMajor << "." << req->httpMinor;
                 });
         },
         []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req) {
-            mqttsuite::semantic::storeLog().debug() << "Session ended";
+            mqttsuite::log::storeLog().debug() << "Session ended";
         });
 
     configurator(httpClient.getConfig());

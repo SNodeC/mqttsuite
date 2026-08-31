@@ -47,7 +47,7 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include "lib/SemanticLog.h"
+#include "lib/Log.h"
 
 #include <cstdint>
 #include <cstring>
@@ -63,17 +63,17 @@ namespace mqtt::bridge::lib {
                                   broker.getKeepAlive(),
                                   broker.getSessionStoreFileName())
         , broker(broker) {
-        mqttsuite::semantic::bridgeLog().debug() << "Client Id: " << clientId;
-        mqttsuite::semantic::bridgeLog().debug() << "  Keep Alive: " << keepAlive;
-        mqttsuite::semantic::bridgeLog().debug() << "  Prefix: " << broker.getPrefix();
-        mqttsuite::semantic::bridgeLog().debug() << "  Clean Session: " << broker.getCleanSession();
-        mqttsuite::semantic::bridgeLog().debug() << "  Will Topic: " << broker.getWillTopic();
-        mqttsuite::semantic::bridgeLog().debug() << "  Will Message: " << broker.getWillMessage();
-        mqttsuite::semantic::bridgeLog().debug() << "  Will QoS: " << static_cast<uint16_t>(broker.getWillQoS());
-        mqttsuite::semantic::bridgeLog().debug() << "  Will Retain " << broker.getWillRetain();
-        mqttsuite::semantic::bridgeLog().debug() << "  Username: " << broker.getUsername();
-        mqttsuite::semantic::bridgeLog().debug() << "  Password: " << broker.getPassword();
-        mqttsuite::semantic::bridgeLog().debug() << "  Loop Prevention: " << broker.getLoopPrevention();
+        mqttsuite::log::bridgeLog().debug() << "Client Id: " << clientId;
+        mqttsuite::log::bridgeLog().debug() << "  Keep Alive: " << keepAlive;
+        mqttsuite::log::bridgeLog().debug() << "  Prefix: " << broker.getPrefix();
+        mqttsuite::log::bridgeLog().debug() << "  Clean Session: " << broker.getCleanSession();
+        mqttsuite::log::bridgeLog().debug() << "  Will Topic: " << broker.getWillTopic();
+        mqttsuite::log::bridgeLog().debug() << "  Will Message: " << broker.getWillMessage();
+        mqttsuite::log::bridgeLog().debug() << "  Will QoS: " << static_cast<uint16_t>(broker.getWillQoS());
+        mqttsuite::log::bridgeLog().debug() << "  Will Retain " << broker.getWillRetain();
+        mqttsuite::log::bridgeLog().debug() << "  Username: " << broker.getUsername();
+        mqttsuite::log::bridgeLog().debug() << "  Password: " << broker.getPassword();
+        mqttsuite::log::bridgeLog().debug() << "  Loop Prevention: " << broker.getLoopPrevention();
     }
 
     const Broker& Mqtt::getBroker() const {
@@ -81,7 +81,7 @@ namespace mqtt::bridge::lib {
     }
 
     void Mqtt::onConnected() {
-        mqttsuite::semantic::bridgeLog().debug() << "MQTT: Initiating Session";
+        mqttsuite::log::bridgeLog().debug() << "MQTT: Initiating Session";
 
         sendConnect(broker.getCleanSession(),
                     broker.getWillTopic(),
@@ -96,11 +96,11 @@ namespace mqtt::bridge::lib {
     void Mqtt::onDisconnected() {
         mqtt::bridge::lib::BridgeStore::instance().mqttDisconnected(broker, this);
 
-        mqttsuite::semantic::bridgeLog().debug() << "MQTT: Disconnected";
+        mqttsuite::log::bridgeLog().debug() << "MQTT: Disconnected";
     }
 
     bool Mqtt::onSignal(int signum) {
-        mqttsuite::semantic::bridgeLog().debug()
+        mqttsuite::log::bridgeLog().debug()
             << "MQTT: On Exit due to '" << strsignal(signum) << "' (SIG" << utils::system::sigabbrev_np(signum) << " = " << signum << ")";
 
         sendDisconnect();

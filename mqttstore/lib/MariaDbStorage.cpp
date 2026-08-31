@@ -18,7 +18,7 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include "lib/SemanticLog.h"
+#include "lib/Log.h"
 
 #include <algorithm>
 #include <cctype>
@@ -72,12 +72,12 @@ namespace mqtt::mqttstore::lib {
               },
               [connectionName = this->connectionName](const database::mariadb::MariaDBState& state) {
                   if (state.connected) {
-                      mqttsuite::semantic::storeLog().info() << connectionName << " MariaDB: connected";
+                      mqttsuite::log::storeLog().info() << connectionName << " MariaDB: connected";
                   } else if (state.error != 0) {
-                      mqttsuite::semantic::storeLog().info()
+                      mqttsuite::log::storeLog().info()
                           << connectionName << " MariaDB: " << state.errorMessage << " [" << state.error << "]";
                   } else {
-                      mqttsuite::semantic::storeLog().info() << connectionName << " MariaDB: lost connection";
+                      mqttsuite::log::storeLog().info() << connectionName << " MariaDB: lost connection";
                   }
               })
         , rawTable(std::move(rawTable))
@@ -98,7 +98,7 @@ namespace mqtt::mqttstore::lib {
         mariaDB.exec(
             rawInsertSql,
             [connectionName = this->connectionName, topic = message.topic]() -> void {
-                mqttsuite::semantic::storeLog().debug()
+                mqttsuite::log::storeLog().debug()
                     << connectionName << " MariaDB: stored raw MQTT message for topic '" << topic << "'";
             },
             [connectionName = this->connectionName](const std::string& errorString, unsigned int errorNumber) -> void {
@@ -264,7 +264,7 @@ namespace mqtt::mqttstore::lib {
                                         const std::string& operation,
                                         const std::string& errorString,
                                         unsigned int errorNumber) {
-        mqttsuite::semantic::storeLog().info() << connectionName << " MariaDB " << operation << " failed: " << errorString << " : "
+        mqttsuite::log::storeLog().info() << connectionName << " MariaDB " << operation << " failed: " << errorString << " : "
                                                << errorNumber;
     }
 
@@ -290,7 +290,7 @@ namespace mqtt::mqttstore::lib {
         mariaDB.exec(
             sql,
             [connectionName = this->connectionName, rawTable = this->rawTable]() -> void {
-                mqttsuite::semantic::storeLog().info() << connectionName << " MariaDB: ensured raw MQTT table '" << rawTable << "'";
+                mqttsuite::log::storeLog().info() << connectionName << " MariaDB: ensured raw MQTT table '" << rawTable << "'";
             },
             [connectionName = this->connectionName](const std::string& errorString, unsigned int errorNumber) -> void {
                 execLogFailure(connectionName, "raw MQTT table creation", errorString, errorNumber);
@@ -308,7 +308,7 @@ namespace mqtt::mqttstore::lib {
                 mariaDB.exec(
                     sql,
                     [connectionName = this->connectionName, projectionName = projection->name]() -> void {
-                        mqttsuite::semantic::storeLog().debug()
+                        mqttsuite::log::storeLog().debug()
                             << connectionName << " MariaDB: projection insert completed for '" << projectionName << "'";
                     },
                     [connectionName = this->connectionName, projectionName = projection->name](const std::string& errorString,
@@ -316,7 +316,7 @@ namespace mqtt::mqttstore::lib {
                         execLogFailure(connectionName, "projection '" + projectionName + "' insert", errorString, errorNumber);
                     });
             } catch (const std::exception& error) {
-                mqttsuite::semantic::storeLog().info()
+                mqttsuite::log::storeLog().info()
                     << connectionName << " MariaDB projection '" << projection->name << "' skipped: " << error.what();
             }
         }

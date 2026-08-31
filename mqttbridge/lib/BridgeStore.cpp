@@ -45,7 +45,7 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include "lib/SemanticLog.h"
+#include "lib/Log.h"
 
 #include <nlohmann/json-schema.hpp>
 
@@ -85,7 +85,7 @@ namespace mqtt::bridge::lib {
                     std::ifstream bridgeConfigJsonFile(fileName);
 
                     if (bridgeConfigJsonFile.is_open()) {
-                        mqttsuite::semantic::bridgeLog().debug() << "Bridge config JSON: " << fileName;
+                        mqttsuite::log::bridgeLog().debug() << "Bridge config JSON: " << fileName;
 
                         try {
                             bridgeConfigJsonFile >> bridgesConfigJsonStaged;
@@ -101,38 +101,38 @@ namespace mqtt::bridge::lib {
 
                                         success = true;
                                     } catch (const std::exception& e) {
-                                        mqttsuite::semantic::bridgeLog().debug() << "  Patching JSON with default patch failed:\n"
+                                        mqttsuite::log::bridgeLog().debug() << "  Patching JSON with default patch failed:\n"
                                                                                  << defaultPatch.dump(4);
-                                        mqttsuite::semantic::bridgeLog().debug() << "    " << e.what();
+                                        mqttsuite::log::bridgeLog().debug() << "    " << e.what();
                                     }
                                 } catch (const std::exception& e) {
-                                    mqttsuite::semantic::bridgeLog().debug() << "  Validating JSON failed:\n"
+                                    mqttsuite::log::bridgeLog().debug() << "  Validating JSON failed:\n"
                                                                              << bridgesConfigJsonActive.dump(4);
-                                    mqttsuite::semantic::bridgeLog().debug() << "    " << e.what();
+                                    mqttsuite::log::bridgeLog().debug() << "    " << e.what();
                                 }
                             } catch (const std::exception& e) {
-                                mqttsuite::semantic::bridgeLog().debug() << "  Setting root json mapping schema failed:\n"
+                                mqttsuite::log::bridgeLog().debug() << "  Setting root json mapping schema failed:\n"
                                                                          << bridgeJsonSchema.dump(4);
-                                mqttsuite::semantic::bridgeLog().debug() << "    " << e.what();
+                                mqttsuite::log::bridgeLog().debug() << "    " << e.what();
                             }
                         } catch (const std::exception& e) {
-                            mqttsuite::semantic::bridgeLog().debug()
+                            mqttsuite::log::bridgeLog().debug()
                                 << "  JSON map file parsing failed:" << e.what() << " at " << bridgeConfigJsonFile.tellg();
                         }
 
                         bridgeConfigJsonFile.close();
                     } else {
-                        mqttsuite::semantic::bridgeLog().debug() << "BridgeJsonConfig: " << fileName << " not found";
+                        mqttsuite::log::bridgeLog().debug() << "BridgeJsonConfig: " << fileName << " not found";
                     }
                 } else {
                     // Do not log missing path. In regular use this missing option is captured by the command line interface
                 }
             } catch (const std::exception& e) {
-                mqttsuite::semantic::bridgeLog().debug() << "Parsing schema failed: " << e.what();
-                mqttsuite::semantic::bridgeLog().debug() << bridgeJsonSchemaString;
+                mqttsuite::log::bridgeLog().debug() << "Parsing schema failed: " << e.what();
+                mqttsuite::log::bridgeLog().debug() << bridgeJsonSchemaString;
             }
         } else {
-            mqttsuite::semantic::bridgeLog().debug() << "MappingFile already loaded and validated";
+            mqttsuite::log::bridgeLog().debug() << "MappingFile already loaded and validated";
         }
 
         return success;
@@ -152,18 +152,18 @@ namespace mqtt::bridge::lib {
 
                     success = true;
                 } catch (const std::exception& e) {
-                    mqttsuite::semantic::bridgeLog().debug() << "  Patching JSON with default patch failed:\n" << defaultPatch.dump(4);
-                    mqttsuite::semantic::bridgeLog().debug() << "    " << e.what();
+                    mqttsuite::log::bridgeLog().debug() << "  Patching JSON with default patch failed:\n" << defaultPatch.dump(4);
+                    mqttsuite::log::bridgeLog().debug() << "    " << e.what();
                 }
             } catch (const std::exception& e) {
-                mqttsuite::semantic::bridgeLog().debug() << "  Validating JSON failed:\n" << bridgesConfigJsonActive.dump(4);
-                mqttsuite::semantic::bridgeLog().debug() << "    " << e.what();
+                mqttsuite::log::bridgeLog().debug() << "  Validating JSON failed:\n" << bridgesConfigJsonActive.dump(4);
+                mqttsuite::log::bridgeLog().debug() << "    " << e.what();
             }
         } catch (const std::exception& e) {
-            mqttsuite::semantic::bridgeLog().debug() << "  Default Patch:\n" << bridgesConfigJsonActive.dump(4);
+            mqttsuite::log::bridgeLog().debug() << "  Default Patch:\n" << bridgesConfigJsonActive.dump(4);
 
-            mqttsuite::semantic::bridgeLog().debug() << "  Patching JSON with update failed:\n" << jsonPatch.dump(4);
-            mqttsuite::semantic::bridgeLog().debug() << "    " << e.what();
+            mqttsuite::log::bridgeLog().debug() << "  Patching JSON with update failed:\n" << jsonPatch.dump(4);
+            mqttsuite::log::bridgeLog().debug() << "    " << e.what();
         }
 
         return success;

@@ -58,7 +58,7 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 //
-#include "lib/SemanticLog.h"
+#include "lib/Log.h"
 //
 #include <nlohmann/json_fwd.hpp>
 //
@@ -120,7 +120,7 @@ static void startBridges();
 
 static void restartBridges() {
     if (restart) {
-        mqttsuite::semantic::bridgeLog().trace() << "Restarting bridges...";
+        mqttsuite::log::bridgeLog().trace() << "Restarting bridges...";
 
         mqtt::bridge::lib::BridgeStore::instance().activateStaged();
 
@@ -130,18 +130,18 @@ static void restartBridges() {
 
         restart = false;
     } else {
-        mqttsuite::semantic::bridgeLog().trace() << "No bridge restarted";
+        mqttsuite::log::bridgeLog().trace() << "No bridge restarted";
     }
 }
 
 static void handleFlowControllers(core::socket::stream::ClientFlowController* clientFlowController) {
     flowControllers.emplace(clientFlowController->getId(), clientFlowController);
-    mqttsuite::semantic::bridgeLog().trace() << "Added FlowController for: [" << clientFlowController->getId() << "] "
+    mqttsuite::log::bridgeLog().trace() << "Added FlowController for: [" << clientFlowController->getId() << "] "
                                              << clientFlowController->getInstanceName();
 
     clientFlowController->setOnFlowCompleted([](uint64_t id, const std::string& instanceName) {
         flowControllers.erase(id);
-        mqttsuite::semantic::bridgeLog().trace() << "Erased FlowController of: [" << id << "] " << instanceName;
+        mqttsuite::log::bridgeLog().trace() << "Erased FlowController of: [" << id << "] " << instanceName;
 
         if (flowControllers.empty() && restart) {
             restartBridges();
@@ -167,7 +167,7 @@ static bool closeBridges() {
         }
 
         for (auto& [id, flowController] : flowControllers) {
-            mqttsuite::semantic::bridgeLog().debug()
+            mqttsuite::log::bridgeLog().debug()
                 << "Terminating Flow of: [" << flowController->getId() << "] " << flowController->getInstanceName();
 
             flowController->terminateFlow();
@@ -181,16 +181,16 @@ static void
 reportState(const std::string& instanceName, const core::socket::SocketAddress& socketAddress, const core::socket::State& state) {
     switch (state) {
         case core::socket::State::OK:
-            mqttsuite::semantic::bridgeLog().debug() << instanceName << ": connected to '" << socketAddress.toString() << "'";
+            mqttsuite::log::bridgeLog().debug() << instanceName << ": connected to '" << socketAddress.toString() << "'";
             break;
         case core::socket::State::DISABLED:
-            mqttsuite::semantic::bridgeLog().debug() << instanceName << ": disabled";
+            mqttsuite::log::bridgeLog().debug() << instanceName << ": disabled";
             break;
         case core::socket::State::ERROR:
-            mqttsuite::semantic::bridgeLog().debug() << instanceName << ": " << socketAddress.toString() << ": " << state.what();
+            mqttsuite::log::bridgeLog().debug() << instanceName << ": " << socketAddress.toString() << ": " << state.what();
             break;
         case core::socket::State::FATAL:
-            mqttsuite::semantic::bridgeLog().debug() << instanceName << ": " << socketAddress.toString() << ": " << state.what();
+            mqttsuite::log::bridgeLog().debug() << instanceName << ": " << socketAddress.toString() << ": " << state.what();
             break;
     }
 }
@@ -235,7 +235,7 @@ static HttpClient startClient( //
                 "/ws",
                 "websocket",
                 [connectionName](bool success) {
-                    mqttsuite::semantic::bridgeLog().debug() << connectionName << ": HTTP Upgrade (http -> websocket||"
+                    mqttsuite::log::bridgeLog().debug() << connectionName << ": HTTP Upgrade (http -> websocket||"
                                                              << "mqtt" << ") start " << (success ? "success" : "failed");
                 },
                 []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req,
@@ -243,11 +243,11 @@ static HttpClient startClient( //
                    [[maybe_unused]] bool success) {
                 },
                 [connectionName]([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req, const std::string& message) {
-                    mqttsuite::semantic::bridgeLog().debug() << connectionName << ": Request parse error: " << message;
+                    mqttsuite::log::bridgeLog().debug() << connectionName << ": Request parse error: " << message;
                 });
         },
         []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req) {
-            mqttsuite::semantic::bridgeLog().debug() << "Session ended";
+            mqttsuite::log::bridgeLog().debug() << "Session ended";
         });
 
     configurator(httpClient.getConfig());
@@ -270,7 +270,7 @@ static void startBridges() {
     mqtt::bridge::lib::SSEDistributor::instance().bridgesStarting();
 
     for (const auto& [bridgeName, bridge] : mqtt::bridge::lib::BridgeStore::instance().getBridgeMap()) {
-        mqttsuite::semantic::bridgeLog().info() << "Starting bridge: " << bridgeName;
+        mqttsuite::log::bridgeLog().info() << "Starting bridge: " << bridgeName;
 
         if (!bridge.getDisabled()) {
             mqtt::bridge::lib::SSEDistributor::instance().bridgeStarting(bridgeName);
@@ -279,31 +279,31 @@ static void startBridges() {
                 if (!broker.getDisabled()) {
                     mqtt::bridge::lib::SSEDistributor::instance().brokerConnecting(bridgeName, fullInstanceName);
 
-                    mqttsuite::semantic::bridgeLog().debug() << "  Creating broker instance: " << fullInstanceName;
-                    mqttsuite::semantic::bridgeLog().debug() << "    Broker prefix: " << broker.getPrefix();
-                    mqttsuite::semantic::bridgeLog().debug() << "    Broker client id: " << broker.getClientId();
-                    mqttsuite::semantic::bridgeLog().debug() << "    Broker disabled: " << broker.getDisabled();
-                    mqttsuite::semantic::bridgeLog().debug() << "    Broker address: " << broker.getAddress();
-                    mqttsuite::semantic::bridgeLog().debug() << "    Broker prefix: " << broker.getPrefix();
-                    mqttsuite::semantic::bridgeLog().debug() << "    Broker username: " << broker.getUsername();
-                    mqttsuite::semantic::bridgeLog().debug() << "    Broker password: " << broker.getPassword();
-                    mqttsuite::semantic::bridgeLog().debug() << "    Broker client-id: " << broker.getClientId();
-                    mqttsuite::semantic::bridgeLog().debug() << "    Broker clean session: " << broker.getCleanSession();
-                    mqttsuite::semantic::bridgeLog().debug() << "    Broker will-topic: " << broker.getWillTopic();
-                    mqttsuite::semantic::bridgeLog().debug() << "    Broker will-message: " << broker.getWillMessage();
-                    mqttsuite::semantic::bridgeLog().debug() << "    Broker will-qos: " << static_cast<int>(broker.getWillQoS());
-                    mqttsuite::semantic::bridgeLog().debug() << "    Broker will-retain: " << broker.getWillRetain();
-                    mqttsuite::semantic::bridgeLog().debug() << "    Broker loop prevention: " << broker.getLoopPrevention();
-                    mqttsuite::semantic::bridgeLog().debug() << "    Bridge disabled: " << bridge.getDisabled();
-                    mqttsuite::semantic::bridgeLog().debug() << "    Bridge prefix: " << bridge.getPrefix();
-                    mqttsuite::semantic::bridgeLog().debug() << "    Bridge Transport: " << broker.getTransport();
-                    mqttsuite::semantic::bridgeLog().debug() << "    Bridge Protocol: " << broker.getProtocol();
-                    mqttsuite::semantic::bridgeLog().debug() << "    Bridge Encryption: " << broker.getEncryption();
+                    mqttsuite::log::bridgeLog().debug() << "  Creating broker instance: " << fullInstanceName;
+                    mqttsuite::log::bridgeLog().debug() << "    Broker prefix: " << broker.getPrefix();
+                    mqttsuite::log::bridgeLog().debug() << "    Broker client id: " << broker.getClientId();
+                    mqttsuite::log::bridgeLog().debug() << "    Broker disabled: " << broker.getDisabled();
+                    mqttsuite::log::bridgeLog().debug() << "    Broker address: " << broker.getAddress();
+                    mqttsuite::log::bridgeLog().debug() << "    Broker prefix: " << broker.getPrefix();
+                    mqttsuite::log::bridgeLog().debug() << "    Broker username: " << broker.getUsername();
+                    mqttsuite::log::bridgeLog().debug() << "    Broker password: " << broker.getPassword();
+                    mqttsuite::log::bridgeLog().debug() << "    Broker client-id: " << broker.getClientId();
+                    mqttsuite::log::bridgeLog().debug() << "    Broker clean session: " << broker.getCleanSession();
+                    mqttsuite::log::bridgeLog().debug() << "    Broker will-topic: " << broker.getWillTopic();
+                    mqttsuite::log::bridgeLog().debug() << "    Broker will-message: " << broker.getWillMessage();
+                    mqttsuite::log::bridgeLog().debug() << "    Broker will-qos: " << static_cast<int>(broker.getWillQoS());
+                    mqttsuite::log::bridgeLog().debug() << "    Broker will-retain: " << broker.getWillRetain();
+                    mqttsuite::log::bridgeLog().debug() << "    Broker loop prevention: " << broker.getLoopPrevention();
+                    mqttsuite::log::bridgeLog().debug() << "    Bridge disabled: " << bridge.getDisabled();
+                    mqttsuite::log::bridgeLog().debug() << "    Bridge prefix: " << bridge.getPrefix();
+                    mqttsuite::log::bridgeLog().debug() << "    Bridge Transport: " << broker.getTransport();
+                    mqttsuite::log::bridgeLog().debug() << "    Bridge Protocol: " << broker.getProtocol();
+                    mqttsuite::log::bridgeLog().debug() << "    Bridge Encryption: " << broker.getEncryption();
 
-                    mqttsuite::semantic::bridgeLog().debug() << "    Topics:";
+                    mqttsuite::log::bridgeLog().debug() << "    Topics:";
                     const std::list<iot::mqtt::Topic>& topics = broker.getTopics();
                     for (const iot::mqtt::Topic& topic : topics) {
-                        mqttsuite::semantic::bridgeLog().debug()
+                        mqttsuite::log::bridgeLog().debug()
                             << "      " << topic.getName() << ":" << static_cast<uint16_t>(topic.getQoS());
                     }
 
@@ -326,7 +326,7 @@ static void startBridges() {
                                         config->setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                                     });
 #else  // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4
-                                mqttsuite::semantic::bridgeLog().debug() << "    Transport '" << transport << "', protocol '" << protocol
+                                mqttsuite::log::bridgeLog().debug() << "    Transport '" << transport << "', protocol '" << protocol
                                                                          << "', encryption '" << encryption << "' not supported.";
 #endif // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4
                             } else if (encryption == "tls") {
@@ -342,7 +342,7 @@ static void startBridges() {
                                         config->setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                                     });
 #else  // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4
-                                mqttsuite::semantic::bridgeLog().debug() << "    Transport '" << transport << "', protocol '" << protocol
+                                mqttsuite::log::bridgeLog().debug() << "    Transport '" << transport << "', protocol '" << protocol
                                                                          << "', encryption '" << encryption << "' not supported.";
 #endif // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4
                             }
@@ -360,7 +360,7 @@ static void startBridges() {
                                         config->setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                                     });
 #else  // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6
-                                mqttsuite::semantic::bridgeLog().debug() << "    Transport '" << transport << "', protocol '" << protocol
+                                mqttsuite::log::bridgeLog().debug() << "    Transport '" << transport << "', protocol '" << protocol
                                                                          << "', encryption '" << encryption << "' not supported.";
 #endif // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6
                             } else if (encryption == "tls") {
@@ -376,7 +376,7 @@ static void startBridges() {
                                         config->setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                                     });
 #else  // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6
-                                mqttsuite::semantic::bridgeLog().debug() << "    Transport '" << transport << "', protocol '" << protocol
+                                mqttsuite::log::bridgeLog().debug() << "    Transport '" << transport << "', protocol '" << protocol
                                                                          << "', encryption '" << encryption << "' not supported.";
 #endif // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6
                             }
@@ -391,7 +391,7 @@ static void startBridges() {
                                         config->setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                                     });
 #else  // CONFIG_MQTTSUITE_BRIDGE_UNIX
-                                mqttsuite::semantic::bridgeLog().debug() << "    Transport '" << transport << "', protocol '" << protocol
+                                mqttsuite::log::bridgeLog().debug() << "    Transport '" << transport << "', protocol '" << protocol
                                                                          << "', encryption '" << encryption << "' not supported.";
 #endif // CONFIG_MQTTSUITE_BRIDGE_UNIX
                             } else if (encryption == "tls") {
@@ -404,7 +404,7 @@ static void startBridges() {
                                         config->setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                                     });
 #else  // CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS
-                                mqttsuite::semantic::bridgeLog().debug() << "    Transport '" << transport << "', protocol '" << protocol
+                                mqttsuite::log::bridgeLog().debug() << "    Transport '" << transport << "', protocol '" << protocol
                                                                          << "', encryption '" << encryption << "' not supported.";
 #endif // CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS
                             }
@@ -424,7 +424,7 @@ static void startBridges() {
                                         config->setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                                     });
 #else  // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4 && CONFIG_MQTTSUITE_BRIDGE_WS
-                                mqttsuite::semantic::bridgeLog().debug() << "    Transport '" << transport << "', protocol '" << protocol
+                                mqttsuite::log::bridgeLog().debug() << "    Transport '" << transport << "', protocol '" << protocol
                                                                          << "', encryption '" << encryption << "' not supported.";
 #endif // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4 && CONFIG_MQTTSUITE_BRIDGE_WS
                             } else if (encryption == "tls") {
@@ -440,7 +440,7 @@ static void startBridges() {
                                         config->setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                                     });
 #else  // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4 && CONFIG_MQTTSUITE_BRIDGE_WSS
-                                mqttsuite::semantic::bridgeLog().debug() << "    Transport '" << transport << "', protocol '" << protocol
+                                mqttsuite::log::bridgeLog().debug() << "    Transport '" << transport << "', protocol '" << protocol
                                                                          << "', encryption '" << encryption << "' not supported.";
 #endif // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4 && CONFIG_MQTTSUITE_BRIDGE_WSS
                             }
@@ -458,7 +458,7 @@ static void startBridges() {
                                         config->setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                                     });
 #else  // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6 && CONFIG_MQTTSUITE_BRIDGE_WS
-                                mqttsuite::semantic::bridgeLog().debug() << "    Transport '" << transport << "', protocol '" << protocol
+                                mqttsuite::log::bridgeLog().debug() << "    Transport '" << transport << "', protocol '" << protocol
                                                                          << "', encryption '" << encryption << "' not supported.";
 #endif // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6&&  CONFIG_MQTTSUITE_BRIDGE_WS
                             } else if (encryption == "tls") {
@@ -474,7 +474,7 @@ static void startBridges() {
                                         config->setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                                     });
 #else  // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6 && CONFIG_MQTTSUITE_BRIDGE_WSS
-                                mqttsuite::semantic::bridgeLog().debug() << "    Transport '" << transport << "', protocol '" << protocol
+                                mqttsuite::log::bridgeLog().debug() << "    Transport '" << transport << "', protocol '" << protocol
                                                                          << "', encryption '" << encryption << "' not supported.";
 #endif // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6 && CONFIG_MQTTSUITE_BRIDGE_WSS
                             }
@@ -489,7 +489,7 @@ static void startBridges() {
                                         config->setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                                     });
 #else  // CONFIG_MQTTSUITE_BRIDGE_UNIX && CONFIG_MQTTSUITE_BRIDGE_WS
-                                mqttsuite::semantic::bridgeLog().debug() << "    Transport '" << transport << "', protocol '" << protocol
+                                mqttsuite::log::bridgeLog().debug() << "    Transport '" << transport << "', protocol '" << protocol
                                                                          << "', encryption '" << encryption << "' not supported.";
 #endif // CONFIG_MQTTSUITE_BRIDGE_UNIX &&  CONFIG_MQTTSUITE_BRIDGE_WS
                             } else if (encryption == "tls") {
@@ -502,13 +502,13 @@ static void startBridges() {
                                         config->setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                                     });
 #else  // CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS && CONFIG_MQTTSUITE_BRIDGE_WSS
-                                mqttsuite::semantic::bridgeLog().debug() << "    Transport '" << transport << "', protocol '" << protocol
+                                mqttsuite::log::bridgeLog().debug() << "    Transport '" << transport << "', protocol '" << protocol
                                                                          << "', encryption '" << encryption << "' not supported.";
 #endif // CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS && CONFIG_MQTTSUITE_BRIDGE_WSS
                             }
                         }
                     } else {
-                        mqttsuite::semantic::bridgeLog().debug() << "    Transport '" << transport << "' not supported.";
+                        mqttsuite::log::bridgeLog().debug() << "    Transport '" << transport << "' not supported.";
                     }
                 } else {
                     mqtt::bridge::lib::SSEDistributor::instance().brokerDisabled(bridgeName, fullInstanceName);
@@ -550,7 +550,7 @@ int main(int argc, char* argv[]) {
                 }
             },
             [&res](const std::string& key) {
-                mqttsuite::semantic::bridgeLog().debug() << "Attribute type not found: " << key;
+                mqttsuite::log::bridgeLog().debug() << "Attribute type not found: " << key;
 
                 res->status(400).send("Attribute type not found: " + key);
             });
@@ -609,7 +609,7 @@ int main(int argc, char* argv[]) {
             utils::Config::configRoot.getSubCommand<mqtt::bridge::ConfigBridge>()->getDefinitionFile())) {
         startBridges();
     } else {
-        mqttsuite::semantic::bridgeLog().debug() << "Loading bridge definition file failed";
+        mqttsuite::log::bridgeLog().debug() << "Loading bridge definition file failed";
     }
 
     return core::SNodeC::start();

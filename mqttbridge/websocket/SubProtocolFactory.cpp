@@ -49,7 +49,7 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include "lib/SemanticLog.h"
+#include "lib/Log.h"
 
 #include <cstdint>
 #include <list>
@@ -71,17 +71,17 @@ namespace mqtt::mqttbridge::websocket {
             mqtt::bridge::lib::BridgeStore::instance().getBroker(subProtocolContext->getSocketConnection()->getInstanceName());
 
         if (broker != nullptr) {
-            mqttsuite::semantic::bridgeLog().debug()
+            mqttsuite::log::bridgeLog().debug()
                 << "  Creating Broker instance '" << broker->getName() << "' of Bridge '" << broker->getBridge().getName() << "'";
-            mqttsuite::semantic::bridgeLog().debug() << "    Bridge client id : " << broker->getClientId();
-            mqttsuite::semantic::bridgeLog().debug() << "    Transport: " << broker->getTransport();
-            mqttsuite::semantic::bridgeLog().debug() << "    Protocol: " << broker->getProtocol();
-            mqttsuite::semantic::bridgeLog().debug() << "    Encryption: " << broker->getEncryption();
+            mqttsuite::log::bridgeLog().debug() << "    Bridge client id : " << broker->getClientId();
+            mqttsuite::log::bridgeLog().debug() << "    Transport: " << broker->getTransport();
+            mqttsuite::log::bridgeLog().debug() << "    Protocol: " << broker->getProtocol();
+            mqttsuite::log::bridgeLog().debug() << "    Encryption: " << broker->getEncryption();
 
-            mqttsuite::semantic::bridgeLog().debug() << "    Topics:";
+            mqttsuite::log::bridgeLog().debug() << "    Topics:";
             const std::list<iot::mqtt::Topic>& topics = broker->getTopics();
             for (const iot::mqtt::Topic& topic : topics) {
-                mqttsuite::semantic::bridgeLog().debug() << "      " << static_cast<uint16_t>(topic.getQoS()) << ":" << topic.getName();
+                mqttsuite::log::bridgeLog().debug() << "      " << static_cast<uint16_t>(topic.getQoS()) << ":" << topic.getName();
             }
 
             subProtocol = new iot::mqtt::client::SubProtocol(
