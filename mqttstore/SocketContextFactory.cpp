@@ -3,10 +3,10 @@
  * Copyright (C) Volker Christian <me@vchrist.at>
  *               2022, 2023, 2024, 2025, 2026
  *
- * This program is free software: you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option)
- * any later version.
+ * This program is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
  */
 
 #include "SocketContextFactory.h"
@@ -23,7 +23,8 @@
 
 #include "lib/SemanticLog.h"
 
-#include <exception>
+#include <map>
+#include <stdexcept>
 #include <string>
 #include <utility>
 
@@ -47,9 +48,24 @@ namespace {
                 .projectionFile = configStorage->getProjectionFile()};
     }
 
+    std::map<std::string, mqtt::mqttstore::lib::StoragePlan> preflightStoragePlans;
+
 } // namespace
 
 namespace mqtt::mqttstore {
+
+    void SocketContextFactory::preflight(const std::string& instanceName, const net::config::ConfigInstance* configInstance) {
+        const lib::ConfigDatabase* configDatabase = configInstance->getSubCommand<lib::ConfigDatabase>();
+        const lib::ConfigStorage* configStorage = configDatabase != nullptr ? configDatabase->getSubCommand<lib::ConfigStorage>() : nullptr;
+        const StorageOptions storageOptions = getStorageOptions(configStorage);
+
+        try {
+            preflightStoragePlans.insert_or_assign(instanceName, lib::StoragePlan::fromFile(storageOptions.projectionFile));
+            mqttsuite::semantic::storeLog().debug() << instanceName << ": projection configuration preflight succeeded";
+        } catch (const std::exception& exception) {
+            throw std::runtime_error(instanceName + ": invalid MQTTStore projection configuration: " + exception.what());
+        }
+    }
 
     core::socket::stream::SocketContext* SocketContextFactory::create(core::socket::stream::SocketConnection* socketConnection) {
         const net::config::ConfigInstance* configInstance = socketConnection->getConfigInstance();
@@ -59,14 +75,13 @@ namespace mqtt::mqttstore {
         const lib::ConfigDatabase* configDatabase = configInstance->getSubCommand<lib::ConfigDatabase>();
         const lib::ConfigStorage* configStorage = configDatabase->getSubCommand<lib::ConfigStorage>();
         const StorageOptions storageOptions = getStorageOptions(configStorage);
-        lib::StoragePlan storagePlan;
-        try {
-            storagePlan = lib::StoragePlan::fromFile(storageOptions.projectionFile);
-        } catch (const std::exception& exception) {
-            mqttsuite::semantic::storeLog().info()
-                << socketConnection->getConnectionName() << " MQTTStore startup failed: " << exception.what();
-            throw;
+
+        const auto planIterator = preflightStoragePlans.find(socketConnection->getConnectionName());
+        if (planIterator == preflightStoragePlans.end()) {
+            throw std::runtime_error(socketConnection->getConnectionName() + ": MQTTStore projection preflight was not executed");
         }
+
+        lib::StoragePlan storagePlan = planIterator->second;
 
         return new iot::mqtt::SocketContext(socketConnection,
                                             new mqtt::mqttstore::lib::Mqtt(socketConnection->getConnectionName(),
