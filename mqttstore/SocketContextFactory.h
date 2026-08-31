@@ -3,10 +3,10 @@
  * Copyright (C) Volker Christian <me@vchrist.at>
  *               2022, 2023, 2024, 2025, 2026
  *
- * This program is free software: you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option)
- * any later version.
+ * This program is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
  */
 
 #ifndef MQTTSTORE_SOCKETCONTEXTFACTORY_H
@@ -14,9 +14,20 @@
 
 #include <core/socket/stream/SocketContextFactory.h> // IWYU pragma: export
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+#include <string>
+#endif
+
+namespace net::config {
+    class ConfigInstance;
+}
+
 namespace mqtt::mqttstore {
 
     class SocketContextFactory : public core::socket::stream::SocketContextFactory {
+    public:
+        static void preflight(const std::string& instanceName, const net::config::ConfigInstance* configInstance);
+
     private:
         core::socket::stream::SocketContext* create(core::socket::stream::SocketConnection* socketConnection) final;
     };
