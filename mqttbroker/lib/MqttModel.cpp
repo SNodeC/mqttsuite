@@ -59,7 +59,7 @@
 #include <ctime>
 #include <functional>
 #include <iomanip>
-#include <log/Logger.h>
+#include <SemanticLog.h>
 #include <sstream>
 #include <utility>
 
@@ -333,7 +333,7 @@ namespace mqtt::mqttbroker::lib {
     }
 
     void MqttModel::sendJsonEvent(const nlohmann::json& json, const std::string& event, const std::string& id) const {
-        VLOG(0) << "Server sent event: " << event << "\n" << json.dump(4);
+        snode::semantic::appLog().trace() << "Server sent event: " << event << "\n" << json.dump(4);
 
         sendEvent(json.dump(), event, id);
     }

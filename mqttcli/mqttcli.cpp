@@ -77,7 +77,7 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <log/Logger.h>
+#include <SemanticLog.h>
 //
 #include <list>
 
@@ -87,22 +87,22 @@ static void
 reportState(const std::string& instanceName, const core::socket::SocketAddress& socketAddress, const core::socket::State& state) {
     switch (state) {
         case core::socket::State::OK:
-            VLOG(1) << instanceName << ": connected to '" << socketAddress.toString() << "'";
+            snode::semantic::appLog().trace() << instanceName << ": connected to '" << socketAddress.toString() << "'";
             break;
         case core::socket::State::DISABLED:
-            VLOG(1) << instanceName << ": disabled";
+            snode::semantic::appLog().trace() << instanceName << ": disabled";
             break;
         case core::socket::State::ERROR:
-            VLOG(1) << instanceName << ": " << socketAddress.toString() << ": " << state.what();
+            snode::semantic::appLog().trace() << instanceName << ": " << socketAddress.toString() << ": " << state.what();
             break;
         case core::socket::State::FATAL:
-            VLOG(1) << instanceName << ": " << socketAddress.toString() << ": " << state.what();
+            snode::semantic::appLog().trace() << instanceName << ": " << socketAddress.toString() << ": " << state.what();
             break;
     }
 }
 
 static void logResponse(const std::shared_ptr<web::http::client::Request>& req, const std::shared_ptr<web::http::client::Response>& res) {
-    VLOG(1) << req->getConnectionName() << " HTTP response for: " << req->method << " " << req->url << " HTTP/" << req->httpMajor << "."
+    snode::semantic::appLog().trace() << req->getConnectionName() << " HTTP response for: " << req->method << " " << req->url << " HTTP/" << req->httpMajor << "."
             << req->httpMinor << "\n"
             << httputils::toString(req->method,
                                    req->url,
@@ -158,7 +158,7 @@ static HttpClient startClient(const std::string& name, const std::function<void(
                 target,
                 "websocket",
                 [connectionName](bool success) {
-                    VLOG(1) << connectionName << ": HTTP Upgrade (http -> websocket||"
+                    snode::semantic::appLog().trace() << connectionName << ": HTTP Upgrade (http -> websocket||"
                             << "mqtt" << ") start " << (success ? "success" : "failed");
                 },
                 [connectionName](const std::shared_ptr<web::http::client::Request>& req,
@@ -166,11 +166,11 @@ static HttpClient startClient(const std::string& name, const std::function<void(
                                  bool success) {
                     logResponse(req, res);
 
-                    VLOG(1) << connectionName << ": HTTP Upgrade " << (success ? "success" : "failed");
+                    snode::semantic::appLog().trace() << connectionName << ": HTTP Upgrade " << (success ? "success" : "failed");
                 },
                 [connectionName](const std::shared_ptr<web::http::client::Request>& req, const std::string& message) {
-                    VLOG(1) << connectionName << ": Response parse error: " << message;
-                    VLOG(1) << "  Request was: " << req->method << " " << req->url << " HTTP/" << req->httpMajor << "." << req->httpMinor
+                    snode::semantic::appLog().trace() << connectionName << ": Response parse error: " << message;
+                    snode::semantic::appLog().trace() << "  Request was: " << req->method << " " << req->url << " HTTP/" << req->httpMajor << "." << req->httpMinor
                             << "\n"
                             << httputils::toString(req->method,
                                                    req->url,
@@ -184,7 +184,7 @@ static HttpClient startClient(const std::string& name, const std::function<void(
                 });
         },
         []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req) {
-            VLOG(1) << "Session ended";
+            snode::semantic::appLog().trace() << "Session ended";
         });
 
     configurator(httpClient.getConfig());
@@ -219,12 +219,12 @@ static void createConfig(net::config::ConfigInstance* config) {
             }
 
             if (!pubApp->getTopic().empty()) {
-                VLOG(0) << "[" << Color::Code::FG_LIGHT_GREEN << "Success" << Color::Code::FG_DEFAULT << "] " << "Bootstrap of "
+                snode::semantic::appLog().trace() << "[" << Color::Code::FG_LIGHT_GREEN << "Success" << Color::Code::FG_DEFAULT << "] " << "Bootstrap of "
                         << config->getInstanceName() << ":pub";
             }
 
             if (!subApp->getTopic().empty()) {
-                VLOG(0) << "[" << Color::Code::FG_LIGHT_GREEN << "Success" << Color::Code::FG_DEFAULT << "] " << "Bootstrap of "
+                snode::semantic::appLog().trace() << "[" << Color::Code::FG_LIGHT_GREEN << "Success" << Color::Code::FG_DEFAULT << "] " << "Bootstrap of "
                         << config->getInstanceName() << ":sub";
             }
         }
