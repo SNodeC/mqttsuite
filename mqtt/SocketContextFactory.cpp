@@ -45,7 +45,7 @@
 
 #include <core/socket/stream/SocketConnection.h>
 #include <iot/mqtt/SocketContext.h>
-#include <log/Logger.h>
+#include <SemanticLog.h>
 #include <net/config/ConfigInstance.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -89,7 +89,7 @@ namespace mqtt::mqtt {
                                             pubApp != nullptr ? pubApp->get_option("--message")->as<std::string>() : "",
                                             pubApp != nullptr ? pubApp->get_option("--retain")->as<bool>() : false));
         } else {
-            VLOG(0) << "[" << Color::Code::FG_RED << "Error" << Color::Code::FG_DEFAULT << "] " << socketConnection->getConnectionName()
+            snode::semantic::appLog().trace() << "[" << Color::Code::FG_RED << "Error" << Color::Code::FG_DEFAULT << "] " << socketConnection->getConnectionName()
                     << ": one of 'sub' or 'pub' is required";
         }
 
