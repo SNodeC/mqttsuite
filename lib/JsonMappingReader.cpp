@@ -25,7 +25,7 @@
 #include <exception>
 #include <fstream>
 #include <initializer_list>
-#include <log/Logger.h>
+#include <SemanticLog.h>
 #include <vector>
 
 #endif
@@ -44,7 +44,7 @@ namespace mqtt::lib {
     class custom_error_handler : public nlohmann::json_schema::basic_error_handler {
         void error(const nlohmann::json::json_pointer& ptr, const nlohmann::json& instance, const std::string& message) override {
             nlohmann::json_schema::basic_error_handler::error(ptr, instance, message);
-            LOG(ERROR) << ptr.to_string() << " - " << instance << "': " << message << "\n";
+            snode::semantic::appLog().error() << ptr.to_string() << " - " << instance << "': " << message << "\n";
         }
     };
 
@@ -54,7 +54,7 @@ namespace mqtt::lib {
                 std::ifstream mapFile(mapFilePath);
 
                 if (mapFile.is_open()) {
-                    LOG(TRACE) << "MappingFilePath: " << mapFilePath;
+                    snode::semantic::appLog().trace() << "MappingFilePath: " << mapFilePath;
 
                     try {
                         mapFile >> mapFileJsons[mapFilePath];
@@ -71,30 +71,30 @@ namespace mqtt::lib {
                                 try {
                                     mapFileJsons[mapFilePath] = mapFileJsons[mapFilePath].patch(defaultPatch);
                                 } catch (const std::exception& e) {
-                                    LOG(ERROR) << e.what();
-                                    LOG(ERROR) << "Patching JSON with default patch failed:\n" << defaultPatch.dump(4);
+                                    snode::semantic::appLog().error() << e.what();
+                                    snode::semantic::appLog().error() << "Patching JSON with default patch failed:\n" << defaultPatch.dump(4);
                                     mapFileJsons[mapFilePath].clear();
                                 }
                             } else {
                                 mapFileJsons[mapFilePath].clear();
                             }
                         } catch (const std::exception& e) {
-                            LOG(ERROR) << e.what();
-                            LOG(ERROR) << "Setting root json mapping schema failed:\n" << mappingJsonSchema.dump(4);
+                            snode::semantic::appLog().error() << e.what();
+                            snode::semantic::appLog().error() << "Setting root json mapping schema failed:\n" << mappingJsonSchema.dump(4);
                             mapFileJsons[mapFilePath].clear();
                         }
 
                         mapFile.close();
                     } catch (const std::exception& e) {
-                        LOG(ERROR) << "JSON map file parsing failed: " << e.what() << " at " << mapFile.tellg();
+                        snode::semantic::appLog().error() << "JSON map file parsing failed: " << e.what() << " at " << mapFile.tellg();
                         mapFileJsons[mapFilePath].clear();
                     }
                     mapFile.close();
                 } else {
-                    LOG(TRACE) << "MappingFilePath: " << mapFilePath << " not found";
+                    snode::semantic::appLog().trace() << "MappingFilePath: " << mapFilePath << " not found";
                 }
             } else {
-                LOG(TRACE) << "MappingFilePath empty";
+                snode::semantic::appLog().trace() << "MappingFilePath empty";
             }
         }
 

@@ -31,7 +31,7 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <cstdlib>
-#include <log/Logger.h>
+#include <SemanticLog.h>
 
 #endif
 
@@ -98,18 +98,18 @@ int main(int argc, char* argv[]) {
         mqttLegacyInServer.listen(1883, [](const MQTTLegacyInSocketAddress& socketAddress, const core::socket::State& state) -> void {
             switch (state) {
                 case core::socket::State::OK:
-                    VLOG(1) << "legacyin: listening on '" << socketAddress.toString() << "': " << state.what();
+                    snode::semantic::appLog().trace() << "legacyin: listening on '" << socketAddress.toString() << "': " << state.what();
                     break;
                 case core::socket::State::DISABLED:
-                    VLOG(1) << "legacyin: disabled";
+                    snode::semantic::appLog().trace() << "legacyin: disabled";
                     break;
                 case core::socket::State::ERROR:
-                    VLOG(1) << "legacyin: " << socketAddress.toString() << ": non critical error occurred";
-                    VLOG(1) << "    " << state.what();
+                    snode::semantic::appLog().trace() << "legacyin: " << socketAddress.toString() << ": non critical error occurred";
+                    snode::semantic::appLog().trace() << "    " << state.what();
                     break;
                 case core::socket::State::FATAL:
-                    VLOG(1) << "legacyin: " << socketAddress.toString() << ": critical error occurred";
-                    VLOG(1) << "    " << state.what();
+                    snode::semantic::appLog().trace() << "legacyin: " << socketAddress.toString() << ": critical error occurred";
+                    snode::semantic::appLog().trace() << "    " << state.what();
                     break;
             }
         });
@@ -122,18 +122,18 @@ int main(int argc, char* argv[]) {
         mqttTLSInServer.listen(8883, [](const MQTTTLSInSocketAddress& socketAddress, const core::socket::State& state) -> void {
             switch (state) {
                 case core::socket::State::OK:
-                    VLOG(1) << "tlsin: listening on '" << socketAddress.toString() << "': " << state.what();
+                    snode::semantic::appLog().trace() << "tlsin: listening on '" << socketAddress.toString() << "': " << state.what();
                     break;
                 case core::socket::State::DISABLED:
-                    VLOG(1) << "tlsin: disabled";
+                    snode::semantic::appLog().trace() << "tlsin: disabled";
                     break;
                 case core::socket::State::ERROR:
-                    VLOG(1) << "tlsin: " << socketAddress.toString() << ": non critical error occurred";
-                    VLOG(1) << "    " << state.what();
+                    snode::semantic::appLog().trace() << "tlsin: " << socketAddress.toString() << ": non critical error occurred";
+                    snode::semantic::appLog().trace() << "    " << state.what();
                     break;
                 case core::socket::State::FATAL:
-                    VLOG(1) << "tlsin: " << socketAddress.toString() << ": critical error occurred";
-                    VLOG(1) << "    " << state.what();
+                    snode::semantic::appLog().trace() << "tlsin: " << socketAddress.toString() << ": critical error occurred";
+                    snode::semantic::appLog().trace() << "    " << state.what();
                     break;
             }
         });
@@ -146,18 +146,18 @@ int main(int argc, char* argv[]) {
                                   [](const MQTTLegacyUnSocketAddress& socketAddress, const core::socket::State& state) -> void {
                                       switch (state) {
                                           case core::socket::State::OK:
-                                              VLOG(1) << "legacyun: listening on '" << socketAddress.toString() << "': " << state.what();
+                                              snode::semantic::appLog().trace() << "legacyun: listening on '" << socketAddress.toString() << "': " << state.what();
                                               break;
                                           case core::socket::State::DISABLED:
-                                              VLOG(1) << "legacyun: disabled";
+                                              snode::semantic::appLog().trace() << "legacyun: disabled";
                                               break;
                                           case core::socket::State::ERROR:
-                                              VLOG(1) << "legacyun: " << socketAddress.toString() << ": non critical error occurred";
-                                              VLOG(1) << "    " << state.what();
+                                              snode::semantic::appLog().trace() << "legacyun: " << socketAddress.toString() << ": non critical error occurred";
+                                              snode::semantic::appLog().trace() << "    " << state.what();
                                               break;
                                           case core::socket::State::FATAL:
-                                              VLOG(1) << "legacyun: " << socketAddress.toString() << ": critical error occurred";
-                                              VLOG(1) << "    " << state.what();
+                                              snode::semantic::appLog().trace() << "legacyun: " << socketAddress.toString() << ": critical error occurred";
+                                              snode::semantic::appLog().trace() << "    " << state.what();
                                               break;
                                       }
                                   });
@@ -170,18 +170,18 @@ int main(int argc, char* argv[]) {
         mqttTLSWebView.listen(8088, [](const MQTTTlSWebViewSocketAddress& socketAddress, const core::socket::State& state) -> void {
             switch (state) {
                 case core::socket::State::OK:
-                    VLOG(1) << "mqtttlswebview: listening on '" << socketAddress.toString() << "': " << state.what();
+                    snode::semantic::appLog().trace() << "mqtttlswebview: listening on '" << socketAddress.toString() << "': " << state.what();
                     break;
                 case core::socket::State::DISABLED:
-                    VLOG(1) << "mqtttlswebview: disabled";
+                    snode::semantic::appLog().trace() << "mqtttlswebview: disabled";
                     break;
                 case core::socket::State::ERROR:
-                    VLOG(1) << "mqtttlswebview: " << socketAddress.toString() << ": non critical error occurred";
-                    VLOG(1) << "    " << state.what();
+                    snode::semantic::appLog().trace() << "mqtttlswebview: " << socketAddress.toString() << ": non critical error occurred";
+                    snode::semantic::appLog().trace() << "    " << state.what();
                     break;
                 case core::socket::State::FATAL:
-                    VLOG(1) << "mqtttlswebview: " << socketAddress.toString() << ": critical error occurred";
-                    VLOG(1) << "    " << state.what();
+                    snode::semantic::appLog().trace() << "mqtttlswebview: " << socketAddress.toString() << ": critical error occurred";
+                    snode::semantic::appLog().trace() << "    " << state.what();
                     break;
             }
         });
@@ -193,18 +193,18 @@ int main(int argc, char* argv[]) {
         mqttLegacyWebView.listen(8080, [](const MQTTLegacyWebViewSocketAddress& socketAddress, const core::socket::State& state) -> void {
             switch (state) {
                 case core::socket::State::OK:
-                    VLOG(1) << "mqttlegacywebview: listening on '" << socketAddress.toString() << "': " << state.what();
+                    snode::semantic::appLog().trace() << "mqttlegacywebview: listening on '" << socketAddress.toString() << "': " << state.what();
                     break;
                 case core::socket::State::DISABLED:
-                    VLOG(1) << "mqttlegacywebview: disabled";
+                    snode::semantic::appLog().trace() << "mqttlegacywebview: disabled";
                     break;
                 case core::socket::State::ERROR:
-                    VLOG(1) << "mqttlegacywebview: " << socketAddress.toString() << ": non critical error occurred";
-                    VLOG(1) << "    " << state.what();
+                    snode::semantic::appLog().trace() << "mqttlegacywebview: " << socketAddress.toString() << ": non critical error occurred";
+                    snode::semantic::appLog().trace() << "    " << state.what();
                     break;
                 case core::socket::State::FATAL:
-                    VLOG(1) << "mqttlegacywebview: " << socketAddress.toString() << ": critical error occurred";
-                    VLOG(1) << "    " << state.what();
+                    snode::semantic::appLog().trace() << "mqttlegacywebview: " << socketAddress.toString() << ": critical error occurred";
+                    snode::semantic::appLog().trace() << "    " << state.what();
                     break;
             }
         });
