@@ -49,7 +49,7 @@
 
 // #include "nlohmann/json-schema.hpp"
 
-#include "lib/SemanticLog.h"
+#include "lib/Log.h"
 
 #include <algorithm>
 #include <chrono>
@@ -127,7 +127,7 @@ namespace mqtt::lib {
             out << j.dump(2);
             out.close();
         } catch (const std::exception& e) {
-            mqttsuite::semantic::mappingLog().debug() << "Failed to inject metadata into draft: " << e.what();
+            mqttsuite::log::mappingLog().debug() << "Failed to inject metadata into draft: " << e.what();
         }
 
         // 2. Backup current active file

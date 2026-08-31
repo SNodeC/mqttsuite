@@ -103,7 +103,7 @@
 #include <nlohmann/json.hpp>
 // IWYU pragma: no_include <nlohmann/json_fwd.hpp>
 //
-#include "lib/SemanticLog.h"
+#include "lib/Log.h"
 //
 #include <utility>
 
@@ -112,7 +112,7 @@
 static void upgrade APPLICATION(req, res) {
     const std::string connectionName = res->getSocketContext()->getSocketConnection()->getConnectionName();
 
-    mqttsuite::semantic::brokerLog().trace() << connectionName << " HTTP: Upgrade request:\n"
+    mqttsuite::log::brokerLog().trace() << connectionName << " HTTP: Upgrade request:\n"
                                              << httputils::toString(req->method,
                                                                     req->url,
                                                                     "HTTP/" + std::to_string(req->httpMajor) + "." +
@@ -126,21 +126,21 @@ static void upgrade APPLICATION(req, res) {
     if (req->get("sec-websocket-protocol").find("mqtt") != std::string::npos) {
         res->upgrade(req, [req, res, connectionName](const std::string& name) {
             if (!name.empty()) {
-                mqttsuite::semantic::brokerLog().debug() << connectionName << ": Successful upgrade:";
-                mqttsuite::semantic::brokerLog().debug() << connectionName << ":    Selected: " << name;
-                mqttsuite::semantic::brokerLog().debug() << connectionName << ":   Requested: " << req->get("sec-websocket-protocol");
+                mqttsuite::log::brokerLog().debug() << connectionName << ": Successful upgrade:";
+                mqttsuite::log::brokerLog().debug() << connectionName << ":    Selected: " << name;
+                mqttsuite::log::brokerLog().debug() << connectionName << ":   Requested: " << req->get("sec-websocket-protocol");
 
                 res->end();
             } else {
-                mqttsuite::semantic::brokerLog().debug() << connectionName << ": Can not upgrade to any of '" << req->get("upgrade") << "'";
+                mqttsuite::log::brokerLog().debug() << connectionName << ": Can not upgrade to any of '" << req->get("upgrade") << "'";
 
                 res->sendStatus(404);
             }
         });
     } else {
-        mqttsuite::semantic::brokerLog().debug() << connectionName << ": Unsupported subprotocol(s):";
-        mqttsuite::semantic::brokerLog().debug() << "    Expected: mqtt";
-        mqttsuite::semantic::brokerLog().debug() << "   Requested: " << req->get("sec-websocket-protocol");
+        mqttsuite::log::brokerLog().debug() << connectionName << ": Unsupported subprotocol(s):";
+        mqttsuite::log::brokerLog().debug() << "    Expected: mqtt";
+        mqttsuite::log::brokerLog().debug() << "   Requested: " << req->get("sec-websocket-protocol");
 
         res->sendStatus(404);
     }
@@ -162,13 +162,13 @@ static express::Router getRouter(std::shared_ptr<iot::mqtt::server::broker::Brok
     });
 
     jsonRouter.post("/api/mqtt/disconnect", [] APPLICATION(req, res) {
-        mqttsuite::semantic::brokerLog().debug() << "POST /disconnect";
+        mqttsuite::log::brokerLog().debug() << "POST /disconnect";
 
         req->getAttribute<nlohmann::json>(
             [&res](nlohmann::json& json) {
                 std::string jsonString = json.dump(4);
 
-                mqttsuite::semantic::brokerLog().debug() << jsonString;
+                mqttsuite::log::brokerLog().debug() << jsonString;
 
                 std::string clientId = json["clientId"].get<std::string>();
                 const mqtt::mqttbroker::lib::Mqtt* mqtt = mqtt::mqttbroker::lib::MqttModel::instance().getMqtt(clientId);
@@ -181,7 +181,7 @@ static express::Router getRouter(std::shared_ptr<iot::mqtt::server::broker::Brok
                 }
             },
             [&res](const std::string& key) {
-                mqttsuite::semantic::brokerLog().debug() << "Attribute type not found: " << key;
+                mqttsuite::log::brokerLog().debug() << "Attribute type not found: " << key;
 
                 res->status(400).send("Attribute type not found: " + key);
             });
@@ -192,13 +192,13 @@ static express::Router getRouter(std::shared_ptr<iot::mqtt::server::broker::Brok
      * JSON.stringify({clientId, topic})
      */
     jsonRouter.post("/api/mqtt/unsubscribe", [] APPLICATION(req, res) {
-        mqttsuite::semantic::brokerLog().debug() << "POST /unsubscribe";
+        mqttsuite::log::brokerLog().debug() << "POST /unsubscribe";
 
         req->getAttribute<nlohmann::json>(
             [&res](nlohmann::json& json) {
                 std::string jsonString = json.dump(4);
 
-                mqttsuite::semantic::brokerLog().debug() << jsonString;
+                mqttsuite::log::brokerLog().debug() << jsonString;
 
                 std::string clientId = json["clientId"].get<std::string>();
                 std::string topic = json["topic"].get<std::string>();
@@ -213,7 +213,7 @@ static express::Router getRouter(std::shared_ptr<iot::mqtt::server::broker::Brok
                 }
             },
             [&res](const std::string& key) {
-                mqttsuite::semantic::brokerLog().debug() << "Attribute type not found: " << key;
+                mqttsuite::log::brokerLog().debug() << "Attribute type not found: " << key;
 
                 res->status(400).send("Attribute type not found: " + key);
             });
@@ -224,13 +224,13 @@ static express::Router getRouter(std::shared_ptr<iot::mqtt::server::broker::Brok
      * JSON.stringify({ topic })
      */
     jsonRouter.post("/api/mqtt/release", [broker] APPLICATION(req, res) {
-        mqttsuite::semantic::brokerLog().debug() << "POST /release";
+        mqttsuite::log::brokerLog().debug() << "POST /release";
 
         req->getAttribute<nlohmann::json>(
             [&res, broker](nlohmann::json& json) {
                 std::string jsonString = json.dump(4);
 
-                mqttsuite::semantic::brokerLog().debug() << jsonString;
+                mqttsuite::log::brokerLog().debug() << jsonString;
 
                 std::string topic = json["topic"].get<std::string>();
 
@@ -240,7 +240,7 @@ static express::Router getRouter(std::shared_ptr<iot::mqtt::server::broker::Brok
                 res->send(R"({"success": true, "message": "Retained message released successfully"})"_json.dump());
             },
             [&res](const std::string& key) {
-                mqttsuite::semantic::brokerLog().debug() << "Attribute type not found: " << key;
+                mqttsuite::log::brokerLog().debug() << "Attribute type not found: " << key;
 
                 res->status(400).send("Attribute type not found: " + key);
             });
@@ -251,13 +251,13 @@ static express::Router getRouter(std::shared_ptr<iot::mqtt::server::broker::Brok
      * JSON.stringify({ clientId, topic, qos })
      */
     jsonRouter.post("/api/mqtt/subscribe", [] APPLICATION(req, res) {
-        mqttsuite::semantic::brokerLog().debug() << "POST /subscribe";
+        mqttsuite::log::brokerLog().debug() << "POST /subscribe";
 
         req->getAttribute<nlohmann::json>(
             [&res](nlohmann::json& json) {
                 std::string jsonString = json.dump(4);
 
-                mqttsuite::semantic::brokerLog().debug() << jsonString;
+                mqttsuite::log::brokerLog().debug() << jsonString;
 
                 std::string clientId = json["clientId"].get<std::string>();
                 std::string topic = json["topic"].get<std::string>();
@@ -274,7 +274,7 @@ static express::Router getRouter(std::shared_ptr<iot::mqtt::server::broker::Brok
                 }
             },
             [&res](const std::string& key) {
-                mqttsuite::semantic::brokerLog().debug() << "Attribute type not found: " << key;
+                mqttsuite::log::brokerLog().debug() << "Attribute type not found: " << key;
 
                 res->status(400).send("Attribute type not found: " + key);
             });
@@ -352,16 +352,16 @@ static void
 reportState(const std::string& instanceName, const core::socket::SocketAddress& socketAddress, const core::socket::State& state) {
     switch (state) {
         case core::socket::State::OK:
-            mqttsuite::semantic::brokerLog().debug() << instanceName << ": listening on '" << socketAddress.toString() << "'";
+            mqttsuite::log::brokerLog().debug() << instanceName << ": listening on '" << socketAddress.toString() << "'";
             break;
         case core::socket::State::DISABLED:
-            mqttsuite::semantic::brokerLog().debug() << instanceName << ": disabled";
+            mqttsuite::log::brokerLog().debug() << instanceName << ": disabled";
             break;
         case core::socket::State::ERROR:
-            mqttsuite::semantic::brokerLog().debug() << instanceName << ": " << socketAddress.toString() << ": " << state.what();
+            mqttsuite::log::brokerLog().debug() << instanceName << ": " << socketAddress.toString() << ": " << state.what();
             break;
         case core::socket::State::FATAL:
-            mqttsuite::semantic::brokerLog().debug() << instanceName << ": " << socketAddress.toString() << ": " << state.what();
+            mqttsuite::log::brokerLog().debug() << instanceName << ": " << socketAddress.toString() << ": " << state.what();
             break;
     }
 }

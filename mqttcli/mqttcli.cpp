@@ -77,7 +77,7 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include "lib/SemanticLog.h"
+#include "lib/Log.h"
 //
 #include <list>
 
@@ -87,22 +87,22 @@ static void
 reportState(const std::string& instanceName, const core::socket::SocketAddress& socketAddress, const core::socket::State& state) {
     switch (state) {
         case core::socket::State::OK:
-            mqttsuite::semantic::cliLog().debug() << instanceName << ": connected to '" << socketAddress.toString() << "'";
+            mqttsuite::log::cliLog().debug() << instanceName << ": connected to '" << socketAddress.toString() << "'";
             break;
         case core::socket::State::DISABLED:
-            mqttsuite::semantic::cliLog().debug() << instanceName << ": disabled";
+            mqttsuite::log::cliLog().debug() << instanceName << ": disabled";
             break;
         case core::socket::State::ERROR:
-            mqttsuite::semantic::cliLog().debug() << instanceName << ": " << socketAddress.toString() << ": " << state.what();
+            mqttsuite::log::cliLog().debug() << instanceName << ": " << socketAddress.toString() << ": " << state.what();
             break;
         case core::socket::State::FATAL:
-            mqttsuite::semantic::cliLog().debug() << instanceName << ": " << socketAddress.toString() << ": " << state.what();
+            mqttsuite::log::cliLog().debug() << instanceName << ": " << socketAddress.toString() << ": " << state.what();
             break;
     }
 }
 
 static void logResponse(const std::shared_ptr<web::http::client::Request>& req, const std::shared_ptr<web::http::client::Response>& res) {
-    mqttsuite::semantic::cliLog().debug()
+    mqttsuite::log::cliLog().debug()
         << req->getConnectionName() << " HTTP response for: " << req->method << " " << req->url << " HTTP/" << req->httpMajor << "."
         << req->httpMinor << "\n"
         << httputils::toString(req->method,
@@ -159,7 +159,7 @@ static HttpClient startClient(const std::string& name, const std::function<void(
                 target,
                 "websocket",
                 [connectionName](bool success) {
-                    mqttsuite::semantic::cliLog().debug() << connectionName << ": HTTP Upgrade (http -> websocket||"
+                    mqttsuite::log::cliLog().debug() << connectionName << ": HTTP Upgrade (http -> websocket||"
                                                           << "mqtt" << ") start " << (success ? "success" : "failed");
                 },
                 [connectionName](const std::shared_ptr<web::http::client::Request>& req,
@@ -167,11 +167,11 @@ static HttpClient startClient(const std::string& name, const std::function<void(
                                  bool success) {
                     logResponse(req, res);
 
-                    mqttsuite::semantic::cliLog().debug() << connectionName << ": HTTP Upgrade " << (success ? "success" : "failed");
+                    mqttsuite::log::cliLog().debug() << connectionName << ": HTTP Upgrade " << (success ? "success" : "failed");
                 },
                 [connectionName](const std::shared_ptr<web::http::client::Request>& req, const std::string& message) {
-                    mqttsuite::semantic::cliLog().debug() << connectionName << ": Response parse error: " << message;
-                    mqttsuite::semantic::cliLog().debug()
+                    mqttsuite::log::cliLog().debug() << connectionName << ": Response parse error: " << message;
+                    mqttsuite::log::cliLog().debug()
                         << "  Request was: " << req->method << " " << req->url << " HTTP/" << req->httpMajor << "." << req->httpMinor
                         << "\n"
                         << httputils::toString(req->method,
@@ -186,7 +186,7 @@ static HttpClient startClient(const std::string& name, const std::function<void(
                 });
         },
         []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req) {
-            mqttsuite::semantic::cliLog().debug() << "Session ended";
+            mqttsuite::log::cliLog().debug() << "Session ended";
         });
 
     configurator(httpClient.getConfig());
@@ -221,13 +221,11 @@ static void createConfig(net::config::ConfigInstance* config) {
             }
 
             if (!pubApp->getTopic().empty()) {
-                mqttsuite::semantic::cliLog().info() << "[" << Color::Code::FG_LIGHT_GREEN << "Success" << Color::Code::FG_DEFAULT << "] "
-                                                     << "Bootstrap of " << config->getInstanceName() << ":pub";
+                mqttsuite::log::cliLog().info() << "Bootstrap succeeded for " << config->getInstanceName() << ":pub";
             }
 
             if (!subApp->getTopic().empty()) {
-                mqttsuite::semantic::cliLog().info() << "[" << Color::Code::FG_LIGHT_GREEN << "Success" << Color::Code::FG_DEFAULT << "] "
-                                                     << "Bootstrap of " << config->getInstanceName() << ":sub";
+                mqttsuite::log::cliLog().info() << "Bootstrap succeeded for " << config->getInstanceName() << ":sub";
             }
         }
     });

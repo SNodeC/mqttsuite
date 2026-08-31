@@ -22,7 +22,7 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include "lib/SemanticLog.h"
+#include "lib/Log.h"
 
 #include <algorithm>
 #include <cstring>
@@ -63,22 +63,22 @@ namespace mqtt::mqttstore::lib {
         , username(username)
         , password(password)
         , subTopics(subTopics) {
-        mqttsuite::semantic::storeLog().debug() << "MQTTStore client id: " << clientId;
-        mqttsuite::semantic::storeLog().debug() << "  Keep Alive: " << keepAlive;
-        mqttsuite::semantic::storeLog().debug() << "  Clean Session: " << cleanSession;
-        mqttsuite::semantic::storeLog().debug() << "  Will Topic: " << willTopic;
-        mqttsuite::semantic::storeLog().debug() << "  Will QoS: " << static_cast<std::uint16_t>(willQoS);
-        mqttsuite::semantic::storeLog().debug() << "  Will Retain: " << willRetain;
-        mqttsuite::semantic::storeLog().debug() << "  Username configured: " << (!username.empty());
+        mqttsuite::log::storeLog().debug() << "MQTTStore client id: " << clientId;
+        mqttsuite::log::storeLog().debug() << "  Keep Alive: " << keepAlive;
+        mqttsuite::log::storeLog().debug() << "  Clean Session: " << cleanSession;
+        mqttsuite::log::storeLog().debug() << "  Will Topic: " << willTopic;
+        mqttsuite::log::storeLog().debug() << "  Will QoS: " << static_cast<std::uint16_t>(willQoS);
+        mqttsuite::log::storeLog().debug() << "  Will Retain: " << willRetain;
+        mqttsuite::log::storeLog().debug() << "  Username configured: " << (!username.empty());
     }
 
     void Mqtt::onConnected() {
-        mqttsuite::semantic::storeLog().debug() << "MQTTStore: initiating MQTT session";
+        mqttsuite::log::storeLog().debug() << "MQTTStore: initiating MQTT session";
         sendConnect(cleanSession, willTopic, willMessage, willQoS, willRetain, username, password);
     }
 
     bool Mqtt::onSignal(int signum) {
-        mqttsuite::semantic::storeLog().debug()
+        mqttsuite::log::storeLog().debug()
             << "MQTTStore: exit due to '" << strsignal(signum) << "' (SIG" << utils::system::sigabbrev_np(signum) << " = " << signum << ")";
         sendDisconnect();
 
@@ -97,14 +97,14 @@ namespace mqtt::mqttstore::lib {
 
     void Mqtt::onConnack(const iot::mqtt::packets::Connack& connack) {
         if (connack.getReturnCode() != 0) {
-            mqttsuite::semantic::storeLog().info() << connectionName << " MQTTStore: broker rejected connection with return code "
+            mqttsuite::log::storeLog().info() << connectionName << " MQTTStore: broker rejected connection with return code "
                                                    << static_cast<int>(connack.getReturnCode());
             sendDisconnect();
             return;
         }
 
         if (subTopics.empty()) {
-            mqttsuite::semantic::storeLog().info() << connectionName << " MQTTStore: no subscriptions configured";
+            mqttsuite::log::storeLog().info() << connectionName << " MQTTStore: no subscriptions configured";
             sendDisconnect();
             return;
         }
@@ -123,20 +123,20 @@ namespace mqtt::mqttstore::lib {
                                    qoS = getQos(compositeTopic.substr(pos + 2));
                                }
 
-                               mqttsuite::semantic::storeLog().info()
+                               mqttsuite::log::storeLog().info()
                                    << "MQTTStore subscribe: QoS " << static_cast<int>(qoS) << " | " << topic;
                                return iot::mqtt::Topic(topic, qoS);
                            });
 
             sendSubscribe(topicList);
         } catch (const std::logic_error& error) {
-            mqttsuite::semantic::storeLog().info() << connectionName << " MQTTStore subscription failed: " << error.what();
+            mqttsuite::log::storeLog().info() << connectionName << " MQTTStore subscription failed: " << error.what();
             sendDisconnect();
         }
     }
 
     void Mqtt::onPublish(const iot::mqtt::packets::Publish& publish) {
-        mqttsuite::semantic::storeLog().debug() << connectionName << " MQTTStore received publish: topic='" << publish.getTopic()
+        mqttsuite::log::storeLog().debug() << connectionName << " MQTTStore received publish: topic='" << publish.getTopic()
                                                 << "' qos=" << static_cast<std::uint16_t>(publish.getQoS())
                                                 << " retain=" << (publish.getRetain() != 0) << " dup=" << (publish.getDup() != 0);
 
@@ -150,10 +150,10 @@ namespace mqtt::mqttstore::lib {
     }
 
     void Mqtt::onSuback(const iot::mqtt::packets::Suback& suback) {
-        mqttsuite::semantic::storeLog().debug() << "MQTTStore Suback";
+        mqttsuite::log::storeLog().debug() << "MQTTStore Suback";
 
         for (auto returnCode : suback.getReturnCodes()) {
-            mqttsuite::semantic::storeLog().info() << "  r: " << static_cast<int>(returnCode);
+            mqttsuite::log::storeLog().info() << "  r: " << static_cast<int>(returnCode);
         }
     }
 

@@ -50,7 +50,7 @@ struct tm;
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include "lib/SemanticLog.h"
+#include "lib/Log.h"
 
 #include <ctime>
 #include <functional>
@@ -113,7 +113,7 @@ namespace mqtt::bridge::lib {
     }
 
     void SSEDistributor::sendEvent(const std::string& data, const std::string& event, const std::string& id) {
-        mqttsuite::semantic::bridgeLog().info() << "Server sent event: " << event << "\n" << data;
+        mqttsuite::log::bridgeLog().info() << "Server sent event: " << event << "\n" << data;
 
         for (const auto& eventReceiver : eventReceiverList) {
             if (const auto& response = eventReceiver.getResponse()) {
