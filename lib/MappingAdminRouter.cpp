@@ -3,40 +3,10 @@
  * Copyright (C) Tobias Pfeil
  *               2025, 2026
  *
- * This program is free software: you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option)
- * any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program. If not, see <https://www.gnu.org/licenses/>.
- */
-
-/*
- * MIT License
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * This program is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
  */
 
 #include "MappingAdminRouter.h"
@@ -56,11 +26,35 @@
 #include <exception>
 #include <filesystem>
 #include <fstream>
+#include <string>
 #include <vector>
 
-// IWYU pragma: no_include <nlohmann/detail/json_ref.hpp>
-
 #endif // DOXYGEN_SHOULD_SKIP_THIS
+
+namespace {
+
+    bool isSecretKey(const std::string& key) {
+        return key == "password" || key == "pass" || key == "secret" || key == "token";
+    }
+
+    nlohmann::json redactSecrets(nlohmann::json value) {
+        if (value.is_object()) {
+            for (auto& [key, child] : value.items()) {
+                if (isSecretKey(key)) {
+                    child = "<redacted>";
+                } else {
+                    child = redactSecrets(std::move(child));
+                }
+            }
+        } else if (value.is_array()) {
+            for (auto& child : value) {
+                child = redactSecrets(std::move(child));
+            }
+        }
+        return value;
+    }
+
+} // namespace
 
 namespace mqtt::lib::admin {
 
@@ -70,21 +64,18 @@ namespace mqtt::lib::admin {
         api.use(express::middleware::JsonMiddleware());
         api.use(express::middleware::BasicAuthentication(opt.user, opt.pass, opt.realm));
 
-        // GET /schema
         api.get("/schema", [] APPLICATION(req, res) {
             res->status(200).send(MqttMapper::getSchema());
         });
 
-        // GET /config
         api.get("/config", [configApplication] APPLICATION(req, res) {
             try {
-                res->status(200).json(configApplication->getMqttMapper()->getMapping());
-            } catch (const std::exception& e) {
-                res->status(500).json({{"error", "Failed to load configuration"}, {"details", e.what()}});
+                res->status(200).json(redactSecrets(configApplication->getMqttMapper()->getMapping()));
+            } catch (const std::exception&) {
+                res->status(500).json({{"error", "Failed to load configuration"}});
             }
         });
 
-        // PATCH /config
         api.patch("/config", [configApplication] APPLICATION(req, res) {
             try {
                 const std::string bodyStr(req->body.begin(), req->body.end());
@@ -96,14 +87,13 @@ namespace mqtt::lib::admin {
                 JsonMappingReader::saveDraft(configApplication->getMappingFilename(), current);
 
                 res->status(200).json({{"status", "patched"}, {"path", configApplication->getMappingFilename()}});
-            } catch (const nlohmann::json::parse_error& e) {
-                res->status(400).json({{"error", "Invalid JSON body"}, {"details", e.what()}});
-            } catch (const std::exception& e) {
-                res->status(422).json({{"error", "Patch application failed"}, {"details", e.what()}});
+            } catch (const nlohmann::json::parse_error&) {
+                res->status(400).json({{"error", "Invalid JSON body"}});
+            } catch (const std::exception&) {
+                res->status(422).json({{"error", "Patch application failed"}});
             }
         });
 
-        // POST /config (replace full draft config)
         api.post("/config", [configApplication] APPLICATION(req, res) {
             try {
                 const std::string bodyStr(req->body.begin(), req->body.end());
@@ -117,21 +107,18 @@ namespace mqtt::lib::admin {
                 JsonMappingReader::saveDraft(configApplication->getMappingFilename(), replacement);
 
                 res->status(200).json({{"status", "replaced"}, {"path", configApplication->getMappingFilename()}});
-            } catch (const nlohmann::json::parse_error& e) {
-                res->status(400).json({{"error", "Invalid JSON body"}, {"details", e.what()}});
-            } catch (const std::exception& e) {
-                res->status(422).json({{"error", "Config replacement failed"}, {"details", e.what()}});
+            } catch (const nlohmann::json::parse_error&) {
+                res->status(400).json({{"error", "Invalid JSON body"}});
+            } catch (const std::exception&) {
+                res->status(422).json({{"error", "Config replacement failed"}});
             }
         });
 
-        // POST /config/deploy
         api.post("/config/deploy", [configApplication, onDeploy] APPLICATION(req, res) {
             try {
                 nlohmann::json newMappingJson = JsonMappingReader::deployDraft(configApplication->getMappingFilename());
 
-                bool mustReconnect = configApplication->getMqttMapper()->setMapping(newMappingJson); // throws in case of an error during
-                                                                                                     // loading or validation. This exeption
-                                                                                                     // is catched in the MappingAdminRouter
+                bool mustReconnect = configApplication->getMqttMapper()->setMapping(newMappingJson);
                 configApplication->persistMapping();
 
                 if (onDeploy) {
@@ -146,12 +133,11 @@ namespace mqtt::lib::admin {
                     res->status(200).json(
                         {{"status", "deploy-ack"}, {"reload_mode", "none"}, {"instances", 0}, {"subscribed", 0}, {"unsubscribed", 0}});
                 }
-            } catch (const std::exception& e) {
-                res->status(500).json({{"error", "Deploy failed"}, {"details", e.what()}});
+            } catch (const std::exception&) {
+                res->status(500).json({{"error", "Deploy failed"}});
             }
         });
 
-        // POST /config/validate
         api.post("/config/validate", [] APPLICATION(req, res) {
             try {
                 const std::string bodyStr(req->body.begin(), req->body.end());
@@ -165,12 +151,11 @@ namespace mqtt::lib::admin {
                 } else {
                     res->status(200).json({{"valid", true}});
                 }
-            } catch (const std::exception& e) {
-                res->status(400).json({{"error", "Validation exception"}, {"details", e.what()}});
+            } catch (const std::exception&) {
+                res->status(400).json({{"error", "Validation exception"}});
             }
         });
 
-        // GET /config/validateDraft
         api.get("/config/validateDraft", [configApplication] APPLICATION(req, res) {
             try {
                 const std::string draftPath = JsonMappingReader::getDraftPath(configApplication->getMappingFilename());
@@ -197,12 +182,11 @@ namespace mqtt::lib::admin {
                 } else {
                     res->status(200).json({{"valid", true}, {"path", draftPath}});
                 }
-            } catch (const std::exception& e) {
-                res->status(400).json({{"valid", false}, {"error", "Draft validation exception"}, {"details", e.what()}});
+            } catch (const std::exception&) {
+                res->status(400).json({{"valid", false}, {"error", "Draft validation exception"}});
             }
         });
 
-        // POST /config/rollback
         api.post("/config/rollback", [configApplication, onDeploy] APPLICATION(req, res) {
             try {
                 const std::string bodyStr(req->body.begin(), req->body.end());
@@ -217,15 +201,12 @@ namespace mqtt::lib::admin {
 
                 nlohmann::json rolledbackMappingJson = JsonMappingReader::rollbackTo(configApplication->getMappingFilename(), versionId);
 
-                bool mustReconnect =
-                    configApplication->getMqttMapper()->setMapping(rolledbackMappingJson); // throws in case of an error during loading
-                                                                                           // or validation. This exeption is catched
-                                                                                           // in the MappingAdminRouter
+                bool mustReconnect = configApplication->getMqttMapper()->setMapping(rolledbackMappingJson);
                 configApplication->persistMapping();
 
                 ReloadResult reloadResult;
                 if (onDeploy) {
-                    reloadResult = onDeploy(mustReconnect); // Trigger hot-reload
+                    reloadResult = onDeploy(mustReconnect);
                 }
 
                 res->status(200).json({{"status", "deploy-ack"},
@@ -233,12 +214,11 @@ namespace mqtt::lib::admin {
                                        {"instances", reloadResult.instances},
                                        {"subscribed", reloadResult.subscribed},
                                        {"unsubscribed", reloadResult.unsubscribed}});
-            } catch (const std::exception& e) {
-                res->status(500).json({{"error", "Rollback failed"}, {"details", e.what()}});
+            } catch (const std::exception&) {
+                res->status(500).json({{"error", "Rollback failed"}});
             }
         });
 
-        // GET /config/history
         api.get("/config/history", [configApplication] APPLICATION(req, res) {
             try {
                 auto history = JsonMappingReader::getHistory(configApplication->getMappingFilename());
@@ -247,7 +227,7 @@ namespace mqtt::lib::admin {
                     list.push_back({{"id", h.id}, {"comment", h.comment}, {"date", h.date}});
                 }
                 res->status(200).json(list);
-            } catch ([[maybe_unused]] const std::exception& e) {
+            } catch (const std::exception&) {
                 res->status(500).json({{"error", "Failed to fetch history"}});
             }
         });
