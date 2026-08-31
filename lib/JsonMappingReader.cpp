@@ -57,7 +57,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
-#include <log/Logger.h>
+#include <SemanticLog.h>
 #include <map>
 #include <sstream>
 #include <stdexcept>
@@ -126,7 +126,7 @@ namespace mqtt::lib {
             out << j.dump(2);
             out.close();
         } catch (const std::exception& e) {
-            VLOG(1) << "Failed to inject metadata into draft: " << e.what();
+            snode::semantic::appLog().trace() << "Failed to inject metadata into draft: " << e.what();
         }
 
         // 2. Backup current active file

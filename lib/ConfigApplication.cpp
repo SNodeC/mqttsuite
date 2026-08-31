@@ -1,3 +1,4 @@
+#include <SemanticLog.h>
 /*
  * MQTTSuite - A lightweight MQTT Integration System
  * Copyright (C) Volker Christian <me@vchrist.at>
@@ -134,21 +135,21 @@ namespace mqtt::lib {
 
                 success = true;
 
-                VLOG(1) << "Write mapping file seccess";
+                snode::semantic::appLog().trace() << "Write mapping file seccess";
             } catch (const std::exception& e) {
-                VLOG(1) << "Write mapping file failed: " << e.what();
+                snode::semantic::appLog().trace() << "Write mapping file failed: " << e.what();
             }
 
             mapFile.close();
         } else {
-            VLOG(1) << "Cannot open mapping file for writing: " << mapFilename;
+            snode::semantic::appLog().trace() << "Cannot open mapping file for writing: " << mapFilename;
         }
 
         return success;
     }
 
     bool ConfigApplication::loadMapping(const std::string mapFilename) {
-        VLOG(1) << "Mapping file: " << mapFilename;
+        snode::semantic::appLog().trace() << "Mapping file: " << mapFilename;
 
         this->mapFilename = mapFilename;
 
@@ -163,7 +164,7 @@ namespace mqtt::lib {
 
                     mapFile.close();
 
-                    VLOG(1) << "Load mapping file success";
+                    snode::semantic::appLog().trace() << "Load mapping file success";
                 } catch (const std::exception& e) {
                     mapFile.close();
 
@@ -174,7 +175,7 @@ namespace mqtt::lib {
                 }
 
             } else {
-                VLOG(1) << "Mapping file '" + mapFilename +
+                snode::semantic::appLog().trace() << "Mapping file '" + mapFilename +
                                "' not found. Please provide a valid mapping file with the option --mqtt-mapping-file";
             }
         }

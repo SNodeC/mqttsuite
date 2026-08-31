@@ -20,7 +20,7 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <functional>
-#include <log/Logger.h>
+#include <SemanticLog.h>
 #include <nlohmann/detail/json_ref.hpp>
 
 #endif
@@ -151,7 +151,7 @@ namespace mqtt::mqttcli::lib {
     }
 
     void DashboardModel::sendJsonEvent(const nlohmann::json& json, const std::string& event) const {
-        VLOG(0) << "Water buoy server sent event: " << event << "\n" << json.dump(4);
+        snode::semantic::appLog().trace() << "Water buoy server sent event: " << event << "\n" << json.dump(4);
 
         for (auto& eventReceiver : eventReceiverList) {
             if (const auto& response = eventReceiver.response.lock()) {

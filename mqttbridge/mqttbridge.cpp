@@ -58,7 +58,7 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 //
-#include <log/Logger.h>
+#include <SemanticLog.h>
 //
 #include <nlohmann/json_fwd.hpp>
 //
@@ -120,7 +120,7 @@ static void startBridges();
 
 static void restartBridges() {
     if (restart) {
-        VLOG(2) << "Restarting bridges...";
+        snode::semantic::appLog().trace() << "Restarting bridges...";
 
         mqtt::bridge::lib::BridgeStore::instance().activateStaged();
 
@@ -130,17 +130,17 @@ static void restartBridges() {
 
         restart = false;
     } else {
-        VLOG(2) << "No bridge restarted";
+        snode::semantic::appLog().trace() << "No bridge restarted";
     }
 }
 
 static void handleFlowControllers(core::socket::stream::ClientFlowController* clientFlowController) {
     flowControllers.emplace(clientFlowController->getId(), clientFlowController);
-    VLOG(2) << "Added FlowController for: [" << clientFlowController->getId() << "] " << clientFlowController->getInstanceName();
+    snode::semantic::appLog().trace() << "Added FlowController for: [" << clientFlowController->getId() << "] " << clientFlowController->getInstanceName();
 
     clientFlowController->setOnFlowCompleted([](uint64_t id, const std::string& instanceName) {
         flowControllers.erase(id);
-        VLOG(2) << "Erased FlowController of: [" << id << "] " << instanceName;
+        snode::semantic::appLog().trace() << "Erased FlowController of: [" << id << "] " << instanceName;
 
         if (flowControllers.empty() && restart) {
             restartBridges();
@@ -166,7 +166,7 @@ static bool closeBridges() {
         }
 
         for (auto& [id, flowController] : flowControllers) {
-            VLOG(1) << "Terminating Flow of: [" << flowController->getId() << "] " << flowController->getInstanceName();
+            snode::semantic::appLog().trace() << "Terminating Flow of: [" << flowController->getId() << "] " << flowController->getInstanceName();
 
             flowController->terminateFlow();
         }
@@ -179,16 +179,16 @@ static void
 reportState(const std::string& instanceName, const core::socket::SocketAddress& socketAddress, const core::socket::State& state) {
     switch (state) {
         case core::socket::State::OK:
-            VLOG(1) << instanceName << ": connected to '" << socketAddress.toString() << "'";
+            snode::semantic::appLog().trace() << instanceName << ": connected to '" << socketAddress.toString() << "'";
             break;
         case core::socket::State::DISABLED:
-            VLOG(1) << instanceName << ": disabled";
+            snode::semantic::appLog().trace() << instanceName << ": disabled";
             break;
         case core::socket::State::ERROR:
-            VLOG(1) << instanceName << ": " << socketAddress.toString() << ": " << state.what();
+            snode::semantic::appLog().trace() << instanceName << ": " << socketAddress.toString() << ": " << state.what();
             break;
         case core::socket::State::FATAL:
-            VLOG(1) << instanceName << ": " << socketAddress.toString() << ": " << state.what();
+            snode::semantic::appLog().trace() << instanceName << ": " << socketAddress.toString() << ": " << state.what();
             break;
     }
 }
@@ -233,7 +233,7 @@ static HttpClient startClient( //
                 "/ws",
                 "websocket",
                 [connectionName](bool success) {
-                    VLOG(1) << connectionName << ": HTTP Upgrade (http -> websocket||"
+                    snode::semantic::appLog().trace() << connectionName << ": HTTP Upgrade (http -> websocket||"
                             << "mqtt" << ") start " << (success ? "success" : "failed");
                 },
                 []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req,
@@ -241,11 +241,11 @@ static HttpClient startClient( //
                    [[maybe_unused]] bool success) {
                 },
                 [connectionName]([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req, const std::string& message) {
-                    VLOG(1) << connectionName << ": Request parse error: " << message;
+                    snode::semantic::appLog().trace() << connectionName << ": Request parse error: " << message;
                 });
         },
         []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req) {
-            VLOG(1) << "Session ended";
+            snode::semantic::appLog().trace() << "Session ended";
         });
 
     configurator(httpClient.getConfig());
@@ -268,7 +268,7 @@ static void startBridges() {
     mqtt::bridge::lib::SSEDistributor::instance().bridgesStarting();
 
     for (const auto& [bridgeName, bridge] : mqtt::bridge::lib::BridgeStore::instance().getBridgeMap()) {
-        VLOG(0) << "Starting bridge: " << bridgeName;
+        snode::semantic::appLog().trace() << "Starting bridge: " << bridgeName;
 
         if (!bridge.getDisabled()) {
             mqtt::bridge::lib::SSEDistributor::instance().bridgeStarting(bridgeName);
@@ -277,31 +277,31 @@ static void startBridges() {
                 if (!broker.getDisabled()) {
                     mqtt::bridge::lib::SSEDistributor::instance().brokerConnecting(bridgeName, fullInstanceName);
 
-                    VLOG(1) << "  Creating broker instance: " << fullInstanceName;
-                    VLOG(1) << "    Broker prefix: " << broker.getPrefix();
-                    VLOG(1) << "    Broker client id: " << broker.getClientId();
-                    VLOG(1) << "    Broker disabled: " << broker.getDisabled();
-                    VLOG(1) << "    Broker address: " << broker.getAddress();
-                    VLOG(1) << "    Broker prefix: " << broker.getPrefix();
-                    VLOG(1) << "    Broker username: " << broker.getUsername();
-                    VLOG(1) << "    Broker password: " << broker.getPassword();
-                    VLOG(1) << "    Broker client-id: " << broker.getClientId();
-                    VLOG(1) << "    Broker clean session: " << broker.getCleanSession();
-                    VLOG(1) << "    Broker will-topic: " << broker.getWillTopic();
-                    VLOG(1) << "    Broker will-message: " << broker.getWillMessage();
-                    VLOG(1) << "    Broker will-qos: " << static_cast<int>(broker.getWillQoS());
-                    VLOG(1) << "    Broker will-retain: " << broker.getWillRetain();
-                    VLOG(1) << "    Broker loop prevention: " << broker.getLoopPrevention();
-                    VLOG(1) << "    Bridge disabled: " << bridge.getDisabled();
-                    VLOG(1) << "    Bridge prefix: " << bridge.getPrefix();
-                    VLOG(1) << "    Bridge Transport: " << broker.getTransport();
-                    VLOG(1) << "    Bridge Protocol: " << broker.getProtocol();
-                    VLOG(1) << "    Bridge Encryption: " << broker.getEncryption();
+                    snode::semantic::appLog().trace() << "  Creating broker instance: " << fullInstanceName;
+                    snode::semantic::appLog().trace() << "    Broker prefix: " << broker.getPrefix();
+                    snode::semantic::appLog().trace() << "    Broker client id: " << broker.getClientId();
+                    snode::semantic::appLog().trace() << "    Broker disabled: " << broker.getDisabled();
+                    snode::semantic::appLog().trace() << "    Broker address: " << broker.getAddress();
+                    snode::semantic::appLog().trace() << "    Broker prefix: " << broker.getPrefix();
+                    snode::semantic::appLog().trace() << "    Broker username: " << broker.getUsername();
+                    snode::semantic::appLog().trace() << "    Broker password: " << broker.getPassword();
+                    snode::semantic::appLog().trace() << "    Broker client-id: " << broker.getClientId();
+                    snode::semantic::appLog().trace() << "    Broker clean session: " << broker.getCleanSession();
+                    snode::semantic::appLog().trace() << "    Broker will-topic: " << broker.getWillTopic();
+                    snode::semantic::appLog().trace() << "    Broker will-message: " << broker.getWillMessage();
+                    snode::semantic::appLog().trace() << "    Broker will-qos: " << static_cast<int>(broker.getWillQoS());
+                    snode::semantic::appLog().trace() << "    Broker will-retain: " << broker.getWillRetain();
+                    snode::semantic::appLog().trace() << "    Broker loop prevention: " << broker.getLoopPrevention();
+                    snode::semantic::appLog().trace() << "    Bridge disabled: " << bridge.getDisabled();
+                    snode::semantic::appLog().trace() << "    Bridge prefix: " << bridge.getPrefix();
+                    snode::semantic::appLog().trace() << "    Bridge Transport: " << broker.getTransport();
+                    snode::semantic::appLog().trace() << "    Bridge Protocol: " << broker.getProtocol();
+                    snode::semantic::appLog().trace() << "    Bridge Encryption: " << broker.getEncryption();
 
-                    VLOG(1) << "    Topics:";
+                    snode::semantic::appLog().trace() << "    Topics:";
                     const std::list<iot::mqtt::Topic>& topics = broker.getTopics();
                     for (const iot::mqtt::Topic& topic : topics) {
-                        VLOG(1) << "      " << topic.getName() << ":" << static_cast<uint16_t>(topic.getQoS());
+                        snode::semantic::appLog().trace() << "      " << topic.getName() << ":" << static_cast<uint16_t>(topic.getQoS());
                     }
 
                     const std::string& transport = broker.getTransport();
@@ -323,7 +323,7 @@ static void startBridges() {
                                         config->setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                                     });
 #else  // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4
-                                VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                                snode::semantic::appLog().trace() << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                         << "' not supported.";
 #endif // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4
                             } else if (encryption == "tls") {
@@ -339,7 +339,7 @@ static void startBridges() {
                                         config->setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                                     });
 #else  // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4
-                                VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                                snode::semantic::appLog().trace() << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                         << "' not supported.";
 #endif // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4
                             }
@@ -357,7 +357,7 @@ static void startBridges() {
                                         config->setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                                     });
 #else  // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6
-                                VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                                snode::semantic::appLog().trace() << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                         << "' not supported.";
 #endif // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6
                             } else if (encryption == "tls") {
@@ -373,7 +373,7 @@ static void startBridges() {
                                         config->setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                                     });
 #else  // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6
-                                VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                                snode::semantic::appLog().trace() << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                         << "' not supported.";
 #endif // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6
                             }
@@ -388,7 +388,7 @@ static void startBridges() {
                                         config->setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                                     });
 #else  // CONFIG_MQTTSUITE_BRIDGE_UNIX
-                                VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                                snode::semantic::appLog().trace() << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                         << "' not supported.";
 #endif // CONFIG_MQTTSUITE_BRIDGE_UNIX
                             } else if (encryption == "tls") {
@@ -401,7 +401,7 @@ static void startBridges() {
                                         config->setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                                     });
 #else  // CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS
-                                VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                                snode::semantic::appLog().trace() << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                         << "' not supported.";
 #endif // CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS
                             }
@@ -421,7 +421,7 @@ static void startBridges() {
                                         config->setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                                     });
 #else  // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4 && CONFIG_MQTTSUITE_BRIDGE_WS
-                                VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                                snode::semantic::appLog().trace() << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                         << "' not supported.";
 #endif // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4 && CONFIG_MQTTSUITE_BRIDGE_WS
                             } else if (encryption == "tls") {
@@ -437,7 +437,7 @@ static void startBridges() {
                                         config->setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                                     });
 #else  // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4 && CONFIG_MQTTSUITE_BRIDGE_WSS
-                                VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                                snode::semantic::appLog().trace() << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                         << "' not supported.";
 #endif // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4 && CONFIG_MQTTSUITE_BRIDGE_WSS
                             }
@@ -455,7 +455,7 @@ static void startBridges() {
                                         config->setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                                     });
 #else  // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6 && CONFIG_MQTTSUITE_BRIDGE_WS
-                                VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                                snode::semantic::appLog().trace() << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                         << "' not supported.";
 #endif // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6&&  CONFIG_MQTTSUITE_BRIDGE_WS
                             } else if (encryption == "tls") {
@@ -471,7 +471,7 @@ static void startBridges() {
                                         config->setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                                     });
 #else  // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6 && CONFIG_MQTTSUITE_BRIDGE_WSS
-                                VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                                snode::semantic::appLog().trace() << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                         << "' not supported.";
 #endif // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6 && CONFIG_MQTTSUITE_BRIDGE_WSS
                             }
@@ -486,7 +486,7 @@ static void startBridges() {
                                         config->setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                                     });
 #else  // CONFIG_MQTTSUITE_BRIDGE_UNIX && CONFIG_MQTTSUITE_BRIDGE_WS
-                                VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                                snode::semantic::appLog().trace() << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                         << "' not supported.";
 #endif // CONFIG_MQTTSUITE_BRIDGE_UNIX &&  CONFIG_MQTTSUITE_BRIDGE_WS
                             } else if (encryption == "tls") {
@@ -499,13 +499,13 @@ static void startBridges() {
                                         config->setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                                     });
 #else  // CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS && CONFIG_MQTTSUITE_BRIDGE_WSS
-                                VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                                snode::semantic::appLog().trace() << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                         << "' not supported.";
 #endif // CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS && CONFIG_MQTTSUITE_BRIDGE_WSS
                             }
                         }
                     } else {
-                        VLOG(1) << "    Transport '" << transport << "' not supported.";
+                        snode::semantic::appLog().trace() << "    Transport '" << transport << "' not supported.";
                     }
                 } else {
                     mqtt::bridge::lib::SSEDistributor::instance().brokerDisabled(bridgeName, fullInstanceName);
@@ -547,7 +547,7 @@ int main(int argc, char* argv[]) {
                 }
             },
             [&res](const std::string& key) {
-                VLOG(1) << "Attribute type not found: " << key;
+                snode::semantic::appLog().trace() << "Attribute type not found: " << key;
 
                 res->status(400).send("Attribute type not found: " + key);
             });
@@ -606,7 +606,7 @@ int main(int argc, char* argv[]) {
             utils::Config::configRoot.getSubCommand<mqtt::bridge::ConfigBridge>()->getDefinitionFile())) {
         startBridges();
     } else {
-        VLOG(1) << "Loading bridge definition file failed";
+        snode::semantic::appLog().trace() << "Loading bridge definition file failed";
     }
 
     return core::SNodeC::start();
