@@ -1,0 +1,37 @@
+name: Implementation 1.8 inspection
+
+on:
+  push:
+    branches:
+      - implementation/1.8-corrections
+    paths:
+      - .github/workflows/implementation-18-inspect.yml
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: implementation/1.8-corrections
+      - name: Inspect relevant source and build declarations
+        shell: bash
+        run: |
+          set -eu
+          echo '=== password/config options ==='
+          grep -RInE 'password|admin|cors|mapping-file|projection' --include='*.cpp' --include='*.h' lib mqttbroker mqttintegrator mqttbridge mqttstore mqttcli | head -n 500 || true
+          echo '=== cmake minimum/install/rpath ==='
+          grep -RInE 'cmake_minimum_required|install\(|RPATH|add_executable|add_library' --include='CMakeLists.txt' . | head -n 800 || true
+          echo '=== mqttstore main/factory ==='
+          sed -n '1,520p' mqttstore/mqttstore.cpp
+          sed -n '1,420p' mqttstore/SocketContextFactory.cpp
+          sed -n '1,320p' mqttstore/SocketContextFactory.h
+          echo '=== config application ==='
+          sed -n '1,420p' lib/ConfigApplication.cpp
+          sed -n '1,320p' lib/ConfigApplication.h
+          echo '=== mapper matching ==='
+          grep -n -B20 -A100 'findMatchingTopicLevel' lib/MqttMapper.cpp
+          echo '=== integrator ==='
+          sed -n '1,520p' mqttintegrator/mqttintegrator.cpp
+          echo '=== broker ==='
+          sed -n '1,760p' mqttbroker/mqttbroker.cpp
