@@ -36,7 +36,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.18)
 
 project(
     MQTTSuite
@@ -46,6 +46,20 @@ project(
 set(MQTTSUITE_SOVERSION ${MQTTSuite_VERSION_MAJOR})
 
 include(GNUInstallDirs)
+
+# Installed MQTTSuite runtime artifacts resolve suite-owned and co-installed
+# SNode.C shared libraries from the installation prefix itself. Packaging may
+# override MQTTSUITE_INSTALL_RPATH (including setting it to an empty string)
+# when the target distribution provides its own loader policy.
+if(UNIX AND NOT APPLE)
+    file(RELATIVE_PATH MQTTSUITE_LIBDIR_FROM_BINDIR "/${CMAKE_INSTALL_BINDIR}" "/${CMAKE_INSTALL_LIBDIR}")
+    set(MQTTSUITE_INSTALL_RPATH "\$ORIGIN;\$ORIGIN/${MQTTSUITE_LIBDIR_FROM_BINDIR}" CACHE STRING
+        "Install RUNPATH used by MQTTSuite runtime artifacts")
+    set(CMAKE_BUILD_RPATH_USE_ORIGIN ON)
+    set(CMAKE_BUILD_WITH_INSTALL_RPATH OFF)
+    set(CMAKE_INSTALL_RPATH "${MQTTSUITE_INSTALL_RPATH}")
+    set(CMAKE_INSTALL_RPATH_USE_LINK_PATH OFF)
+endif()
 
 set(ignoreMe ${CMAKE_VERBOSE_MAKEFILE})
 
