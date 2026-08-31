@@ -103,7 +103,7 @@
 #include <nlohmann/json.hpp>
 // IWYU pragma: no_include <nlohmann/json_fwd.hpp>
 //
-#include <log/Logger.h>
+#include <SemanticLog.h>
 //
 #include <utility>
 
@@ -112,7 +112,7 @@
 static void upgrade APPLICATION(req, res) {
     const std::string connectionName = res->getSocketContext()->getSocketConnection()->getConnectionName();
 
-    VLOG(2) << connectionName << " HTTP: Upgrade request:\n"
+    snode::semantic::appLog().trace() << connectionName << " HTTP: Upgrade request:\n"
             << httputils::toString(req->method,
                                    req->url,
                                    "HTTP/" + std::to_string(req->httpMajor) + "." + std::to_string(req->httpMinor),
@@ -125,21 +125,21 @@ static void upgrade APPLICATION(req, res) {
     if (req->get("sec-websocket-protocol").find("mqtt") != std::string::npos) {
         res->upgrade(req, [req, res, connectionName](const std::string& name) {
             if (!name.empty()) {
-                VLOG(1) << connectionName << ": Successful upgrade:";
-                VLOG(1) << connectionName << ":    Selected: " << name;
-                VLOG(1) << connectionName << ":   Requested: " << req->get("sec-websocket-protocol");
+                snode::semantic::appLog().trace() << connectionName << ": Successful upgrade:";
+                snode::semantic::appLog().trace() << connectionName << ":    Selected: " << name;
+                snode::semantic::appLog().trace() << connectionName << ":   Requested: " << req->get("sec-websocket-protocol");
 
                 res->end();
             } else {
-                VLOG(1) << connectionName << ": Can not upgrade to any of '" << req->get("upgrade") << "'";
+                snode::semantic::appLog().trace() << connectionName << ": Can not upgrade to any of '" << req->get("upgrade") << "'";
 
                 res->sendStatus(404);
             }
         });
     } else {
-        VLOG(1) << connectionName << ": Unsupported subprotocol(s):";
-        VLOG(1) << "    Expected: mqtt";
-        VLOG(1) << "   Requested: " << req->get("sec-websocket-protocol");
+        snode::semantic::appLog().trace() << connectionName << ": Unsupported subprotocol(s):";
+        snode::semantic::appLog().trace() << "    Expected: mqtt";
+        snode::semantic::appLog().trace() << "   Requested: " << req->get("sec-websocket-protocol");
 
         res->sendStatus(404);
     }
@@ -161,13 +161,13 @@ static express::Router getRouter(std::shared_ptr<iot::mqtt::server::broker::Brok
     });
 
     jsonRouter.post("/api/mqtt/disconnect", [] APPLICATION(req, res) {
-        VLOG(1) << "POST /disconnect";
+        snode::semantic::appLog().trace() << "POST /disconnect";
 
         req->getAttribute<nlohmann::json>(
             [&res](nlohmann::json& json) {
                 std::string jsonString = json.dump(4);
 
-                VLOG(1) << jsonString;
+                snode::semantic::appLog().trace() << jsonString;
 
                 std::string clientId = json["clientId"].get<std::string>();
                 const mqtt::mqttbroker::lib::Mqtt* mqtt = mqtt::mqttbroker::lib::MqttModel::instance().getMqtt(clientId);
@@ -180,7 +180,7 @@ static express::Router getRouter(std::shared_ptr<iot::mqtt::server::broker::Brok
                 }
             },
             [&res](const std::string& key) {
-                VLOG(1) << "Attribute type not found: " << key;
+                snode::semantic::appLog().trace() << "Attribute type not found: " << key;
 
                 res->status(400).send("Attribute type not found: " + key);
             });
@@ -191,13 +191,13 @@ static express::Router getRouter(std::shared_ptr<iot::mqtt::server::broker::Brok
      * JSON.stringify({clientId, topic})
      */
     jsonRouter.post("/api/mqtt/unsubscribe", [] APPLICATION(req, res) {
-        VLOG(1) << "POST /unsubscribe";
+        snode::semantic::appLog().trace() << "POST /unsubscribe";
 
         req->getAttribute<nlohmann::json>(
             [&res](nlohmann::json& json) {
                 std::string jsonString = json.dump(4);
 
-                VLOG(1) << jsonString;
+                snode::semantic::appLog().trace() << jsonString;
 
                 std::string clientId = json["clientId"].get<std::string>();
                 std::string topic = json["topic"].get<std::string>();
@@ -212,7 +212,7 @@ static express::Router getRouter(std::shared_ptr<iot::mqtt::server::broker::Brok
                 }
             },
             [&res](const std::string& key) {
-                VLOG(1) << "Attribute type not found: " << key;
+                snode::semantic::appLog().trace() << "Attribute type not found: " << key;
 
                 res->status(400).send("Attribute type not found: " + key);
             });
@@ -223,13 +223,13 @@ static express::Router getRouter(std::shared_ptr<iot::mqtt::server::broker::Brok
      * JSON.stringify({ topic })
      */
     jsonRouter.post("/api/mqtt/release", [broker] APPLICATION(req, res) {
-        VLOG(1) << "POST /release";
+        snode::semantic::appLog().trace() << "POST /release";
 
         req->getAttribute<nlohmann::json>(
             [&res, broker](nlohmann::json& json) {
                 std::string jsonString = json.dump(4);
 
-                VLOG(1) << jsonString;
+                snode::semantic::appLog().trace() << jsonString;
 
                 std::string topic = json["topic"].get<std::string>();
 
@@ -239,7 +239,7 @@ static express::Router getRouter(std::shared_ptr<iot::mqtt::server::broker::Brok
                 res->send(R"({"success": true, "message": "Retained message released successfully"})"_json.dump());
             },
             [&res](const std::string& key) {
-                VLOG(1) << "Attribute type not found: " << key;
+                snode::semantic::appLog().trace() << "Attribute type not found: " << key;
 
                 res->status(400).send("Attribute type not found: " + key);
             });
@@ -250,13 +250,13 @@ static express::Router getRouter(std::shared_ptr<iot::mqtt::server::broker::Brok
      * JSON.stringify({ clientId, topic, qos })
      */
     jsonRouter.post("/api/mqtt/subscribe", [] APPLICATION(req, res) {
-        VLOG(1) << "POST /subscribe";
+        snode::semantic::appLog().trace() << "POST /subscribe";
 
         req->getAttribute<nlohmann::json>(
             [&res](nlohmann::json& json) {
                 std::string jsonString = json.dump(4);
 
-                VLOG(1) << jsonString;
+                snode::semantic::appLog().trace() << jsonString;
 
                 std::string clientId = json["clientId"].get<std::string>();
                 std::string topic = json["topic"].get<std::string>();
@@ -273,7 +273,7 @@ static express::Router getRouter(std::shared_ptr<iot::mqtt::server::broker::Brok
                 }
             },
             [&res](const std::string& key) {
-                VLOG(1) << "Attribute type not found: " << key;
+                snode::semantic::appLog().trace() << "Attribute type not found: " << key;
 
                 res->status(400).send("Attribute type not found: " + key);
             });
@@ -351,16 +351,16 @@ static void
 reportState(const std::string& instanceName, const core::socket::SocketAddress& socketAddress, const core::socket::State& state) {
     switch (state) {
         case core::socket::State::OK:
-            VLOG(1) << instanceName << ": listening on '" << socketAddress.toString() << "'";
+            snode::semantic::appLog().trace() << instanceName << ": listening on '" << socketAddress.toString() << "'";
             break;
         case core::socket::State::DISABLED:
-            VLOG(1) << instanceName << ": disabled";
+            snode::semantic::appLog().trace() << instanceName << ": disabled";
             break;
         case core::socket::State::ERROR:
-            VLOG(1) << instanceName << ": " << socketAddress.toString() << ": " << state.what();
+            snode::semantic::appLog().trace() << instanceName << ": " << socketAddress.toString() << ": " << state.what();
             break;
         case core::socket::State::FATAL:
-            VLOG(1) << instanceName << ": " << socketAddress.toString() << ": " << state.what();
+            snode::semantic::appLog().trace() << instanceName << ": " << socketAddress.toString() << ": " << state.what();
             break;
     }
 }

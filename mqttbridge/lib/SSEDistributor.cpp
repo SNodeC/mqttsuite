@@ -53,7 +53,7 @@ struct tm;
 #include <ctime>
 #include <functional>
 #include <iomanip>
-#include <log/Logger.h>
+#include <SemanticLog.h>
 #include <nlohmann/json.hpp>
 #include <sstream>
 
@@ -112,7 +112,7 @@ namespace mqtt::bridge::lib {
     }
 
     void SSEDistributor::sendEvent(const std::string& data, const std::string& event, const std::string& id) {
-        VLOG(0) << "Server sent event: " << event << "\n" << data;
+        snode::semantic::appLog().trace() << "Server sent event: " << event << "\n" << data;
 
         for (const auto& eventReceiver : eventReceiverList) {
             if (const auto& response = eventReceiver.getResponse()) {
