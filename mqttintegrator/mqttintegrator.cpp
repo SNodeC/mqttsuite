@@ -70,7 +70,7 @@
 #include <web/http/tls/in/Client.h>
 #include <web/http/tls/in6/Client.h>
 //
-#include <log/Logger.h>
+#include <SemanticLog.h>
 #include <utils/Config.h>
 //
 #include <string>
@@ -81,16 +81,16 @@ static void
 reportState(const std::string& instanceName, const core::socket::SocketAddress& socketAddress, const core::socket::State& state) {
     switch (state) {
         case core::socket::State::OK:
-            VLOG(1) << instanceName << ": connected to '" << socketAddress.toString() << "'";
+            snode::semantic::appLog().trace() << instanceName << ": connected to '" << socketAddress.toString() << "'";
             break;
         case core::socket::State::DISABLED:
-            VLOG(1) << instanceName << ": disabled";
+            snode::semantic::appLog().trace() << instanceName << ": disabled";
             break;
         case core::socket::State::ERROR:
-            VLOG(1) << instanceName << ": " << socketAddress.toString() << ": " << state.what();
+            snode::semantic::appLog().trace() << instanceName << ": " << socketAddress.toString() << ": " << state.what();
             break;
         case core::socket::State::FATAL:
-            VLOG(1) << instanceName << ": " << socketAddress.toString() << ": " << state.what();
+            snode::semantic::appLog().trace() << instanceName << ": " << socketAddress.toString() << ": " << state.what();
             break;
     }
 }
@@ -110,7 +110,7 @@ void startClient(const std::string& name, const std::function<void(typename Http
                 "/ws",
                 "websocket",
                 [connectionName](bool success) {
-                    VLOG(1) << connectionName << ": HTTP Upgrade (http -> websocket||"
+                    snode::semantic::appLog().trace() << connectionName << ": HTTP Upgrade (http -> websocket||"
                             << "mqtt" << ") start " << (success ? "success" : "failed");
                 },
                 []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req,
@@ -118,11 +118,11 @@ void startClient(const std::string& name, const std::function<void(typename Http
                    [[maybe_unused]] bool success) {
                 },
                 [connectionName](const std::shared_ptr<web::http::client::Request>&, const std::string& message) {
-                    VLOG(1) << connectionName << ": Request parse error: " << message;
+                    snode::semantic::appLog().trace() << connectionName << ": Request parse error: " << message;
                 });
         },
         []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req) {
-            VLOG(1) << "Session ended";
+            snode::semantic::appLog().trace() << "Session ended";
         });
 
     if (configurator != nullptr) {

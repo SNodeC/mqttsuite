@@ -54,7 +54,7 @@
 #include <functional>
 #include <iterator>
 #include <list>
-#include <log/Logger.h>
+#include <SemanticLog.h>
 #include <map>
 #include <mysql.h>
 #include <nlohmann/json.hpp>
@@ -250,11 +250,11 @@ namespace mqtt::mqtt::lib {
               },
               [&connectionName = this->connectionName](const database::mariadb::MariaDBState& state) {
                   if (state.connected) {
-                      VLOG(0) << connectionName << " MariaDB: Connected";
+                      snode::semantic::appLog().trace() << connectionName << " MariaDB: Connected";
                   } else if (state.error != 0) {
-                      VLOG(0) << connectionName << " MariaDB: " << state.errorMessage << " [" << state.error << "]";
+                      snode::semantic::appLog().trace() << connectionName << " MariaDB: " << state.errorMessage << " [" << state.error << "]";
                   } else {
-                      VLOG(0) << connectionName << " MariaDB: Lost connection";
+                      snode::semantic::appLog().trace() << connectionName << " MariaDB: Lost connection";
                   }
               })
         , qoSDefault(qoSDefault)
@@ -269,25 +269,25 @@ namespace mqtt::mqtt::lib {
         , pubTopic(pubTopic)
         , pubMessage(pubMessage)
         , pubRetain(pubRetain) {
-        VLOG(1) << "Client Id: " << clientId;
-        VLOG(1) << "  Keep Alive: " << keepAlive;
-        VLOG(1) << "  Clean Session: " << cleanSession;
-        VLOG(1) << "  Will Topic: " << willTopic;
-        VLOG(1) << "  Will Message: " << willMessage;
-        VLOG(1) << "  Will QoS: " << static_cast<uint16_t>(willQoS);
-        VLOG(1) << "  Will Retain " << willRetain;
-        VLOG(1) << "  Username: " << username;
-        VLOG(1) << "  Password: " << password;
+        snode::semantic::appLog().trace() << "Client Id: " << clientId;
+        snode::semantic::appLog().trace() << "  Keep Alive: " << keepAlive;
+        snode::semantic::appLog().trace() << "  Clean Session: " << cleanSession;
+        snode::semantic::appLog().trace() << "  Will Topic: " << willTopic;
+        snode::semantic::appLog().trace() << "  Will Message: " << willMessage;
+        snode::semantic::appLog().trace() << "  Will QoS: " << static_cast<uint16_t>(willQoS);
+        snode::semantic::appLog().trace() << "  Will Retain " << willRetain;
+        snode::semantic::appLog().trace() << "  Username: " << username;
+        snode::semantic::appLog().trace() << "  Password: " << password;
     }
 
     void Mqtt::onConnected() {
-        VLOG(1) << "MQTT: Initiating Session";
+        snode::semantic::appLog().trace() << "MQTT: Initiating Session";
 
         sendConnect(cleanSession, willTopic, willMessage, willQoS, willRetain, username, password);
     }
 
     bool Mqtt::onSignal(int signum) {
-        VLOG(1) << "MQTT: On Exit due to '" << strsignal(signum) << "' (SIG" << utils::system::sigabbrev_np(signum) << " = " << signum
+        snode::semantic::appLog().trace() << "MQTT: On Exit due to '" << strsignal(signum) << "' (SIG" << utils::system::sigabbrev_np(signum) << " = " << signum
                 << ")";
 
         sendDisconnect();
@@ -310,7 +310,7 @@ namespace mqtt::mqtt::lib {
 
         if (connack.getReturnCode() == 0) {
             if (!subTopics.empty()) {
-                VLOG(0) << "MQTT Subscribe";
+                snode::semantic::appLog().trace() << "MQTT Subscribe";
 
                 try {
                     std::list<iot::mqtt::Topic> topicList;
@@ -327,13 +327,13 @@ namespace mqtt::mqtt::lib {
                                            try {
                                                qoS = getQos(compositTopic.substr(pos + 2));
                                            } catch (const std::logic_error& error) {
-                                               VLOG(0) << "[" << Color::Code::FG_RED << "Error" << Color::Code::FG_DEFAULT
+                                               snode::semantic::appLog().trace() << "[" << Color::Code::FG_RED << "Error" << Color::Code::FG_DEFAULT
                                                        << "] Malformed composit topic: " << compositTopic << "\n"
                                                        << error.what();
                                                throw;
                                            }
                                        }
-                                       VLOG(0) << "  t: " << static_cast<int>(qoS) << " | " << topic;
+                                       snode::semantic::appLog().trace() << "  t: " << static_cast<int>(qoS) << " | " << topic;
                                        return iot::mqtt::Topic(topic, qoS);
                                    });
                     sendSubscribe(topicList);
@@ -344,7 +344,7 @@ namespace mqtt::mqtt::lib {
             }
 
             if (!pubTopic.empty()) {
-                VLOG(0) << "MQTT Publish";
+                snode::semantic::appLog().trace() << "MQTT Publish";
 
                 std::size_t pos = pubTopic.rfind("##");
 
@@ -357,7 +357,7 @@ namespace mqtt::mqtt::lib {
                         try {
                             qoS = getQos(pubTopic.substr(pos + 2));
                         } catch (const std::logic_error& error) {
-                            VLOG(0) << "[" << Color::Code::FG_RED << "Error" << Color::Code::FG_DEFAULT
+                            snode::semantic::appLog().trace() << "[" << Color::Code::FG_RED << "Error" << Color::Code::FG_DEFAULT
                                     << "] Malformed composit topic: " << pubTopic << "\n"
                                     << error.what();
                             throw;
@@ -378,10 +378,10 @@ namespace mqtt::mqtt::lib {
     }
 
     void Mqtt::onSuback(const iot::mqtt::packets::Suback& suback) {
-        VLOG(1) << "MQTT Suback";
+        snode::semantic::appLog().trace() << "MQTT Suback";
 
         for (auto returnCode : suback.getReturnCodes()) {
-            VLOG(0) << "  r: " << static_cast<int>(returnCode);
+            snode::semantic::appLog().trace() << "  r: " << static_cast<int>(returnCode);
         }
     }
 
@@ -391,7 +391,7 @@ namespace mqtt::mqtt::lib {
                                " │ Retain: " + (publish.getRetain() != 0 ? "true" : "false") +
                                " │ Dup: " + (publish.getDup() != 0 ? "true" : "false");
 
-        VLOG(0) << formatAsLogString(prefix, headLine, publish.getMessage());
+        snode::semantic::appLog().trace() << formatAsLogString(prefix, headLine, publish.getMessage());
 
         nlohmann::json messageAsJSON = nlohmann::json::parse(publish.getMessage());
 
@@ -400,39 +400,39 @@ namespace mqtt::mqtt::lib {
         // Maybe store it into a particular db table ...
         // E.g.:
 
-        VLOG(0) << "ApplicationId: " << messageAsJSON["end_device_ids"]["application_ids"]["application_id"];
+        snode::semantic::appLog().trace() << "ApplicationId: " << messageAsJSON["end_device_ids"]["application_ids"]["application_id"];
 
-        VLOG(0) << "Uplink message field\n" << messageAsJSON["uplink_message"].dump(4);
-        VLOG(0) << "Decoded payload field\n" << messageAsJSON["uplink_message"]["decoded_payload"].dump(4);
+        snode::semantic::appLog().trace() << "Uplink message field\n" << messageAsJSON["uplink_message"].dump(4);
+        snode::semantic::appLog().trace() << "Decoded payload field\n" << messageAsJSON["uplink_message"]["decoded_payload"].dump(4);
 
-        VLOG(0) << "DeviceID: " << messageAsJSON["end_device_ids"]["device_id"];
-        VLOG(0) << "DeviceEUI: " << messageAsJSON["end_device_ids"]["dev_eui"];
-        VLOG(0) << "Received at: " << messageAsJSON["received_at"];
+        snode::semantic::appLog().trace() << "DeviceID: " << messageAsJSON["end_device_ids"]["device_id"];
+        snode::semantic::appLog().trace() << "DeviceEUI: " << messageAsJSON["end_device_ids"]["dev_eui"];
+        snode::semantic::appLog().trace() << "Received at: " << messageAsJSON["received_at"];
         for (const auto& rx_metadata : messageAsJSON["uplink_message"]["rx_metadata"]) {
-            VLOG(0) << "Received via GW: " << rx_metadata["gateway_ids"]["gateway_id"];
+            snode::semantic::appLog().trace() << "Received via GW: " << rx_metadata["gateway_ids"]["gateway_id"];
         }
 
-        VLOG(0) << "MessageCnt: " << messageAsJSON["uplink_message"]["f_cnt"];
-        VLOG(0) << "F-Port field: " << messageAsJSON["uplink_message"]["f_port"];
-        VLOG(0) << "Frm payload field: " << messageAsJSON["uplink_message"]["frm_payload"];
-        VLOG(0) << "Frm payload base64 decoded: " << base64::base64_decode(messageAsJSON["uplink_message"]["frm_payload"]);
+        snode::semantic::appLog().trace() << "MessageCnt: " << messageAsJSON["uplink_message"]["f_cnt"];
+        snode::semantic::appLog().trace() << "F-Port field: " << messageAsJSON["uplink_message"]["f_port"];
+        snode::semantic::appLog().trace() << "Frm payload field: " << messageAsJSON["uplink_message"]["frm_payload"];
+        snode::semantic::appLog().trace() << "Frm payload base64 decoded: " << base64::base64_decode(messageAsJSON["uplink_message"]["frm_payload"]);
 
         // This insert is just a dummy insert ...
 
         mariaDB.exec(
             "INSERT INTO `snodec`(`username`, `password`) VALUES ('Annett','" + publish.getMessage() + "')",
             [&mariaDB = this->mariaDB, &connectionName = this->connectionName](void) -> void {
-                VLOG(0) << connectionName << " MariaDB: Query completed";
+                snode::semantic::appLog().trace() << connectionName << " MariaDB: Query completed";
                 mariaDB.affectedRows(
                     [](my_ulonglong affectedRows) -> void {
-                        VLOG(0) << "  query affected rows: " << affectedRows;
+                        snode::semantic::appLog().trace() << "  query affected rows: " << affectedRows;
                     },
                     [](const std::string& errorString, unsigned int errorNumber) -> void {
-                        VLOG(0) << "  query affected rows failed: " << errorString << " : " << errorNumber;
+                        snode::semantic::appLog().trace() << "  query affected rows failed: " << errorString << " : " << errorNumber;
                     });
             },
             [&connectionName = this->connectionName](const std::string& errorString, unsigned int errorNumber) -> void {
-                VLOG(0) << connectionName << " MariaDB: Query failed: " << errorString << " : " << errorNumber;
+                snode::semantic::appLog().trace() << connectionName << " MariaDB: Query failed: " << errorString << " : " << errorNumber;
             });
         // End of dummy insert
     };

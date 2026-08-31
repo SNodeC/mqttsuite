@@ -47,7 +47,7 @@
 
 #include <exception>
 #include <fstream>
-#include <log/Logger.h>
+#include <SemanticLog.h>
 #include <nlohmann/json.hpp>
 
 #endif
@@ -66,7 +66,7 @@ namespace mqtt::lib {
                 std::ifstream mapFile(mapFilePath);
 
                 if (mapFile.is_open()) {
-                    VLOG(1) << "MappingFilePath: " << mapFilePath;
+                    snode::semantic::appLog().trace() << "MappingFilePath: " << mapFilePath;
 
                     try {
                         mapFile >> mapFileJsons[mapFilePath];
@@ -81,31 +81,31 @@ namespace mqtt::lib {
                                     try {
                                         mapFileJsons[mapFilePath] = mapFileJsons[mapFilePath].patch(defaultPatch);
                                     } catch (const std::exception& e) {
-                                        VLOG(1) << e.what();
-                                        VLOG(1) << "Patching JSON with default patch failed:\n" << defaultPatch.dump(4);
+                                        snode::semantic::appLog().trace() << e.what();
+                                        snode::semantic::appLog().trace() << "Patching JSON with default patch failed:\n" << defaultPatch.dump(4);
                                         mapFileJsons[mapFilePath].clear();
                                     }
                                 }
                             } catch (const std::exception& e) {
-                                VLOG(1) << "  Validating JSON failed:\n" << mapFileJsons[mapFilePath].dump(4);
-                                VLOG(1) << "    " << e.what();
+                                snode::semantic::appLog().trace() << "  Validating JSON failed:\n" << mapFileJsons[mapFilePath].dump(4);
+                                snode::semantic::appLog().trace() << "    " << e.what();
                                 mapFileJsons[mapFilePath].clear();
                             }
                         } catch (const std::exception& e) {
-                            VLOG(1) << e.what();
-                            VLOG(1) << "Setting root json mapping schema failed:\n" << mappingJsonSchema.dump(4);
+                            snode::semantic::appLog().trace() << e.what();
+                            snode::semantic::appLog().trace() << "Setting root json mapping schema failed:\n" << mappingJsonSchema.dump(4);
                             mapFileJsons[mapFilePath].clear();
                         }
                     } catch (const std::exception& e) {
-                        VLOG(1) << "JSON map file parsing failed: " << e.what() << " at " << mapFile.tellg();
+                        snode::semantic::appLog().trace() << "JSON map file parsing failed: " << e.what() << " at " << mapFile.tellg();
                         mapFileJsons[mapFilePath].clear();
                     }
                     mapFile.close();
                 } else {
-                    VLOG(1) << "MappingFilePath: " << mapFilePath << " not found";
+                    snode::semantic::appLog().trace() << "MappingFilePath: " << mapFilePath << " not found";
                 }
             } else {
-                VLOG(1) << "MappingFilePath empty";
+                snode::semantic::appLog().trace() << "MappingFilePath empty";
             }
         }
 
