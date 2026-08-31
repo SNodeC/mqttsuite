@@ -3,40 +3,10 @@
  * Copyright (C) Volker Christian <me@vchrist.at>
  *               2022, 2023, 2024, 2025, 2026
  *
- * This program is free software: you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option)
- * any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program. If not, see <https://www.gnu.org/licenses/>.
- */
-
-/*
- * MIT License
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * This program is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
  */
 
 #include "MqttMapper.h"
@@ -88,11 +58,59 @@
 
 #endif
 
-// IWYU pragma: no_include <nlohmann/detail/iterators/iter_impl.hpp>
+namespace {
+
+    void validateTopicLevel(const nlohmann::json& topicLevel) {
+        if (topicLevel.is_array()) {
+            for (const auto& entry : topicLevel) {
+                validateTopicLevel(entry);
+            }
+            return;
+        }
+        if (!topicLevel.is_object()) {
+            return;
+        }
+
+        const std::string name = topicLevel.value("name", "");
+        if (name.find('#') != std::string::npos && name != "#") {
+            throw std::runtime_error("MQTT multi-level wildcard '#' must occupy an entire topic level");
+        }
+        if (name.find('+') != std::string::npos && name != "+") {
+            throw std::runtime_error("MQTT single-level wildcard '+' must occupy an entire topic level");
+        }
+        if (name == "#" && topicLevel.contains("topic_level")) {
+            throw std::runtime_error("MQTT multi-level wildcard '#' must be terminal");
+        }
+        if (topicLevel.contains("topic_level")) {
+            validateTopicLevel(topicLevel["topic_level"]);
+        }
+    }
+
+    void validateTopicWildcards(const nlohmann::json& mapping) {
+        if (mapping.contains("mapping") && mapping["mapping"].contains("topic_level")) {
+            validateTopicLevel(mapping["mapping"]["topic_level"]);
+        }
+    }
+
+    nlohmann::json findHashChild(const nlohmann::json& topicLevel) {
+        if (topicLevel.is_object()) {
+            return topicLevel.value("name", "") == "#" ? topicLevel : nlohmann::json{};
+        }
+        if (topicLevel.is_array()) {
+            for (const auto& entry : topicLevel) {
+                if (entry.is_object() && entry.value("name", "") == "#") {
+                    return entry;
+                }
+            }
+        }
+        return {};
+    }
+
+} // namespace
 
 namespace mqtt::lib {
 
-#include "mapping-schema.json.h" // definition of 'static const std::string mappingJsonSchemaString;'
+#include "mapping-schema.json.h"
 
     const nlohmann::json_schema::json_validator
         MqttMapper::validator(nlohmann::json::parse(mappingJsonSchemaString), nullptr, nlohmann::json_schema::default_string_format_check);
@@ -114,40 +132,39 @@ namespace mqtt::lib {
         return mappingJsonSchemaString;
     }
 
-    bool MqttMapper::setMapping(nlohmann::json mappingJson) { // can throw
+    bool MqttMapper::setMapping(nlohmann::json mappingJson) {
+        nlohmann::json defaultPatch;
+        try {
+            defaultPatch = validator.validate(mappingJson);
+            validateTopicWildcards(mappingJson.patch(defaultPatch));
+        } catch (const std::exception& e) {
+            throw std::runtime_error(std::string("Validating MQTT mapping failed: ") + e.what());
+        }
+
+        nlohmann::json patchedMapping;
+        try {
+            patchedMapping = mappingJson.patch(defaultPatch);
+        } catch (const std::exception& e) {
+            throw std::runtime_error(std::string("Applying MQTT mapping defaults failed: ") + e.what());
+        }
+
         delete injaEnvironment;
 
         for (void* handle : pluginHandles) {
             core::DynamicLoader::dlClose(handle);
         }
         pluginHandles.clear();
-
         injaEnvironment = new inja::Environment;
 
-        nlohmann::json defaultPatch;
-        try {
-            defaultPatch = validator.validate(mappingJson);
-        } catch (const std::exception& e) {
-            throw std::runtime_error("Validating JSON failed: Mapping JSON = " + mappingJson.dump(4) + "\n" + e.what());
-        }
-
         nlohmann::json oldMappingJson = this->mappingJson;
-        try {
-            this->mappingJson = mappingJson.patch(defaultPatch);
-            if (mappingJson.empty()) {
-                this->mappingJsonUnpatched = this->mappingJson;
-            } else {
-                this->mappingJsonUnpatched = mappingJson;
-            }
-        } catch (const std::exception& e) {
-            throw std::runtime_error("Patching JSON with default patch failed: Default patch = " + defaultPatch.dump(4) + "\n" + e.what());
-        }
+        this->mappingJson = std::move(patchedMapping);
+        this->mappingJsonUnpatched = mappingJson.empty() ? this->mappingJson : mappingJson;
 
         bool mustReconnect = this->mappingJson["connection"] != oldMappingJson["connection"];
 
-        if (mappingJson["mapping"].contains("plugins")) {
+        if (this->mappingJson["mapping"].contains("plugins")) {
             mqttsuite::semantic::mappingLog().debug() << "Loading plugins ...";
-            for (const nlohmann::json& pluginJson : mappingJson["mapping"]["plugins"]) {
+            for (const nlohmann::json& pluginJson : this->mappingJson["mapping"]["plugins"]) {
                 const std::string plugin = pluginJson;
 
                 void* handle = core::DynamicLoader::dlOpen(plugin);
@@ -160,43 +177,30 @@ namespace mqtt::lib {
                     const std::vector<mqtt::lib::Function>* loadedFunctions =
                         static_cast<std::vector<mqtt::lib::Function>*>(core::DynamicLoader::dlSym(handle, "functions"));
                     if (loadedFunctions != nullptr) {
-                        mqttsuite::semantic::mappingLog().debug() << "  Registering inja 'none void callbacks'";
                         for (const mqtt::lib::Function& function : *loadedFunctions) {
-                            mqttsuite::semantic::mappingLog().debug() << "    " << function.name;
-
                             if (function.numArgs >= 0) {
                                 injaEnvironment->add_callback(function.name, function.numArgs, function.function);
                             } else {
                                 injaEnvironment->add_callback(function.name, function.function);
                             }
                         }
-                        mqttsuite::semantic::mappingLog().debug() << "  Registering inja 'none void callbacks done'";
-                    } else {
-                        mqttsuite::semantic::mappingLog().debug() << "  No inja none 'void callbacks found' in plugin " << plugin;
                     }
 
                     const std::vector<mqtt::lib::VoidFunction>* loadedVoidFunctions =
                         static_cast<std::vector<mqtt::lib::VoidFunction>*>(core::DynamicLoader::dlSym(handle, "voidFunctions"));
                     if (loadedVoidFunctions != nullptr) {
-                        mqttsuite::semantic::mappingLog().debug() << "  Registering inja 'void callbacks'";
                         for (const mqtt::lib::VoidFunction& voidFunction : *loadedVoidFunctions) {
-                            mqttsuite::semantic::mappingLog().debug() << "    " << voidFunction.name;
-
                             if (voidFunction.numArgs >= 0) {
                                 injaEnvironment->add_void_callback(voidFunction.name, voidFunction.numArgs, voidFunction.function);
                             } else {
                                 injaEnvironment->add_void_callback(voidFunction.name, voidFunction.function);
                             }
                         }
-                        mqttsuite::semantic::mappingLog().debug() << "  Registering inja 'void callbacks' done";
-                    } else {
-                        mqttsuite::semantic::mappingLog().debug() << "  No inja 'void callbacks' found in plugin " << plugin;
                     }
 
                     mqttsuite::semantic::mappingLog().debug() << "  Loading plugin done: " << plugin;
                 } else {
-                    mqttsuite::semantic::mappingLog().debug() << "  Error loading plugin: " << plugin;
-                    throw std::runtime_error("Error loading plugin '" + plugin + "': " + core::DynamicLoader::dlError());
+                    throw std::runtime_error("Error loading mapping plugin: " + core::DynamicLoader::dlError());
                 }
             }
 
@@ -232,9 +236,7 @@ namespace mqtt::lib {
 
     std::list<iot::mqtt::Topic> MqttMapper::extractSubscriptions() const {
         std::list<iot::mqtt::Topic> topicList;
-
         extractSubscriptions(mappingJson["mapping"], "", topicList);
-
         return topicList;
     }
 
@@ -243,52 +245,26 @@ namespace mqtt::lib {
         if (mappingJson.contains("mapping") && !mappingJson["mapping"].empty()) {
             nlohmann::json matchingTopicLevel = findMatchingTopicLevel(mappingJson["mapping"]["topic_level"], publish.getTopic());
 
-            if (!matchingTopicLevel.empty()) {
+            if (!matchingTopicLevel.empty() && matchingTopicLevel.contains("subscription")) {
                 const nlohmann::json& subscription = matchingTopicLevel["subscription"];
 
                 if (subscription.contains("static")) {
-                    mqttsuite::semantic::mappingLog().debug() << "Topic mapping found for:";
-                    mqttsuite::semantic::mappingLog().debug() << "  Type: static";
-                    mqttsuite::semantic::mappingLog().debug() << "  Topic: " << publish.getTopic();
-                    mqttsuite::semantic::mappingLog().debug() << "  Message: " << publish.getMessage();
-                    mqttsuite::semantic::mappingLog().debug() << "  QoS: " << static_cast<uint16_t>(publish.getQoS());
-                    mqttsuite::semantic::mappingLog().debug() << "  Retain: " << publish.getRetain();
-
                     getStaticMappings(subscription["static"], publish, mappedPublishes);
                 }
 
                 if (subscription.contains("value")) {
-                    mqttsuite::semantic::mappingLog().debug() << "Topic mapping found for:";
-                    mqttsuite::semantic::mappingLog().debug() << "  Type: value";
-                    mqttsuite::semantic::mappingLog().debug() << "  Topic: " << publish.getTopic();
-                    mqttsuite::semantic::mappingLog().debug() << "  Message: " << publish.getMessage();
-                    mqttsuite::semantic::mappingLog().debug() << "  QoS: " << static_cast<uint16_t>(publish.getQoS());
-                    mqttsuite::semantic::mappingLog().debug() << "  Retain: " << publish.getRetain();
-
                     nlohmann::json json;
                     json["message"] = publish.getMessage();
-
                     getTemplateMappings(subscription["value"], json, publish, mappedPublishes);
                 }
 
                 if (subscription.contains("json")) {
-                    mqttsuite::semantic::mappingLog().debug() << "Topic mapping found for:";
-                    mqttsuite::semantic::mappingLog().debug() << "  Type: json";
-                    mqttsuite::semantic::mappingLog().debug() << "  Topic: " << publish.getTopic();
-                    mqttsuite::semantic::mappingLog().debug() << "  Message: " << publish.getMessage();
-                    mqttsuite::semantic::mappingLog().debug() << "  QoS: " << static_cast<uint16_t>(publish.getQoS());
-                    mqttsuite::semantic::mappingLog().debug() << "  Retain: " << publish.getRetain();
-
                     try {
                         nlohmann::json json;
                         json["message"] = nlohmann::json::parse(publish.getMessage());
-
                         getTemplateMappings(subscription["json"], json, publish, mappedPublishes);
                     } catch (const nlohmann::json::parse_error& e) {
-                        mqttsuite::semantic::mappingLog().debug() << "  Parsing message into json failed: " << publish.getMessage();
-                        mqttsuite::semantic::mappingLog().debug() << "     What: " << e.what() << '\n'
-                                                                  << "     Exception Id: " << e.id << '\n'
-                                                                  << "     Byte position of error: " << e.byte;
+                        mqttsuite::semantic::mappingLog().debug() << "Parsing MQTT message as JSON failed: " << e.what();
                     }
                 }
             }
@@ -298,11 +274,23 @@ namespace mqtt::lib {
     }
 
     const nlohmann::json MqttMapper::validate(const nlohmann::json& json) {
-        return validator.validate(json);
+        const nlohmann::json patch = validator.validate(json);
+        validateTopicWildcards(json.patch(patch));
+        return patch;
     }
 
     const nlohmann::json MqttMapper::validate(const nlohmann::json& json, nlohmann::json_schema::basic_error_handler& err) {
-        return validator.validate(json, err);
+        const nlohmann::json patch = validator.validate(json, err);
+        if (!err) {
+            try {
+                validateTopicWildcards(json.patch(patch));
+            } catch (const std::exception&) {
+                // basic_error_handler cannot be populated portably here. The throwing
+                // overload and setMapping provide the semantic wildcard diagnostic.
+                throw;
+            }
+        }
+        return patch;
     }
 
     void MqttMapper::extractSubscription(const nlohmann::json& topicLevelJson,
@@ -312,7 +300,6 @@ namespace mqtt::lib {
 
         if (topicLevelJson.contains("subscription")) {
             const uint8_t qoS = topicLevelJson["subscription"]["qos"];
-
             topicList.emplace_back(topic + ((topic.empty() || topic == "/") && !name.empty() ? "" : "/") + name, qoS);
         }
 
@@ -337,30 +324,58 @@ namespace mqtt::lib {
     }
 
     nlohmann::json MqttMapper::findMatchingTopicLevel(const nlohmann::json& topicLevel, const std::string& topic) const {
-        nlohmann::json foundTopicLevel;
-
         if (topicLevel.is_object()) {
+            const std::string name = topicLevel.value("name", "");
             const std::string::size_type slashPosition = topic.find('/');
             const std::string topicLevelName = topic.substr(0, slashPosition);
 
-            if (topicLevel["name"] == topicLevelName || topicLevel["name"] == "+" || topicLevel["name"] == "#") {
-                if (slashPosition == std::string::npos) {
-                    foundTopicLevel = topicLevel;
-                } else if (topicLevel.contains("topic_level")) {
-                    foundTopicLevel = findMatchingTopicLevel(topicLevel["topic_level"], topic.substr(slashPosition + 1));
-                }
+            if (name == "#") {
+                return topicLevel;
             }
-        } else if (topicLevel.is_array()) {
-            for (const nlohmann::json& topicLevelEntry : topicLevel) {
-                foundTopicLevel = findMatchingTopicLevel(topicLevelEntry, topic);
 
-                if (!foundTopicLevel.empty()) {
-                    break;
+            if (name != topicLevelName && name != "+") {
+                return {};
+            }
+
+            if (slashPosition == std::string::npos) {
+                if (topicLevel.contains("subscription")) {
+                    return topicLevel;
+                }
+                if (topicLevel.contains("topic_level")) {
+                    return findHashChild(topicLevel["topic_level"]);
+                }
+                return {};
+            }
+
+            if (topicLevel.contains("topic_level")) {
+                return findMatchingTopicLevel(topicLevel["topic_level"], topic.substr(slashPosition + 1));
+            }
+            return {};
+        }
+
+        if (topicLevel.is_array()) {
+            const std::string::size_type slashPosition = topic.find('/');
+            const std::string topicLevelName = topic.substr(0, slashPosition);
+
+            for (int precedence = 0; precedence < 3; ++precedence) {
+                for (const nlohmann::json& entry : topicLevel) {
+                    if (!entry.is_object()) {
+                        continue;
+                    }
+                    const std::string name = entry.value("name", "");
+                    const bool selected = (precedence == 0 && name == topicLevelName) || (precedence == 1 && name == "+") ||
+                                          (precedence == 2 && name == "#");
+                    if (selected) {
+                        nlohmann::json found = findMatchingTopicLevel(entry, topic);
+                        if (!found.empty()) {
+                            return found;
+                        }
+                    }
                 }
             }
         }
 
-        return foundTopicLevel;
+        return {};
     }
 
     void
@@ -369,19 +384,11 @@ namespace mqtt::lib {
         const std::string& mappedTopic = templateMapping["mapped_topic"];
 
         try {
-            // Render topic
             const std::string renderedTopic = injaEnvironment->render(mappedTopic, json);
             json["mapped_topic"] = renderedTopic;
 
-            mqttsuite::semantic::mappingLog().debug() << "  Mapped topic template: " << mappedTopic;
-            mqttsuite::semantic::mappingLog().debug() << "    -> " << renderedTopic;
-
             try {
-                // Render message
                 const std::string renderedMessage = injaEnvironment->render(mappingTemplate, json);
-                mqttsuite::semantic::mappingLog().debug() << "  Mapped message template: " << mappingTemplate;
-                mqttsuite::semantic::mappingLog().debug() << "    -> " << renderedMessage;
-
                 const nlohmann::json& suppressions = templateMapping["suppressions"];
                 const bool retain = templateMapping["retain"];
 
@@ -389,34 +396,13 @@ namespace mqtt::lib {
                     (retain && renderedMessage.empty())) {
                     const uint8_t qoS = templateMapping["qos"];
                     const double delay = templateMapping["delay"];
-
-                    mqttsuite::semantic::mappingLog().debug() << "  Send mapping:" << (delay > 0 ? " delayed" : "");
-                    mqttsuite::semantic::mappingLog().debug() << "    Topic: " << renderedTopic;
-                    mqttsuite::semantic::mappingLog().debug() << "    Message: " << renderedMessage << "";
-                    mqttsuite::semantic::mappingLog().debug() << "    QoS: " << static_cast<int>(qoS);
-                    mqttsuite::semantic::mappingLog().debug() << "    retain: " << retain;
-                    mqttsuite::semantic::mappingLog().debug() << "    Delay: " << delay;
-
                     getMappedMessage(renderedTopic, renderedMessage, qoS, retain, delay, mappedPublishes);
-                } else {
-                    mqttsuite::semantic::mappingLog().debug() << "    Rendered message: '" << renderedMessage << "' in suppression list:";
-                    for (const nlohmann::json& item : suppressions) {
-                        mqttsuite::semantic::mappingLog().debug() << "         '" << item.get<std::string>() << "'";
-                    }
-                    mqttsuite::semantic::mappingLog().debug() << "  Send mapping: suppressed";
                 }
             } catch (const inja::InjaError& e) {
-                mqttsuite::semantic::mappingLog().debug()
-                    << "  Message template rendering failed: " << mappingTemplate << " : " << json.dump();
-                mqttsuite::semantic::mappingLog().debug() << "    What: " << e.what();
-                mqttsuite::semantic::mappingLog().debug() << "    INJA: " << e.type << ": " << e.message;
-                mqttsuite::semantic::mappingLog().debug() << "    INJA (line:column):" << e.location.line << ":" << e.location.column;
+                mqttsuite::semantic::mappingLog().debug() << "Message template rendering failed: " << e.what();
             }
         } catch (const inja::InjaError& e) {
-            mqttsuite::semantic::mappingLog().debug() << "  Topic template rendering failed: " << mappingTemplate << " : " << json.dump();
-            mqttsuite::semantic::mappingLog().debug() << "    What: " << e.what();
-            mqttsuite::semantic::mappingLog().debug() << "    INJA: " << e.type << ": " << e.message;
-            mqttsuite::semantic::mappingLog().debug() << "    INJA (line:column):" << e.location.line << ":" << e.location.column;
+            mqttsuite::semantic::mappingLog().debug() << "Topic template rendering failed: " << e.what();
         }
     }
 
@@ -430,8 +416,6 @@ namespace mqtt::lib {
         json["package_identifier"] = publish.getPacketIdentifier();
 
         try {
-            mqttsuite::semantic::mappingLog().debug() << "  Render data: " << json.dump();
-
             if (templateMapping.is_object()) {
                 getMappedTemplate(templateMapping, json, mappedPublishes);
             } else {
@@ -440,7 +424,7 @@ namespace mqtt::lib {
                 }
             }
         } catch (const nlohmann::json::exception& e) {
-            mqttsuite::semantic::mappingLog().debug() << "JSON Exception during Render data:\n" << e.what();
+            mqttsuite::semantic::mappingLog().debug() << "JSON exception during render: " << e.what();
         }
     }
 
@@ -458,17 +442,6 @@ namespace mqtt::lib {
 
     void MqttMapper::getMappedMessage(
         const std::string& topic, const std::string& message, uint8_t qoS, bool retain, double delay, MappedPublishes& mappedPublishes) {
-        mqttsuite::semantic::mappingLog().debug() << "  Mapped topic:";
-        mqttsuite::semantic::mappingLog().debug() << "    -> " << topic;
-        mqttsuite::semantic::mappingLog().debug() << "  Mapped message:";
-        mqttsuite::semantic::mappingLog().debug() << "    -> " << message;
-        mqttsuite::semantic::mappingLog().debug() << "  Send mapping:" << (delay > 0 ? " delayed" : "");
-        mqttsuite::semantic::mappingLog().debug() << "    Topic: " << topic;
-        mqttsuite::semantic::mappingLog().debug() << "    Message: " << message;
-        mqttsuite::semantic::mappingLog().debug() << "    QoS: " << static_cast<int>(qoS);
-        mqttsuite::semantic::mappingLog().debug() << "    retain: " << retain;
-        mqttsuite::semantic::mappingLog().debug() << "    Delay: " << delay;
-
         if (delay < 0.0) {
             std::get<0>(mappedPublishes).emplace_back(0, topic, message, qoS, false, retain);
         } else {
@@ -481,8 +454,6 @@ namespace mqtt::lib {
                                       MappedPublishes& mappedPublishes) {
         const nlohmann::json& messageMapping = staticMapping["message_mapping"];
 
-        mqttsuite::semantic::mappingLog().debug() << "  Message mapping: " << messageMapping.dump();
-
         if (messageMapping.is_object()) {
             if (messageMapping["message"] == publish.getMessage()) {
                 getMappedMessage(staticMapping["mapped_topic"],
@@ -491,13 +462,11 @@ namespace mqtt::lib {
                                  staticMapping["retain"],
                                  staticMapping["delay"],
                                  mappedPublishes);
-            } else {
-                mqttsuite::semantic::mappingLog().debug() << "    no matching mapped message found";
             }
         } else {
             const nlohmann::json::const_iterator matchedMessageMappingIterator =
-                std::find_if(messageMapping.begin(), messageMapping.end(), [&publish](const nlohmann::json& messageMappingCandidat) {
-                    return messageMappingCandidat["message"] == publish.getMessage();
+                std::find_if(messageMapping.begin(), messageMapping.end(), [&publish](const nlohmann::json& candidate) {
+                    return candidate["message"] == publish.getMessage();
                 });
 
             if (matchedMessageMappingIterator != messageMapping.end()) {
@@ -507,8 +476,6 @@ namespace mqtt::lib {
                                  staticMapping["retain"],
                                  staticMapping["delay"],
                                  mappedPublishes);
-            } else {
-                mqttsuite::semantic::mappingLog().debug() << "    no matching mapped message found";
             }
         }
     }
