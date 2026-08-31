@@ -46,7 +46,7 @@
 
 #include <core/SNodeC.h>
 //
-#include <log/Logger.h>
+#include <SemanticLog.h>
 #include <utils/Config.h>
 //
 #include <utils/CLI11.hpp>
@@ -156,16 +156,16 @@ static void
 reportState(const std::string& instanceName, const core::socket::SocketAddress& socketAddress, const core::socket::State& state) {
     switch (state) {
         case core::socket::State::OK:
-            VLOG(1) << instanceName << ": connected to '" << socketAddress.toString() << "'";
+            snode::semantic::appLog().trace() << instanceName << ": connected to '" << socketAddress.toString() << "'";
             break;
         case core::socket::State::DISABLED:
-            VLOG(1) << instanceName << ": disabled";
+            snode::semantic::appLog().trace() << instanceName << ": disabled";
             break;
         case core::socket::State::ERROR:
-            VLOG(1) << instanceName << ": " << socketAddress.toString() << ": " << state.what();
+            snode::semantic::appLog().trace() << instanceName << ": " << socketAddress.toString() << ": " << state.what();
             break;
         case core::socket::State::FATAL:
-            VLOG(1) << instanceName << ": " << socketAddress.toString() << ": " << state.what();
+            snode::semantic::appLog().trace() << instanceName << ": " << socketAddress.toString() << ": " << state.what();
             break;
     }
 }
@@ -185,7 +185,7 @@ void startClient(const std::string& name, const std::function<void(typename Http
                 "/ws",
                 "websocket",
                 [connectionName](bool success) {
-                    VLOG(1) << connectionName << ": HTTP Upgrade (http -> websocket||"
+                    snode::semantic::appLog().trace() << connectionName << ": HTTP Upgrade (http -> websocket||"
                             << "mqtt" << ") start " << (success ? "success" : "failed");
                 },
                 []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req,
@@ -193,11 +193,11 @@ void startClient(const std::string& name, const std::function<void(typename Http
                    [[maybe_unused]] bool success) {
                 },
                 [connectionName]([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req, const std::string& message) {
-                    VLOG(1) << connectionName << ": Request parse error: " << message;
+                    snode::semantic::appLog().trace() << connectionName << ": Request parse error: " << message;
                 });
         },
         []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req) {
-            VLOG(1) << "Session ended";
+            snode::semantic::appLog().trace() << "Session ended";
         });
 
     configurator(httpClient.getConfig());
@@ -231,20 +231,20 @@ int main(int argc, char* argv[]) {
 
     if (mqtt::bridge::lib::BridgeStore::instance().loadAndValidate(bridgeDefinitionFile)) {
         for (const auto& [instanceName, broker] : mqtt::bridge::lib::BridgeStore::instance().getBrokers()) {
-            VLOG(1) << "  Creating Broker instance '" << instanceName << "' of Bridge '" << broker.getBridge().getName() << "'";
-            VLOG(1) << "    Broker client id: " << broker.getClientId();
-            VLOG(1) << "    Broker prefix: " << broker.getPrefix();
-            VLOG(1) << "    Broker disabled: " << broker.getDisabled();
-            VLOG(1) << "    Bridge disabled: " << broker.getBridge().getDisabled();
-            VLOG(1) << "    Bridge prefix: " << broker.getBridge().getPrefix();
-            VLOG(1) << "    Bridge Transport: " << broker.getTransport();
-            VLOG(1) << "    Bridge Protocol: " << broker.getProtocol();
-            VLOG(1) << "    Bridge Encryption: " << broker.getEncryption();
+            snode::semantic::appLog().trace() << "  Creating Broker instance '" << instanceName << "' of Bridge '" << broker.getBridge().getName() << "'";
+            snode::semantic::appLog().trace() << "    Broker client id: " << broker.getClientId();
+            snode::semantic::appLog().trace() << "    Broker prefix: " << broker.getPrefix();
+            snode::semantic::appLog().trace() << "    Broker disabled: " << broker.getDisabled();
+            snode::semantic::appLog().trace() << "    Bridge disabled: " << broker.getBridge().getDisabled();
+            snode::semantic::appLog().trace() << "    Bridge prefix: " << broker.getBridge().getPrefix();
+            snode::semantic::appLog().trace() << "    Bridge Transport: " << broker.getTransport();
+            snode::semantic::appLog().trace() << "    Bridge Protocol: " << broker.getProtocol();
+            snode::semantic::appLog().trace() << "    Bridge Encryption: " << broker.getEncryption();
 
-            VLOG(1) << "    Topics:";
+            snode::semantic::appLog().trace() << "    Topics:";
             const std::list<iot::mqtt::Topic>& topics = broker.getTopics();
             for (const iot::mqtt::Topic& topic : topics) {
-                VLOG(1) << "      " << topic.getName() << ":" << static_cast<uint16_t>(topic.getQoS());
+                snode::semantic::appLog().trace() << "      " << topic.getName() << ":" << static_cast<uint16_t>(topic.getQoS());
             }
 
             const std::string& transport = broker.getTransport();
@@ -273,7 +273,7 @@ int main(int argc, char* argv[]) {
                                 reportState(instanceName, socketAddress, state);
                             });
 #else  // MQTTBRIDGE_IN_STREAM_LEGACY
-                        VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                        snode::semantic::appLog().trace() << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                 << "' not supported.";
 #endif // MQTTBRIDGE_IN_STREAM_LEGACY
                     } else if (encryption == "tls") {
@@ -296,7 +296,7 @@ int main(int argc, char* argv[]) {
                                 reportState(instanceName, socketAddress, state);
                             });
 #else  // MQTTBRIDGE_IN_STREAM_TLS
-                        VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                        snode::semantic::appLog().trace() << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                 << "' not supported.";
 #endif // MQTTBRIDGE_IN_STREAM_TLS
                     }
@@ -321,7 +321,7 @@ int main(int argc, char* argv[]) {
                                 reportState(instanceName, socketAddress, state);
                             });
 #else  // MQTTBRIDGE_IN6_STREAM_LEGACY
-                        VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                        snode::semantic::appLog().trace() << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                 << "' not supported.";
 #endif // MQTTBRIDGE_IN6_STREAM_LEGACY
                     } else if (encryption == "tls") {
@@ -344,7 +344,7 @@ int main(int argc, char* argv[]) {
                                 reportState(instanceName, socketAddress, state);
                             });
 #else  // MQTTBRIDGE_IN6_STREAM_TLS
-                        VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                        snode::semantic::appLog().trace() << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                 << "' not supported.";
 #endif // MQTTBRIDGE_IN6_STREAM_TLS
                     }
@@ -368,7 +368,7 @@ int main(int argc, char* argv[]) {
                                 reportState(instanceName, socketAddress, state);
                             });
 #else  // MQTTBRIDGE_L2_STREAM_LEGACY
-                        VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                        snode::semantic::appLog().trace() << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                 << "' not supported.";
 #endif // MQTTBRIDGE_L2_STREAM_LEGACY
                     } else if (encryption == "tls") {
@@ -390,7 +390,7 @@ int main(int argc, char* argv[]) {
                                 reportState(instanceName, socketAddress, state);
                             });
 #else  // MQTTBRIDGE_L2_STREAM_TLS
-                        VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                        snode::semantic::appLog().trace() << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                 << "' not supported.";
 #endif // MQTTBRIDGE_L2_STREAM_TLS
                     }
@@ -414,7 +414,7 @@ int main(int argc, char* argv[]) {
                                 reportState(instanceName, socketAddress, state);
                             });
 #else  // MQTTBRIDGE_RC_STREAM_LEGACY
-                        VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                        snode::semantic::appLog().trace() << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                 << "' not supported.";
 #endif // MQTTBRIDGE_RC_STREAM_LEGACY
                     } else if (encryption == "tls") {
@@ -436,7 +436,7 @@ int main(int argc, char* argv[]) {
                                 reportState(instanceName, socketAddress, state);
                             });
 #else  // MQTTBRIDGE_RC_STREAM_TLS
-                        VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                        snode::semantic::appLog().trace() << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                 << "' not supported.";
 #endif // MQTTBRIDGE_RC_STREAM_TLS
                     }
@@ -459,7 +459,7 @@ int main(int argc, char* argv[]) {
                                 reportState(instanceName, socketAddress, state);
                             });
 #else  // MQTTBRIDGE_UN_STREAM_LEGACY
-                        VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                        snode::semantic::appLog().trace() << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                 << "' not supported.";
 #endif // MQTTBRIDGE_UN_STREAM_LEGACY
                     } else if (encryption == "tls") {
@@ -480,7 +480,7 @@ int main(int argc, char* argv[]) {
                                 reportState(instanceName, socketAddress, state);
                             });
 #else  // MQTTBRIDGE_UN_STREAM_TLS
-                        VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                        snode::semantic::appLog().trace() << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                 << "' not supported.";
 #endif // MQTTBRIDGE_UN_STREAM_TLS
                     }
@@ -503,7 +503,7 @@ int main(int argc, char* argv[]) {
                             config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                         });
 #else  // MQTTBRIDGE_IN_WEBSOCKET_LEGACY
-                        VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                        snode::semantic::appLog().trace() << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                 << "' not supported.";
 #endif // MQTTBRIDGE_IN_WEBSOCKET_LEGACY
                     } else if (encryption == "tls") {
@@ -522,7 +522,7 @@ int main(int argc, char* argv[]) {
                             config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                         });
 #else  // MQTTBRIDGE_IN_WEBSOCKET_TLS
-                        VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                        snode::semantic::appLog().trace() << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                 << "' not supported.";
 #endif // MQTTBRIDGE_IN_WEBSOCKET_TLS
                     }
@@ -543,7 +543,7 @@ int main(int argc, char* argv[]) {
                             config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                         });
 #else  // MQTTBRIDGE_IN6_WEBSOCKET_LEGACY
-                        VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                        snode::semantic::appLog().trace() << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                 << "' not supported.";
 #endif // MQTTBRIDGE_IN6_WEBSOCKET_LEGACY
                     } else if (encryption == "tls") {
@@ -562,13 +562,13 @@ int main(int argc, char* argv[]) {
                             config.setDisabled(broker.getDisabled() || broker.getBridge().getDisabled());
                         });
 #else  // MQTTBRIDGE_IN6_WEBSOCKET_TLS
-                        VLOG(1) << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
+                        snode::semantic::appLog().trace() << "    Transport '" << transport << "', protocol '" << protocol << "', encryption '" << encryption
                                 << "' not supported.";
 #endif // MQTTBRIDGE_IN6_WEBSOCKET_TLS
                     }
                 }
             } else {
-                VLOG(1) << "    Transport '" << transport << "' not supported.";
+                snode::semantic::appLog().trace() << "    Transport '" << transport << "' not supported.";
             }
         }
     }

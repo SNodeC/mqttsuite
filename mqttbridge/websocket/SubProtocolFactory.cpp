@@ -51,7 +51,7 @@
 
 #include <cstdint>
 #include <list>
-#include <log/Logger.h>
+#include <SemanticLog.h>
 
 #endif
 
@@ -69,16 +69,16 @@ namespace mqtt::mqttbridge::websocket {
         const mqtt::bridge::lib::Broker& broker =
             mqtt::bridge::lib::BridgeStore::instance().getBroker(subProtocolContext->getSocketConnection()->getInstanceName());
 
-        VLOG(1) << "  Creating Broker instance '" << broker.getInstanceName() << "' of Bridge '" << broker.getBridge().getName() << "'";
-        VLOG(1) << "    Bridge client id : " << broker.getClientId();
-        VLOG(1) << "    Transport: " << broker.getTransport();
-        VLOG(1) << "    Protocol: " << broker.getProtocol();
-        VLOG(1) << "    Encryption: " << broker.getEncryption();
+        snode::semantic::appLog().trace() << "  Creating Broker instance '" << broker.getInstanceName() << "' of Bridge '" << broker.getBridge().getName() << "'";
+        snode::semantic::appLog().trace() << "    Bridge client id : " << broker.getClientId();
+        snode::semantic::appLog().trace() << "    Transport: " << broker.getTransport();
+        snode::semantic::appLog().trace() << "    Protocol: " << broker.getProtocol();
+        snode::semantic::appLog().trace() << "    Encryption: " << broker.getEncryption();
 
-        VLOG(1) << "    Topics:";
+        snode::semantic::appLog().trace() << "    Topics:";
         const std::list<iot::mqtt::Topic>& topics = broker.getTopics();
         for (const iot::mqtt::Topic& topic : topics) {
-            VLOG(1) << "      " << static_cast<uint16_t>(topic.getQoS()) << ":" << topic.getName();
+            snode::semantic::appLog().trace() << "      " << static_cast<uint16_t>(topic.getQoS()) << ":" << topic.getName();
         }
 
         subProtocol = new iot::mqtt::client::SubProtocol(
