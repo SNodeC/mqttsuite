@@ -3,40 +3,10 @@
  * Copyright (C) Volker Christian <me@vchrist.at>
  *               2022, 2023, 2024, 2025, 2026
  *
- * This program is free software: you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option)
- * any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program. If not, see <https://www.gnu.org/licenses/>.
- */
-
-/*
- * MIT License
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * This program is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
  */
 
 #include "SocketContextFactory.h" // IWYU pragma: keep
@@ -47,7 +17,7 @@
 
 #include <core/SNodeC.h>
 #include <utils/Config.h>
-//
+#include <express/middleware/BasicAuthentication.h>
 #include <express/middleware/JsonMiddleware.h>
 #include <express/middleware/StaticMiddleware.h>
 #include <iot/mqtt/MqttContext.h>
@@ -74,7 +44,6 @@
 #endif
 #endif
 
-//
 #ifdef CONFIG_MQTTSUITE_BROKER_TCP_IPV4
 #include <net/in/stream/legacy/SocketServer.h>
 #ifdef CONFIG_MQTTSUITE_BROKER_TLS_IPV4
@@ -99,12 +68,8 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #include <web/http/http_utils.h>
-//
 #include <nlohmann/json.hpp>
-// IWYU pragma: no_include <nlohmann/json_fwd.hpp>
-//
 #include "lib/SemanticLog.h"
-//
 #include <utility>
 
 #endif
@@ -129,11 +94,9 @@ static void upgrade APPLICATION(req, res) {
                 mqttsuite::semantic::brokerLog().debug() << connectionName << ": Successful upgrade:";
                 mqttsuite::semantic::brokerLog().debug() << connectionName << ":    Selected: " << name;
                 mqttsuite::semantic::brokerLog().debug() << connectionName << ":   Requested: " << req->get("sec-websocket-protocol");
-
                 res->end();
             } else {
                 mqttsuite::semantic::brokerLog().debug() << connectionName << ": Can not upgrade to any of '" << req->get("upgrade") << "'";
-
                 res->sendStatus(404);
             }
         });
@@ -141,35 +104,39 @@ static void upgrade APPLICATION(req, res) {
         mqttsuite::semantic::brokerLog().debug() << connectionName << ": Unsupported subprotocol(s):";
         mqttsuite::semantic::brokerLog().debug() << "    Expected: mqtt";
         mqttsuite::semantic::brokerLog().debug() << "   Requested: " << req->get("sec-websocket-protocol");
-
         res->sendStatus(404);
     }
 }
 
-static express::Router getRouter(std::shared_ptr<iot::mqtt::server::broker::Broker> broker, const std::string& webRoot) {
+static express::Router getRouter(std::shared_ptr<iot::mqtt::server::broker::Broker> broker, mqtt::lib::ConfigMqttBroker* config) {
     const express::Router& jsonRouter = express::middleware::JsonMiddleware();
+    const express::Router router;
 
-    /*
-     * /api/mqtt/disconnect
-     * JSON.stringify({ clientId })
-     */
-    jsonRouter.use("/api/mqtt", [] MIDDLEWARE(req, res, next) { // cppcheck-suppress unknownMacro
-        res->set({{"Access-Control-Allow-Origin", "*"},
-                  {"Access-Control-Allow-Headers", "Content-Type"},
-                  {"Access-Control-Allow-Methods", "GET, OPTIONS, POST"},
-                  {"Access-Control-Allow-Private-Network", "true"}});
-        next();
-    });
+    if (config->hasAdminAuthentication()) {
+        const std::string user = config->getAdminUser();
+        const std::string password = config->getAdminPassword();
+        const std::string realm = config->getAdminRealm();
 
+        jsonRouter.use("/api/mqtt", express::middleware::BasicAuthentication(user, password, realm));
+        router.use("/sse", express::middleware::BasicAuthentication(user, password, realm));
+        router.use("/clients", express::middleware::BasicAuthentication(user, password, realm));
+    } else {
+        auto unavailable = [] MIDDLEWARE(req, res, next) {
+            static_cast<void>(req);
+            static_cast<void>(next);
+            res->sendStatus(401);
+        };
+        jsonRouter.use("/api/mqtt", unavailable);
+        router.use("/sse", unavailable);
+        router.use("/clients", unavailable);
+    }
+
+    // Same-origin administration is the default: no CORS response headers are
+    // emitted here. Cross-origin administration is therefore not enabled by
+    // the shipped configuration.
     jsonRouter.post("/api/mqtt/disconnect", [] APPLICATION(req, res) {
-        mqttsuite::semantic::brokerLog().debug() << "POST /disconnect";
-
         req->getAttribute<nlohmann::json>(
             [&res](nlohmann::json& json) {
-                std::string jsonString = json.dump(4);
-
-                mqttsuite::semantic::brokerLog().debug() << jsonString;
-
                 std::string clientId = json["clientId"].get<std::string>();
                 const mqtt::mqttbroker::lib::Mqtt* mqtt = mqtt::mqttbroker::lib::MqttModel::instance().getMqtt(clientId);
 
@@ -181,30 +148,17 @@ static express::Router getRouter(std::shared_ptr<iot::mqtt::server::broker::Brok
                 }
             },
             [&res](const std::string& key) {
-                mqttsuite::semantic::brokerLog().debug() << "Attribute type not found: " << key;
-
                 res->status(400).send("Attribute type not found: " + key);
             });
     });
 
-    /*
-     * /api/mqtt/unsubscribe
-     * JSON.stringify({clientId, topic})
-     */
     jsonRouter.post("/api/mqtt/unsubscribe", [] APPLICATION(req, res) {
-        mqttsuite::semantic::brokerLog().debug() << "POST /unsubscribe";
-
         req->getAttribute<nlohmann::json>(
             [&res](nlohmann::json& json) {
-                std::string jsonString = json.dump(4);
-
-                mqttsuite::semantic::brokerLog().debug() << jsonString;
-
                 std::string clientId = json["clientId"].get<std::string>();
                 std::string topic = json["topic"].get<std::string>();
 
                 mqtt::mqttbroker::lib::Mqtt* mqtt = mqtt::mqttbroker::lib::MqttModel::instance().getMqtt(clientId);
-
                 if (mqtt != nullptr) {
                     mqtt->unsubscribe(topic);
                     res->send(R"({"success": true, "message": "Client unsubscribed successfully"})"_json.dump());
@@ -213,25 +167,13 @@ static express::Router getRouter(std::shared_ptr<iot::mqtt::server::broker::Brok
                 }
             },
             [&res](const std::string& key) {
-                mqttsuite::semantic::brokerLog().debug() << "Attribute type not found: " << key;
-
                 res->status(400).send("Attribute type not found: " + key);
             });
     });
 
-    /*
-     * /api/mqtt/release
-     * JSON.stringify({ topic })
-     */
     jsonRouter.post("/api/mqtt/release", [broker] APPLICATION(req, res) {
-        mqttsuite::semantic::brokerLog().debug() << "POST /release";
-
         req->getAttribute<nlohmann::json>(
             [&res, broker](nlohmann::json& json) {
-                std::string jsonString = json.dump(4);
-
-                mqttsuite::semantic::brokerLog().debug() << jsonString;
-
                 std::string topic = json["topic"].get<std::string>();
 
                 broker->publish("", topic, "", 0, true);
@@ -240,64 +182,44 @@ static express::Router getRouter(std::shared_ptr<iot::mqtt::server::broker::Brok
                 res->send(R"({"success": true, "message": "Retained message released successfully"})"_json.dump());
             },
             [&res](const std::string& key) {
-                mqttsuite::semantic::brokerLog().debug() << "Attribute type not found: " << key;
-
                 res->status(400).send("Attribute type not found: " + key);
             });
     });
 
-    /*
-     * /api/mqtt/subscribe
-     * JSON.stringify({ clientId, topic, qos })
-     */
     jsonRouter.post("/api/mqtt/subscribe", [] APPLICATION(req, res) {
-        mqttsuite::semantic::brokerLog().debug() << "POST /subscribe";
-
         req->getAttribute<nlohmann::json>(
             [&res](nlohmann::json& json) {
-                std::string jsonString = json.dump(4);
-
-                mqttsuite::semantic::brokerLog().debug() << jsonString;
-
                 std::string clientId = json["clientId"].get<std::string>();
                 std::string topic = json["topic"].get<std::string>();
                 uint8_t qoS = json["qos"].get<uint8_t>();
 
                 mqtt::mqttbroker::lib::Mqtt* mqtt = mqtt::mqttbroker::lib::MqttModel::instance().getMqtt(clientId);
-
                 if (mqtt != nullptr) {
                     mqtt->subscribe(topic, qoS);
-
                     res->send(R"({"success": true, "message": "Client subscribed successfully"})"_json.dump());
                 } else {
                     res->status(404).send(R"({"success": false, "error": "Client not found"})"_json.dump());
                 }
             },
             [&res](const std::string& key) {
-                mqttsuite::semantic::brokerLog().debug() << "Attribute type not found: " << key;
-
                 res->status(400).send("Attribute type not found: " + key);
             });
     });
-    const express::Router router;
 
     router.use(jsonRouter);
 
     router.get("/api/mqtt/events", [broker] APPLICATION(req, res) {
         if (web::http::ciContains(req->get("Accept"), "text/event-stream")) {
-            res->set({{"Content-Type", "text/event-stream"},
-                      {"Cache-Control", "no-cache"},
-                      {"Connection", "keep-alive"},
-                      {"Access-Control-Allow-Origin", "*"}});
-
+            res->set({{"Content-Type", "text/event-stream"}, {"Cache-Control", "no-cache"}, {"Connection", "keep-alive"}});
             res->sendHeader();
-
             mqtt::mqttbroker::lib::MqttModel::instance().addEventReceiver(res, req->get("Last-Event-ID"), broker);
         } else {
             res->redirect("/clients");
         }
     });
 
+    // MQTT-over-WebSocket protocol routes intentionally remain outside the
+    // HTTP administration authentication boundary.
     router.get("/ws", [] APPLICATION(req, res) {
         if (req->headers.contains("upgrade")) {
             upgrade(req, res);
@@ -324,11 +246,8 @@ static express::Router getRouter(std::shared_ptr<iot::mqtt::server::broker::Brok
 
     router.get("/sse", [broker] APPLICATION(req, res) {
         if (web::http::ciContains(req->get("Accept"), "text/event-stream")) {
-            res->set("Content-Type", "text/event-stream") //
-                .set("Cache-Control", "no-cache")
-                .set("Connection", "keep-alive");
+            res->set("Content-Type", "text/event-stream").set("Cache-Control", "no-cache").set("Connection", "keep-alive");
             res->sendHeader();
-
             mqtt::mqttbroker::lib::MqttModel::instance().addEventReceiver(res, req->get("Last-Event-ID"), broker);
         } else {
             res->redirect("/clients");
@@ -339,7 +258,7 @@ static express::Router getRouter(std::shared_ptr<iot::mqtt::server::broker::Brok
         res->redirect("/clients/index.html");
     });
 
-    router.use("/clients", express::middleware::StaticMiddleware(webRoot));
+    router.use("/clients", express::middleware::StaticMiddleware(config->getHtmlRoot()));
 
     router.get("*", [] APPLICATION(req, res) {
         res->redirect("/clients/index.html");
@@ -358,8 +277,6 @@ reportState(const std::string& instanceName, const core::socket::SocketAddress& 
             mqttsuite::semantic::brokerLog().debug() << instanceName << ": disabled";
             break;
         case core::socket::State::ERROR:
-            mqttsuite::semantic::brokerLog().debug() << instanceName << ": " << socketAddress.toString() << ": " << state.what();
-            break;
         case core::socket::State::FATAL:
             mqttsuite::semantic::brokerLog().debug() << instanceName << ": " << socketAddress.toString() << ": " << state.what();
             break;
@@ -367,16 +284,17 @@ reportState(const std::string& instanceName, const core::socket::SocketAddress& 
 }
 
 int main(int argc, char* argv[]) {
-    utils::Config::configRoot.newSubCommand<mqtt::lib::ConfigMqttBroker>()->setHtmlRoot(std::string(CMAKE_INSTALL_PREFIX) +
-                                                                                        "/var/www/mqttsuite/mqttbroker");
+    mqtt::lib::ConfigMqttBroker* configMqttBroker =
+        utils::Config::configRoot.newSubCommand<mqtt::lib::ConfigMqttBroker>();
+    configMqttBroker->setHtmlRoot(std::string(CMAKE_INSTALL_PREFIX) + "/var/www/mqttsuite/mqttbroker");
 
     core::SNodeC::init(argc, argv);
 
-    std::shared_ptr<iot::mqtt::server::broker::Broker> broker = iot::mqtt::server::broker::Broker::instance(
-        SUBSCRIPTION_MAX_QOS, utils::Config::configRoot.getSubCommand<mqtt::lib::ConfigMqttBroker>()->getSessionStore());
+    std::shared_ptr<iot::mqtt::server::broker::Broker> broker =
+        iot::mqtt::server::broker::Broker::instance(SUBSCRIPTION_MAX_QOS, configMqttBroker->getSessionStore());
 
 #ifdef CONFIG_MQTTSUITE_BROKER_TCP_IPV4
-    net::in::stream::legacy::Server<mqtt::mqttbroker::SocketContextFactory>( //
+    net::in::stream::legacy::Server<mqtt::mqttbroker::SocketContextFactory>(
         "in-mqtt",
         [](net::in::stream::legacy::config::ConfigSocketServer* config) {
             config->setPort(1883);
@@ -389,7 +307,7 @@ int main(int argc, char* argv[]) {
         });
 
 #ifdef CONFIG_MQTTSUITE_BROKER_TLS_IPV4
-    net::in::stream::tls::Server<mqtt::mqttbroker::SocketContextFactory>( //
+    net::in::stream::tls::Server<mqtt::mqttbroker::SocketContextFactory>(
         "in-mqtts",
         [](net::in::stream::tls::config::ConfigSocketServer* config) {
             config->setPort(8883);
@@ -404,13 +322,12 @@ int main(int argc, char* argv[]) {
 #endif
 
 #ifdef CONFIG_MQTTSUITE_BROKER_TCP_IPV6
-    net::in6::stream::legacy::Server<mqtt::mqttbroker::SocketContextFactory>( //
+    net::in6::stream::legacy::Server<mqtt::mqttbroker::SocketContextFactory>(
         "in6-mqtt",
         [](net::in6::stream::legacy::config::ConfigSocketServer* config) {
             config->setPort(1883);
             config->setRetry();
             config->setDisableNagleAlgorithm();
-
             config->setIPv6Only();
         },
         broker)
@@ -419,13 +336,12 @@ int main(int argc, char* argv[]) {
         });
 
 #ifdef CONFIG_MQTTSUITE_BROKER_TLS_IPV6
-    net::in6::stream::tls::Server<mqtt::mqttbroker::SocketContextFactory>( //
+    net::in6::stream::tls::Server<mqtt::mqttbroker::SocketContextFactory>(
         "in6-mqtts",
         [](net::in6::stream::tls::config::ConfigSocketServer* config) {
             config->setPort(8883);
             config->setRetry();
             config->setDisableNagleAlgorithm();
-
             config->setIPv6Only();
         },
         broker)
@@ -436,7 +352,7 @@ int main(int argc, char* argv[]) {
 #endif
 
 #ifdef CONFIG_MQTTSUITE_BROKER_UNIX
-    net::un::stream::legacy::Server<mqtt::mqttbroker::SocketContextFactory>( //
+    net::un::stream::legacy::Server<mqtt::mqttbroker::SocketContextFactory>(
         "un-mqtt",
         [](net::un::stream::legacy::config::ConfigSocketServer* config) {
             config->setSunPath("/tmp/" + utils::Config::getApplicationName() + "-" + config->getInstanceName());
@@ -448,7 +364,7 @@ int main(int argc, char* argv[]) {
         });
 
 #ifdef CONFIG_MQTTSUITE_BROKER_UNIX_TLS
-    net::un::stream::tls::Server<mqtt::mqttbroker::SocketContextFactory>( //
+    net::un::stream::tls::Server<mqtt::mqttbroker::SocketContextFactory>(
         "un-mqtts",
         [](net::un::stream::tls::config::ConfigSocketServer* config) {
             config->setSunPath("/tmp/" + utils::Config::getApplicationName() + "-" + config->getInstanceName());
@@ -460,10 +376,11 @@ int main(int argc, char* argv[]) {
         });
 #endif
 #endif
-    express::Router router = getRouter(broker, utils::Config::configRoot.getSubCommand<mqtt::lib::ConfigMqttBroker>()->getHtmlRoot());
+
+    express::Router router = getRouter(broker, configMqttBroker);
 
 #ifdef CONFIG_MQTTSUITE_BROKER_TCP_IPV4
-    express::legacy::in::Server( //
+    express::legacy::in::Server(
         "in-http",
         router,
         reportState,
@@ -474,7 +391,7 @@ int main(int argc, char* argv[]) {
         });
 
 #ifdef CONFIG_MQTTSUITE_BROKER_TLS_IPV4
-    express::tls::in::Server( //
+    express::tls::in::Server(
         "in-https",
         router,
         reportState,
@@ -487,7 +404,7 @@ int main(int argc, char* argv[]) {
 #endif
 
 #ifdef CONFIG_MQTTSUITE_BROKER_TCP_IPV6
-    express::legacy::in6::Server( //
+    express::legacy::in6::Server(
         "in6-http",
         router,
         reportState,
@@ -495,12 +412,11 @@ int main(int argc, char* argv[]) {
             config->setPort(8080);
             config->setRetry();
             config->setDisableNagleAlgorithm();
-
             config->setIPv6Only();
         });
 
 #ifdef CONFIG_MQTTSUITE_BROKER_TLS_IPV6
-    express::tls::in6::Server( //
+    express::tls::in6::Server(
         "in6-https",
         router,
         reportState,
@@ -508,14 +424,13 @@ int main(int argc, char* argv[]) {
             config->setPort(8088);
             config->setRetry();
             config->setDisableNagleAlgorithm();
-
             config->setIPv6Only();
         });
 #endif
 #endif
 
 #ifdef CONFIG_MQTTSUITE_BROKER_UNIX
-    express::legacy::un::Server( //
+    express::legacy::un::Server(
         "un-http",
         router,
         reportState,
@@ -524,7 +439,7 @@ int main(int argc, char* argv[]) {
         });
 
 #ifdef CONFIG_MQTTSUITE_BROKER_UNIX_TLS
-    express::tls::un::Server( //
+    express::tls::un::Server(
         "un-https",
         router,
         reportState,
