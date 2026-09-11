@@ -462,7 +462,10 @@ jobs:
             fi
             sleep 0.25
           done
-          kill -0 "$integrator_pid"
+          if ! kill -0 "$integrator_pid"; then
+            cat "$EVIDENCE/integrator.log"
+            exit 1
+          fi
           test "$status" = 401
 
           status=$(curl -sS -o /dev/null -w '%{http_code}' -u integrator-admin:wrong http://127.0.0.1:8085/config || true)
