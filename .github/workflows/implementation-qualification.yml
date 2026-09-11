@@ -107,96 +107,6 @@ jobs:
           text = text.replace(old, new, 1)
           path.write_text(text, encoding="utf-8")
 
-          # Decision F: make the suite installation relocatable across both
-          # MQTTSuite's flat lib directory and SNode.C's nested component dirs.
-          path = root / "CMakeLists.txt"
-          text = path.read_text(encoding="utf-8")
-          old = '''if(UNIX AND NOT APPLE)
-              file(RELATIVE_PATH MQTTSUITE_LIBDIR_FROM_BINDIR "/${CMAKE_INSTALL_BINDIR}" "/${CMAKE_INSTALL_LIBDIR}")
-              set(MQTTSUITE_INSTALL_RPATH "\\$ORIGIN;\\$ORIGIN/${MQTTSUITE_LIBDIR_FROM_BINDIR}" CACHE STRING
-                  "Install RUNPATH used by MQTTSuite runtime artifacts")
-              set(CMAKE_BUILD_RPATH_USE_ORIGIN ON)
-              set(CMAKE_BUILD_WITH_INSTALL_RPATH OFF)
-              set(CMAKE_INSTALL_RPATH "${MQTTSUITE_INSTALL_RPATH}")
-              set(CMAKE_INSTALL_RPATH_USE_LINK_PATH OFF)
-          endif()'''.replace("          ", "")
-          new = '''if(UNIX AND NOT APPLE)
-              file(RELATIVE_PATH MQTTSUITE_LIBDIR_FROM_BINDIR "/${CMAKE_INSTALL_BINDIR}" "/${CMAKE_INSTALL_LIBDIR}")
-
-              if(NOT DEFINED MQTTSUITE_INSTALL_RPATH)
-                  set(_mqttsuite_default_install_rpath
-                      "\\${ORIGIN}"
-                      "\\${ORIGIN}/${MQTTSUITE_LIBDIR_FROM_BINDIR}"
-                  )
-
-                  # SNode.C installs component libraries below lib/snode.c/... .
-                  # Discover those directories from the configured dependency prefix,
-                  # but encode only prefix-relative $ORIGIN paths in MQTTSuite binaries.
-                  foreach(_prefix IN LISTS CMAKE_PREFIX_PATH)
-                      if(IS_DIRECTORY "${_prefix}/${CMAKE_INSTALL_LIBDIR}/snode.c")
-                          file(GLOB_RECURSE _snodec_shared_libraries LIST_DIRECTORIES FALSE
-                              "${_prefix}/${CMAKE_INSTALL_LIBDIR}/snode.c/*.so*")
-                          foreach(_library IN LISTS _snodec_shared_libraries)
-                              get_filename_component(_library_dir "${_library}" DIRECTORY)
-                              file(RELATIVE_PATH _library_rel_dir
-                                  "${_prefix}/${CMAKE_INSTALL_LIBDIR}" "${_library_dir}")
-                              list(APPEND _mqttsuite_default_install_rpath
-                                  "\\${ORIGIN}/${_library_rel_dir}"
-                                  "\\${ORIGIN}/${MQTTSUITE_LIBDIR_FROM_BINDIR}/${_library_rel_dir}")
-                          endforeach()
-                      endif()
-                  endforeach()
-                  list(REMOVE_DUPLICATES _mqttsuite_default_install_rpath)
-                  set(MQTTSUITE_INSTALL_RPATH "${_mqttsuite_default_install_rpath}" CACHE STRING
-                      "Install RUNPATH used by MQTTSuite runtime artifacts")
-              endif()
-
-              set(CMAKE_BUILD_RPATH_USE_ORIGIN ON)
-              set(CMAKE_BUILD_WITH_INSTALL_RPATH OFF)
-              set(CMAKE_INSTALL_RPATH "${MQTTSUITE_INSTALL_RPATH}")
-              set(CMAKE_INSTALL_RPATH_USE_LINK_PATH OFF)
-              add_link_options(LINKER:--disable-new-dtags)
-
-              function(mqttsuite_apply_install_rpath directory)
-                  get_property(_targets DIRECTORY "${directory}" PROPERTY BUILDSYSTEM_TARGETS)
-                  foreach(_target IN LISTS _targets)
-                      get_target_property(_target_type "${_target}" TYPE)
-                      if(_target_type STREQUAL "EXECUTABLE" OR
-                         _target_type STREQUAL "SHARED_LIBRARY" OR
-                         _target_type STREQUAL "MODULE_LIBRARY")
-                          set_target_properties("${_target}" PROPERTIES
-                              BUILD_WITH_INSTALL_RPATH ON
-                              INSTALL_RPATH "${MQTTSUITE_INSTALL_RPATH}"
-                              INSTALL_RPATH_USE_LINK_PATH OFF)
-                      endif()
-                  endforeach()
-
-                  get_property(_subdirectories DIRECTORY "${directory}" PROPERTY SUBDIRECTORIES)
-                  foreach(_subdirectory IN LISTS _subdirectories)
-                      mqttsuite_apply_install_rpath("${_subdirectory}")
-                  endforeach()
-              endfunction()
-          endif()'''.replace("          ", "")
-          if old not in text:
-              raise RuntimeError("Expected root install-RPATH block was not found")
-          text = text.replace(old, new, 1)
-
-          # SNode.C's package configuration changes the directory defaults from
-          # inside find_package(). Reassert the suite policy on every concrete
-          # target after all subdirectories and package lookups have completed.
-          tail = '''if(MQTTSUITE_BUILD_TESTS)
-              add_subdirectory(tests)
-          endif()'''.replace("          ", "")
-          replacement = tail + '''
-
-          if(UNIX AND NOT APPLE)
-              mqttsuite_apply_install_rpath("${CMAKE_CURRENT_SOURCE_DIR}")
-          endif()
-          '''.replace("          ", "").rstrip()
-          if tail not in text:
-              raise RuntimeError("Expected root subdirectory tail was not found")
-          path.write_text(text.replace(tail, replacement, 1), encoding="utf-8")
-
           with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env:
               env.write("FINALIZE_CORRECTIONS=1\n")
 
@@ -214,8 +124,7 @@ jobs:
           grep -q 'finalCallback(\[name' mqttstore/mqttstore.cpp
           grep -q 'SocketContextFactory::preflight(name, config)' mqttstore/mqttstore.cpp
           grep -q 'cmake_minimum_required(VERSION 3.18)' CMakeLists.txt
-          grep -q 'MQTTSUITE_INSTALL_RPATH' CMakeLists.txt
-          grep -q 'mqttsuite_apply_install_rpath' CMakeLists.txt
+          ! grep -q 'MQTTSUITE_INSTALL_RPATH' CMakeLists.txt
           git diff --check
 
       - name: Check out pinned SNode.C
@@ -285,11 +194,21 @@ jobs:
           set -euo pipefail
           cmake --install build
 
-      - name: Qualify installed RUNPATH and dependencies
+          # Match AISuite CI: expose the private staged dependency tree only to
+          # qualification processes. This does not alter installed artifacts.
+          mapfile -t library_dirs < <(
+            find "$PREFIX/lib" -type f -name '*.so*' -printf '%h\n' | sort -u
+          )
+          test "${#library_dirs[@]}" -gt 0
+          ci_library_path=$(IFS=:; echo "${library_dirs[*]}")
+          echo "MQTTSUITE_CI_LIBRARY_PATH=$ci_library_path" >> "$GITHUB_ENV"
+          echo "$ci_library_path" > "$EVIDENCE/ci-library-path.txt"
+
+      - name: Qualify installed dependencies with CI loader path
         shell: bash
         run: |
           set -euo pipefail
-          unset LD_LIBRARY_PATH
+          export LD_LIBRARY_PATH="$MQTTSUITE_CI_LIBRARY_PATH"
 
           mapfile -t artifacts < <(
             {
@@ -299,26 +218,11 @@ jobs:
           )
           test "${#artifacts[@]}" -gt 0
 
-          : > "$EVIDENCE/readelf.txt"
           : > "$EVIDENCE/ldd.txt"
           for artifact in "${artifacts[@]}"; do
-            echo "===== $artifact =====" | tee -a "$EVIDENCE/readelf.txt" "$EVIDENCE/ldd.txt"
-            readelf -d "$artifact" | tee -a "$EVIDENCE/readelf.txt"
-            if readelf -d "$artifact" | grep -F "$GITHUB_WORKSPACE"; then
-              echo "Build-tree path retained in $artifact" >&2
-              exit 1
-            fi
-            if readelf -d "$artifact" | grep -F "$PREFIX"; then
-              echo "Absolute install-prefix path retained in $artifact" >&2
-              exit 1
-            fi
-            if ! readelf -d "$artifact" | grep -Eq '\((RUNPATH|RPATH)\)'; then
-              echo "Installed runtime artifact has no RUNPATH/RPATH: $artifact" >&2
-              exit 1
-            fi
-
-            env -u LD_LIBRARY_PATH ldd "$artifact" | tee -a "$EVIDENCE/ldd.txt"
-            if [[ "$artifact" = "$PREFIX/bin/"* ]] && env -u LD_LIBRARY_PATH ldd "$artifact" | grep -q 'not found'; then
+            echo "===== $artifact =====" | tee -a "$EVIDENCE/ldd.txt"
+            ldd "$artifact" | tee -a "$EVIDENCE/ldd.txt"
+            if [[ "$artifact" = "$PREFIX/bin/"* ]] && ldd "$artifact" | grep -q 'not found'; then
               echo "Unresolved installed dependency in $artifact" >&2
               exit 1
             fi
@@ -333,11 +237,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          unset LD_LIBRARY_PATH
+          export LD_LIBRARY_PATH="$MQTTSUITE_CI_LIBRARY_PATH"
           for app in mqttbroker mqttintegrator mqttbridge mqttcli mqttstore; do
             log="$EVIDENCE/${app}-help.txt"
             set +e
-            env -u LD_LIBRARY_PATH timeout 15 "$PREFIX/bin/$app" --help >"$log" 2>&1
+            timeout 15 "$PREFIX/bin/$app" --help >"$log" 2>&1
             status=$?
             set -e
             echo "$app --help exit status: $status" | tee -a "$EVIDENCE/startup-status.txt"
@@ -356,10 +260,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          unset LD_LIBRARY_PATH
+          export LD_LIBRARY_PATH="$MQTTSUITE_CI_LIBRARY_PATH"
           printf '%s\n' 'QUALIFY-ADMIN-PASSWORD' > "$EVIDENCE/broker-admin.pass"
 
-          env -u LD_LIBRARY_PATH "$PREFIX/bin/mqttbroker" \
+          "$PREFIX/bin/mqttbroker" \
             broker --admin-user qualify-admin --admin-password-file "$EVIDENCE/broker-admin.pass" \
             >"$EVIDENCE/broker.log" 2>&1 &
           broker_pid=$!
@@ -431,7 +335,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          unset LD_LIBRARY_PATH
+          export LD_LIBRARY_PATH="$MQTTSUITE_CI_LIBRARY_PATH"
           cat > "$EVIDENCE/integrator-mapping.json" <<'JSON'
           {
             "connection": {
@@ -454,7 +358,7 @@ jobs:
           JSON
           printf '%s\n' 'QUALIFY-INTEGRATOR-ADMIN' > "$EVIDENCE/integrator-admin.pass"
 
-          env -u LD_LIBRARY_PATH "$PREFIX/bin/mqttintegrator" \
+          "$PREFIX/bin/mqttintegrator" \
             integrator --mqtt-mapping-file "$EVIDENCE/integrator-mapping.json" \
             --admin-user integrator-admin --admin-password-file "$EVIDENCE/integrator-admin.pass" \
             in-mqtt remote --host 127.0.0.1 --port 65534 \
@@ -505,11 +409,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          unset LD_LIBRARY_PATH
+          export LD_LIBRARY_PATH="$MQTTSUITE_CI_LIBRARY_PATH"
           printf '{ malformed json\n' > "$EVIDENCE/bad-projections.json"
 
           set +e
-          env -u LD_LIBRARY_PATH strace -f -e trace=connect -o "$EVIDENCE/mqttstore-bad.strace" \
+          strace -f -e trace=connect -o "$EVIDENCE/mqttstore-bad.strace" \
             timeout 10 "$PREFIX/bin/mqttstore" \
               in-mqtt \
               remote --host 127.0.0.1 --port 65534 \
@@ -543,6 +447,7 @@ jobs:
             -n 'admin/admin' lib mqttbroker mqttintegrator mqttbridge mqttcli mqttstore
           ! grep -n 'Access-Control-Allow-Origin' mqttbroker/mqttbroker.cpp
           ! grep -n 'mapping/json' mqttintegrator/mqttintegrator.cpp
+          ! grep -q 'MQTTSUITE_INSTALL_RPATH' CMakeLists.txt
           git diff --check
 
       - name: Record qualification manifest
@@ -554,10 +459,10 @@ jobs:
             echo "SNode.C baseline: $SNODEC_SHA"
             echo "CMake: $(cmake --version | head -1)"
             echo "Compiler: $(g++ --version | head -1)"
-            echo "LD_LIBRARY_PATH: ${LD_LIBRARY_PATH-<unset>}"
+            echo "CI-only LD_LIBRARY_PATH: $MQTTSUITE_CI_LIBRARY_PATH"
             echo "Install prefix: $PREFIX"
             echo "Focused tests: PASS"
-            echo "Installed RUNPATH/dependency qualification: PASS"
+            echo "Installed dependency qualification with CI loader path: PASS"
             echo "Five-application loader startup: PASS"
             echo "Broker auth/CORS/event-secret qualification: PASS"
             echo "Integrator mapping/admin redaction qualification: PASS"

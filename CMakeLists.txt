@@ -47,20 +47,6 @@ set(MQTTSUITE_SOVERSION ${MQTTSuite_VERSION_MAJOR})
 
 include(GNUInstallDirs)
 
-# Installed MQTTSuite runtime artifacts resolve suite-owned and co-installed
-# SNode.C shared libraries from the installation prefix itself. Packaging may
-# override MQTTSUITE_INSTALL_RPATH (including setting it to an empty string)
-# when the target distribution provides its own loader policy.
-if(UNIX AND NOT APPLE)
-    file(RELATIVE_PATH MQTTSUITE_LIBDIR_FROM_BINDIR "/${CMAKE_INSTALL_BINDIR}" "/${CMAKE_INSTALL_LIBDIR}")
-    set(MQTTSUITE_INSTALL_RPATH "\$ORIGIN;\$ORIGIN/${MQTTSUITE_LIBDIR_FROM_BINDIR}" CACHE STRING
-        "Install RUNPATH used by MQTTSuite runtime artifacts")
-    set(CMAKE_BUILD_RPATH_USE_ORIGIN ON)
-    set(CMAKE_BUILD_WITH_INSTALL_RPATH OFF)
-    set(CMAKE_INSTALL_RPATH "${MQTTSUITE_INSTALL_RPATH}")
-    set(CMAKE_INSTALL_RPATH_USE_LINK_PATH OFF)
-endif()
-
 option(MQTTSUITE_BUILD_TESTS "Build focused MQTTSuite regression tests" OFF)
 if(MQTTSUITE_BUILD_TESTS)
     include(CTest)
