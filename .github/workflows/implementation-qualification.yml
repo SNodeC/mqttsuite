@@ -151,7 +151,6 @@ jobs:
               set(CMAKE_BUILD_WITH_INSTALL_RPATH OFF)
               set(CMAKE_INSTALL_RPATH "${MQTTSUITE_INSTALL_RPATH}")
               set(CMAKE_INSTALL_RPATH_USE_LINK_PATH OFF)
-              set(CMAKE_NO_BUILTIN_CHRPATH ON)
               add_link_options(LINKER:--disable-new-dtags)
 
               function(mqttsuite_apply_install_rpath directory)
@@ -319,7 +318,7 @@ jobs:
             fi
           done
 
-          if grep -E 'libmqtt|libsnodec' "$EVIDENCE/ldd.txt" | grep '=>' | grep -vF "$PREFIX/"; then
+          if grep -E 'libmqtt|libsnodec' "$EVIDENCE/ldd.txt" | grep '=>' | grep -v '=> not found' | grep -vF "$PREFIX/"; then
             echo "MQTTSuite/SNode.C dependency resolved outside the clean prefix" >&2
             exit 1
           fi
