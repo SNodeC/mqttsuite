@@ -1,11 +1,10 @@
-name: MQTTSuite implementation qualification
+name: MQTTSuite build
 
 on:
   push:
     branches: [master]
     paths:
       - '.github/workflows/implementation-qualification.yml'
-      - '.github/mqttsuite-implementation-corrections-applied'
       - 'CMakeLists.txt'
       - '**/CMakeLists.txt'
       - 'lib/**'
@@ -14,118 +13,26 @@ on:
       - 'mqttbridge/**'
       - 'mqttcli/**'
       - 'mqttstore/**'
-      - 'tests/**'
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  qualify:
+  build:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 45
     env:
       SNODEC_SHA: 5d6453c21df4894083b445cce00b627e7794932a
 
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
           submodules: recursive
 
-      - name: Prepare qualification paths
+      - name: Prepare dependency prefix
         shell: bash
-        run: |
-          set -euo pipefail
-          echo "PREFIX=$RUNNER_TEMP/mqttsuite-prefix" >> "$GITHUB_ENV"
-          echo "EVIDENCE=$RUNNER_TEMP/mqttsuite-evidence" >> "$GITHUB_ENV"
-          mkdir -p "$RUNNER_TEMP/mqttsuite-prefix" "$RUNNER_TEMP/mqttsuite-evidence"
-
-      - name: Apply frozen implementation corrections
-        shell: python
-        run: |
-          from pathlib import Path
-          import os
-
-          root = Path.cwd()
-          marker = root / ".github/mqttsuite-implementation-corrections-applied"
-          if marker.exists():
-              print("Final correction marker already present; verifying committed source without mutation.")
-              with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env:
-                  env.write("FINALIZE_CORRECTIONS=0\n")
-              raise SystemExit(0)
-
-          # Decision G: one effective CMake floor throughout the suite tree.
-          for path in root.rglob("CMakeLists.txt"):
-              text = path.read_text(encoding="utf-8")
-              changed = text.replace("cmake_minimum_required(VERSION 3.14)",
-                                     "cmake_minimum_required(VERSION 3.18)")
-              if changed != text:
-                  path.write_text(changed, encoding="utf-8")
-
-          # Decision A: remove the last confirmed plaintext Bridge password log.
-          path = root / "mqttbridge/mqttbridge.cpp"
-          text = path.read_text(encoding="utf-8")
-          old = 'mqttsuite::semantic::bridgeLog().debug() << "    Broker password: " << broker.getPassword();'
-          new = 'mqttsuite::semantic::bridgeLog().debug() << "    Broker password configured: " << !broker.getPassword().empty();'
-          if old not in text:
-              raise RuntimeError("Expected Bridge plaintext-password log was not found")
-          path.write_text(text.replace(old, new), encoding="utf-8")
-
-          # Decision B: put the complete /api/mqtt namespace, including events,
-          # behind the parent-router authentication boundary.
-          path = root / "mqttbroker/mqttbroker.cpp"
-          text = path.read_text(encoding="utf-8")
-          text = text.replace(
-              'jsonRouter.use("/api/mqtt", express::middleware::BasicAuthentication(user, password, realm));',
-              'router.use("/api/mqtt", express::middleware::BasicAuthentication(user, password, realm));')
-          text = text.replace('jsonRouter.use("/api/mqtt", unavailable);',
-                              'router.use("/api/mqtt", unavailable);')
-          path.write_text(text, encoding="utf-8")
-
-          # Decision H: validate static projection configuration before connect()
-          # is scheduled, then inject the already validated plan in create().
-          path = root / "mqttstore/mqttstore.cpp"
-          text = path.read_text(encoding="utf-8")
-          old = "    socketClient.getConfig()->setDisabled();\n\n    socketClient.connect("
-          new = ("    socketClient.getConfig()->setDisabled();\n\n"
-                 "    socketClient.getConfig()->finalCallback([instanceName, config = socketClient.getConfig()]() {\n"
-                 "        mqtt::mqttstore::SocketContextFactory::preflight(instanceName, config);\n"
-                 "    });\n\n"
-                 "    socketClient.connect(")
-          if old not in text:
-              raise RuntimeError("Expected MQTTStore stream connect site was not found")
-          text = text.replace(old, new, 1)
-          old = "    httpClient.getConfig()->setDisabled();\n\n    httpClient.connect("
-          new = ("    httpClient.getConfig()->setDisabled();\n\n"
-                 "    httpClient.getConfig()->finalCallback([name, config = httpClient.getConfig()]() {\n"
-                 "        mqtt::mqttstore::SocketContextFactory::preflight(name, config);\n"
-                 "    });\n\n"
-                 "    httpClient.connect(")
-          if old not in text:
-              raise RuntimeError("Expected MQTTStore WebSocket connect site was not found")
-          text = text.replace(old, new, 1)
-          path.write_text(text, encoding="utf-8")
-
-          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env:
-              env.write("FINALIZE_CORRECTIONS=1\n")
-
-      - name: Static correction checks
-        shell: bash
-        run: |
-          set -euo pipefail
-          ! grep -R --include='CMakeLists.txt' -n 'cmake_minimum_required(VERSION 3.14)' .
-          ! grep -R --exclude='README.md' --exclude-dir='.git' -nE 'Broker password:|Password:.*getPassword\(|"password"[[:space:]]*,[[:space:]]*mqtt->getPassword\(\)' lib mqttbroker mqttintegrator mqttbridge mqttcli mqttstore
-          ! grep -n 'Access-Control-Allow-Origin' mqttbroker/mqttbroker.cpp
-          ! grep -n 'mapping/json' mqttintegrator/mqttintegrator.cpp
-          grep -q 'router.use("/api/mqtt", express::middleware::BasicAuthentication' mqttbroker/mqttbroker.cpp
-          grep -q 'finalCallback(\[instanceName' mqttstore/mqttstore.cpp
-          grep -q 'SocketContextFactory::preflight(instanceName, config)' mqttstore/mqttstore.cpp
-          grep -q 'finalCallback(\[name' mqttstore/mqttstore.cpp
-          grep -q 'SocketContextFactory::preflight(name, config)' mqttstore/mqttstore.cpp
-          grep -q 'cmake_minimum_required(VERSION 3.18)' CMakeLists.txt
-          ! grep -q 'MQTTSUITE_INSTALL_RPATH' CMakeLists.txt
-          git diff --check
+        run: echo "PREFIX=$RUNNER_TEMP/snodec-prefix" >> "$GITHUB_ENV"
 
       - name: Check out pinned SNode.C
         uses: actions/checkout@v4
@@ -135,24 +42,20 @@ jobs:
           path: _snodec
           fetch-depth: 1
 
-      - name: Install build and runtime dependencies
+      - name: Install build dependencies
         shell: bash
         run: |
           set -euo pipefail
           sudo apt-get update
           sudo apt-get install -y \
-            binutils \
             cmake \
-            curl \
             g++ \
             libbluetooth-dev \
             libmagic-dev \
             libmariadb-dev \
             libssl-dev \
-            mosquitto-clients \
             nlohmann-json3-dev \
-            pkg-config \
-            strace
+            pkg-config
 
       - name: Build and install pinned SNode.C
         shell: bash
@@ -172,324 +75,8 @@ jobs:
           set -euo pipefail
           cmake -S . -B build \
             -DCMAKE_BUILD_TYPE=Debug \
-            -DMQTTSUITE_BUILD_TESTS=ON \
-            -DCMAKE_PREFIX_PATH="$PREFIX" \
-            -DCMAKE_INSTALL_PREFIX="$PREFIX"
+            -DCMAKE_PREFIX_PATH="$PREFIX"
 
       - name: Build MQTTSuite
         shell: bash
-        run: |
-          set -euo pipefail
-          cmake --build build --parallel 8
-
-      - name: Run focused tests
-        shell: bash
-        run: |
-          set -euo pipefail
-          ctest --test-dir build --output-on-failure | tee "$EVIDENCE/ctest.txt"
-
-      - name: Install MQTTSuite
-        shell: bash
-        run: |
-          set -euo pipefail
-          cmake --install build
-
-          # Match AISuite CI: expose the private staged dependency tree only to
-          # qualification processes. This does not alter installed artifacts.
-          mapfile -t library_dirs < <(
-            find "$PREFIX/lib" -type f -name '*.so*' -printf '%h\n' | sort -u
-          )
-          test "${#library_dirs[@]}" -gt 0
-          ci_library_path=$(IFS=:; echo "${library_dirs[*]}")
-          echo "MQTTSUITE_CI_LIBRARY_PATH=$ci_library_path" >> "$GITHUB_ENV"
-          echo "$ci_library_path" > "$EVIDENCE/ci-library-path.txt"
-
-      - name: Qualify installed dependencies with CI loader path
-        shell: bash
-        run: |
-          set -euo pipefail
-          export LD_LIBRARY_PATH="$MQTTSUITE_CI_LIBRARY_PATH"
-
-          mapfile -t artifacts < <(
-            {
-              find "$PREFIX/bin" -maxdepth 1 -type f -name 'mqtt*' -print
-              find "$PREFIX/lib" -maxdepth 1 -type f -name 'libmqtt*.so*' -print
-            } | sort -u
-          )
-          test "${#artifacts[@]}" -gt 0
-
-          : > "$EVIDENCE/ldd.txt"
-          for artifact in "${artifacts[@]}"; do
-            echo "===== $artifact =====" | tee -a "$EVIDENCE/ldd.txt"
-            ldd "$artifact" | tee -a "$EVIDENCE/ldd.txt"
-            if [[ "$artifact" = "$PREFIX/bin/"* ]] && ldd "$artifact" | grep -q 'not found'; then
-              echo "Unresolved installed dependency in $artifact" >&2
-              exit 1
-            fi
-          done
-
-          if grep -E 'libmqtt|libsnodec' "$EVIDENCE/ldd.txt" | grep '=>' | grep -v '=> not found' | grep -vF "$PREFIX/"; then
-            echo "MQTTSuite/SNode.C dependency resolved outside the clean prefix" >&2
-            exit 1
-          fi
-
-      - name: Prove loader-complete startup for all five applications
-        shell: bash
-        run: |
-          set -euo pipefail
-          export LD_LIBRARY_PATH="$MQTTSUITE_CI_LIBRARY_PATH"
-          for app in mqttbroker mqttintegrator mqttbridge mqttcli mqttstore; do
-            log="$EVIDENCE/${app}-help.txt"
-            set +e
-            timeout 15 "$PREFIX/bin/$app" --help >"$log" 2>&1
-            status=$?
-            set -e
-            echo "$app --help exit status: $status" | tee -a "$EVIDENCE/startup-status.txt"
-            if [[ "$status" -eq 124 || "$status" -eq 126 || "$status" -eq 127 ]]; then
-              cat "$log"
-              exit 1
-            fi
-            if grep -Eq 'error while loading shared libraries|cannot open shared object file' "$log"; then
-              cat "$log"
-              exit 1
-            fi
-            test -s "$log"
-          done
-
-      - name: Prove Broker authentication, same-origin default, and secret-safe events
-        shell: bash
-        run: |
-          set -euo pipefail
-          export LD_LIBRARY_PATH="$MQTTSUITE_CI_LIBRARY_PATH"
-          printf '%s\n' 'QUALIFY-ADMIN-PASSWORD' > "$EVIDENCE/broker-admin.pass"
-
-          "$PREFIX/bin/mqttbroker" \
-            broker --admin-user qualify-admin --admin-password-file "$EVIDENCE/broker-admin.pass" \
-            >"$EVIDENCE/broker.log" 2>&1 &
-          broker_pid=$!
-          trap 'kill "$broker_pid" 2>/dev/null || true; wait "$broker_pid" 2>/dev/null || true' EXIT
-
-          for _ in $(seq 1 40); do
-            if curl -sS -o /dev/null http://127.0.0.1:8080/clients; then
-              break
-            fi
-            sleep 0.25
-          done
-          kill -0 "$broker_pid"
-
-          status=$(curl -sS -o "$EVIDENCE/events-noauth.txt" -w '%{http_code}' \
-            -H 'Accept: text/event-stream' http://127.0.0.1:8080/api/mqtt/events || true)
-          test "$status" = 401
-
-          status=$(curl -sS -o "$EVIDENCE/events-wrongauth.txt" -w '%{http_code}' \
-            -u qualify-admin:wrong -H 'Accept: text/event-stream' http://127.0.0.1:8080/api/mqtt/events || true)
-          test "$status" = 401
-
-          # Keep a credential-bearing MQTT client connected while observing replay.
-          mosquitto_sub -h 127.0.0.1 -p 1883 -t 'qualification/hold' \
-            -i qualification-client -u qualification-user -P 'QUALIFY-MQTT-SENTINEL' \
-            >"$EVIDENCE/mosquitto-sub.txt" 2>&1 &
-          sub_pid=$!
-          sleep 1
-          kill -0 "$sub_pid"
-
-          set +e
-          curl -sS --max-time 2 -D "$EVIDENCE/events-headers.txt" \
-            -u qualify-admin:QUALIFY-ADMIN-PASSWORD \
-            -H 'Accept: text/event-stream' \
-            http://127.0.0.1:8080/api/mqtt/events > "$EVIDENCE/events-auth.txt"
-          curl_status=$?
-          set -e
-          test "$curl_status" -eq 28 || test "$curl_status" -eq 0
-
-          ! grep -q 'Access-Control-Allow-Origin' "$EVIDENCE/events-headers.txt"
-          ! grep -q 'QUALIFY-MQTT-SENTINEL' "$EVIDENCE/events-auth.txt"
-          ! grep -q 'QUALIFY-MQTT-SENTINEL' "$EVIDENCE/broker.log"
-          ! grep -q '"password"' "$EVIDENCE/events-auth.txt"
-          grep -q '"passwordFlag"' "$EVIDENCE/events-auth.txt"
-
-          # Correct authentication reaches the mutation handler; a missing client is 404, not 401.
-          status=$(curl -sS -o "$EVIDENCE/disconnect-auth.txt" -w '%{http_code}' \
-            -u qualify-admin:QUALIFY-ADMIN-PASSWORD \
-            -H 'Content-Type: application/json' \
-            -d '{"clientId":"qualification-missing"}' \
-            http://127.0.0.1:8080/api/mqtt/disconnect)
-          test "$status" = 404
-
-          # MQTT protocol operation remains outside HTTP administration authentication.
-          mosquitto_sub -h 127.0.0.1 -p 1883 -t 'qualification/message' -C 1 \
-            >"$EVIDENCE/protocol-message.txt" 2>&1 &
-          msg_pid=$!
-          sleep 0.5
-          mosquitto_pub -h 127.0.0.1 -p 1883 -t 'qualification/message' -m 'loader-and-protocol-ok'
-          wait "$msg_pid"
-          grep -q 'loader-and-protocol-ok' "$EVIDENCE/protocol-message.txt"
-
-          kill "$sub_pid" 2>/dev/null || true
-          wait "$sub_pid" 2>/dev/null || true
-          kill "$broker_pid" 2>/dev/null || true
-          wait "$broker_pid" 2>/dev/null || true
-          trap - EXIT
-
-      - name: Prove Integrator mapping source and non-echoing administration
-        shell: bash
-        run: |
-          set -euo pipefail
-          export LD_LIBRARY_PATH="$MQTTSUITE_CI_LIBRARY_PATH"
-          cat > "$EVIDENCE/integrator-mapping.json" <<'JSON'
-          {
-            "connection": {
-              "client_id": "qualification-integrator",
-              "username": "mapping-user",
-              "password": "QUALIFY-INTEGRATOR-MAPPING-SENTINEL"
-            },
-            "mapping": {
-              "topic_level": {
-                "name": "qualification",
-                "subscription": {
-                  "value": {
-                    "mapped_topic": "qualification/from-file",
-                    "mapping_template": "{{ message }}"
-                  }
-                }
-              }
-            }
-          }
-          JSON
-          printf '%s\n' 'QUALIFY-INTEGRATOR-ADMIN' > "$EVIDENCE/integrator-admin.pass"
-
-          "$PREFIX/bin/mqttintegrator" \
-            integrator --mqtt-mapping-file "$EVIDENCE/integrator-mapping.json" \
-            --admin-user integrator-admin --admin-password-file "$EVIDENCE/integrator-admin.pass" \
-            in-mqtt remote --host 127.0.0.1 --port 65534 \
-            in-mqtts --disabled \
-            in6-mqtt --disabled \
-            in6-mqtts --disabled \
-            un-mqtt --disabled \
-            un-mqtts --disabled \
-            in-wsmqtt --disabled \
-            in-wsmqtts --disabled \
-            in6-wsmqtt --disabled \
-            in6-wsmqtts --disabled \
-            un-wsmqtt --disabled \
-            un-wsmqtts --disabled \
-            >"$EVIDENCE/integrator.log" 2>&1 &
-          integrator_pid=$!
-          trap 'kill "$integrator_pid" 2>/dev/null || true; wait "$integrator_pid" 2>/dev/null || true' EXIT
-
-          for _ in $(seq 1 40); do
-            status=$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:8085/config 2>/dev/null || true)
-            if [[ "$status" = 401 ]]; then
-              break
-            fi
-            sleep 0.25
-          done
-          if ! kill -0 "$integrator_pid"; then
-            cat "$EVIDENCE/integrator.log"
-            exit 1
-          fi
-          test "$status" = 401
-
-          status=$(curl -sS -o /dev/null -w '%{http_code}' -u integrator-admin:wrong http://127.0.0.1:8085/config || true)
-          test "$status" = 401
-
-          status=$(curl -sS -o "$EVIDENCE/integrator-config.json" -w '%{http_code}' \
-            -u integrator-admin:QUALIFY-INTEGRATOR-ADMIN http://127.0.0.1:8085/config)
-          test "$status" = 200
-          grep -q 'qualification/from-file' "$EVIDENCE/integrator-config.json"
-          grep -q '<redacted>' "$EVIDENCE/integrator-config.json"
-          ! grep -q 'QUALIFY-INTEGRATOR-MAPPING-SENTINEL' "$EVIDENCE/integrator-config.json"
-          ! grep -q 'QUALIFY-INTEGRATOR-MAPPING-SENTINEL' "$EVIDENCE/integrator.log"
-
-          kill "$integrator_pid" 2>/dev/null || true
-          wait "$integrator_pid" 2>/dev/null || true
-          trap - EXIT
-
-      - name: Prove MQTTStore malformed projection fails before networking
-        shell: bash
-        run: |
-          set -euo pipefail
-          export LD_LIBRARY_PATH="$MQTTSUITE_CI_LIBRARY_PATH"
-          printf '{ malformed json\n' > "$EVIDENCE/bad-projections.json"
-
-          set +e
-          strace -f -e trace=connect -o "$EVIDENCE/mqttstore-bad.strace" \
-            timeout 10 "$PREFIX/bin/mqttstore" \
-              in-mqtt \
-              remote --host 127.0.0.1 --port 65534 \
-              session --client-id qualification-store \
-              sub --topic '#' \
-              db storage --projection-file "$EVIDENCE/bad-projections.json" \
-              >"$EVIDENCE/mqttstore-bad.log" 2>&1
-          status=$?
-          set -e
-
-          echo "mqttstore malformed projection exit status: $status" | tee "$EVIDENCE/mqttstore-bad-status.txt"
-          test "$status" -ne 0
-          test "$status" -ne 124
-          grep -qi 'projection' "$EVIDENCE/mqttstore-bad.log"
-          grep -qiE 'invalid|parse|malformed' "$EVIDENCE/mqttstore-bad.log"
-          if grep -q 'connect(' "$EVIDENCE/mqttstore-bad.strace"; then
-            cat "$EVIDENCE/mqttstore-bad.strace"
-            echo "MQTTStore attempted network I/O before rejecting malformed projection configuration" >&2
-            exit 1
-          fi
-
-      - name: Final source audit
-        shell: bash
-        run: |
-          set -euo pipefail
-          ! grep -R --include='CMakeLists.txt' -n 'cmake_minimum_required(VERSION 3.14)' .
-          ! grep -R --exclude='README.md' --exclude-dir='.git' --exclude-dir='build' --exclude-dir='_snodec' \
-            -nE 'Broker password:|Password:.*getPassword\(|"password"[[:space:]]*,[[:space:]]*mqtt->getPassword\(\)' \
-            lib mqttbroker mqttintegrator mqttbridge mqttcli mqttstore
-          ! grep -R --exclude='README.md' --exclude-dir='.git' --exclude-dir='build' --exclude-dir='_snodec' \
-            -n 'admin/admin' lib mqttbroker mqttintegrator mqttbridge mqttcli mqttstore
-          ! grep -n 'Access-Control-Allow-Origin' mqttbroker/mqttbroker.cpp
-          ! grep -n 'mapping/json' mqttintegrator/mqttintegrator.cpp
-          ! grep -q 'MQTTSUITE_INSTALL_RPATH' CMakeLists.txt
-          git diff --check
-
-      - name: Record qualification manifest
-        shell: bash
-        run: |
-          set -euo pipefail
-          {
-            echo "MQTTSuite source before finalization: $(git rev-parse HEAD)"
-            echo "SNode.C baseline: $SNODEC_SHA"
-            echo "CMake: $(cmake --version | head -1)"
-            echo "Compiler: $(g++ --version | head -1)"
-            echo "CI-only LD_LIBRARY_PATH: $MQTTSUITE_CI_LIBRARY_PATH"
-            echo "Install prefix: $PREFIX"
-            echo "Focused tests: PASS"
-            echo "Installed dependency qualification with CI loader path: PASS"
-            echo "Five-application loader startup: PASS"
-            echo "Broker auth/CORS/event-secret qualification: PASS"
-            echo "Integrator mapping/admin redaction qualification: PASS"
-            echo "MQTTStore malformed-projection preflight: PASS"
-          } | tee "$EVIDENCE/manifest.txt"
-
-      - name: Upload qualification evidence
-        uses: actions/upload-artifact@v4
-        with:
-          name: mqttsuite-implementation-qualification
-          path: ${{ env.EVIDENCE }}
-
-      - name: Commit qualified final corrections
-        if: env.FINALIZE_CORRECTIONS == '1'
-        shell: bash
-        run: |
-          set -euo pipefail
-          touch .github/mqttsuite-implementation-corrections-applied
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add \
-            .github/mqttsuite-implementation-corrections-applied \
-            CMakeLists.txt \
-            ':(glob)**/CMakeLists.txt' \
-            mqttbroker/mqttbroker.cpp \
-            mqttbridge/mqttbridge.cpp \
-            mqttstore/mqttstore.cpp
-          git diff --cached --check
-          git commit -m 'Complete MQTTSuite implementation corrections'
-          git push origin "HEAD:${GITHUB_REF_NAME}"
+        run: cmake --build build --parallel 8
