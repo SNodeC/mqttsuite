@@ -449,7 +449,7 @@ jobs:
           printf '%s\n' 'QUALIFY-INTEGRATOR-ADMIN' > "$EVIDENCE/integrator-admin.pass"
 
           env -u LD_LIBRARY_PATH "$PREFIX/bin/mqttintegrator" \
-            integrator --mqtt-mapping-file "$EVIDENCE/integrator-mapping.json" \
+            --mqtt-mapping-file "$EVIDENCE/integrator-mapping.json" \
             --admin-user integrator-admin --admin-password-file "$EVIDENCE/integrator-admin.pass" \
             >"$EVIDENCE/integrator.log" 2>&1 &
           integrator_pid=$!
