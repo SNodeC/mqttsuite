@@ -587,4 +587,4 @@ jobs:
             mqttstore/mqttstore.cpp
           git diff --cached --check
           git commit -m 'Complete MQTTSuite implementation corrections'
-          git push origin HEAD:master
+          git push origin "HEAD:${GITHUB_REF_NAME}"
