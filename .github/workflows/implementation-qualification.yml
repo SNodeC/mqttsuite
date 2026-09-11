@@ -121,8 +121,8 @@ jobs:
 
               if(NOT DEFINED MQTTSUITE_INSTALL_RPATH)
                   set(_mqttsuite_default_install_rpath
-                      "\\$ORIGIN"
-                      "\\$ORIGIN/${MQTTSUITE_LIBDIR_FROM_BINDIR}"
+                      "\\${ORIGIN}"
+                      "\\${ORIGIN}/${MQTTSUITE_LIBDIR_FROM_BINDIR}"
                   )
 
                   # SNode.C installs component libraries below lib/snode.c/... .
@@ -137,8 +137,8 @@ jobs:
                               file(RELATIVE_PATH _library_rel_dir
                                   "${_prefix}/${CMAKE_INSTALL_LIBDIR}" "${_library_dir}")
                               list(APPEND _mqttsuite_default_install_rpath
-                                  "\\$ORIGIN/${_library_rel_dir}"
-                                  "\\$ORIGIN/${MQTTSUITE_LIBDIR_FROM_BINDIR}/${_library_rel_dir}")
+                                  "\\${ORIGIN}/${_library_rel_dir}"
+                                  "\\${ORIGIN}/${MQTTSUITE_LIBDIR_FROM_BINDIR}/${_library_rel_dir}")
                           endforeach()
                       endif()
                   endforeach()
