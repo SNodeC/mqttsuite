@@ -32,9 +32,12 @@ if(UNIX AND NOT APPLE)
     list(REMOVE_DUPLICATES _mqttsuite_test_dependency_dirs)
     list(JOIN _mqttsuite_test_dependency_dirs ":" _mqttsuite_test_library_path)
 
-    set_tests_properties(
-        mqtt-mapper-tests
-        mqtt-store-storage-plan-tests
-        PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${_mqttsuite_test_library_path}:$ENV{LD_LIBRARY_PATH}"
+    set_tests_properties(mqtt-mapper-tests PROPERTIES
+        ENVIRONMENT
+            "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:mqtt-mapping>:${_mqttsuite_test_library_path}:$ENV{LD_LIBRARY_PATH}"
+    )
+    set_tests_properties(mqtt-store-storage-plan-tests PROPERTIES
+        ENVIRONMENT
+            "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:mqtt-store>:${_mqttsuite_test_library_path}:$ENV{LD_LIBRARY_PATH}"
     )
 endif()
