@@ -14,7 +14,10 @@ add_test(NAME mqtt-store-storage-plan-tests COMMAND mqtt-store-storage-plan-test
 # executables link MQTTSuite libraries directly, so their RUNPATH does not cover
 # every transitive SNode.C dependency while running from the build tree.
 if(UNIX AND NOT APPLE)
-    set(_mqttsuite_test_dependency_dirs)
+    set(_mqttsuite_test_dependency_dirs
+        "$<TARGET_FILE_DIR:mqtt-mapping>"
+        "$<TARGET_FILE_DIR:mqtt-store>"
+    )
     foreach(_prefix IN LISTS CMAKE_PREFIX_PATH)
         if(IS_DIRECTORY "${_prefix}/${CMAKE_INSTALL_LIBDIR}")
             list(APPEND _mqttsuite_test_dependency_dirs "${_prefix}/${CMAKE_INSTALL_LIBDIR}")
