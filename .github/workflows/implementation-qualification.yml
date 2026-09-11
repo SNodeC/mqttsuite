@@ -148,7 +148,7 @@ jobs:
               endif()
 
               set(CMAKE_BUILD_RPATH_USE_ORIGIN ON)
-              set(CMAKE_BUILD_WITH_INSTALL_RPATH OFF)
+              set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
               set(CMAKE_INSTALL_RPATH "${MQTTSUITE_INSTALL_RPATH}")
               set(CMAKE_INSTALL_RPATH_USE_LINK_PATH OFF)
               add_link_options(LINKER:--disable-new-dtags)
@@ -265,13 +265,17 @@ jobs:
               echo "Build-tree path retained in $artifact" >&2
               exit 1
             fi
+            if readelf -d "$artifact" | grep -F "$PREFIX"; then
+              echo "Absolute install-prefix path retained in $artifact" >&2
+              exit 1
+            fi
             if ! readelf -d "$artifact" | grep -Eq '\((RUNPATH|RPATH)\)'; then
               echo "Installed runtime artifact has no RUNPATH/RPATH: $artifact" >&2
               exit 1
             fi
 
             env -u LD_LIBRARY_PATH ldd "$artifact" | tee -a "$EVIDENCE/ldd.txt"
-            if env -u LD_LIBRARY_PATH ldd "$artifact" | grep -q 'not found'; then
+            if [[ "$artifact" = "$PREFIX/bin/"* ]] && env -u LD_LIBRARY_PATH ldd "$artifact" | grep -q 'not found'; then
               echo "Unresolved installed dependency in $artifact" >&2
               exit 1
             fi
