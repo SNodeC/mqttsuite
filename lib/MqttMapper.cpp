@@ -200,7 +200,7 @@ namespace mqtt::lib {
 
                     mqttsuite::semantic::mappingLog().debug() << "  Loading plugin done: " << plugin;
                 } else {
-                    throw std::runtime_error("Error loading mapping plugin: " + core::DynamicLoader::dlError());
+                    throw std::runtime_error(std::string("Error loading mapping plugin: ") + core::DynamicLoader::dlError());
                 }
             }
 
