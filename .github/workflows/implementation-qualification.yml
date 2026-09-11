@@ -152,10 +152,46 @@ jobs:
               set(CMAKE_INSTALL_RPATH "${MQTTSUITE_INSTALL_RPATH}")
               set(CMAKE_INSTALL_RPATH_USE_LINK_PATH OFF)
               add_link_options(LINKER:--disable-new-dtags)
+
+              function(mqttsuite_apply_install_rpath directory)
+                  get_property(_targets DIRECTORY "${directory}" PROPERTY BUILDSYSTEM_TARGETS)
+                  foreach(_target IN LISTS _targets)
+                      get_target_property(_target_type "${_target}" TYPE)
+                      if(_target_type STREQUAL "EXECUTABLE" OR
+                         _target_type STREQUAL "SHARED_LIBRARY" OR
+                         _target_type STREQUAL "MODULE_LIBRARY")
+                          set_target_properties("${_target}" PROPERTIES
+                              BUILD_WITH_INSTALL_RPATH ON
+                              INSTALL_RPATH "${MQTTSUITE_INSTALL_RPATH}"
+                              INSTALL_RPATH_USE_LINK_PATH OFF)
+                      endif()
+                  endforeach()
+
+                  get_property(_subdirectories DIRECTORY "${directory}" PROPERTY SUBDIRECTORIES)
+                  foreach(_subdirectory IN LISTS _subdirectories)
+                      mqttsuite_apply_install_rpath("${_subdirectory}")
+                  endforeach()
+              endfunction()
           endif()'''.replace("          ", "")
           if old not in text:
               raise RuntimeError("Expected root install-RPATH block was not found")
-          path.write_text(text.replace(old, new, 1), encoding="utf-8")
+          text = text.replace(old, new, 1)
+
+          # SNode.C's package configuration changes the directory defaults from
+          # inside find_package(). Reassert the suite policy on every concrete
+          # target after all subdirectories and package lookups have completed.
+          tail = '''if(MQTTSUITE_BUILD_TESTS)
+              add_subdirectory(tests)
+          endif()'''.replace("          ", "")
+          replacement = tail + '''
+
+          if(UNIX AND NOT APPLE)
+              mqttsuite_apply_install_rpath("${CMAKE_CURRENT_SOURCE_DIR}")
+          endif()
+          '''.replace("          ", "").rstrip()
+          if tail not in text:
+              raise RuntimeError("Expected root subdirectory tail was not found")
+          path.write_text(text.replace(tail, replacement, 1), encoding="utf-8")
 
           with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env:
               env.write("FINALIZE_CORRECTIONS=1\n")
@@ -173,6 +209,7 @@ jobs:
           grep -q 'SocketContextFactory::preflight(name' mqttstore/mqttstore.cpp
           grep -q 'cmake_minimum_required(VERSION 3.18)' CMakeLists.txt
           grep -q 'MQTTSUITE_INSTALL_RPATH' CMakeLists.txt
+          grep -q 'mqttsuite_apply_install_rpath' CMakeLists.txt
           git diff --check
 
       - name: Check out pinned SNode.C
