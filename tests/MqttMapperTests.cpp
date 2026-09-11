@@ -55,10 +55,14 @@ namespace {
 
     void testPlusIsSingleLevelOnly() {
         mqtt::lib::MqttMapper mapper;
-        mapper.setMapping({{"mapping",
-                            {{"topic_level",
-                              {{{"name", "devices"},
-                                {"topic_level", {{{"name", "+"}, {"subscription", valueSubscription("plus-only/out")}}}}}}}}}}});
+        mapper.setMapping(
+            {{"mapping",
+              {{"topic_level",
+                nlohmann::json::array(
+                    {{{"name", "devices"},
+                      {"topic_level",
+                       nlohmann::json::array(
+                           {{{"name", "+"}, {"subscription", valueSubscription("plus-only/out")}}})}}})}}}});
 
         assert(mappedTopic(mapper, "devices/node") == "plus-only/out");
         assert(mappedTopic(mapper, "devices/node/deep").empty());
