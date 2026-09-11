@@ -89,14 +89,18 @@ jobs:
           text = path.read_text(encoding="utf-8")
           old = "    socketClient.getConfig()->setDisabled();\n\n    socketClient.connect("
           new = ("    socketClient.getConfig()->setDisabled();\n\n"
-                 "    mqtt::mqttstore::SocketContextFactory::preflight(instanceName, socketClient.getConfig());\n\n"
+                 "    socketClient.getConfig()->finalCallback([instanceName, config = socketClient.getConfig()]() {\n"
+                 "        mqtt::mqttstore::SocketContextFactory::preflight(instanceName, config);\n"
+                 "    });\n\n"
                  "    socketClient.connect(")
           if old not in text:
               raise RuntimeError("Expected MQTTStore stream connect site was not found")
           text = text.replace(old, new, 1)
           old = "    httpClient.getConfig()->setDisabled();\n\n    httpClient.connect("
           new = ("    httpClient.getConfig()->setDisabled();\n\n"
-                 "    mqtt::mqttstore::SocketContextFactory::preflight(name, httpClient.getConfig());\n\n"
+                 "    httpClient.getConfig()->finalCallback([name, config = httpClient.getConfig()]() {\n"
+                 "        mqtt::mqttstore::SocketContextFactory::preflight(name, config);\n"
+                 "    });\n\n"
                  "    httpClient.connect(")
           if old not in text:
               raise RuntimeError("Expected MQTTStore WebSocket connect site was not found")
@@ -205,8 +209,10 @@ jobs:
           ! grep -n 'Access-Control-Allow-Origin' mqttbroker/mqttbroker.cpp
           ! grep -n 'mapping/json' mqttintegrator/mqttintegrator.cpp
           grep -q 'router.use("/api/mqtt", express::middleware::BasicAuthentication' mqttbroker/mqttbroker.cpp
-          grep -q 'SocketContextFactory::preflight(instanceName' mqttstore/mqttstore.cpp
-          grep -q 'SocketContextFactory::preflight(name' mqttstore/mqttstore.cpp
+          grep -q 'finalCallback(\[instanceName' mqttstore/mqttstore.cpp
+          grep -q 'SocketContextFactory::preflight(instanceName, config)' mqttstore/mqttstore.cpp
+          grep -q 'finalCallback(\[name' mqttstore/mqttstore.cpp
+          grep -q 'SocketContextFactory::preflight(name, config)' mqttstore/mqttstore.cpp
           grep -q 'cmake_minimum_required(VERSION 3.18)' CMakeLists.txt
           grep -q 'MQTTSUITE_INSTALL_RPATH' CMakeLists.txt
           grep -q 'mqttsuite_apply_install_rpath' CMakeLists.txt
