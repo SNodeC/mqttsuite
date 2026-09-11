@@ -449,8 +449,9 @@ jobs:
           printf '%s\n' 'QUALIFY-INTEGRATOR-ADMIN' > "$EVIDENCE/integrator-admin.pass"
 
           env -u LD_LIBRARY_PATH "$PREFIX/bin/mqttintegrator" \
-            --mqtt-mapping-file "$EVIDENCE/integrator-mapping.json" \
+            integrator --mqtt-mapping-file "$EVIDENCE/integrator-mapping.json" \
             --admin-user integrator-admin --admin-password-file "$EVIDENCE/integrator-admin.pass" \
+            in-mqtt remote --host 127.0.0.1 --port 65534 \
             >"$EVIDENCE/integrator.log" 2>&1 &
           integrator_pid=$!
           trap 'kill "$integrator_pid" 2>/dev/null || true; wait "$integrator_pid" 2>/dev/null || true' EXIT
