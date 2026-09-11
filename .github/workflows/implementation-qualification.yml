@@ -148,9 +148,10 @@ jobs:
               endif()
 
               set(CMAKE_BUILD_RPATH_USE_ORIGIN ON)
-              set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
+              set(CMAKE_BUILD_WITH_INSTALL_RPATH OFF)
               set(CMAKE_INSTALL_RPATH "${MQTTSUITE_INSTALL_RPATH}")
               set(CMAKE_INSTALL_RPATH_USE_LINK_PATH OFF)
+              set(CMAKE_NO_BUILTIN_CHRPATH ON)
               add_link_options(LINKER:--disable-new-dtags)
 
               function(mqttsuite_apply_install_rpath directory)
