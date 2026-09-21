@@ -112,7 +112,7 @@
 
 #endif
 
-static std::map<uint64_t, core::socket::stream::ClientFlowController*> flowControllers;
+static std::map<uint64_t, std::weak_ptr<core::socket::stream::ClientFlowController>> flowControllers;
 
 static bool restart = false;
 
@@ -126,20 +126,22 @@ static void restartBridges() {
 
         startBridges();
 
-        utils::Config::parse();
-
         restart = false;
-    } else {
-        mqttsuite::log::bridgeLog().trace() << "No bridge restarted";
+        if (!core::SNodeC::reconfigure()) {
+            core::SNodeC::stop();
+        }
     }
 }
 
-static void handleFlowControllers(core::socket::stream::ClientFlowController* clientFlowController) {
+template <typename Client>
+static void handleFlowControllers(const Client& client,
+                                  const std::shared_ptr<core::socket::stream::ClientFlowController>& clientFlowController) {
     flowControllers.emplace(clientFlowController->getId(), clientFlowController);
     mqttsuite::log::bridgeLog().trace() << "Added FlowController for: [" << clientFlowController->getId() << "] "
-                                             << clientFlowController->getInstanceName();
+                                        << clientFlowController->getInstanceName();
 
-    clientFlowController->setOnFlowCompleted([](uint64_t id, const std::string& instanceName) {
+    // Restart only after the shared instance releases its registered name.
+    client.setOnDestroy([id = clientFlowController->getId(), instanceName = clientFlowController->getInstanceName()] {
         flowControllers.erase(id);
         mqttsuite::log::bridgeLog().trace() << "Erased FlowController of: [" << id << "] " << instanceName;
 
@@ -167,10 +169,11 @@ static bool closeBridges() {
         }
 
         for (auto& [id, flowController] : flowControllers) {
-            mqttsuite::log::bridgeLog().debug()
-                << "Terminating Flow of: [" << flowController->getId() << "] " << flowController->getInstanceName();
+            if (const auto flow = flowController.lock()) {
+                mqttsuite::log::bridgeLog().debug() << "Terminating Flow of: [" << flow->getId() << "] " << flow->getInstanceName();
 
-            flowController->terminateFlow();
+                flow->terminateFlow();
+            }
         }
     }
 
@@ -209,11 +212,10 @@ static SocketClient<mqtt::bridge::SocketContextFactory> startClient( //
     socketClient.getConfig()->setRetry()->setRetryBase(1);
     socketClient.getConfig()->setReconnect();
 
-    handleFlowControllers(socketClient.getFlowController());
-
-    socketClient.connect([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) {
+    const auto flow = socketClient.connect([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) {
         reportState(instanceName, socketAddress, state);
     });
+    handleFlowControllers(socketClient, flow);
 
     return socketClient;
 }
@@ -236,7 +238,7 @@ static HttpClient startClient( //
                 "websocket",
                 [connectionName](bool success) {
                     mqttsuite::log::bridgeLog().debug() << connectionName << ": HTTP Upgrade (http -> websocket||"
-                                                             << "mqtt" << ") start " << (success ? "success" : "failed");
+                                                        << "mqtt" << ") start " << (success ? "success" : "failed");
                 },
                 []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req,
                    [[maybe_unused]] const std::shared_ptr<web::http::client::Response>& res,
@@ -257,11 +259,10 @@ static HttpClient startClient( //
     httpClient.getConfig()->setRetry()->setRetryBase(1);
     httpClient.getConfig()->setReconnect();
 
-    handleFlowControllers(httpClient.getFlowController());
-
-    httpClient.connect([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) {
+    const auto flow = httpClient.connect([instanceName](const SocketAddress& socketAddress, const core::socket::State& state) {
         reportState(instanceName, socketAddress, state);
     });
+    handleFlowControllers(httpClient, flow);
 
     return httpClient;
 }
@@ -303,8 +304,7 @@ static void startBridges() {
                     mqttsuite::log::bridgeLog().debug() << "    Topics:";
                     const std::list<iot::mqtt::Topic>& topics = broker.getTopics();
                     for (const iot::mqtt::Topic& topic : topics) {
-                        mqttsuite::log::bridgeLog().debug()
-                            << "      " << topic.getName() << ":" << static_cast<uint16_t>(topic.getQoS());
+                        mqttsuite::log::bridgeLog().debug() << "      " << topic.getName() << ":" << static_cast<uint16_t>(topic.getQoS());
                     }
 
                     const std::string& transport = broker.getTransport();
@@ -327,7 +327,7 @@ static void startBridges() {
                                     });
 #else  // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4
                                 mqttsuite::log::bridgeLog().debug() << "    Transport '" << transport << "', protocol '" << protocol
-                                                                         << "', encryption '" << encryption << "' not supported.";
+                                                                    << "', encryption '" << encryption << "' not supported.";
 #endif // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4
                             } else if (encryption == "tls") {
 #if defined(CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4)
@@ -343,7 +343,7 @@ static void startBridges() {
                                     });
 #else  // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4
                                 mqttsuite::log::bridgeLog().debug() << "    Transport '" << transport << "', protocol '" << protocol
-                                                                         << "', encryption '" << encryption << "' not supported.";
+                                                                    << "', encryption '" << encryption << "' not supported.";
 #endif // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4
                             }
                         } else if (protocol == "in6") {
@@ -361,7 +361,7 @@ static void startBridges() {
                                     });
 #else  // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6
                                 mqttsuite::log::bridgeLog().debug() << "    Transport '" << transport << "', protocol '" << protocol
-                                                                         << "', encryption '" << encryption << "' not supported.";
+                                                                    << "', encryption '" << encryption << "' not supported.";
 #endif // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6
                             } else if (encryption == "tls") {
 #if defined(CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6)
@@ -377,7 +377,7 @@ static void startBridges() {
                                     });
 #else  // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6
                                 mqttsuite::log::bridgeLog().debug() << "    Transport '" << transport << "', protocol '" << protocol
-                                                                         << "', encryption '" << encryption << "' not supported.";
+                                                                    << "', encryption '" << encryption << "' not supported.";
 #endif // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6
                             }
                         } else if (protocol == "un") {
@@ -392,7 +392,7 @@ static void startBridges() {
                                     });
 #else  // CONFIG_MQTTSUITE_BRIDGE_UNIX
                                 mqttsuite::log::bridgeLog().debug() << "    Transport '" << transport << "', protocol '" << protocol
-                                                                         << "', encryption '" << encryption << "' not supported.";
+                                                                    << "', encryption '" << encryption << "' not supported.";
 #endif // CONFIG_MQTTSUITE_BRIDGE_UNIX
                             } else if (encryption == "tls") {
 #if defined(CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS)
@@ -405,7 +405,7 @@ static void startBridges() {
                                     });
 #else  // CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS
                                 mqttsuite::log::bridgeLog().debug() << "    Transport '" << transport << "', protocol '" << protocol
-                                                                         << "', encryption '" << encryption << "' not supported.";
+                                                                    << "', encryption '" << encryption << "' not supported.";
 #endif // CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS
                             }
                         }
@@ -425,7 +425,7 @@ static void startBridges() {
                                     });
 #else  // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4 && CONFIG_MQTTSUITE_BRIDGE_WS
                                 mqttsuite::log::bridgeLog().debug() << "    Transport '" << transport << "', protocol '" << protocol
-                                                                         << "', encryption '" << encryption << "' not supported.";
+                                                                    << "', encryption '" << encryption << "' not supported.";
 #endif // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV4 && CONFIG_MQTTSUITE_BRIDGE_WS
                             } else if (encryption == "tls") {
 #if defined(CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4) && defined(CONFIG_MQTTSUITE_BRIDGE_WSS)
@@ -441,7 +441,7 @@ static void startBridges() {
                                     });
 #else  // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4 && CONFIG_MQTTSUITE_BRIDGE_WSS
                                 mqttsuite::log::bridgeLog().debug() << "    Transport '" << transport << "', protocol '" << protocol
-                                                                         << "', encryption '" << encryption << "' not supported.";
+                                                                    << "', encryption '" << encryption << "' not supported.";
 #endif // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV4 && CONFIG_MQTTSUITE_BRIDGE_WSS
                             }
                         } else if (protocol == "in6") {
@@ -459,7 +459,7 @@ static void startBridges() {
                                     });
 #else  // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6 && CONFIG_MQTTSUITE_BRIDGE_WS
                                 mqttsuite::log::bridgeLog().debug() << "    Transport '" << transport << "', protocol '" << protocol
-                                                                         << "', encryption '" << encryption << "' not supported.";
+                                                                    << "', encryption '" << encryption << "' not supported.";
 #endif // CONFIG_MQTTSUITE_BRIDGE_TCP_IPV6&&  CONFIG_MQTTSUITE_BRIDGE_WS
                             } else if (encryption == "tls") {
 #if defined(CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6) && defined(CONFIG_MQTTSUITE_BRIDGE_WSS)
@@ -475,7 +475,7 @@ static void startBridges() {
                                     });
 #else  // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6 && CONFIG_MQTTSUITE_BRIDGE_WSS
                                 mqttsuite::log::bridgeLog().debug() << "    Transport '" << transport << "', protocol '" << protocol
-                                                                         << "', encryption '" << encryption << "' not supported.";
+                                                                    << "', encryption '" << encryption << "' not supported.";
 #endif // CONFIG_MQTTSUITE_BRIDGE_TLS_IPV6 && CONFIG_MQTTSUITE_BRIDGE_WSS
                             }
                         } else if (protocol == "un") {
@@ -490,7 +490,7 @@ static void startBridges() {
                                     });
 #else  // CONFIG_MQTTSUITE_BRIDGE_UNIX && CONFIG_MQTTSUITE_BRIDGE_WS
                                 mqttsuite::log::bridgeLog().debug() << "    Transport '" << transport << "', protocol '" << protocol
-                                                                         << "', encryption '" << encryption << "' not supported.";
+                                                                    << "', encryption '" << encryption << "' not supported.";
 #endif // CONFIG_MQTTSUITE_BRIDGE_UNIX &&  CONFIG_MQTTSUITE_BRIDGE_WS
                             } else if (encryption == "tls") {
 #if defined(CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS) && defined(CONFIG_MQTTSUITE_BRIDGE_WSS)
@@ -503,7 +503,7 @@ static void startBridges() {
                                     });
 #else  // CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS && CONFIG_MQTTSUITE_BRIDGE_WSS
                                 mqttsuite::log::bridgeLog().debug() << "    Transport '" << transport << "', protocol '" << protocol
-                                                                         << "', encryption '" << encryption << "' not supported.";
+                                                                    << "', encryption '" << encryption << "' not supported.";
 #endif // CONFIG_MQTTSUITE_BRIDGE_UNIX_TLS && CONFIG_MQTTSUITE_BRIDGE_WSS
                             }
                         }
