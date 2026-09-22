@@ -62,10 +62,6 @@ target_link_libraries(
     PRIVATE snodec::mqtt-client-websocket
 )
 
-target_compile_options(
-    websocket-mqtt-client PRIVATE $<$<CXX_COMPILER_ID:GNU>:-fno-gnu-unique>
-)
-
 set_target_properties(
     websocket-mqtt-client
     PROPERTIES OUTPUT_NAME "snodec-websocket-mqtt-client"

@@ -56,10 +56,6 @@ add_library(
                                  ${MQTTSERVERSUBPROTOCOL_H}
 )
 
-target_compile_options(
-    websocket-mqtt-server PRIVATE $<$<CXX_COMPILER_ID:GNU>:-fno-gnu-unique>
-)
-
 target_link_libraries(
     websocket-mqtt-server
     PUBLIC mqtt-broker

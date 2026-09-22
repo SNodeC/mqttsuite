@@ -56,10 +56,6 @@ add_library(
                                  ${MQTTCLIENTSUBPROTOCOL_H}
 )
 
-target_compile_options(
-    websocket-mqtt-bridge PRIVATE $<$<CXX_COMPILER_ID:GNU>:-fno-gnu-unique>
-)
-
 target_link_libraries(
     websocket-mqtt-bridge
     PUBLIC mqtt-bridge

@@ -27,11 +27,6 @@ add_library(
                                        ${MQTTSTORE_SUBPROTOCOL_H}
 )
 
-target_compile_options(
-    websocket-mqtt-store-client
-    PRIVATE $<$<CXX_COMPILER_ID:GNU>:-fno-gnu-unique>
-)
-
 target_link_libraries(
     websocket-mqtt-store-client
     PUBLIC snodec::net mqtt-store
