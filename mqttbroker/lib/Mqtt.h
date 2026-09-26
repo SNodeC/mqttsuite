@@ -63,7 +63,6 @@ namespace mqtt::lib {
 
 #include <cstddef>
 #include <cstdint>
-#include <format>
 #include <memory>
 #include <queue>
 #include <string>
