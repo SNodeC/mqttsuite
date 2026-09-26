@@ -65,4 +65,6 @@ set_target_properties(
                SOVERSION ${MQTTSUITE_SOVERSION}
 )
 
-install(TARGETS mqtt-cli RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(TARGETS mqtt-cli LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                                 COMPONENT cli
+)

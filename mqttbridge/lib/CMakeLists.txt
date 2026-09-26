@@ -86,4 +86,6 @@ set_target_properties(
                                                         ${MQTTSUITE_SOVERSION}
 )
 
-install(TARGETS mqtt-bridge RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(TARGETS mqtt-bridge LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                                    COMPONENT bridge
+)

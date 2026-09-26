@@ -42,4 +42,5 @@ set_target_properties(
 
 install(TARGETS websocket-mqtt-store-client
         LIBRARY DESTINATION ${WEBSOCKET_SUBPROTOCOL_INSTALL_LIBDIR}/mqttstore/
+                COMPONENT store
 )

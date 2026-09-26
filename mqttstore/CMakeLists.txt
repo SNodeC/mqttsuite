@@ -132,4 +132,6 @@ target_link_libraries(
     mqttstore PUBLIC ${MQTTSTORE_LINK_LIBS} snodec::mqtt-client mqtt-store
 )
 
-install(TARGETS mqttstore RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(TARGETS mqttstore RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+                                  COMPONENT store
+)

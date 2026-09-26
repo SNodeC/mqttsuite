@@ -166,4 +166,6 @@ target_link_libraries(
     mqttcli PUBLIC ${MQTTCLI_LINK_LIBS} snodec::mqtt-client mqtt-cli
 )
 
-install(TARGETS mqttcli RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(TARGETS mqttcli RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+                                COMPONENT cli
+)

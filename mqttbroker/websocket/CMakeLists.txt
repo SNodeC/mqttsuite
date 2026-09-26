@@ -71,4 +71,5 @@ set_target_properties(
 
 install(TARGETS websocket-mqtt-server
         LIBRARY DESTINATION ${WEBSOCKET_SUBPROTOCOL_INSTALL_LIBDIR}/mqttbroker/
+                COMPONENT broker
 )

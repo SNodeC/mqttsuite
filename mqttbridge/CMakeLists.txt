@@ -190,11 +190,14 @@ target_link_libraries(
            snodec::http-server-express-tls-in mqtt-bridge
 )
 
-install(TARGETS mqttbridge RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(TARGETS mqttbridge RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+                                   COMPONENT bridge
+)
 
 install(
     DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/html/
     DESTINATION ${CMAKE_INSTALL_PREFIX}/var/www/mqttsuite/mqttbridge
+    COMPONENT bridge
     FILES_MATCHING
     PATTERN "*.html"
     PATTERN "*.css"

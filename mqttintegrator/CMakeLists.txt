@@ -176,6 +176,8 @@ target_link_libraries(
            snodec::http-server-express-tls-in
 )
 
-install(TARGETS mqttintegrator RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(TARGETS mqttintegrator RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+                                       COMPONENT integrator
+)
 
 target_sources(mqttintegrator PRIVATE)

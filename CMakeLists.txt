@@ -96,3 +96,5 @@ add_subdirectory(mqttintegrator)
 add_subdirectory(mqttbridge)
 add_subdirectory(mqttcli)
 add_subdirectory(mqttstore)
+
+include(Packing)

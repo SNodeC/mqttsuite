@@ -189,11 +189,14 @@ target_link_libraries(
     mqttbroker PUBLIC ${MQTTBROKER_LINK_LIBS} snodec::mqtt-server mqtt-broker
 )
 
-install(TARGETS mqttbroker RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(TARGETS mqttbroker RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+                                   COMPONENT broker
+)
 
 install(
     DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/html/
     DESTINATION ${CMAKE_INSTALL_PREFIX}/var/www/mqttsuite/mqttbroker
+    COMPONENT broker
     FILES_MATCHING
     PATTERN "*.html"
     PATTERN "*.css"

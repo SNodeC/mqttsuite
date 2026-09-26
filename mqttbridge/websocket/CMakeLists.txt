@@ -71,4 +71,5 @@ set_target_properties(
 
 install(TARGETS websocket-mqtt-bridge
         LIBRARY DESTINATION ${WEBSOCKET_SUBPROTOCOL_INSTALL_LIBDIR}/mqttbridge/
+                COMPONENT bridge
 )

@@ -61,4 +61,6 @@ set_target_properties(
                                                        ${MQTTSUITE_SOVERSION}
 )
 
-install(TARGETS mqtt-store RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(TARGETS mqtt-store LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                                   COMPONENT store
+)
