@@ -43,6 +43,11 @@ project(
     DESCRIPTION "A lightweight MQTT Integration System"
     VERSION 1.0.1
 )
+
+include(CheckPIESupported)
+check_pie_supported()
+option(CMAKE_POSITION_INDEPENDENT_CODE "Build position-independent code" ON)
+
 set(MQTTSUITE_SOVERSION ${MQTTSuite_VERSION_MAJOR})
 
 include(GNUInstallDirs)
