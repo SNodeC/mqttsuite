@@ -50,6 +50,8 @@ option(CMAKE_POSITION_INDEPENDENT_CODE "Build position-independent code" ON)
 
 set(MQTTSUITE_SOVERSION ${MQTTSuite_VERSION_MAJOR})
 
+configure_file(cmake/CTestCustom.cmake CTestCustom.cmake COPYONLY)
+
 include(GNUInstallDirs)
 
 set(ignoreMe ${CMAKE_VERBOSE_MAKEFILE})
