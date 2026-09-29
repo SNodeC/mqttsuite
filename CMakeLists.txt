@@ -38,10 +38,12 @@
 
 cmake_minimum_required(VERSION 3.14)
 
+include(cmake/Version.cmake)
+
 project(
     MQTTSuite
     DESCRIPTION "A lightweight MQTT Integration System"
-    VERSION 1.0.1
+    VERSION ${RELEASE_VERSION}
 )
 
 include(CheckPIESupported)
