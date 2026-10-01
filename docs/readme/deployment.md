@@ -21,10 +21,10 @@ The terminal UI requires Curses support. `--write-config file.conf` saves config
 
 Enable only the transport instances you use and bind them deliberately. The sample [broker.conf](examples/broker.conf) disables every listener except loopback MQTT. An installed default configuration may differ.
 
-To inspect the Web UI locally while using that sample:
+To inspect the Web UI locally, save the full configuration from [Publish your first message](../../README.md#publish-your-first-message) as `broker.conf` in an empty directory. With ports **18883** and **18080** free, run from that directory:
 
 ```sh
-mqttbroker --config-file docs/readme/examples/broker.conf \
+mqttbroker --config-file broker.conf \
   in-http --disabled=false local --host 127.0.0.1 --port 18080
 ```
 

@@ -4,7 +4,7 @@
 
 The **SNode.C package feed** publishes both SNode.C and MQTTSuite. Choose your distribution below, register its signed source and install the applications you need.
 
-## Distribution catalog
+## Choose distribution, release and architecture
 
 Catalog snapshot: **1 October 2026**. Check the [live per-target status][status] for available versions and publication results.
 
@@ -19,9 +19,11 @@ Catalog snapshot: **1 October 2026**. Check the [live per-target status][status]
 
 Match the installed distribution and release as well as the architecture. Raspberry Pi OS Bookworm does not imply a Debian Bookworm feed. Debian Sid may need explicit suite selection, and Rocky Linux requires the documented CRB/EPEL prerequisites.
 
-## Configure the source, then choose applications
+## Prepare the signed feed
 
 Follow the matching guide to register the signed feed. Its installer normally installs both full project sets. Use **`--prepare`** when you only want to register the source and refresh indexes, then install selected packages. Review scripts before running them with administrative privileges; manual setup is documented too.
+
+## Install with the system package manager
 
 | Package | Contents |
 | --- | --- |
@@ -45,6 +47,10 @@ sudo apt-get install mqttsuite
 sudo dnf install mqttsuite
 ```
 
+## OpenWrt
+
+After preparing the matching feed:
+
 ```sh
 # OpenWrt 24.10, as root
 opkg install mqttsuite-full
@@ -56,6 +62,10 @@ apk add mqttsuite-full
 ```
 
 For a smaller OpenWrt installation, choose individual application packages. Use `/etc/openwrt_release` and `DISTRIB_ARCH` to select packages; `uname -m` alone is insufficient. For other targets or custom firmware, consult the [SDK build guide][sdk].
+
+## Updates and verification
+
+Use your distribution's normal package-manager update procedure, review the proposed changes and retain signature verification. Compare installed versions with the [published status][status], and check the applications you installed using the [installation verification commands](install.md#verify-the-installation). Keep application libraries, executables and their SNode.C dependencies compatible; package updates do not replace a check of your own configuration and workload.
 
 [Full component catalog][components] · [OpenWrt catalog][openwrt-components] · [Feed and signing keys][feed] · [Installation entry point][install] · [Troubleshooting][troubleshooting]
 

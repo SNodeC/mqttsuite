@@ -80,7 +80,7 @@ disabled = true
 mqttbroker --config-file broker.conf
 ```
 
-**Terminal 2 — subscribe:**
+**Run — terminal 2, subscribe:**
 
 ```sh
 mqttcli --config-file /dev/null \
@@ -89,7 +89,7 @@ mqttcli --config-file /dev/null \
   sub --topic 'demo/#'
 ```
 
-**Terminal 3 — publish:**
+**Run — terminal 3, publish:**
 
 ```sh
 mqttcli --config-file /dev/null \
@@ -142,7 +142,7 @@ Not every device publishes the topic or payload your application expects. This m
 mqttbroker --config-file broker.conf broker --mqtt-mapping-file mapping.json
 ```
 
-**Terminal 2 — subscribe before publishing:**
+**Run — terminal 2, subscribe before publishing:**
 
 ```sh
 mqttcli --config-file /dev/null \
@@ -150,7 +150,7 @@ mqttcli --config-file /dev/null \
   sub --topic 'actuators/light/set'
 ```
 
-**Terminal 3 — publish:**
+**Run — terminal 3, publish:**
 
 ```sh
 mqttcli --config-file /dev/null \
@@ -236,7 +236,7 @@ mqttbroker --config-file broker.conf
 mqttbroker --config-file broker.conf in-mqtt local --port 18884
 ```
 
-**Terminal 3 — bridge:**
+**Run — terminal 3, bridge:**
 
 ```sh
 mqttbridge --config-file /dev/null \
@@ -244,7 +244,7 @@ mqttbridge --config-file /dev/null \
   admin-legacy --disabled=true admin-tls --disabled=true
 ```
 
-**Terminal 4 — subscribe on broker B:**
+**Run — terminal 4, subscribe on broker B:**
 
 ```sh
 mqttcli --config-file /dev/null \
@@ -252,7 +252,7 @@ mqttcli --config-file /dev/null \
   sub --topic 'relay/#'
 ```
 
-**Terminal 5 — publish on broker A, after the bridge and subscriber connect:**
+**Run — terminal 5, publish on broker A after the bridge and subscriber connect:**
 
 ```sh
 mqttcli --config-file /dev/null \
@@ -349,7 +349,7 @@ projection-file = projections.json
 mqttstore --config-file store.conf
 ```
 
-**Terminal 2 — publish after MQTTStore connects:**
+**Run — terminal 2, publish after MQTTStore connects:**
 
 ```sh
 mqttcli --config-file /dev/null \
@@ -393,15 +393,17 @@ FROM mqttsuite_demo.sensor_measurements ORDER BY id DESC LIMIT 1;
 
 WebSocket client/server variants also exist for IPv6 and Unix sockets. MQTTBridge creates its connection instances from its topology instead of using this fixed name list. Build-time selections may omit transports. WebSocket peers must agree on the `mqtt` subprotocol; certificates and trust are required for TLS/WSS.
 
-## Install and operate
+## Install
+
+[Choose your route →](docs/readme/install.md#choose-your-route) · [Binary packages](docs/readme/packages.md) · [Build from source](docs/readme/install.md#build-from-source) · [Deploy](docs/readme/deployment.md)
 
 Signed packages cover **Debian, Ubuntu, Raspberry Pi OS, Rocky Linux, Fedora and OpenWrt**, with per-release and per-architecture selections. Application packages pull in the framework components they need; you do not have to build SNode.C manually when using these packages.
 
-[Binary packages](docs/readme/packages.md) · [Source build](docs/readme/install.md#build-from-source) · [Service configuration, TLS and state](docs/readme/deployment.md)
+### Before exposing a service
 
 MQTTBroker and MQTTBridge include browser-based management surfaces; MQTTIntegrator also starts a mapping-admin HTTP API. The integrator currently uses built-in Basic-auth credentials `admin` / `admin` and can rewrite its mapping file. Disable its `in-http` and `in-https` instances unless that API is deliberately isolated behind access controls. MQTTBroker's `in-http` / `in-https` listeners expose **both** MQTT-over-WebSocket and the client-inspection UI; they are not separate public/private listeners. See [deployment](docs/readme/deployment.md) before exposing either application.
 
-## Documentation and contribution
+## Learn more, contribute and license
 
 | Task | Guide |
 | --- | --- |

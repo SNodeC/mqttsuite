@@ -2,13 +2,21 @@
 
 [← MQTTSuite](../../README.md)
 
+The landing page shows the basic example; this guide extends it.
+
 MQTTStore subscribes to topic filters and writes messages to MariaDB. Raw storage and typed projections are separate: keep the original payload even when a message is not JSON, and add a typed projection when the payload follows a useful schema.
 
-This example uses the loopback broker on port **18883**, a local MariaDB server and the [projection file](examples/projections.json). Database administration requires an appropriately privileged account. Replace the sample password before use.
+**You need:** MQTTBroker, MQTTCli, MQTTStore, a local MariaDB server and database-client access with an appropriately privileged account. Start in an empty working directory. Save `broker.conf` from [the loopback configuration](../../README.md#publish-your-first-message), and save `projections.json` from [the complete storage example](../../README.md#keep-the-original-messageand-query-the-useful-fields). The projection is also available as an optional [download](examples/projections.json). Port **18883** must be free. Replace the sample password before use.
+
+**Run — terminal 1, start the broker:**
+
+```sh
+mqttbroker --config-file broker.conf
+```
 
 ## 1. Create the database and account
 
-Run as a MariaDB administrator:
+**Configuration — SQL, run through a MariaDB administrator connection:**
 
 ```sql
 CREATE DATABASE mqttsuite_demo
@@ -25,7 +33,7 @@ Use a dedicated account, not the database administrator. This demonstration allo
 
 ## 2. Create the typed table
 
-MQTTStore does not create or migrate your domain-specific tables. Create this one explicitly:
+**Configuration — SQL:** MQTTStore does not create or migrate your domain-specific tables. Create this one explicitly through the same database-client connection:
 
 ```sql
 CREATE TABLE mqttsuite_demo.sensor_measurements (
@@ -41,7 +49,7 @@ The [projection JSON](examples/projections.json) matches `normalized/+/temperatu
 
 ## 3. Store credentials in a protected configuration
 
-Create `store.conf` using an editor and restrict it to the service user (`chmod 600 store.conf`). This keeps the password out of the process command line:
+**Configuration — `store.conf`:** create this file using an editor and restrict it to the service user (`chmod 600 store.conf`). This keeps the password out of the process command line:
 
 ```ini
 [in-mqtt]
@@ -61,18 +69,20 @@ password = REPLACE-WITH-A-UNIQUE-PASSWORD
 [in-mqtt.db.storage]
 raw-table = mqtt_messages
 auto-create-raw-table = true
-projection-file = docs/readme/examples/projections.json
+projection-file = projections.json
 ```
 
 Keep the topic filter quoted: an unquoted `#` begins an INI comment. Adjust the MariaDB socket to your installation. For TCP database access, explicitly configure the socket/host/port combination according to `mqttstore in-mqtt --disabled=false db --help`; a configured Unix socket takes precedence. Other connection instances remain at their disabled defaults in this example.
 
-From the repository root, with the demo broker running:
+**Run — terminal 2, from the same working directory:**
 
 ```sh
 mqttstore --config-file store.conf
 ```
 
 ## 4. Publish a measurement
+
+**Run — terminal 3, after MQTTStore connects:**
 
 ```sh
 mqttcli --config-file /dev/null \
@@ -85,7 +95,7 @@ mqttcli --config-file /dev/null \
 
 ## 5. Verify the raw message and projection
 
-Use a database client with appropriate read access:
+**Run — database client, with appropriate read access:**
 
 ```sql
 SELECT topic, payload_text, payload_format
@@ -97,12 +107,12 @@ FROM mqttsuite_demo.sensor_measurements
 ORDER BY id DESC LIMIT 1;
 ```
 
-The raw row contains topic `normalized/room1/temperature` and the original JSON payload. The typed row contains device `room1`, value `21.5` and unit `C`. Stop MQTTStore with Ctrl+C when finished; the database remains until you deliberately remove it.
+**Expected result:** the raw row contains topic `normalized/room1/temperature` and the original JSON payload. The typed row contains device `room1`, value `21.5` and unit `C`. Stop MQTTStore and your demo broker with Ctrl+C when finished; the database remains until you deliberately remove it.
 
 ## Raw-only storage
 
 Omit `projection-file` when you only want raw persistence. The raw table records receive time, source instance, topic, QoS, retain/duplicate flags, packet identifier where present, original payload bytes and available text/JSON representations.
 
-Database inserts, MQTT acknowledgements and typed projections are separate boundaries. Do not infer atomic raw-plus-projection writes or exactly-once database delivery from MQTT QoS. Plan retention, backups, reconnect behavior and capacity explicitly.
+**Boundaries:** database inserts, MQTT acknowledgements and typed projections are separate boundaries. Do not infer atomic raw-plus-projection writes or exactly-once database delivery from MQTT QoS. Plan retention, backups, reconnect behavior and capacity explicitly.
 
-[Full MQTTStore guide](https://github.com/SNodeC/mqttsuite/blob/master/docs/mqttstore-user-guide.md) · [Projection schema](https://github.com/SNodeC/mqttsuite/blob/master/mqttstore/lib/projection-schema.json) · [Deployment](deployment.md)
+**Go further:** [deployment](deployment.md). Reference: [full MQTTStore guide](https://github.com/SNodeC/mqttsuite/blob/master/docs/mqttstore-user-guide.md) and [projection schema](https://github.com/SNodeC/mqttsuite/blob/master/mqttstore/lib/projection-schema.json).

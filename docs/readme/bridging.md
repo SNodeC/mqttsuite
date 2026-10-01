@@ -2,11 +2,15 @@
 
 [← MQTTSuite](../../README.md)
 
+The landing page shows the basic example; this guide extends it.
+
 MQTTBridge connects as a client to every broker in a logical bridge. Messages received from one connection are forwarded to the other connected brokers, not directly back to their origin. Subscription filters decide which messages enter the bridge; prefixes decide their destination topics.
 
 ## The local example
 
-The complete [bridge.json](examples/bridge.json) declares two loopback endpoints:
+**You need:** MQTTBroker, MQTTBridge, MQTTCli, five terminals in the same empty working directory, and free loopback ports **18883** and **18884**. Save `broker.conf` from the [complete loopback configuration](../../README.md#publish-your-first-message) in that directory.
+
+The topology declares two loopback endpoints:
 
 | Endpoint | Address | Input subscription | Prefix |
 | --- | --- | --- | --- |
@@ -14,6 +18,8 @@ The complete [bridge.json](examples/bridge.json) declares two loopback endpoints
 | Broker B | `127.0.0.1:18884` | `commands/#` | `b/` |
 
 The bridge prefix is `relay/`. Both connections request clean sessions and set `loop_prevention`. That option uses the non-standard MQTT CONNECT bridge bit also used by Mosquitto to request suppression of a bridge's own publications. Verify support in the remote broker before enabling it; otherwise disable the option and keep the topic paths non-overlapping.
+
+**Configuration — save as `bridge-demo.json`:**
 
 ```json
 {
@@ -58,18 +64,22 @@ The bridge prefix is `relay/`. Both connections request clean sessions and set `
 }
 ```
 
-This is the complete topology, identical to the supplied JSON file. `legacy` means unencrypted transport.
+This is the complete topology, also available as the optional [bridge.json download](examples/bridge.json); save that download as `bridge-demo.json` when using these commands. `legacy` means unencrypted transport.
 
 ## 1. Start two independent brokers
 
-Run these in separate terminals, from the repository root. Stop an earlier broker on 18883 first.
+Use the same working directory in each terminal. Stop only earlier demonstration brokers you started; if an unrelated service occupies a port, choose another port and adjust the topology and commands together.
+
+**Run — terminal 1:**
 
 ```sh
-mqttbroker --config-file docs/readme/examples/broker.conf
+mqttbroker --config-file broker.conf
 ```
 
+**Run — terminal 2:**
+
 ```sh
-mqttbroker --config-file docs/readme/examples/broker.conf \
+mqttbroker --config-file broker.conf \
   in-mqtt local --port 18884
 ```
 
@@ -77,16 +87,19 @@ They share the sample’s listener configuration, not broker state; neither comm
 
 ## 2. Start MQTTBridge
 
+**Run — terminal 3:**
+
 ```sh
-cp docs/readme/examples/bridge.json bridge-demo.json
 mqttbridge --config-file /dev/null \
   bridge --definition bridge-demo.json \
   admin-legacy --disabled=true admin-tls --disabled=true
 ```
 
-MQTTBridge can normalize and write its active definition back to the supplied file; the copy keeps the repository example unchanged. The demonstration disables the bridge’s administrative HTTP listeners. Use distinct client IDs, as the sample does. An existing client with the same ID on a broker can be disconnected by a new connection.
+MQTTBridge can normalize and write its active definition back to `bridge-demo.json`; keep that local file writable. The demonstration disables the bridge’s administrative HTTP listeners. Use distinct client IDs, as the sample does. An existing client with the same ID on a broker can be disconnected by a new connection.
 
 ## 3. Observe broker B, then publish on A
+
+**Run — terminal 4:**
 
 ```sh
 mqttcli --config-file /dev/null \
@@ -94,6 +107,8 @@ mqttcli --config-file /dev/null \
   remote --host 127.0.0.1 --port 18884 \
   sub --topic 'relay/#'
 ```
+
+**Run — terminal 5, after the bridge and subscriber connect:**
 
 ```sh
 mqttcli --config-file /dev/null \
@@ -103,7 +118,7 @@ mqttcli --config-file /dev/null \
   socket --reconnect=false
 ```
 
-Expected on broker B: `relay/a/b/telemetry/temperature` with payload `21.5`.
+**Expected result:** on broker B, `relay/a/b/telemetry/temperature` with payload `21.5`.
 
 The topic is formed as **bridge prefix + origin broker prefix + destination broker prefix + original topic**. In the reverse direction, `commands/light` published on B becomes `relay/b/a/commands/light` on A.
 
@@ -114,8 +129,10 @@ The topic is formed as **bridge prefix + origin broker prefix + destination brok
 
 ## Deploy a deliberate topology
 
-The sample’s `relay/…` outputs do not match either input subscription. Keep that separation, or design a similarly explicit namespace, when adding brokers. Built-in loop prevention is not a license to connect arbitrary overlapping bridges and wildcard subscriptions without analyzing message paths.
+**Boundaries:** the sample’s `relay/…` outputs do not match either input subscription. Keep that separation, or design a similarly explicit namespace, when adding brokers. Built-in loop prevention is not a license to connect arbitrary overlapping bridges and wildcard subscriptions without analyzing message paths.
 
 For off-host endpoints, configure TLS and appropriate broker access policy. A bridge is not broker clustering, consensus or an exactly-once end-to-end transaction mechanism. Plan reconnect behavior, retained messages, subscription QoS and persistent sessions around your workload.
 
-Stop all demonstration processes with Ctrl+C. Use the [bridge schema](https://github.com/SNodeC/mqttsuite/blob/master/mqttbridge/lib/bridge-schema.json) for additional network and MQTT options, and the [deployment guide](deployment.md) for unattended operation.
+Stop all demonstration processes with Ctrl+C.
+
+**Go further:** [deployment](deployment.md) for unattended operation. Reference: the [bridge schema](https://github.com/SNodeC/mqttsuite/blob/master/mqttbridge/lib/bridge-schema.json) lists additional network and MQTT options.
