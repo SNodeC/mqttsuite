@@ -1,0 +1,59 @@
+# Install MQTTSuite
+
+[← MQTTSuite](../../README.md)
+
+## Use packages first
+
+The [distribution package guide](packages.md) lists releases, architectures and feed setup. Install only the applications you need; their package dependencies bring in the required SNode.C components automatically.
+
+After configuring the signed feed:
+
+```sh
+# Debian, Ubuntu, Raspberry Pi OS
+sudo apt-get install mqttsuite-broker mqttsuite-cli
+```
+
+```sh
+# Fedora, Rocky Linux
+sudo dnf install mqttsuite-broker mqttsuite-cli
+```
+
+For all five applications and both mapping plugins, install the `mqttsuite` metapackage on DEB/RPM systems. OpenWrt uses `mqttsuite-full`; see the [package guide](packages.md).
+
+Installing software is not the same as enabling a public broker. Configure interfaces, authentication/access controls, TLS and state paths before starting an unattended service.
+
+## Build from source
+
+Install a compatible SNode.C development package first. Current MQTTSuite CMake files request **SNode.C 2.0.0** using its package compatibility rules. Build both from compatible revisions if you are working on their APIs; do not combine arbitrary old libraries and current headers.
+
+The suite requires C++20 and CMake 3.14+. The full build also needs the SNode.C components for the chosen transports and MariaDB integration. On Debian/Ubuntu:
+
+```sh
+sudo apt-get update
+sudo apt-get install git cmake ninja-build g++ pkg-config \
+  nlohmann-json3-dev libssl-dev libmariadb-dev
+
+git clone --recurse-submodules https://github.com/SNodeC/mqttsuite.git
+cd mqttsuite
+cmake -S . -B build -G Ninja \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_INSTALL_PREFIX=/usr/local
+cmake --build build --parallel
+sudo cmake --install build
+sudo ldconfig
+```
+
+If SNode.C is in a custom prefix, add `-DCMAKE_PREFIX_PATH=/path/to/prefix`. Database server provisioning is separate from installing the connector library and MQTTStore executable.
+
+Transport options are application-specific, such as `CONFIG_MQTTSUITE_BROKER_TCP_IPV4`, `CONFIG_MQTTSUITE_BROKER_TLS_IPV4` and `CONFIG_MQTTSUITE_BROKER_WS`. Inspect the CMake cache and each application’s CMake file before producing a reduced build. Examples using an omitted instance will not work unchanged.
+
+## Verify the installation
+
+```sh
+mqttbroker --help
+mqttcli --help
+mqttbridge bridge --help
+mqttstore in-mqtt --disabled=false --help=expanded
+```
+
+Then run the [loopback publish/subscribe example](../../README.md#publish-your-first-message). Keep source installations and package-managed installations separate; stale libraries or WebSocket plugins can otherwise be selected at runtime.

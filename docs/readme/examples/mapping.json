@@ -1,0 +1,20 @@
+{
+  "mapping": {
+    "topic_level": {
+      "name": "devices",
+      "topic_level": {
+        "name": "button",
+        "subscription": {
+          "qos": 0,
+          "static": {
+            "mapped_topic": "actuators/light/set",
+            "message_mapping": [
+              { "message": "pressed", "mapped_message": "on" },
+              { "message": "released", "mapped_message": "off" }
+            ]
+          }
+        }
+      }
+    }
+  }
+}
