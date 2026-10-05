@@ -52,24 +52,24 @@ set(MQTTSERVERSUBPROTOCOL_CPP SubProtocolFactory.cpp)
 set(MQTTSERVERSUBPROTOCOL_H SubProtocolFactory.h)
 
 add_library(
-    websocket-mqtt-server SHARED ${MQTTSERVERSUBPROTOCOL_CPP}
+    websocket-mqtt-broker-server SHARED ${MQTTSERVERSUBPROTOCOL_CPP}
                                  ${MQTTSERVERSUBPROTOCOL_H}
 )
 
 target_link_libraries(
-    websocket-mqtt-server
+    websocket-mqtt-broker-server
     PUBLIC mqtt-broker
     PRIVATE snodec::mqtt-server-websocket
 )
 
 set_target_properties(
-    websocket-mqtt-server
+    websocket-mqtt-broker-server
     PROPERTIES OUTPUT_NAME "snodec-websocket-mqtt-server"
                VERSION ${MQTTSuite_VERSION}
                SOVERSION ${SNODEC_SOVERSION}
 )
 
-install(TARGETS websocket-mqtt-server
+install(TARGETS websocket-mqtt-broker-server
         LIBRARY DESTINATION ${WEBSOCKET_SUBPROTOCOL_INSTALL_LIBDIR}/mqttbroker/
                 COMPONENT broker
 )
