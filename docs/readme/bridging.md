@@ -1,6 +1,8 @@
 # Connect two brokers
 
-[← MQTTSuite](../../README.md)
+<p>
+  <a href="../../README.md"><img src="media/menu/back-mqttsuite.svg" alt="← MQTTSuite" width="110" height="24"></a>
+</p>
 
 The landing page shows the basic example; this guide extends it.
 
@@ -19,7 +21,7 @@ The topology declares two loopback endpoints:
 
 The bridge prefix is `relay/`. Both connections request clean sessions and set `loop_prevention`. That option uses the non-standard MQTT CONNECT bridge bit also used by Mosquitto to request suppression of a bridge's own publications. Verify support in the remote broker before enabling it; otherwise disable the option and keep the topic paths non-overlapping.
 
-**Configuration — save as `bridge-demo.json`:**
+**Configuration — save as `bridge.json`:**
 
 ```json
 {
@@ -64,7 +66,7 @@ The bridge prefix is `relay/`. Both connections request clean sessions and set `
 }
 ```
 
-This is the complete topology, also available as the optional [bridge.json download](examples/bridge.json); save that download as `bridge-demo.json` when using these commands. `legacy` means unencrypted transport.
+This is the complete topology, also available as the optional [bridge.json download](examples/bridge.json). `legacy` means unencrypted transport.
 
 ## 1. Start two independent brokers
 
@@ -91,11 +93,11 @@ They share the sample’s listener configuration, not broker state; neither comm
 
 ```sh
 mqttbridge --config-file /dev/null \
-  bridge --definition bridge-demo.json \
+  bridge --definition bridge.json \
   admin-legacy --disabled=true admin-tls --disabled=true
 ```
 
-MQTTBridge can normalize and write its active definition back to `bridge-demo.json`; keep that local file writable. The demonstration disables the bridge’s administrative HTTP listeners. Use distinct client IDs, as the sample does. An existing client with the same ID on a broker can be disconnected by a new connection.
+MQTTBridge can normalize and write its active definition back to `bridge.json`; keep that local file writable. The demonstration disables the bridge’s administrative HTTP listeners. Use distinct client IDs, as the sample does. An existing client with the same ID on a broker can be disconnected by a new connection.
 
 ## 3. Observe broker B, then publish on A
 

@@ -1,3 +1,5 @@
+<a name="project-overview"></a>
+
 <picture>
   <source media="(max-width: 600px)" srcset="docs/readme/media/hero-mobile.svg">
   <img src="docs/readme/media/hero.svg" alt="MQTTSuite — connect devices, translate messages, bridge brokers and store telemetry. Built on SNode.C.">
@@ -7,11 +9,21 @@
 
 **From a device message to an integrated system.**
 
+**[Get prebuilt packages](https://github.com/SNodeC/Packages#readme)** — Signed packages and installation instructions for OpenWrt, Raspberry Pi OS, Debian, Ubuntu, Rocky Linux and Fedora.
+
 MQTTSuite is a set of five C++ applications for **MQTT 3.1.1**: run a broker, translate topics and payloads, connect separate brokers, publish and subscribe from the command line, or persist messages in MariaDB. Use the applications independently or combine them into a pipeline that fits your devices and existing services.
 
-Built on [SNode.C](https://github.com/SNodeC/snode.c), the suite shares its event-driven networking and configuration model. Native MQTT and MQTT over WebSockets are available over IPv4, IPv6 and Unix-domain sockets, with plain and TLS variants according to build configuration.
+Built on [SNode.C](https://github.com/SNodeC/snode.c#project-overview), the suite shares its event-driven networking and configuration model. Native MQTT and MQTT over WebSockets are available over IPv4, IPv6 and Unix-domain sockets, with plain and TLS variants according to build configuration.
 
-[Install](docs/readme/install.md) · [Try it](#publish-your-first-message) · [Mapping](docs/readme/mapping.md) · [Bridging](docs/readme/bridging.md) · [Storage](docs/readme/storage.md) · [Deployment](docs/readme/deployment.md) · [API reference](https://snodec.github.io/mqttsuite-doc/html/index.html)
+<p>
+  <a href="docs/readme/install.md" title="Build from source"><img src="docs/readme/media/menu/build-108.svg" alt="Build from source" width="108" height="24"></a>
+  <a href="#publish-your-first-message" title="Try it"><img src="docs/readme/media/menu/try-it-108.svg" alt="Try it" width="108" height="24"></a>
+  <a href="docs/readme/mapping.md" title="Mapping"><img src="docs/readme/media/menu/mapping-108.svg" alt="Mapping" width="108" height="24"></a>
+  <a href="docs/readme/bridging.md" title="Bridging"><img src="docs/readme/media/menu/bridging-108.svg" alt="Bridging" width="108" height="24"></a>
+  <a href="docs/readme/storage.md" title="Storage"><img src="docs/readme/media/menu/storage-108.svg" alt="Storage" width="108" height="24"></a>
+  <a href="docs/readme/deployment.md" title="Deployment"><img src="docs/readme/media/menu/deployment-108.svg" alt="Deployment" width="108" height="24"></a>
+  <a href="https://snodec.github.io/mqttsuite-doc/html/index.html" title="API reference"><img src="docs/readme/media/menu/api-reference-108.svg" alt="API reference" width="108" height="24"></a>
+</p>
 
 ## Choose the job, choose the application
 
@@ -176,7 +188,7 @@ Forward selected topics between two independent brokers without changing their p
 
 **You need:** `mqttbroker`, `mqttbridge`, `mqttcli`, the `broker.conf` above, and free loopback ports **18883** and **18884**. Stop earlier demo brokers.
 
-**Configuration — save as `bridge-demo.json`:**
+**Configuration — save as `bridge.json`:**
 
 <details>
 <summary>Complete two-broker topology</summary>
@@ -240,7 +252,7 @@ mqttbroker --config-file broker.conf in-mqtt local --port 18884
 
 ```sh
 mqttbridge --config-file /dev/null \
-  bridge --definition bridge-demo.json \
+  bridge --definition bridge.json \
   admin-legacy --disabled=true admin-tls --disabled=true
 ```
 
@@ -268,7 +280,7 @@ mqttcli --config-file /dev/null \
   <img src="docs/readme/media/bridge-topics.svg" alt="A to B: relay/ + a/ + b/ + telemetry/temperature. B to A: relay/ + b/ + a/ + commands/light. Relayed topics do not match the input subscriptions.">
 </picture>
 
-**Boundaries:** `legacy` means unencrypted transport. `loop_prevention` requests suppression of the bridge's own publications through a non-standard MQTT CONNECT bridge bit also used by Mosquitto; the remote broker must support that bit. For other brokers, disable it and design non-overlapping topic paths. This example's `relay/` outputs match neither `telemetry/#` nor `commands/#`, so they are not fed back into the bridge. MQTTBridge may normalize and rewrite `bridge-demo.json`; use this writable demo copy, not a read-only source of record. Stop all demo processes with Ctrl+C.
+**Boundaries:** `legacy` means unencrypted transport. `loop_prevention` requests suppression of the bridge's own publications through a non-standard MQTT CONNECT bridge bit also used by Mosquitto; the remote broker must support that bit. For other brokers, disable it and design non-overlapping topic paths. This example's `relay/` outputs match neither `telemetry/#` nor `commands/#`, so they are not fed back into the bridge. MQTTBridge may normalize and rewrite `bridge.json`; use this writable demo copy, not a read-only source of record. Stop all demo processes with Ctrl+C.
 
 **Go further:** [bridge topology, sessions and deployment](docs/readme/bridging.md).
 
@@ -380,24 +392,27 @@ FROM mqttsuite_demo.sensor_measurements ORDER BY id DESC LIMIT 1;
 
 ## Connect it your way
 
-| Connection | Broker instance | Client instance |
+| Transport | Plain | TLS |
 | --- | --- | --- |
-| MQTT / IPv4 | `in-mqtt` | `in-mqtt` |
-| MQTT + TLS / IPv4 | `in-mqtts` | `in-mqtts` |
-| MQTT / IPv6 | `in6-mqtt` | `in6-mqtt` |
-| MQTT + TLS / IPv6 | `in6-mqtts` | `in6-mqtts` |
-| MQTT / Unix socket | `un-mqtt` | `un-mqtt` |
-| MQTT + TLS / Unix socket | `un-mqtts` | `un-mqtts` |
-| MQTT over WebSocket / IPv4 | `in-http` | `in-wsmqtt` |
-| MQTT over secure WebSocket / IPv4 | `in-https` | `in-wsmqtts` |
+| IPv4 | `in-mqtt` | `in-mqtts` |
+| IPv6 | `in6-mqtt` | `in6-mqtts` |
+| Unix socket | `un-mqtt` | `un-mqtts` |
+| WS broker | `in-http` | `in-https` |
+| WS client | `in-wsmqtt` | `in-wsmqtts` |
+
+IPv4, IPv6 and Unix socket rows use MQTT directly; their instance names apply to both broker and clients. WS means MQTT over WebSocket; those rows show IPv4 instances.
 
 WebSocket client/server variants also exist for IPv6 and Unix sockets. MQTTBridge creates its connection instances from its topology instead of using this fixed name list. Build-time selections may omit transports. WebSocket peers must agree on the `mqtt` subprotocol; certificates and trust are required for TLS/WSS.
 
 ## Install
 
-[Choose your route →](docs/readme/install.md#choose-your-route) · [Binary packages](docs/readme/packages.md) · [Build from source](docs/readme/install.md#build-from-source) · [Deploy](docs/readme/deployment.md)
+<p>
+  <a href="https://github.com/SNodeC/Packages#readme" title="Prebuilt packages"><img src="docs/readme/media/menu/prebuilt-packages-136.svg" alt="Prebuilt packages" width="136" height="24"></a>
+  <a href="docs/readme/install.md" title="Build from source"><img src="docs/readme/media/menu/build-136.svg" alt="Build from source" width="136" height="24"></a>
+  <a href="docs/readme/deployment.md" title="Deploy"><img src="docs/readme/media/menu/deploy-136.svg" alt="Deploy" width="136" height="24"></a>
+</p>
 
-Signed packages cover **Debian, Ubuntu, Raspberry Pi OS, Rocky Linux, Fedora and OpenWrt**, with per-release and per-architecture selections. Application packages pull in the framework components they need; you do not have to build SNode.C manually when using these packages.
+Signed packages from **[SNodeC/Packages](https://github.com/SNodeC/Packages#readme)** are available for the distributions, releases and architectures listed in the [Packages repository](https://github.com/SNodeC/Packages#readme). Application packages pull in the framework components they need; you do not have to build SNode.C manually when using these packages.
 
 ### Before exposing a service
 
@@ -405,14 +420,12 @@ MQTTBroker and MQTTBridge include browser-based management surfaces; MQTTIntegra
 
 ## Learn more, contribute and license
 
-| Task | Guide |
-| --- | --- |
-| Translate topics or messages | [Mapping walkthrough](docs/readme/mapping.md). |
-| Link brokers | [Bridge walkthrough](docs/readme/bridging.md). |
-| Store telemetry | [Storage walkthrough](docs/readme/storage.md) and the [extended MQTTStore guide](https://github.com/SNodeC/mqttsuite/blob/master/docs/mqttstore-user-guide.md). |
-| Choose packages and versions | [Package matrix](docs/readme/packages.md). |
-| Run unattended | [Deployment checklist](docs/readme/deployment.md). |
-| Extend the applications | [MQTTSuite API reference](https://snodec.github.io/mqttsuite-doc/html/index.html) and [SNode.C](https://github.com/SNodeC/snode.c). |
+- **Translate messages:** [Mapping walkthrough](docs/readme/mapping.md)
+- **Link brokers:** [Bridge walkthrough](docs/readme/bridging.md)
+- **Store telemetry:** [Storage walkthrough](docs/readme/storage.md) and [MQTTStore reference](https://github.com/SNodeC/mqttsuite/blob/master/docs/mqttstore-user-guide.md)
+- **Choose packages:** [Binary packages](https://github.com/SNodeC/Packages#readme)
+- **Run a service:** [Deployment guide](docs/readme/deployment.md)
+- **Extend applications:** [API reference](https://snodec.github.io/mqttsuite-doc/html/index.html) and [SNode.C](https://github.com/SNodeC/snode.c#project-overview)
 
 [Report an issue](https://github.com/SNodeC/mqttsuite/issues) with the application, transport, version and a sanitized configuration. Small topic/payload examples make mapping and forwarding reports much easier to reproduce.
 

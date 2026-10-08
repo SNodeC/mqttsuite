@@ -1,6 +1,8 @@
 # Persist messages and project useful fields
 
-[← MQTTSuite](../../README.md)
+<p>
+  <a href="../../README.md"><img src="media/menu/back-mqttsuite.svg" alt="← MQTTSuite" width="110" height="24"></a>
+</p>
 
 The landing page shows the basic example; this guide extends it.
 

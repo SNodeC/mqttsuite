@@ -150,7 +150,7 @@ Projection rules:
 For a local broker on plain MQTT/TCP:
 
 ```bash
-mqttstore in-mqtt \
+mqttstore in-mqtt --disabled=false \
   remote --host 127.0.0.1 \
          --port 1883 \
   session --client-id mqttstore-local \
@@ -166,7 +166,7 @@ mqttstore in-mqtt \
 With a projection file:
 
 ```bash
-mqttstore in-mqtt \
+mqttstore in-mqtt --disabled=false \
   remote --host 127.0.0.1 \
          --port 1883 \
   session --client-id mqttstore-local \
@@ -224,7 +224,7 @@ This is the smallest end-to-end projection example. It keeps raw storage enabled
 3. Start MQTTStore with the file in the `storage` section:
 
    ```bash
-   mqttstore in-mqtt \
+   mqttstore in-mqtt --disabled=false \
      remote --host 127.0.0.1 --port 1883 \
      session --client-id mqttstore-projection-demo \
      sub --topic 'normalized/#' \
@@ -264,7 +264,7 @@ This is the smallest end-to-end projection example. It keeps raw storage enabled
 For MQTT over WebSockets:
 
 ```bash
-mqttstore in-wsmqtt \
+mqttstore in-wsmqtt --disabled=false \
   remote --host 127.0.0.1 \
          --port 8080 \
   http --target /ws \
@@ -281,7 +281,7 @@ mqttstore in-wsmqtt \
 For service-style operation, write a known-good configuration once with `--write-config` / `-w` according to the MQTTSuite configuration workflow:
 
 ```bash
-mqttstore in-mqtt \
+mqttstore in-mqtt --disabled=false \
   remote --host 127.0.0.1 \
          --port 1883 \
   session --client-id mqttstore-local \
@@ -370,7 +370,7 @@ Expected raw-table behavior:
 MQTTStore topic filters accept the MQTTSuite `##<qos>` suffix. For example, subscribe to normalized messages at QoS 1:
 
 ```bash
-mqttstore in-mqtt \
+mqttstore in-mqtt --disabled=false \
   remote --host 127.0.0.1 --port 1883 \
   session --client-id mqttstore-qos1 \
   sub --topic 'normalized/###1' \

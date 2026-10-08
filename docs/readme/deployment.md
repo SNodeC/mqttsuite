@@ -1,6 +1,8 @@
 # Operate MQTTSuite deliberately
 
-[← MQTTSuite](../../README.md)
+<p>
+  <a href="../../README.md"><img src="media/menu/back-mqttsuite.svg" alt="← MQTTSuite" width="110" height="24"></a>
+</p>
 
 The examples use loopback, disposable client IDs and small topic filters. A deployment also needs explicit network access, credentials, state ownership and recovery policy.
 
@@ -38,18 +40,16 @@ For MQTT over WebSockets, use a client advertising the **`mqtt`** subprotocol. T
 
 ## State and delivery boundaries
 
-| State | Responsibility |
-| --- | --- |
-| MQTT sessions | Configure session persistence where needed; clean-session behavior is a separate choice. |
-| Broker session store | `broker --mqtt-session-store /path/to/session.store`; give the service account write access and back it up appropriately. |
-| Mapping definitions | Validate against the mapping schema; keep source and output topic spaces intentional. |
-| Bridge topology | Use unique client IDs, narrow subscriptions, explicit prefixes and loop prevention. |
-| MariaDB | Provision users/schema, migrations, capacity, retention and backups separately. |
-| Typed projections | Raw messages and projection inserts are separate operations; monitor failures rather than assuming end-to-end atomicity. |
+- **MQTT sessions.** Configure session persistence where needed; clean-session behavior is a separate choice.
+- **Broker session store.** Set `--mqtt-session-store` in the `broker` section; give the service account write access and back up the store.
+- **Mapping definitions.** Validate against the mapping schema; keep source and output topic spaces intentional.
+- **Bridge topology.** Use unique client IDs, narrow subscriptions, explicit prefixes and loop prevention.
+- **MariaDB.** Provision users/schema, migrations, capacity, retention and backups separately.
+- **Typed projections.** Raw messages and projection inserts are separate operations; monitor failures rather than assuming end-to-end atomicity.
 
 ## Service supervision
 
-Under systemd or a container supervisor, run the process in the foreground with an explicit configuration path and a dedicated account. Do not combine daemon mode with a supervisor expecting a foreground process. Service filenames and paths depend on how the application was installed; inspect the package rather than assuming every platform ships the same unit.
+Under systemd or a container supervisor, run the process in the foreground with an explicit configuration path and a dedicated account. Do not combine daemon mode with a supervisor expecting a foreground process. DEB/RPM packages currently do not ship systemd units; create a unit for the application and configuration you intend to run. OpenWrt packages include procd scripts for MQTTBroker, MQTTBridge and MQTTIntegrator.
 
 On OpenWrt, after configuring `/etc/snode.c/mqttbroker.conf`, the packaged init script can be used:
 
@@ -58,7 +58,7 @@ On OpenWrt, after configuring `/etc/snode.c/mqttbroker.conf`, the packaged init 
 /etc/init.d/mqttbroker start
 ```
 
-Confirm the intended listeners and logs before opening firewall access. See the matching [distribution guide](packages.md) for platform-specific setup and updates.
+Confirm the intended listeners and logs before opening firewall access. See [Packages](https://github.com/SNodeC/Packages#readme) for platform-specific setup and updates.
 
 ## Before an upgrade
 
