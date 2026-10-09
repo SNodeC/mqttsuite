@@ -74,7 +74,7 @@ Use the same working directory in each terminal. Stop only earlier demonstration
 
 **Run — terminal 1:**
 
-```sh
+```text
 mqttbroker \
     in-mqtt \
         local --port 18883
@@ -82,7 +82,7 @@ mqttbroker \
 
 **Run — terminal 2:**
 
-```sh
+```text
 mqttbroker \
     in-mqtt \
         local --port 18884 \
@@ -116,7 +116,7 @@ The second broker uses different ports and Unix socket paths for its other liste
 
 **Run — terminal 3:**
 
-```sh
+```text
 mqttbridge \
     bridge --definition bridge.json \
     admin-legacy --disabled \
@@ -129,7 +129,7 @@ MQTTBridge can normalize and write its active definition back to `bridge.json`; 
 
 **Run — terminal 4:**
 
-```sh
+```text
 mqttcli \
     in-mqtt --disabled=false \
         remote --host 127.0.0.1 --port 18884 \
@@ -138,7 +138,7 @@ mqttcli \
 
 **Run — terminal 5, after the bridge and subscriber connect:**
 
-```sh
+```text
 mqttcli \
     in-mqtt --disabled=false \
         remote --host 127.0.0.1 --port 18883 \

@@ -18,7 +18,7 @@ For the shortest demonstration, run the mapping inside MQTTBroker:
 
 **Run — terminal 1:**
 
-```sh
+```text
 mqttbroker \
     in-mqtt \
         local --port 18883 \
@@ -31,7 +31,7 @@ Stop any earlier demo broker first: this command uses the same loopback port, 18
 
 **Run — terminal 2:**
 
-```sh
+```text
 mqttcli \
     in-mqtt --disabled=false \
         remote --host 127.0.0.1 --port 18883 \
@@ -42,7 +42,7 @@ mqttcli \
 
 **Run — terminal 3, after the subscriber connects:**
 
-```sh
+```text
 mqttcli \
     in-mqtt --disabled=false \
         remote --host 127.0.0.1 --port 18883 \
@@ -66,7 +66,7 @@ The command below enables only the IPv4 MQTT connection. Other outgoing connecti
 
 **Run — terminal 1:**
 
-```sh
+```text
 mqttbroker \
     in-mqtt \
         local --port 18883
@@ -74,7 +74,7 @@ mqttbroker \
 
 **Run — terminal 2:**
 
-```sh
+```text
 mqttintegrator \
     integrator --mqtt-mapping-file mapping.json \
     in-mqtt --disabled=false \
@@ -122,7 +122,7 @@ Turn structured sensor data into a compact summary.
 
 **Run — terminal 1:**
 
-```sh
+```text
 mqttbroker \
     in-mqtt \
         local --port 18883 \
@@ -131,7 +131,7 @@ mqttbroker \
 
 **Run — terminal 2:**
 
-```sh
+```text
 mqttcli \
     in-mqtt --disabled=false \
         remote --host 127.0.0.1 --port 18883 \
@@ -140,7 +140,7 @@ mqttcli \
 
 **Run — terminal 3, after the subscriber connects:**
 
-```sh
+```text
 mqttcli \
     in-mqtt --disabled=false \
         remote --host 127.0.0.1 --port 18883 \

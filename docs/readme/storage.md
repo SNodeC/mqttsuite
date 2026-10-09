@@ -12,7 +12,7 @@ MQTTStore subscribes to topic filters and writes messages to MariaDB. Raw storag
 
 **Run — terminal 1, start the broker:**
 
-```sh
+```text
 mqttbroker \
     in-mqtt \
         local --port 18883
@@ -57,7 +57,7 @@ Configure the MQTT connection, subscription and database explicitly. Adjust the 
 
 **Run — terminal 2, from the same working directory:**
 
-```sh
+```text
 mqttstore \
     in-mqtt --disabled=false \
         remote --host 127.0.0.1 --port 18883 \
@@ -71,7 +71,7 @@ mqttstore \
 
 **Run — terminal 3, after MQTTStore connects:**
 
-```sh
+```text
 mqttcli \
     in-mqtt --disabled=false \
         remote --host 127.0.0.1 --port 18883 \

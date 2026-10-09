@@ -21,7 +21,7 @@ Install **SNode.C before configuring MQTTSuite**. Use [SNode.C’s prebuilt DEB/
 
 The suite requires C++20 and CMake 3.18+. The full build also needs the SNode.C components for the chosen transports and MariaDB integration. On Debian/Ubuntu:
 
-```sh
+```text
 sudo apt-get update
 sudo apt-get install git cmake ninja-build g++ pkg-config \
   nlohmann-json3-dev libssl-dev libmariadb-dev
@@ -29,7 +29,7 @@ sudo apt-get install git cmake ninja-build g++ pkg-config \
 
 ### Build and install
 
-```sh
+```text
 git clone --recurse-submodules https://github.com/SNodeC/mqttsuite.git
 cd mqttsuite
 cmake -S . -B build -G Ninja \
@@ -48,7 +48,7 @@ Transport options are application-specific, such as `CONFIG_MQTTSUITE_BROKER_TCP
 
 ### Verify the installation
 
-```sh
+```text
 mqttbroker --help
 mqttcli --help
 mqttbridge bridge --help
@@ -71,7 +71,7 @@ Follow [SNode.C's SDK preparation instructions](https://github.com/SNodeC/snode.
 
 The recipes are included in the upstream checkouts. Clone whichever checkout you do not already have:
 
-```sh
+```text
 git clone https://github.com/SNodeC/snode.c.git
 git clone https://github.com/SNodeC/mqttsuite.git
 ```
@@ -80,7 +80,7 @@ git clone https://github.com/SNodeC/mqttsuite.git
 
 Run the following inside the extracted SDK. Replace `/path/to/snode.c` and `/path/to/mqttsuite` with the absolute paths of your checkouts:
 
-```sh
+```text
 ./scripts/feeds update base packages
 ./scripts/feeds install nlohmannjson libopenssl libmagic bluez-libs libmariadb
 mkdir -p package/local
@@ -96,7 +96,7 @@ Each recipe declares its default source release. To select other releases, expor
 
 In a fresh SDK, initialize the package selection:
 
-```sh
+```text
 cat > .config <<'EOF'
 # CONFIG_ALL is not set
 # CONFIG_ALL_NONSHARED is not set

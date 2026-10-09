@@ -10,7 +10,7 @@ The examples use loopback, disposable client IDs and small topic filters. A depl
 
 Each application exposes SNode.C’s configuration system. Application-wide sections, connection instances and protocol sections have different scopes:
 
-```sh
+```text
 mqttbroker broker --help
 mqttbridge bridge --help
 mqttcli in-mqtt --help=expanded
@@ -33,7 +33,7 @@ MQTTBroker enables its compiled listeners by default. Bind the listeners you use
 
 To inspect the Web UI locally, start without a saved configuration and with ports **18883** and **18080** free:
 
-```sh
+```text
 mqttbroker \
     in-mqtt \
         local --port 18883 \
@@ -64,7 +64,7 @@ Under systemd or a container supervisor, run the process in the foreground with 
 
 On OpenWrt, after configuring `/etc/snode.c/mqttbroker.conf`, the packaged init script can be used:
 
-```sh
+```text
 /etc/init.d/mqttbroker enable
 /etc/init.d/mqttbroker start
 ```

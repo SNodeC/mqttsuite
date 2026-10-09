@@ -37,7 +37,7 @@ The table also has indexes on `received_at` and the first 255 characters of `top
 
 Log in as a MariaDB administrator, for example `root`:
 
-```bash
+```text
 sudo mariadb
 ```
 
@@ -149,7 +149,7 @@ Projection rules:
 
 For a local broker on plain MQTT/TCP:
 
-```bash
+```text
 mqttstore \
     in-mqtt --disabled=false \
         remote --host 127.0.0.1 --port 1883 \
@@ -161,7 +161,7 @@ mqttstore \
 
 With a projection file:
 
-```bash
+```text
 mqttstore \
     in-mqtt --disabled=false \
         remote --host 127.0.0.1 --port 1883 \
@@ -191,7 +191,7 @@ This is the smallest end-to-end projection example. It keeps raw storage enabled
 
 2. Create the projection file on the host that runs MQTTStore:
 
-   ```bash
+   ```text
    sudo install -d -m 0755 /etc/mqttsuite
    sudo tee /etc/mqttsuite/mqttstore-projections.json >/dev/null <<'JSON'
    {
@@ -214,7 +214,7 @@ This is the smallest end-to-end projection example. It keeps raw storage enabled
 
 3. Start MQTTStore with the file in the `storage` section:
 
-   ```bash
+   ```text
    mqttstore \
        in-mqtt --disabled=false \
            remote --host 127.0.0.1 --port 1883 \
@@ -226,7 +226,7 @@ This is the smallest end-to-end projection example. It keeps raw storage enabled
 
 4. Publish a matching message from another terminal:
 
-   ```bash
+   ```text
    mosquitto_pub -h 127.0.0.1 -p 1883 \
      -t 'normalized/boiler/temperature' \
      -m '{"value":63.4,"unit":"C","source":"demo"}'
@@ -250,7 +250,7 @@ This is the smallest end-to-end projection example. It keeps raw storage enabled
 
 For MQTT over WebSockets:
 
-```bash
+```text
 mqttstore \
     in-wsmqtt --disabled=false \
         remote --host 127.0.0.1 --port 8080 \
@@ -265,7 +265,7 @@ mqttstore \
 
 For service-style operation, write a known-good configuration once with `--write-config` / `-w` according to the MQTTSuite configuration workflow:
 
-```bash
+```text
 mqttstore \
     in-mqtt --disabled=false \
         remote --host 127.0.0.1 --port 1883 \
@@ -284,7 +284,7 @@ The examples below use Mosquitto clients against a local broker. If your broker 
 
 ### JSON telemetry
 
-```bash
+```text
 mosquitto_pub -h 127.0.0.1 -p 1883 \
   -t 'normalized/boiler/temperature' \
   -m '{"value":63.4,"unit":"C","source":"demo"}'
@@ -305,7 +305,7 @@ If the projection example above is enabled, MQTTStore also inserts a row into `s
 
 ### Plain text status
 
-```bash
+```text
 mosquitto_pub -h 127.0.0.1 -p 1883 \
   -t 'devices/pump-1/status' \
   -m 'running'
@@ -319,7 +319,7 @@ Expected raw-table behavior:
 
 ### Retained state
 
-```bash
+```text
 mosquitto_pub -h 127.0.0.1 -p 1883 \
   -r \
   -t 'devices/pump-1/availability' \
@@ -334,7 +334,7 @@ Expected raw-table behavior:
 
 ### QoS 1 publish
 
-```bash
+```text
 mosquitto_pub -h 127.0.0.1 -p 1883 \
   -q 1 \
   -t 'normalized/room-101/temperature' \
@@ -350,7 +350,7 @@ Expected raw-table behavior:
 
 MQTTStore topic filters accept the MQTTSuite `##<qos>` suffix. For example, subscribe to normalized messages at QoS 1:
 
-```bash
+```text
 mqttstore \
     in-mqtt --disabled=false \
         remote --host 127.0.0.1 --port 1883 \
@@ -364,7 +364,7 @@ mqttstore \
 
 Open MariaDB:
 
-```bash
+```text
 mariadb -u mqttstore -p mqttsuite_store
 ```
 

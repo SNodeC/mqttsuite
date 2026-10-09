@@ -52,7 +52,7 @@ These experiments assume a first launch without a saved application configuratio
 
 **Run — terminal 1, start the broker:**
 
-```sh
+```text
 mqttbroker \
     in-mqtt \
         local --port 18883
@@ -60,7 +60,7 @@ mqttbroker \
 
 **Run — terminal 2, subscribe:**
 
-```sh
+```text
 mqttcli \
     in-mqtt --disabled=false \
         remote --host 127.0.0.1 --port 18883 \
@@ -69,7 +69,7 @@ mqttcli \
 
 **Run — terminal 3, publish:**
 
-```sh
+```text
 mqttcli \
     in-mqtt --disabled=false \
         remote --host 127.0.0.1 --port 18883 \
@@ -118,7 +118,7 @@ Not every device publishes the topic or payload your application expects. This m
 
 **Run — terminal 1:**
 
-```sh
+```text
 mqttbroker \
     in-mqtt \
         local --port 18883 \
@@ -127,7 +127,7 @@ mqttbroker \
 
 **Run — terminal 2, subscribe before publishing:**
 
-```sh
+```text
 mqttcli \
     in-mqtt --disabled=false \
         remote --host 127.0.0.1 --port 18883 \
@@ -136,7 +136,7 @@ mqttcli \
 
 **Run — terminal 3, publish:**
 
-```sh
+```text
 mqttcli \
     in-mqtt --disabled=false \
         remote --host 127.0.0.1 --port 18883 \
@@ -213,13 +213,13 @@ Forward selected topics between two independent brokers without changing their p
 
 **Run — terminals 1 and 2, one broker in each:**
 
-```sh
+```text
 mqttbroker \
     in-mqtt \
         local --port 18883
 ```
 
-```sh
+```text
 mqttbroker \
     in-mqtt \
         local --port 18884 \
@@ -251,7 +251,7 @@ The second broker assigns separate ports and Unix socket paths to its other list
 
 **Run — terminal 3, bridge:**
 
-```sh
+```text
 mqttbridge \
     bridge --definition bridge.json \
     admin-legacy --disabled \
@@ -260,7 +260,7 @@ mqttbridge \
 
 **Run — terminal 4, subscribe on broker B:**
 
-```sh
+```text
 mqttcli \
     in-mqtt --disabled=false \
         remote --host 127.0.0.1 --port 18884 \
@@ -269,7 +269,7 @@ mqttcli \
 
 **Run — terminal 5, publish on broker A after the bridge and subscriber connect:**
 
-```sh
+```text
 mqttcli \
     in-mqtt --disabled=false \
         remote --host 127.0.0.1 --port 18883 \
@@ -338,7 +338,7 @@ CREATE TABLE mqttsuite_demo.sensor_measurements (
 
 **Run — terminal 1:**
 
-```sh
+```text
 mqttstore \
     in-mqtt --disabled=false \
         remote --host 127.0.0.1 --port 18883 \
@@ -350,7 +350,7 @@ mqttstore \
 
 **Run — terminal 2, publish after MQTTStore connects:**
 
-```sh
+```text
 mqttcli \
     in-mqtt --disabled=false \
         remote --host 127.0.0.1 --port 18883 \
