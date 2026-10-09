@@ -119,6 +119,7 @@ startClient(const std::string& instanceName,
 
     Client socketClient = core::socket::stream::Client<Client>(instanceName, configurator, std::forward<Args>(args)...);
 
+    socketClient.getConfig()->setDisabled();
     socketClient.getConfig()->setRetry();
     socketClient.getConfig()->setRetryBase(1);
     socketClient.getConfig()->setReconnect();
@@ -164,6 +165,7 @@ HttpClient startClient(const std::string& name, const std::function<void(typenam
         configurator(httpClient.getConfig());
     }
 
+    httpClient.getConfig()->setDisabled();
     httpClient.getConfig()->setRetry();
     httpClient.getConfig()->setRetryBase(1);
     httpClient.getConfig()->setReconnect();
