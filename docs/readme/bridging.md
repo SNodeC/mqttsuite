@@ -76,38 +76,38 @@ Use the same working directory in each terminal. Stop only earlier demonstration
 
 ```sh
 mqttbroker \
-	in-mqtt \
-		local --host 127.0.0.1 --port 18883
+    in-mqtt \
+        local --port 18883
 ```
 
 **Run — terminal 2:**
 
 ```sh
 mqttbroker \
-	in-mqtt \
-		local --host 127.0.0.1 --port 18884 \
-	in-mqtts \
-		local --port 18885 \
-	in6-mqtt \
-		local --port 18886 \
-	in6-mqtts \
-		local --port 18887 \
-	in-http \
-		local --port 18081 \
-	in-https \
-		local --port 18082 \
-	in6-http \
-		local --port 18083 \
-	in6-https \
-		local --port 18084 \
-	un-mqtt \
-		local --sun-path /tmp/readme-broker-b-un-mqtt \
-	un-mqtts \
-		local --sun-path /tmp/readme-broker-b-un-mqtts \
-	un-http \
-		local --sun-path /tmp/readme-broker-b-un-http \
-	un-https \
-		local --sun-path /tmp/readme-broker-b-un-https
+    in-mqtt \
+        local --port 18884 \
+    in-mqtts \
+        local --port 18885 \
+    in6-mqtt \
+        local --port 18886 \
+    in6-mqtts \
+        local --port 18887 \
+    in-http \
+        local --port 18081 \
+    in-https \
+        local --port 18082 \
+    in6-http \
+        local --port 18083 \
+    in6-https \
+        local --port 18084 \
+    un-mqtt \
+        local --sun-path /tmp/readme-broker-b-un-mqtt \
+    un-mqtts \
+        local --sun-path /tmp/readme-broker-b-un-mqtts \
+    un-http \
+        local --sun-path /tmp/readme-broker-b-un-http \
+    un-https \
+        local --sun-path /tmp/readme-broker-b-un-https
 ```
 
 The second broker uses different ports and Unix socket paths for its other listeners as well, avoiding conflicts with the first broker. Omit instance sections absent from your build (`mqttbroker --help` lists them). Neither command configures a session-store file.
@@ -118,9 +118,9 @@ The second broker uses different ports and Unix socket paths for its other liste
 
 ```sh
 mqttbridge \
-	bridge --definition bridge.json \
-	admin-legacy --disabled \
-	admin-tls --disabled
+    bridge --definition bridge.json \
+    admin-legacy --disabled \
+    admin-tls --disabled
 ```
 
 MQTTBridge can normalize and write its active definition back to `bridge.json`; keep that local file writable. The demonstration disables the bridge’s administrative HTTP listeners. Use distinct client IDs, as the sample does. An existing client with the same ID on a broker can be disconnected by a new connection.
@@ -131,19 +131,19 @@ MQTTBridge can normalize and write its active definition back to `bridge.json`; 
 
 ```sh
 mqttcli \
-	in-mqtt --disabled=false \
-		remote --host 127.0.0.1 --port 18884 \
-		sub --topic 'relay/#'
+    in-mqtt --disabled=false \
+        remote --host 127.0.0.1 --port 18884 \
+        sub --topic 'relay/#'
 ```
 
 **Run — terminal 5, after the bridge and subscriber connect:**
 
 ```sh
 mqttcli \
-	in-mqtt --disabled=false \
-		remote --host 127.0.0.1 --port 18883 \
-		pub --topic 'telemetry/temperature' --message '21.5' \
-		socket --reconnect=false
+    in-mqtt --disabled=false \
+        remote --host 127.0.0.1 --port 18883 \
+        pub --topic 'telemetry/temperature' --message '21.5' \
+        socket --reconnect=false
 ```
 
 **Expected result:** on broker B, `relay/a/b/telemetry/temperature` with payload `21.5`.

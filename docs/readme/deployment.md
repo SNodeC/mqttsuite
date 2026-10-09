@@ -35,10 +35,10 @@ To inspect the Web UI locally, start without a saved configuration and with port
 
 ```sh
 mqttbroker \
-	in-mqtt \
-		local --host 127.0.0.1 --port 18883 \
-	in-http \
-		local --host 127.0.0.1 --port 18080
+    in-mqtt \
+        local --port 18883 \
+    in-http \
+        local --port 18080
 ```
 
 Open `http://127.0.0.1:18080/`. The packaged/installed web assets must be available at the application’s HTML root. Keep administrative surfaces private or place them behind deliberately configured access controls; do not assume the demonstration setup provides an authenticated public management service.

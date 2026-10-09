@@ -14,8 +14,8 @@ MQTTStore subscribes to topic filters and writes messages to MariaDB. Raw storag
 
 ```sh
 mqttbroker \
-	in-mqtt \
-		local --host 127.0.0.1 --port 18883
+    in-mqtt \
+        local --port 18883
 ```
 
 ## 1. Create the database and account
@@ -59,12 +59,12 @@ Configure the MQTT connection, subscription and database explicitly. Adjust the 
 
 ```sh
 mqttstore \
-	in-mqtt --disabled=false \
-		remote --host 127.0.0.1 --port 18883 \
-		session --client-id readme-store \
-		sub --topic 'normalized/#' \
-		db --socket /run/mysqld/mysqld.sock --database mqttsuite_demo --username mqttstore_demo --password 'REPLACE-WITH-A-UNIQUE-PASSWORD' \
-			storage --raw-table mqtt_messages --auto-create-raw-table --projection-file projections.json
+    in-mqtt --disabled=false \
+        remote --host 127.0.0.1 --port 18883 \
+        session --client-id readme-store \
+        sub --topic 'normalized/#' \
+        db --socket /run/mysqld/mysqld.sock --database mqttsuite_demo --username mqttstore_demo --password 'REPLACE-WITH-A-UNIQUE-PASSWORD' \
+            storage --raw-table mqtt_messages --auto-create-raw-table --projection-file projections.json
 ```
 
 ## 4. Publish a measurement
@@ -73,10 +73,10 @@ mqttstore \
 
 ```sh
 mqttcli \
-	in-mqtt --disabled=false \
-		remote --host 127.0.0.1 --port 18883 \
-		pub --topic 'normalized/room1/temperature' --message '{"value":21.5,"unit":"C"}' \
-		socket --reconnect=false
+    in-mqtt --disabled=false \
+        remote --host 127.0.0.1 --port 18883 \
+        pub --topic 'normalized/room1/temperature' --message '{"value":21.5,"unit":"C"}' \
+        socket --reconnect=false
 ```
 
 ## 5. Verify the raw message and projection

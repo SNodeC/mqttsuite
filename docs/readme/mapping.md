@@ -20,9 +20,9 @@ For the shortest demonstration, run the mapping inside MQTTBroker:
 
 ```sh
 mqttbroker \
-	in-mqtt \
-		local --host 127.0.0.1 --port 18883 \
-	broker --mqtt-mapping-file mapping.json
+    in-mqtt \
+        local --port 18883 \
+    broker --mqtt-mapping-file mapping.json
 ```
 
 Stop any earlier demo broker first: this command uses the same loopback port, 18883.
@@ -33,9 +33,9 @@ Stop any earlier demo broker first: this command uses the same loopback port, 18
 
 ```sh
 mqttcli \
-	in-mqtt --disabled=false \
-		remote --host 127.0.0.1 --port 18883 \
-		sub --topic 'actuators/light/set'
+    in-mqtt --disabled=false \
+        remote --host 127.0.0.1 --port 18883 \
+        sub --topic 'actuators/light/set'
 ```
 
 ## 3. Send a device event
@@ -44,10 +44,10 @@ mqttcli \
 
 ```sh
 mqttcli \
-	in-mqtt --disabled=false \
-		remote --host 127.0.0.1 --port 18883 \
-		pub --topic 'devices/button' --message 'pressed' \
-		socket --reconnect=false
+    in-mqtt --disabled=false \
+        remote --host 127.0.0.1 --port 18883 \
+        pub --topic 'devices/button' --message 'pressed' \
+        socket --reconnect=false
 ```
 
 **Expected result:** topic `actuators/light/set`, payload `on`. Publish `released` to get `off`.
@@ -68,20 +68,20 @@ The command below enables only the IPv4 MQTT connection. Other outgoing connecti
 
 ```sh
 mqttbroker \
-	in-mqtt \
-		local --host 127.0.0.1 --port 18883
+    in-mqtt \
+        local --port 18883
 ```
 
 **Run — terminal 2:**
 
 ```sh
 mqttintegrator \
-	integrator --mqtt-mapping-file mapping.json \
-	in-mqtt --disabled=false \
-		remote --host 127.0.0.1 --port 18883 \
-		session --client-id readme-integrator \
-	in-http --disabled \
-	in-https --disabled
+    integrator --mqtt-mapping-file mapping.json \
+    in-mqtt --disabled=false \
+        remote --host 127.0.0.1 --port 18883 \
+        session --client-id readme-integrator \
+    in-http --disabled \
+    in-https --disabled
 ```
 
 **Run — terminals 3 and 4:** leave the integrator running, then use the subscriber and publisher commands in steps 2 and 3 above. Wait for both the integrator and subscriber to connect before publishing.
@@ -124,28 +124,28 @@ Turn structured sensor data into a compact summary.
 
 ```sh
 mqttbroker \
-	in-mqtt \
-		local --host 127.0.0.1 --port 18883 \
-	broker --mqtt-mapping-file template.json
+    in-mqtt \
+        local --port 18883 \
+    broker --mqtt-mapping-file template.json
 ```
 
 **Run — terminal 2:**
 
 ```sh
 mqttcli \
-	in-mqtt --disabled=false \
-		remote --host 127.0.0.1 --port 18883 \
-		sub --topic 'normalized/room1/summary'
+    in-mqtt --disabled=false \
+        remote --host 127.0.0.1 --port 18883 \
+        sub --topic 'normalized/room1/summary'
 ```
 
 **Run — terminal 3, after the subscriber connects:**
 
 ```sh
 mqttcli \
-	in-mqtt --disabled=false \
-		remote --host 127.0.0.1 --port 18883 \
-		pub --topic 'sensors/room1' --message '{"temperature":21.5,"humidity":48}' \
-		socket --reconnect=false
+    in-mqtt --disabled=false \
+        remote --host 127.0.0.1 --port 18883 \
+        pub --topic 'sensors/room1' --message '{"temperature":21.5,"humidity":48}' \
+        socket --reconnect=false
 ```
 
 **Expected result:** topic `normalized/room1/summary`, payload `T=21.5;H=48`.

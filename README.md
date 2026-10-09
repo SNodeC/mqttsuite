@@ -48,33 +48,33 @@ Send a message through a broker running only on your own machine.
 
 **You need:** installed `mqttbroker` and `mqttcli`, three terminals in the same working directory, and free loopback port **18883**. No source checkout is required for these examples.
 
-These experiments assume a first launch without a saved application configuration. Commands show the settings explicitly. MQTTBroker keeps all compiled listeners enabled; the commands below configure the IPv4 MQTT endpoint used by the experiments. Other listeners retain their defaults, so the broker is not restricted to loopback.
+These experiments assume a first launch without a saved application configuration. Commands show the settings explicitly. MQTTBroker keeps all compiled listeners enabled; the commands below configure the IPv4 MQTT endpoint used by the experiments. Listener addresses retain their defaults, so the broker is not restricted to loopback; the clients below connect through `127.0.0.1`.
 
 **Run — terminal 1, start the broker:**
 
 ```sh
 mqttbroker \
-	in-mqtt \
-		local --host 127.0.0.1 --port 18883
+    in-mqtt \
+        local --port 18883
 ```
 
 **Run — terminal 2, subscribe:**
 
 ```sh
 mqttcli \
-	in-mqtt --disabled=false \
-		remote --host 127.0.0.1 --port 18883 \
-		sub --topic 'demo/#'
+    in-mqtt --disabled=false \
+        remote --host 127.0.0.1 --port 18883 \
+        sub --topic 'demo/#'
 ```
 
 **Run — terminal 3, publish:**
 
 ```sh
 mqttcli \
-	in-mqtt --disabled=false \
-		remote --host 127.0.0.1 --port 18883 \
-		pub --topic 'demo/hello' --message 'Hello from MQTTSuite!' \
-		socket --reconnect=false
+    in-mqtt --disabled=false \
+        remote --host 127.0.0.1 --port 18883 \
+        pub --topic 'demo/hello' --message 'Hello from MQTTSuite!' \
+        socket --reconnect=false
 ```
 
 **Expected result:** the subscriber reports topic `demo/hello` and payload `Hello from MQTTSuite!`. Stop the subscriber and broker with Ctrl+C before starting the next example.
@@ -120,28 +120,28 @@ Not every device publishes the topic or payload your application expects. This m
 
 ```sh
 mqttbroker \
-	in-mqtt \
-		local --host 127.0.0.1 --port 18883 \
-	broker --mqtt-mapping-file mapping.json
+    in-mqtt \
+        local --port 18883 \
+    broker --mqtt-mapping-file mapping.json
 ```
 
 **Run — terminal 2, subscribe before publishing:**
 
 ```sh
 mqttcli \
-	in-mqtt --disabled=false \
-		remote --host 127.0.0.1 --port 18883 \
-		sub --topic 'actuators/light/set'
+    in-mqtt --disabled=false \
+        remote --host 127.0.0.1 --port 18883 \
+        sub --topic 'actuators/light/set'
 ```
 
 **Run — terminal 3, publish:**
 
 ```sh
 mqttcli \
-	in-mqtt --disabled=false \
-		remote --host 127.0.0.1 --port 18883 \
-		pub --topic 'devices/button' --message 'pressed' \
-		socket --reconnect=false
+    in-mqtt --disabled=false \
+        remote --host 127.0.0.1 --port 18883 \
+        pub --topic 'devices/button' --message 'pressed' \
+        socket --reconnect=false
 ```
 
 **Expected result:**
@@ -215,36 +215,36 @@ Forward selected topics between two independent brokers without changing their p
 
 ```sh
 mqttbroker \
-	in-mqtt \
-		local --host 127.0.0.1 --port 18883
+    in-mqtt \
+        local --port 18883
 ```
 
 ```sh
 mqttbroker \
-	in-mqtt \
-		local --host 127.0.0.1 --port 18884 \
-	in-mqtts \
-		local --port 18885 \
-	in6-mqtt \
-		local --port 18886 \
-	in6-mqtts \
-		local --port 18887 \
-	in-http \
-		local --port 18081 \
-	in-https \
-		local --port 18082 \
-	in6-http \
-		local --port 18083 \
-	in6-https \
-		local --port 18084 \
-	un-mqtt \
-		local --sun-path /tmp/readme-broker-b-un-mqtt \
-	un-mqtts \
-		local --sun-path /tmp/readme-broker-b-un-mqtts \
-	un-http \
-		local --sun-path /tmp/readme-broker-b-un-http \
-	un-https \
-		local --sun-path /tmp/readme-broker-b-un-https
+    in-mqtt \
+        local --port 18884 \
+    in-mqtts \
+        local --port 18885 \
+    in6-mqtt \
+        local --port 18886 \
+    in6-mqtts \
+        local --port 18887 \
+    in-http \
+        local --port 18081 \
+    in-https \
+        local --port 18082 \
+    in6-http \
+        local --port 18083 \
+    in6-https \
+        local --port 18084 \
+    un-mqtt \
+        local --sun-path /tmp/readme-broker-b-un-mqtt \
+    un-mqtts \
+        local --sun-path /tmp/readme-broker-b-un-mqtts \
+    un-http \
+        local --sun-path /tmp/readme-broker-b-un-http \
+    un-https \
+        local --sun-path /tmp/readme-broker-b-un-https
 ```
 
 The second broker assigns separate ports and Unix socket paths to its other listeners to avoid conflicts. Omit instance sections absent from your build; see `mqttbroker --help`.
@@ -253,28 +253,28 @@ The second broker assigns separate ports and Unix socket paths to its other list
 
 ```sh
 mqttbridge \
-	bridge --definition bridge.json \
-	admin-legacy --disabled \
-	admin-tls --disabled
+    bridge --definition bridge.json \
+    admin-legacy --disabled \
+    admin-tls --disabled
 ```
 
 **Run — terminal 4, subscribe on broker B:**
 
 ```sh
 mqttcli \
-	in-mqtt --disabled=false \
-		remote --host 127.0.0.1 --port 18884 \
-		sub --topic 'relay/#'
+    in-mqtt --disabled=false \
+        remote --host 127.0.0.1 --port 18884 \
+        sub --topic 'relay/#'
 ```
 
 **Run — terminal 5, publish on broker A after the bridge and subscriber connect:**
 
 ```sh
 mqttcli \
-	in-mqtt --disabled=false \
-		remote --host 127.0.0.1 --port 18883 \
-		pub --topic 'telemetry/temperature' --message '21.5' \
-		socket --reconnect=false
+    in-mqtt --disabled=false \
+        remote --host 127.0.0.1 --port 18883 \
+        pub --topic 'telemetry/temperature' --message '21.5' \
+        socket --reconnect=false
 ```
 
 **Expected result:** broker B's subscriber receives `relay/a/b/telemetry/temperature` with payload `21.5`. The rule is **bridge prefix + source prefix + destination prefix + original topic**.
@@ -340,22 +340,22 @@ CREATE TABLE mqttsuite_demo.sensor_measurements (
 
 ```sh
 mqttstore \
-	in-mqtt --disabled=false \
-		remote --host 127.0.0.1 --port 18883 \
-		session --client-id readme-store \
-		sub --topic 'normalized/#' \
-		db --socket /run/mysqld/mysqld.sock --database mqttsuite_demo --username mqttstore_demo --password 'REPLACE-WITH-A-UNIQUE-PASSWORD' \
-			storage --raw-table mqtt_messages --auto-create-raw-table --projection-file projections.json
+    in-mqtt --disabled=false \
+        remote --host 127.0.0.1 --port 18883 \
+        session --client-id readme-store \
+        sub --topic 'normalized/#' \
+        db --socket /run/mysqld/mysqld.sock --database mqttsuite_demo --username mqttstore_demo --password 'REPLACE-WITH-A-UNIQUE-PASSWORD' \
+            storage --raw-table mqtt_messages --auto-create-raw-table --projection-file projections.json
 ```
 
 **Run — terminal 2, publish after MQTTStore connects:**
 
 ```sh
 mqttcli \
-	in-mqtt --disabled=false \
-		remote --host 127.0.0.1 --port 18883 \
-		pub --topic 'normalized/room1/temperature' --message '{"value":21.5,"unit":"C"}' \
-		socket --reconnect=false
+    in-mqtt --disabled=false \
+        remote --host 127.0.0.1 --port 18883 \
+        pub --topic 'normalized/room1/temperature' --message '{"value":21.5,"unit":"C"}' \
+        socket --reconnect=false
 ```
 
 **Verify — in a database client with read access:**

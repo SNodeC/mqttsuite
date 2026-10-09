@@ -151,24 +151,24 @@ For a local broker on plain MQTT/TCP:
 
 ```bash
 mqttstore \
-	in-mqtt --disabled=false \
-		remote --host 127.0.0.1 --port 1883 \
-		session --client-id mqttstore-local \
-		sub --topic '#' \
-		db --host 127.0.0.1 --database mqttsuite_store --username mqttstore --password 'replace-with-a-long-random-password' \
-			storage --raw-table mqtt_messages --auto-create-raw-table
+    in-mqtt --disabled=false \
+        remote --host 127.0.0.1 --port 1883 \
+        session --client-id mqttstore-local \
+        sub --topic '#' \
+        db --host 127.0.0.1 --database mqttsuite_store --username mqttstore --password 'replace-with-a-long-random-password' \
+            storage --raw-table mqtt_messages --auto-create-raw-table
 ```
 
 With a projection file:
 
 ```bash
 mqttstore \
-	in-mqtt --disabled=false \
-		remote --host 127.0.0.1 --port 1883 \
-		session --client-id mqttstore-local \
-		sub --topic 'normalized/#' \
-		db --host 127.0.0.1 --database mqttsuite_store --username mqttstore --password 'replace-with-a-long-random-password' \
-			storage --raw-table mqtt_messages --auto-create-raw-table --projection-file /etc/mqttsuite/mqttstore-projections.json
+    in-mqtt --disabled=false \
+        remote --host 127.0.0.1 --port 1883 \
+        session --client-id mqttstore-local \
+        sub --topic 'normalized/#' \
+        db --host 127.0.0.1 --database mqttsuite_store --username mqttstore --password 'replace-with-a-long-random-password' \
+            storage --raw-table mqtt_messages --auto-create-raw-table --projection-file /etc/mqttsuite/mqttstore-projections.json
 ```
 
 ### Working `--projection-file` walkthrough
@@ -216,12 +216,12 @@ This is the smallest end-to-end projection example. It keeps raw storage enabled
 
    ```bash
    mqttstore \
-   	in-mqtt --disabled=false \
-   		remote --host 127.0.0.1 --port 1883 \
-   		session --client-id mqttstore-projection-demo \
-   		sub --topic 'normalized/#' \
-   		db --host 127.0.0.1 --database mqttsuite_store --username mqttstore --password 'replace-with-a-long-random-password' \
-   			storage --raw-table mqtt_messages --auto-create-raw-table --projection-file /etc/mqttsuite/mqttstore-projections.json
+       in-mqtt --disabled=false \
+           remote --host 127.0.0.1 --port 1883 \
+           session --client-id mqttstore-projection-demo \
+           sub --topic 'normalized/#' \
+           db --host 127.0.0.1 --database mqttsuite_store --username mqttstore --password 'replace-with-a-long-random-password' \
+               storage --raw-table mqtt_messages --auto-create-raw-table --projection-file /etc/mqttsuite/mqttstore-projections.json
    ```
 
 4. Publish a matching message from another terminal:
@@ -252,13 +252,13 @@ For MQTT over WebSockets:
 
 ```bash
 mqttstore \
-	in-wsmqtt --disabled=false \
-		remote --host 127.0.0.1 --port 8080 \
-		http --target /ws \
-		session --client-id mqttstore-ws \
-		sub --topic 'normalized/#' \
-		db --database mqttsuite_store --username mqttstore --password 'replace-with-a-long-random-password' \
-			storage --auto-create-raw-table
+    in-wsmqtt --disabled=false \
+        remote --host 127.0.0.1 --port 8080 \
+        http --target /ws \
+        session --client-id mqttstore-ws \
+        sub --topic 'normalized/#' \
+        db --database mqttsuite_store --username mqttstore --password 'replace-with-a-long-random-password' \
+            storage --auto-create-raw-table
 ```
 
 ## 5. Persist the configuration
@@ -267,13 +267,13 @@ For service-style operation, write a known-good configuration once with `--write
 
 ```bash
 mqttstore \
-	in-mqtt --disabled=false \
-		remote --host 127.0.0.1 --port 1883 \
-		session --client-id mqttstore-local \
-		sub --topic 'normalized/#' \
-		db --host 127.0.0.1 --database mqttsuite_store --username mqttstore --password 'replace-with-a-long-random-password' \
-			storage --raw-table mqtt_messages --auto-create-raw-table \
-	-w
+    in-mqtt --disabled=false \
+        remote --host 127.0.0.1 --port 1883 \
+        session --client-id mqttstore-local \
+        sub --topic 'normalized/#' \
+        db --host 127.0.0.1 --database mqttsuite_store --username mqttstore --password 'replace-with-a-long-random-password' \
+            storage --raw-table mqtt_messages --auto-create-raw-table \
+    -w
 ```
 
 After that, the service can be started with the saved defaults, depending on your installation and instance selection.
@@ -352,12 +352,12 @@ MQTTStore topic filters accept the MQTTSuite `##<qos>` suffix. For example, subs
 
 ```bash
 mqttstore \
-	in-mqtt --disabled=false \
-		remote --host 127.0.0.1 --port 1883 \
-		session --client-id mqttstore-qos1 \
-		sub --topic 'normalized/###1' \
-		db --database mqttsuite_store --username mqttstore --password 'replace-with-a-long-random-password' \
-			storage --auto-create-raw-table
+    in-mqtt --disabled=false \
+        remote --host 127.0.0.1 --port 1883 \
+        session --client-id mqttstore-qos1 \
+        sub --topic 'normalized/###1' \
+        db --database mqttsuite_store --username mqttstore --password 'replace-with-a-long-random-password' \
+            storage --auto-create-raw-table
 ```
 
 ## 7. Verify stored data
