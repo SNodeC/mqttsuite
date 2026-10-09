@@ -51,10 +51,8 @@ Transport options are application-specific, such as `CONFIG_MQTTSUITE_BROKER_TCP
 ```sh
 mqttbroker --help
 mqttcli --help
-mqttbridge \
-	bridge --help
-mqttstore \
-	in-mqtt --help=expanded
+mqttbridge bridge --help
+mqttstore in-mqtt --help=expanded
 ```
 
 Run the checks for the applications you installed. Keep source installations and package-managed installations separate; stale libraries or WebSocket plugins can otherwise be selected at runtime.

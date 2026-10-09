@@ -11,12 +11,9 @@ The examples use loopback, disposable client IDs and small topic filters. A depl
 Each application exposes SNode.C’s configuration system. Application-wide sections, connection instances and protocol sections have different scopes:
 
 ```sh
-mqttbroker \
-	broker --help
-mqttbridge \
-	bridge --help
-mqttcli \
-	in-mqtt --help=expanded
+mqttbroker broker --help
+mqttbridge bridge --help
+mqttcli in-mqtt --help=expanded
 snodec-control --target "$(command -v mqttbroker)" --ui
 ```
 
