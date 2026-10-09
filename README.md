@@ -48,67 +48,33 @@ Send a message through a broker running only on your own machine.
 
 **You need:** installed `mqttbroker` and `mqttcli`, three terminals in the same working directory, and free loopback port **18883**. No source checkout is required for these examples.
 
-**Configuration — save as `broker.conf`:**
-
-<details>
-<summary>Loopback-only broker configuration (all other listeners disabled)</summary>
-
-```ini
-# Local README demonstration. No public listeners or web management endpoint.
-[in-mqtt]
-disabled = false
-[in-mqtt.local]
-host = 127.0.0.1
-port = 18883
-[in-mqtts]
-disabled = true
-[in6-mqtt]
-disabled = true
-[in6-mqtts]
-disabled = true
-[un-mqtt]
-disabled = true
-[un-mqtts]
-disabled = true
-[in-http]
-disabled = true
-[in-https]
-disabled = true
-[in6-http]
-disabled = true
-[in6-https]
-disabled = true
-[un-http]
-disabled = true
-[un-https]
-disabled = true
-```
-
-</details>
+These experiments assume a first launch without a saved application configuration. Commands show the settings explicitly. MQTTBroker keeps all compiled listeners enabled; the commands below configure the IPv4 MQTT endpoint used by the experiments. Other listeners retain their defaults, so the broker is not restricted to loopback.
 
 **Run — terminal 1, start the broker:**
 
 ```sh
-mqttbroker --config-file broker.conf
+mqttbroker \
+	in-mqtt \
+		local --host 127.0.0.1 --port 18883
 ```
 
 **Run — terminal 2, subscribe:**
 
 ```sh
-mqttcli --config-file /dev/null \
-  in-mqtt --disabled=false \
-  remote --host 127.0.0.1 --port 18883 \
-  sub --topic 'demo/#'
+mqttcli \
+	in-mqtt --disabled=false \
+		remote --host 127.0.0.1 --port 18883 \
+		sub --topic 'demo/#'
 ```
 
 **Run — terminal 3, publish:**
 
 ```sh
-mqttcli --config-file /dev/null \
-  in-mqtt --disabled=false \
-  remote --host 127.0.0.1 --port 18883 \
-  pub --topic 'demo/hello' --message 'Hello from MQTTSuite!' \
-  socket --reconnect=false
+mqttcli \
+	in-mqtt --disabled=false \
+		remote --host 127.0.0.1 --port 18883 \
+		pub --topic 'demo/hello' --message 'Hello from MQTTSuite!' \
+		socket --reconnect=false
 ```
 
 **Expected result:** the subscriber reports topic `demo/hello` and payload `Hello from MQTTSuite!`. Stop the subscriber and broker with Ctrl+C before starting the next example.
@@ -117,11 +83,13 @@ mqttcli --config-file /dev/null \
 
 **Go further:** [deployment and access controls](docs/readme/deployment.md).
 
+**Keep a working configuration:** append `-w` (short for `--write-config`) to a working command to save its persistent settings in the application's default INI-style configuration file and exit. Then run the same application without arguments, as the same user, to start with those saved settings. Nonpersistent options are not saved. Configuration uses dotted keys such as `in-mqtt.remote.host="127.0.0.1"`. Save settings after experimenting; later examples assume no saved configuration. See [configuration and deployment](docs/readme/deployment.md#configuration).
+
 ## Translate a device’s language
 
 Not every device publishes the topic or payload your application expects. This mapping turns button events into light commands inside MQTTBroker.
 
-**You need:** `mqttbroker`, `mqttcli` and the `broker.conf` above. Stop any previous broker on 18883.
+**You need:** `mqttbroker` and `mqttcli`. Stop any previous broker on 18883.
 
 **Configuration — save as `mapping.json`:**
 
@@ -151,24 +119,29 @@ Not every device publishes the topic or payload your application expects. This m
 **Run — terminal 1:**
 
 ```sh
-mqttbroker --config-file broker.conf broker --mqtt-mapping-file mapping.json
+mqttbroker \
+	in-mqtt \
+		local --host 127.0.0.1 --port 18883 \
+	broker --mqtt-mapping-file mapping.json
 ```
 
 **Run — terminal 2, subscribe before publishing:**
 
 ```sh
-mqttcli --config-file /dev/null \
-  in-mqtt --disabled=false remote --host 127.0.0.1 --port 18883 \
-  sub --topic 'actuators/light/set'
+mqttcli \
+	in-mqtt --disabled=false \
+		remote --host 127.0.0.1 --port 18883 \
+		sub --topic 'actuators/light/set'
 ```
 
 **Run — terminal 3, publish:**
 
 ```sh
-mqttcli --config-file /dev/null \
-  in-mqtt --disabled=false remote --host 127.0.0.1 --port 18883 \
-  pub --topic 'devices/button' --message 'pressed' \
-  socket --reconnect=false
+mqttcli \
+	in-mqtt --disabled=false \
+		remote --host 127.0.0.1 --port 18883 \
+		pub --topic 'devices/button' --message 'pressed' \
+		socket --reconnect=false
 ```
 
 **Expected result:**
@@ -186,7 +159,7 @@ mqttcli --config-file /dev/null \
 
 Forward selected topics between two independent brokers without changing their publishers.
 
-**You need:** `mqttbroker`, `mqttbridge`, `mqttcli`, the `broker.conf` above, and free loopback ports **18883** and **18884**. Stop earlier demo brokers.
+**You need:** `mqttbroker`, `mqttbridge`, `mqttcli`, and free loopback ports **18883** and **18884**. Stop earlier demo brokers.
 
 **Configuration — save as `bridge.json`:**
 
@@ -241,36 +214,67 @@ Forward selected topics between two independent brokers without changing their p
 **Run — terminals 1 and 2, one broker in each:**
 
 ```sh
-mqttbroker --config-file broker.conf
+mqttbroker \
+	in-mqtt \
+		local --host 127.0.0.1 --port 18883
 ```
 
 ```sh
-mqttbroker --config-file broker.conf in-mqtt local --port 18884
+mqttbroker \
+	in-mqtt \
+		local --host 127.0.0.1 --port 18884 \
+	in-mqtts \
+		local --port 18885 \
+	in6-mqtt \
+		local --port 18886 \
+	in6-mqtts \
+		local --port 18887 \
+	in-http \
+		local --port 18081 \
+	in-https \
+		local --port 18082 \
+	in6-http \
+		local --port 18083 \
+	in6-https \
+		local --port 18084 \
+	un-mqtt \
+		local --sun-path /tmp/readme-broker-b-un-mqtt \
+	un-mqtts \
+		local --sun-path /tmp/readme-broker-b-un-mqtts \
+	un-http \
+		local --sun-path /tmp/readme-broker-b-un-http \
+	un-https \
+		local --sun-path /tmp/readme-broker-b-un-https
 ```
+
+The second broker assigns separate ports and Unix socket paths to its other listeners to avoid conflicts. Omit instance sections absent from your build; see `mqttbroker --help`.
 
 **Run — terminal 3, bridge:**
 
 ```sh
-mqttbridge --config-file /dev/null \
-  bridge --definition bridge.json \
-  admin-legacy --disabled=true admin-tls --disabled=true
+mqttbridge \
+	bridge --definition bridge.json \
+	admin-legacy --disabled \
+	admin-tls --disabled
 ```
 
 **Run — terminal 4, subscribe on broker B:**
 
 ```sh
-mqttcli --config-file /dev/null \
-  in-mqtt --disabled=false remote --host 127.0.0.1 --port 18884 \
-  sub --topic 'relay/#'
+mqttcli \
+	in-mqtt --disabled=false \
+		remote --host 127.0.0.1 --port 18884 \
+		sub --topic 'relay/#'
 ```
 
 **Run — terminal 5, publish on broker A after the bridge and subscriber connect:**
 
 ```sh
-mqttcli --config-file /dev/null \
-  in-mqtt --disabled=false remote --host 127.0.0.1 --port 18883 \
-  pub --topic 'telemetry/temperature' --message '21.5' \
-  socket --reconnect=false
+mqttcli \
+	in-mqtt --disabled=false \
+		remote --host 127.0.0.1 --port 18883 \
+		pub --topic 'telemetry/temperature' --message '21.5' \
+		socket --reconnect=false
 ```
 
 **Expected result:** broker B's subscriber receives `relay/a/b/telemetry/temperature` with payload `21.5`. The rule is **bridge prefix + source prefix + destination prefix + original topic**.
@@ -288,7 +292,7 @@ mqttcli --config-file /dev/null \
 
 MQTTStore keeps the raw MQTT envelope and can project JSON fields into application-owned typed tables.
 
-**You need:** installed `mqttstore`, `mqttbroker` and `mqttcli`, a local MariaDB server, and an administrative database account for setup. Start the loopback broker with `mqttbroker --config-file broker.conf` in another terminal. Replace the password below and adjust the database socket to your installation.
+**You need:** installed `mqttstore`, `mqttbroker` and `mqttcli`, a local MariaDB server, and an administrative database account for setup. Start the broker command from [Publish your first message](#publish-your-first-message) in another terminal. Replace the password below and adjust the database socket to your installation.
 
 **Configuration — run this SQL as a MariaDB administrator:**
 
@@ -332,42 +336,26 @@ CREATE TABLE mqttsuite_demo.sensor_measurements (
 
 `required: true` writes SQL NULL when the source is missing; without it, a missing source omits that column. It is not a pre-insert validation rule. Here, missing `value` conflicts with `NOT NULL`, so the typed insert fails while raw storage remains a separate operation. Topic levels are zero-based: `room1` is level 1.
 
-**Save as `store.conf` and protect it with `chmod 600 store.conf`:**
-
-```ini
-[in-mqtt]
-disabled = false
-[in-mqtt.remote]
-host = 127.0.0.1
-port = 18883
-[in-mqtt.session]
-client-id = readme-store
-[in-mqtt.sub]
-topic = "normalized/#"
-[in-mqtt.db]
-socket = /run/mysqld/mysqld.sock
-database = mqttsuite_demo
-username = mqttstore_demo
-password = REPLACE-WITH-A-UNIQUE-PASSWORD
-[in-mqtt.db.storage]
-raw-table = mqtt_messages
-auto-create-raw-table = true
-projection-file = projections.json
-```
-
 **Run — terminal 1:**
 
 ```sh
-mqttstore --config-file store.conf
+mqttstore \
+	in-mqtt --disabled=false \
+		remote --host 127.0.0.1 --port 18883 \
+		session --client-id readme-store \
+		sub --topic 'normalized/#' \
+		db --socket /run/mysqld/mysqld.sock --database mqttsuite_demo --username mqttstore_demo --password 'REPLACE-WITH-A-UNIQUE-PASSWORD' \
+			storage --raw-table mqtt_messages --auto-create-raw-table --projection-file projections.json
 ```
 
 **Run — terminal 2, publish after MQTTStore connects:**
 
 ```sh
-mqttcli --config-file /dev/null \
-  in-mqtt --disabled=false remote --host 127.0.0.1 --port 18883 \
-  pub --topic 'normalized/room1/temperature' --message '{"value":21.5,"unit":"C"}' \
-  socket --reconnect=false
+mqttcli \
+	in-mqtt --disabled=false \
+		remote --host 127.0.0.1 --port 18883 \
+		pub --topic 'normalized/room1/temperature' --message '{"value":21.5,"unit":"C"}' \
+		socket --reconnect=false
 ```
 
 **Verify — in a database client with read access:**

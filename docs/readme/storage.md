@@ -8,12 +8,14 @@ The landing page shows the basic example; this guide extends it.
 
 MQTTStore subscribes to topic filters and writes messages to MariaDB. Raw storage and typed projections are separate: keep the original payload even when a message is not JSON, and add a typed projection when the payload follows a useful schema.
 
-**You need:** MQTTBroker, MQTTCli, MQTTStore, a local MariaDB server and database-client access with an appropriately privileged account. Start in an empty working directory. Save `broker.conf` from [the loopback configuration](../../README.md#publish-your-first-message), and save `projections.json` from [the complete storage example](../../README.md#keep-the-original-messageand-query-the-useful-fields). The projection is also available as an optional [download](examples/projections.json). Port **18883** must be free. Replace the sample password before use.
+**You need:** MQTTBroker, MQTTCli, MQTTStore, a local MariaDB server and database-client access with an appropriately privileged account. Start in an empty working directory. Follow the [first-run and listener defaults](../../README.md#publish-your-first-message), and save `projections.json` from [the complete storage example](../../README.md#keep-the-original-messageand-query-the-useful-fields). The projection is also available as an optional [download](examples/projections.json). Port **18883** must be free. Replace the sample password before use.
 
 **Run — terminal 1, start the broker:**
 
 ```sh
-mqttbroker --config-file broker.conf
+mqttbroker \
+	in-mqtt \
+		local --host 127.0.0.1 --port 18883
 ```
 
 ## 1. Create the database and account
@@ -49,37 +51,20 @@ CREATE TABLE mqttsuite_demo.sensor_measurements (
 
 The [projection JSON](examples/projections.json) matches `normalized/+/temperature`, extracts the device from topic level 1, and reads `/value` and `/unit` from JSON. Topic levels are zero-based. `required: true` writes SQL NULL when the source is missing; without it, the column is omitted. It does not validate and reject the message before insertion. Here a missing `value` violates `NOT NULL`, causing the typed insert to fail; raw storage is independent. Choose nullability, defaults and validation to fit the data you accept.
 
-## 3. Store credentials in a protected configuration
+## 3. Start MQTTStore
 
-**Configuration — `store.conf`:** create this file using an editor and restrict it to the service user (`chmod 600 store.conf`). This keeps the password out of the process command line:
-
-```ini
-[in-mqtt]
-disabled = false
-[in-mqtt.remote]
-host = 127.0.0.1
-port = 18883
-[in-mqtt.session]
-client-id = readme-store
-[in-mqtt.sub]
-topic = "normalized/#"
-[in-mqtt.db]
-socket = /run/mysqld/mysqld.sock
-database = mqttsuite_demo
-username = mqttstore_demo
-password = REPLACE-WITH-A-UNIQUE-PASSWORD
-[in-mqtt.db.storage]
-raw-table = mqtt_messages
-auto-create-raw-table = true
-projection-file = projections.json
-```
-
-Keep the topic filter quoted: an unquoted `#` begins an INI comment. Adjust the MariaDB socket to your installation. For TCP database access, explicitly configure the socket/host/port combination according to `mqttstore in-mqtt --disabled=false db --help`; a configured Unix socket takes precedence. Other connection instances remain at their disabled defaults in this example.
+Configure the MQTT connection, subscription and database explicitly. Adjust the MariaDB socket to your installation. For TCP database access, inspect `mqttstore in-mqtt db --help`; a configured Unix socket takes precedence. Other connection instances remain disabled by default.
 
 **Run — terminal 2, from the same working directory:**
 
 ```sh
-mqttstore --config-file store.conf
+mqttstore \
+	in-mqtt --disabled=false \
+		remote --host 127.0.0.1 --port 18883 \
+		session --client-id readme-store \
+		sub --topic 'normalized/#' \
+		db --socket /run/mysqld/mysqld.sock --database mqttsuite_demo --username mqttstore_demo --password 'REPLACE-WITH-A-UNIQUE-PASSWORD' \
+			storage --raw-table mqtt_messages --auto-create-raw-table --projection-file projections.json
 ```
 
 ## 4. Publish a measurement
@@ -87,12 +72,11 @@ mqttstore --config-file store.conf
 **Run — terminal 3, after MQTTStore connects:**
 
 ```sh
-mqttcli --config-file /dev/null \
-  in-mqtt --disabled=false \
-  remote --host 127.0.0.1 --port 18883 \
-  pub --topic 'normalized/room1/temperature' \
-      --message '{"value":21.5,"unit":"C"}' \
-  socket --reconnect=false
+mqttcli \
+	in-mqtt --disabled=false \
+		remote --host 127.0.0.1 --port 18883 \
+		pub --topic 'normalized/room1/temperature' --message '{"value":21.5,"unit":"C"}' \
+		socket --reconnect=false
 ```
 
 ## 5. Verify the raw message and projection
@@ -113,7 +97,7 @@ ORDER BY id DESC LIMIT 1;
 
 ## Raw-only storage
 
-Omit `projection-file` when you only want raw persistence. The raw table records receive time, source instance, topic, QoS, retain/duplicate flags, packet identifier where present, original payload bytes and available text/JSON representations.
+Omit `--projection-file` when you only want raw persistence. The raw table records receive time, source instance, topic, QoS, retain/duplicate flags, packet identifier where present, original payload bytes and available text/JSON representations.
 
 **Boundaries:** database inserts, MQTT acknowledgements and typed projections are separate boundaries. Do not infer atomic raw-plus-projection writes or exactly-once database delivery from MQTT QoS. Plan retention, backups, reconnect behavior and capacity explicitly.
 

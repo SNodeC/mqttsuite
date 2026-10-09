@@ -8,19 +8,21 @@ The landing page shows the basic example; this guide extends it.
 
 This walkthrough maps `pressed` / `released` on `devices/button` to `on` / `off` on `actuators/light/set`.
 
-**You need:** MQTTBroker, MQTTCli, three terminals in the same empty working directory, and free loopback port **18883**. Save `broker.conf` from the [complete loopback configuration](../../README.md#publish-your-first-message) in that directory. No source checkout is needed.
+**You need:** MQTTBroker, MQTTCli, three terminals in the same empty working directory, and free loopback port **18883**. Follow the [first-run and listener defaults](../../README.md#publish-your-first-message). No source checkout is needed.
 
 ## 1. Load the mapping
 
-**Configuration — `mapping.json`:** save the JSON from [Translate a device’s language](../../README.md#translate-a-devices-language) as `mapping.json` beside `broker.conf`. It is also available as an optional [download](examples/mapping.json). Its topic-level tree describes the input topic; `subscription.static.message_mapping` contains the input/output pairs.
+**Configuration — `mapping.json`:** save the JSON from [Translate a device’s language](../../README.md#translate-a-devices-language) as `mapping.json` in your working directory. It is also available as an optional [download](examples/mapping.json). Its topic-level tree describes the input topic; `subscription.static.message_mapping` contains the input/output pairs.
 
 For the shortest demonstration, run the mapping inside MQTTBroker:
 
 **Run — terminal 1:**
 
 ```sh
-mqttbroker --config-file broker.conf \
-  broker --mqtt-mapping-file mapping.json
+mqttbroker \
+	in-mqtt \
+		local --host 127.0.0.1 --port 18883 \
+	broker --mqtt-mapping-file mapping.json
 ```
 
 Stop any earlier demo broker first: this command uses the same loopback port, 18883.
@@ -30,10 +32,10 @@ Stop any earlier demo broker first: this command uses the same loopback port, 18
 **Run — terminal 2:**
 
 ```sh
-mqttcli --config-file /dev/null \
-  in-mqtt --disabled=false \
-  remote --host 127.0.0.1 --port 18883 \
-  sub --topic 'actuators/light/set'
+mqttcli \
+	in-mqtt --disabled=false \
+		remote --host 127.0.0.1 --port 18883 \
+		sub --topic 'actuators/light/set'
 ```
 
 ## 3. Send a device event
@@ -41,11 +43,11 @@ mqttcli --config-file /dev/null \
 **Run — terminal 3, after the subscriber connects:**
 
 ```sh
-mqttcli --config-file /dev/null \
-  in-mqtt --disabled=false \
-  remote --host 127.0.0.1 --port 18883 \
-  pub --topic 'devices/button' --message 'pressed' \
-  socket --reconnect=false
+mqttcli \
+	in-mqtt --disabled=false \
+		remote --host 127.0.0.1 --port 18883 \
+		pub --topic 'devices/button' --message 'pressed' \
+		socket --reconnect=false
 ```
 
 **Expected result:** topic `actuators/light/set`, payload `on`. Publish `released` to get `off`.
@@ -58,58 +60,28 @@ mqttcli --config-file /dev/null \
 
 Map through an existing broker without adding rules to that broker.
 
-**You need:** MQTTIntegrator, MQTTCli, and the `broker.conf` and `mapping.json` saved above. Stop your mapping-enabled demo broker before starting the plain one below. All terminals use the same working directory.
+**You need:** MQTTIntegrator, MQTTCli, and the `mapping.json` saved above. Stop your mapping-enabled demo broker before starting the plain one below. All terminals use the same working directory.
 
-**Configuration — `integrator.conf`:** the following uses your local `mapping.json`. MQTTIntegrator's administrative API can rewrite this active file when enabled. Explicitly disabling unused connection instances also prevents their required remote-address options from affecting the example.
-
-```ini
-[integrator]
-mqtt-mapping-file = mapping.json
-[in-mqtt]
-disabled = false
-[in-mqtt.remote]
-host = 127.0.0.1
-port = 18883
-[in-mqtt.session]
-client-id = readme-integrator
-[in-mqtts]
-disabled = true
-[in6-mqtt]
-disabled = true
-[in6-mqtts]
-disabled = true
-[un-mqtt]
-disabled = true
-[un-mqtts]
-disabled = true
-[in-wsmqtt]
-disabled = true
-[in-wsmqtts]
-disabled = true
-[in6-wsmqtt]
-disabled = true
-[in6-wsmqtts]
-disabled = true
-[un-wsmqtt]
-disabled = true
-[un-wsmqtts]
-disabled = true
-[in-http]
-disabled = true
-[in-https]
-disabled = true
-```
+The command below enables only the IPv4 MQTT connection. Other outgoing connections remain disabled by default; both administrative listeners are explicitly disabled. Check that `mqttintegrator --help` lists outgoing connections as disabled; older binaries with enabled defaults need those unused connections disabled explicitly.
 
 **Run — terminal 1:**
 
 ```sh
-mqttbroker --config-file broker.conf
+mqttbroker \
+	in-mqtt \
+		local --host 127.0.0.1 --port 18883
 ```
 
 **Run — terminal 2:**
 
 ```sh
-mqttintegrator --config-file integrator.conf
+mqttintegrator \
+	integrator --mqtt-mapping-file mapping.json \
+	in-mqtt --disabled=false \
+		remote --host 127.0.0.1 --port 18883 \
+		session --client-id readme-integrator \
+	in-http --disabled \
+	in-https --disabled
 ```
 
 **Run — terminals 3 and 4:** leave the integrator running, then use the subscriber and publisher commands in steps 2 and 3 above. Wait for both the integrator and subscriber to connect before publishing.
@@ -124,7 +96,7 @@ mqttintegrator --config-file integrator.conf
 
 Turn structured sensor data into a compact summary.
 
-**You need:** MQTTBroker, MQTTCli and the loopback `broker.conf`. Stop the previous broker and integrator first.
+**You need:** MQTTBroker, MQTTCli and a free loopback port **18883**. Stop the previous broker and integrator first.
 
 **Configuration — save as `template.json`:**
 
@@ -151,25 +123,29 @@ Turn structured sensor data into a compact summary.
 **Run — terminal 1:**
 
 ```sh
-mqttbroker --config-file broker.conf \
-  broker --mqtt-mapping-file template.json
+mqttbroker \
+	in-mqtt \
+		local --host 127.0.0.1 --port 18883 \
+	broker --mqtt-mapping-file template.json
 ```
 
 **Run — terminal 2:**
 
 ```sh
-mqttcli --config-file /dev/null \
-  in-mqtt --disabled=false remote --host 127.0.0.1 --port 18883 \
-  sub --topic 'normalized/room1/summary'
+mqttcli \
+	in-mqtt --disabled=false \
+		remote --host 127.0.0.1 --port 18883 \
+		sub --topic 'normalized/room1/summary'
 ```
 
 **Run — terminal 3, after the subscriber connects:**
 
 ```sh
-mqttcli --config-file /dev/null \
-  in-mqtt --disabled=false remote --host 127.0.0.1 --port 18883 \
-  pub --topic 'sensors/room1' --message '{"temperature":21.5,"humidity":48}' \
-  socket --reconnect=false
+mqttcli \
+	in-mqtt --disabled=false \
+		remote --host 127.0.0.1 --port 18883 \
+		pub --topic 'sensors/room1' --message '{"temperature":21.5,"humidity":48}' \
+		socket --reconnect=false
 ```
 
 **Expected result:** topic `normalized/room1/summary`, payload `T=21.5;H=48`.

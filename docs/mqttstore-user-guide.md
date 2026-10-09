@@ -10,7 +10,7 @@ MQTTStore is intentionally generic. It does not require The Things Network, a fi
 
 ## 1. What MQTTStore creates automatically
 
-When `storage --auto-create-raw-table true` is enabled, MQTTStore creates the raw message table automatically with `CREATE TABLE IF NOT EXISTS`. The default table name is `mqtt_messages`; override it with `storage --raw-table <name>`.
+When `storage --auto-create-raw-table` is enabled, MQTTStore creates the raw message table automatically with `CREATE TABLE IF NOT EXISTS`. The default table name is `mqtt_messages`; override it with `storage --raw-table <name>`.
 
 MQTTStore automatically creates this table only inside an already existing MariaDB database/schema. Creating the database itself and creating/granting the database user are administrative bootstrap tasks that must be done once by a MariaDB administrator.
 
@@ -82,7 +82,7 @@ Use the permission profile that matches how you operate MQTTStore:
 | Profile | Grants | When to use |
 | ------- | ------ | ----------- |
 | Raw table auto-create | `CREATE, INSERT, SELECT, INDEX` | Recommended first deployment. MQTTStore creates `mqtt_messages`. |
-| Pre-created raw table | `INSERT, SELECT` | Use after a DBA creates the table manually. Start with `--auto-create-raw-table false`. |
+| Pre-created raw table | `INSERT, SELECT` | Use after a DBA creates the table manually. Start with `--auto-create-raw-table=false`. |
 | Raw table plus projections | `CREATE, INSERT, SELECT, INDEX` plus `INSERT` on projection tables | Raw table is auto-created; projection tables are DBA-managed. |
 | Read-only diagnostics user | `SELECT` | Separate user for dashboards, analysts, or ad-hoc queries. |
 
@@ -150,34 +150,25 @@ Projection rules:
 For a local broker on plain MQTT/TCP:
 
 ```bash
-mqttstore in-mqtt --disabled=false \
-  remote --host 127.0.0.1 \
-         --port 1883 \
-  session --client-id mqttstore-local \
-  sub --topic '#' \
-  db --host 127.0.0.1 \
-     --database mqttsuite_store \
-     --username mqttstore \
-     --password 'replace-with-a-long-random-password' \
-  storage --raw-table mqtt_messages \
-          --auto-create-raw-table true
+mqttstore \
+	in-mqtt --disabled=false \
+		remote --host 127.0.0.1 --port 1883 \
+		session --client-id mqttstore-local \
+		sub --topic '#' \
+		db --host 127.0.0.1 --database mqttsuite_store --username mqttstore --password 'replace-with-a-long-random-password' \
+			storage --raw-table mqtt_messages --auto-create-raw-table
 ```
 
 With a projection file:
 
 ```bash
-mqttstore in-mqtt --disabled=false \
-  remote --host 127.0.0.1 \
-         --port 1883 \
-  session --client-id mqttstore-local \
-  sub --topic 'normalized/#' \
-  db --host 127.0.0.1 \
-     --database mqttsuite_store \
-     --username mqttstore \
-     --password 'replace-with-a-long-random-password' \
-  storage --raw-table mqtt_messages \
-          --auto-create-raw-table true \
-          --projection-file /etc/mqttsuite/mqttstore-projections.json
+mqttstore \
+	in-mqtt --disabled=false \
+		remote --host 127.0.0.1 --port 1883 \
+		session --client-id mqttstore-local \
+		sub --topic 'normalized/#' \
+		db --host 127.0.0.1 --database mqttsuite_store --username mqttstore --password 'replace-with-a-long-random-password' \
+			storage --raw-table mqtt_messages --auto-create-raw-table --projection-file /etc/mqttsuite/mqttstore-projections.json
 ```
 
 ### Working `--projection-file` walkthrough
@@ -224,17 +215,13 @@ This is the smallest end-to-end projection example. It keeps raw storage enabled
 3. Start MQTTStore with the file in the `storage` section:
 
    ```bash
-   mqttstore in-mqtt --disabled=false \
-     remote --host 127.0.0.1 --port 1883 \
-     session --client-id mqttstore-projection-demo \
-     sub --topic 'normalized/#' \
-     db --host 127.0.0.1 \
-        --database mqttsuite_store \
-        --username mqttstore \
-        --password 'replace-with-a-long-random-password' \
-     storage --raw-table mqtt_messages \
-             --auto-create-raw-table true \
-             --projection-file /etc/mqttsuite/mqttstore-projections.json
+   mqttstore \
+   	in-mqtt --disabled=false \
+   		remote --host 127.0.0.1 --port 1883 \
+   		session --client-id mqttstore-projection-demo \
+   		sub --topic 'normalized/#' \
+   		db --host 127.0.0.1 --database mqttsuite_store --username mqttstore --password 'replace-with-a-long-random-password' \
+   			storage --raw-table mqtt_messages --auto-create-raw-table --projection-file /etc/mqttsuite/mqttstore-projections.json
    ```
 
 4. Publish a matching message from another terminal:
@@ -264,16 +251,14 @@ This is the smallest end-to-end projection example. It keeps raw storage enabled
 For MQTT over WebSockets:
 
 ```bash
-mqttstore in-wsmqtt --disabled=false \
-  remote --host 127.0.0.1 \
-         --port 8080 \
-  http --target /ws \
-  session --client-id mqttstore-ws \
-  sub --topic 'normalized/#' \
-  db --database mqttsuite_store \
-     --username mqttstore \
-     --password 'replace-with-a-long-random-password' \
-  storage --auto-create-raw-table true
+mqttstore \
+	in-wsmqtt --disabled=false \
+		remote --host 127.0.0.1 --port 8080 \
+		http --target /ws \
+		session --client-id mqttstore-ws \
+		sub --topic 'normalized/#' \
+		db --database mqttsuite_store --username mqttstore --password 'replace-with-a-long-random-password' \
+			storage --auto-create-raw-table
 ```
 
 ## 5. Persist the configuration
@@ -281,18 +266,14 @@ mqttstore in-wsmqtt --disabled=false \
 For service-style operation, write a known-good configuration once with `--write-config` / `-w` according to the MQTTSuite configuration workflow:
 
 ```bash
-mqttstore in-mqtt --disabled=false \
-  remote --host 127.0.0.1 \
-         --port 1883 \
-  session --client-id mqttstore-local \
-  sub --topic 'normalized/#' \
-  db --host 127.0.0.1 \
-     --database mqttsuite_store \
-     --username mqttstore \
-     --password 'replace-with-a-long-random-password' \
-  storage --raw-table mqtt_messages \
-          --auto-create-raw-table true \
-  -w
+mqttstore \
+	in-mqtt --disabled=false \
+		remote --host 127.0.0.1 --port 1883 \
+		session --client-id mqttstore-local \
+		sub --topic 'normalized/#' \
+		db --host 127.0.0.1 --database mqttsuite_store --username mqttstore --password 'replace-with-a-long-random-password' \
+			storage --raw-table mqtt_messages --auto-create-raw-table \
+	-w
 ```
 
 After that, the service can be started with the saved defaults, depending on your installation and instance selection.
@@ -370,12 +351,13 @@ Expected raw-table behavior:
 MQTTStore topic filters accept the MQTTSuite `##<qos>` suffix. For example, subscribe to normalized messages at QoS 1:
 
 ```bash
-mqttstore in-mqtt --disabled=false \
-  remote --host 127.0.0.1 --port 1883 \
-  session --client-id mqttstore-qos1 \
-  sub --topic 'normalized/###1' \
-  db --database mqttsuite_store --username mqttstore --password 'replace-with-a-long-random-password' \
-  storage --auto-create-raw-table true
+mqttstore \
+	in-mqtt --disabled=false \
+		remote --host 127.0.0.1 --port 1883 \
+		session --client-id mqttstore-qos1 \
+		sub --topic 'normalized/###1' \
+		db --database mqttsuite_store --username mqttstore --password 'replace-with-a-long-random-password' \
+			storage --auto-create-raw-table
 ```
 
 ## 7. Verify stored data
@@ -431,7 +413,7 @@ LIMIT 10;
 - Keep raw storage enabled. It provides audit, replay, and debugging data even when projections change.
 - Use MQTTIntegrator to normalize vendor-specific payloads before MQTTStore when you have multiple device families.
 - Use a dedicated MariaDB user for MQTTStore and do not share it with dashboards or administrators.
-- Use `--auto-create-raw-table false` in tightly controlled production environments where DBAs own all DDL.
+- Use `--auto-create-raw-table=false` in tightly controlled production environments where DBAs own all DDL.
 - Keep projection files in version control with the schema migrations for their target tables.
 - Monitor table growth. Raw MQTT tables can grow quickly on wildcard subscriptions such as `#`.
 - Prefer narrower topic filters in production, for example `normalized/#` instead of `#`.
@@ -448,7 +430,7 @@ LIMIT 10;
 
 ### Raw table is not created
 
-- Confirm `storage --auto-create-raw-table true` is set.
+- Confirm `storage --auto-create-raw-table` is set.
 - Confirm the MariaDB user has `CREATE` and `INDEX` on the target database.
 - Confirm the database itself already exists.
 

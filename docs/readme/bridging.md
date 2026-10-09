@@ -10,7 +10,7 @@ MQTTBridge connects as a client to every broker in a logical bridge. Messages re
 
 ## The local example
 
-**You need:** MQTTBroker, MQTTBridge, MQTTCli, five terminals in the same empty working directory, and free loopback ports **18883** and **18884**. Save `broker.conf` from the [complete loopback configuration](../../README.md#publish-your-first-message) in that directory.
+**You need:** MQTTBroker, MQTTBridge, MQTTCli, five terminals in the same empty working directory, and free loopback ports **18883** and **18884**. Follow the [first-run and listener defaults](../../README.md#publish-your-first-message).
 
 The topology declares two loopback endpoints:
 
@@ -75,26 +75,52 @@ Use the same working directory in each terminal. Stop only earlier demonstration
 **Run — terminal 1:**
 
 ```sh
-mqttbroker --config-file broker.conf
+mqttbroker \
+	in-mqtt \
+		local --host 127.0.0.1 --port 18883
 ```
 
 **Run — terminal 2:**
 
 ```sh
-mqttbroker --config-file broker.conf \
-  in-mqtt local --port 18884
+mqttbroker \
+	in-mqtt \
+		local --host 127.0.0.1 --port 18884 \
+	in-mqtts \
+		local --port 18885 \
+	in6-mqtt \
+		local --port 18886 \
+	in6-mqtts \
+		local --port 18887 \
+	in-http \
+		local --port 18081 \
+	in-https \
+		local --port 18082 \
+	in6-http \
+		local --port 18083 \
+	in6-https \
+		local --port 18084 \
+	un-mqtt \
+		local --sun-path /tmp/readme-broker-b-un-mqtt \
+	un-mqtts \
+		local --sun-path /tmp/readme-broker-b-un-mqtts \
+	un-http \
+		local --sun-path /tmp/readme-broker-b-un-http \
+	un-https \
+		local --sun-path /tmp/readme-broker-b-un-https
 ```
 
-They share the sample’s listener configuration, not broker state; neither command configures a session-store file.
+The second broker uses different ports and Unix socket paths for its other listeners as well, avoiding conflicts with the first broker. Omit instance sections absent from your build (`mqttbroker --help` lists them). Neither command configures a session-store file.
 
 ## 2. Start MQTTBridge
 
 **Run — terminal 3:**
 
 ```sh
-mqttbridge --config-file /dev/null \
-  bridge --definition bridge.json \
-  admin-legacy --disabled=true admin-tls --disabled=true
+mqttbridge \
+	bridge --definition bridge.json \
+	admin-legacy --disabled \
+	admin-tls --disabled
 ```
 
 MQTTBridge can normalize and write its active definition back to `bridge.json`; keep that local file writable. The demonstration disables the bridge’s administrative HTTP listeners. Use distinct client IDs, as the sample does. An existing client with the same ID on a broker can be disconnected by a new connection.
@@ -104,20 +130,20 @@ MQTTBridge can normalize and write its active definition back to `bridge.json`; 
 **Run — terminal 4:**
 
 ```sh
-mqttcli --config-file /dev/null \
-  in-mqtt --disabled=false \
-  remote --host 127.0.0.1 --port 18884 \
-  sub --topic 'relay/#'
+mqttcli \
+	in-mqtt --disabled=false \
+		remote --host 127.0.0.1 --port 18884 \
+		sub --topic 'relay/#'
 ```
 
 **Run — terminal 5, after the bridge and subscriber connect:**
 
 ```sh
-mqttcli --config-file /dev/null \
-  in-mqtt --disabled=false \
-  remote --host 127.0.0.1 --port 18883 \
-  pub --topic 'telemetry/temperature' --message '21.5' \
-  socket --reconnect=false
+mqttcli \
+	in-mqtt --disabled=false \
+		remote --host 127.0.0.1 --port 18883 \
+		pub --topic 'telemetry/temperature' --message '21.5' \
+		socket --reconnect=false
 ```
 
 **Expected result:** on broker B, `relay/a/b/telemetry/temperature` with payload `21.5`.

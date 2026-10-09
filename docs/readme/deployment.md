@@ -11,23 +11,37 @@ The examples use loopback, disposable client IDs and small topic filters. A depl
 Each application exposes SNode.C’s configuration system. Application-wide sections, connection instances and protocol sections have different scopes:
 
 ```sh
-mqttbroker broker --help
-mqttbridge bridge --help
-mqttcli in-mqtt --disabled=false --help=expanded
+mqttbroker \
+	broker --help
+mqttbridge \
+	bridge --help
+mqttcli \
+	in-mqtt --help=expanded
 snodec-control --target "$(command -v mqttbroker)" --ui
 ```
 
-The terminal UI requires Curses support. `--write-config file.conf` saves configuration and exits; `--config-file file.conf` loads it. Do not mistake saving for starting a service. Store credentials in permission-restricted files rather than command-line arguments; configuration dumps can reveal those credentials too.
+The terminal UI requires Curses support. Append `-w` to a working command to save persistent settings to the default configuration file and exit. Run the application without arguments as the same user to load those settings. `--write-config file.conf` saves to a chosen file; `--config-file file.conf` loads that file. These files use INI-style dotted option names:
+
+```ini
+in-mqtt.disabled=false
+in-mqtt.remote.host="127.0.0.1"
+in-mqtt.remote.port=18883
+```
+
+These keys describe a client connection. Use the application's `-w` output when preparing a persistent configuration. Do not mistake saving for starting a service. Store credentials in permission-restricted files rather than command-line arguments; configuration dumps can reveal those credentials too.
 
 ## Broker and management listeners
 
-Enable only the transport instances you use and bind them deliberately. The sample [broker.conf](examples/broker.conf) disables every listener except loopback MQTT. An installed default configuration may differ.
+MQTTBroker enables its compiled listeners by default. Bind the listeners you use deliberately and disable the others. The [loopback example](../../README.md#publish-your-first-message) shows a first-run command; other compiled listeners remain enabled with their defaults.
 
-To inspect the Web UI locally, save the full configuration from [Publish your first message](../../README.md#publish-your-first-message) as `broker.conf` in an empty directory. With ports **18883** and **18080** free, run from that directory:
+To inspect the Web UI locally, start without a saved configuration and with ports **18883** and **18080** free:
 
 ```sh
-mqttbroker --config-file broker.conf \
-  in-http --disabled=false local --host 127.0.0.1 --port 18080
+mqttbroker \
+	in-mqtt \
+		local --host 127.0.0.1 --port 18883 \
+	in-http \
+		local --host 127.0.0.1 --port 18080
 ```
 
 Open `http://127.0.0.1:18080/`. The packaged/installed web assets must be available at the application’s HTML root. Keep administrative surfaces private or place them behind deliberately configured access controls; do not assume the demonstration setup provides an authenticated public management service.
