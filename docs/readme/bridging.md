@@ -163,4 +163,6 @@ For off-host endpoints, configure TLS and appropriate broker access policy. A br
 
 Stop all demonstration processes with Ctrl+C.
 
-**Go further:** [deployment](deployment.md) for unattended operation. Reference: the [bridge schema](https://github.com/SNodeC/mqttsuite/blob/master/mqttbridge/lib/bridge-schema.json) lists additional network and MQTT options.
+[![deployment →](media/menu/further-deployment.svg)](deployment.md) [![bridge schema →](media/menu/further-bridge-schema.svg)](https://github.com/SNodeC/mqttsuite/blob/master/mqttbridge/lib/bridge-schema.json)
+
+Deployment is for unattended operation. The bridge schema lists additional network and MQTT options.

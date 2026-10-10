@@ -101,4 +101,4 @@ Omit `--projection-file` when you only want raw persistence. The raw table recor
 
 **Boundaries:** database inserts, MQTT acknowledgements and typed projections are separate boundaries. Do not infer atomic raw-plus-projection writes or exactly-once database delivery from MQTT QoS. Plan retention, backups, reconnect behavior and capacity explicitly.
 
-**Go further:** [deployment](deployment.md). Reference: [full MQTTStore guide](https://github.com/SNodeC/mqttsuite/blob/master/docs/mqttstore-user-guide.md) and [projection schema](https://github.com/SNodeC/mqttsuite/blob/master/mqttstore/lib/projection-schema.json).
+[![deployment →](media/menu/further-deployment.svg)](deployment.md) [![full MQTTStore guide →](media/menu/further-mqttstore-guide.svg)](https://github.com/SNodeC/mqttsuite/blob/master/docs/mqttstore-user-guide.md) [![projection schema →](media/menu/further-projection-schema.svg)](https://github.com/SNodeC/mqttsuite/blob/master/mqttstore/lib/projection-schema.json)

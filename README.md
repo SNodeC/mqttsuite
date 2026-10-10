@@ -91,7 +91,7 @@ mqttcli \
 
 **Boundaries:** unencrypted loopback MQTT, no credentials and no persistent sessions. `socket --reconnect=false` makes the publisher a one-shot operation. The configuration section `in-mqtt` names an SNode.C connection instance; its `remote`, `pub`, `sub` and `socket` sections configure that instance's responsibilities.
 
-**Go further:** [deployment and access controls](docs/readme/deployment.md).
+[![deployment and access controls →](docs/readme/media/menu/further-deployment.svg)](docs/readme/deployment.md)
 
 **Keep a working configuration:** append `-w` (short for `--write-config`) to a working command to save its persistent settings in the application's default INI-style configuration file and exit. Then run the same application without arguments, as the same user, to start with those saved settings. Nonpersistent options are not saved. Configuration uses dotted keys such as `in-mqtt.remote.host="127.0.0.1"`. Save settings after experimenting; later examples assume no saved configuration. See [configuration and deployment](docs/readme/deployment.md#configuration).
 
@@ -227,7 +227,7 @@ mqttcli \
 
 **Boundaries:** other payloads do not match these rules. Stop the processes before the next example. To map through an existing broker use MQTTIntegrator instead, with its administrative listeners explicitly disabled as shown in the guide; do not apply the same rules in both places unless duplicate outputs are intended.
 
-**Go further:** [complete integrator and JSON-template examples](docs/readme/mapping.md).
+[![complete integrator and JSON-template examples →](docs/readme/media/menu/further-mapping-examples.svg)](docs/readme/mapping.md)
 
 ## Bridge separate brokers
 
@@ -360,7 +360,7 @@ mqttcli \
 
 **Boundaries:** `legacy` means unencrypted transport. `loop_prevention` requests suppression of the bridge's own publications through a non-standard MQTT CONNECT bridge bit also used by Mosquitto; the remote broker must support that bit. For other brokers, disable it and design non-overlapping topic paths. This example's `relay/` outputs match neither `telemetry/#` nor `commands/#`, so they are not fed back into the bridge. MQTTBridge may normalize and rewrite `bridge.json`; use this writable demo copy, not a read-only source of record. Stop all demo processes with Ctrl+C.
 
-**Go further:** [bridge topology, sessions and deployment](docs/readme/bridging.md).
+[![bridge topology, sessions and deployment →](docs/readme/media/menu/further-bridge-guide.svg)](docs/readme/bridging.md)
 
 ## Keep the original message—and query the useful fields
 
@@ -450,7 +450,7 @@ FROM mqttsuite_demo.sensor_measurements ORDER BY id DESC LIMIT 1;
 
 **Boundaries:** MQTTStore can create the raw table, but database/user provisioning and typed-table migrations are administrative tasks. Quote the INI topic filter because `#` otherwise starts a comment. Raw inserts and projections are separate operations; MQTT QoS is not an atomic database transaction guarantee. Stop MQTTStore and the broker with Ctrl+C; the database is retained.
 
-**Go further:** [raw-only storage, permissions and database transport](docs/readme/storage.md).
+[![raw-only storage, permissions and database transport →](docs/readme/media/menu/further-storage-guide.svg)](docs/readme/storage.md)
 
 ## Contributing
 

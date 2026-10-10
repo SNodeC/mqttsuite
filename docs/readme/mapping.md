@@ -54,7 +54,7 @@ mqttcli \
 
 **Boundaries:** unlisted input values do not match either static rule. This is an unencrypted loopback demonstration. Stop only your demonstration processes with Ctrl+C before the next example; do not stop an unrelated service occupying a port.
 
-**Go further:** [use a separate integrator](#use-a-separate-integrator).
+[![use a separate integrator →](media/menu/further-separate-integrator.svg)](#use-a-separate-integrator)
 
 ## Use a separate integrator
 
@@ -90,7 +90,7 @@ mqttintegrator \
 
 **Boundaries:** the integrator's admin API currently uses built-in Basic-auth credentials `admin` / `admin`; keep it disabled unless deliberately isolated. Do not run the same mapping in both broker and integrator unless duplicate outputs are intended. Stop the integrator with Ctrl+C.
 
-**Go further:** [configuration and management access](deployment.md#configuration).
+[![configuration and management access →](media/menu/further-configuration.svg)](deployment.md#configuration)
 
 ## Move from lookup rules to templates
 
@@ -154,4 +154,4 @@ mqttcli \
 
 The schema also supports mapping arrays, output QoS/retain settings, delay and suppression options, nested topic levels and plugin registration. Match input and output topics carefully to avoid feeding mapped output back into the same rule.
 
-**Go further:** [deployment](deployment.md). Reference: [mapping schema](https://github.com/SNodeC/mqttsuite/blob/master/lib/mapping-schema.json) and [mapping implementation](https://github.com/SNodeC/mqttsuite/blob/master/lib/MqttMapper.cpp).
+[![deployment →](media/menu/further-deployment.svg)](deployment.md) [![mapping schema →](media/menu/further-mapping-schema.svg)](https://github.com/SNodeC/mqttsuite/blob/master/lib/mapping-schema.json) [![mapping implementation →](media/menu/further-mapping-source.svg)](https://github.com/SNodeC/mqttsuite/blob/master/lib/MqttMapper.cpp)
