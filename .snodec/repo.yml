@@ -2,7 +2,7 @@
 ci:
   profile: cpp
   deps:
-  - snode.c@dev
+  - snode.c@source
   cmake_options:
   - -DCMAKE_BUILD_TYPE=Debug
   - -DBUILD_TESTING=ON
@@ -11,4 +11,3 @@ ci:
   ipv6: true
   runtime_dirs: true
   parallel: 2
-  sdk: true
