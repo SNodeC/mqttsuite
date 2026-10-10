@@ -1,8 +1,11 @@
-# Operate MQTTSuite deliberately
-
+<!-- snodec:begin page-header -->
+<a id="page-overview"></a>
 <p>
-  <a href="../../README.md"><img src="media/menu/back-mqttsuite.svg" alt="MQTTSuite" width="110" height="24"></a>
+  <a href="../../README.md#project-overview" title="MQTTSuite repository"><img src="media/page-banner.svg" alt="MQTTSuite repository" width="100%"></a>
 </p>
+<!-- snodec:end page-header -->
+
+# Operate MQTTSuite deliberately
 
 The example clients connect through loopback, with disposable IDs and small topic filters. Broker listeners retain their defaults unless explicitly bound or disabled; a loopback client address does not make every listener private. A deployment also needs explicit network access, credentials, state ownership and recovery policy.
 
@@ -110,4 +113,4 @@ Confirm the intended listeners and logs before opening firewall access. See [Pac
 - **No received message:** confirm the selected transport is enabled, wait for subscriber/bridge/integrator connection before publishing, and compare the topic filter with the output topic. The README gives exact expected topics for each walkthrough.
 - **Unexpected mapped output:** do not run the same mapping in broker and integrator unless duplication is intended; verify input/output namespaces cannot feed back into a rule.
 - **Cannot load a shared library or plugin:** use binaries, libraries and WebSocket modules from a compatible installation; check custom-prefix runtime lookup and build components.
-- **Database/projection failure:** distinguish MQTT delivery, raw persistence and typed insert failures. Follow [the storage walkthrough](storage.md) and [MQTTStore troubleshooting](../mqttstore-user-guide.md) for schema, permissions and socket settings.
+- **Database/projection failure:** distinguish MQTT delivery, raw persistence and typed insert failures. Follow [the storage walkthrough](storage.md#page-overview) and [MQTTStore troubleshooting](../mqttstore-user-guide.md#page-overview) for schema, permissions and socket settings.

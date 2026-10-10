@@ -15,24 +15,22 @@
 <!-- snodec:end header -->
 
 <!-- snodec:begin status -->
-[![CI](https://github.com/SNodeC/mqttsuite/actions/workflows/ci.yml/badge.svg)](https://github.com/SNodeC/mqttsuite/actions/workflows/ci.yml) · [![Release](https://img.shields.io/github/v/release/SNodeC/mqttsuite?style=flat)](https://github.com/SNodeC/mqttsuite/releases) · [![Packages](https://img.shields.io/badge/Packages-signed-334155?style=flat)](https://github.com/SNodeC/Packages#readme) · [![License: MIT or GPL 3.0 or later](https://img.shields.io/badge/License-MIT%20OR%20GPL--3.0--or--later-334155?style=flat)](LICENSE)
+[![CI](https://github.com/SNodeC/mqttsuite/actions/workflows/ci.yml/badge.svg)](https://github.com/SNodeC/mqttsuite/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/SNodeC/mqttsuite?style=flat)](https://github.com/SNodeC/mqttsuite/releases) [![Packages](https://img.shields.io/badge/Packages-signed-334155?style=flat)](https://github.com/SNodeC/Packages#readme) [![License: MIT or GPL 3.0 or later](https://img.shields.io/badge/License-MIT%20OR%20GPL--3.0--or--later-334155?style=flat)](LICENSE)
 <!-- snodec:end status -->
 
 **From a device message to an integrated system.**
 
 MQTTSuite is a set of five C++ applications for **MQTT 3.1.1**: run a broker, translate topics and payloads, connect separate brokers, publish and subscribe from the command line, or persist messages in MariaDB. Use the applications independently or combine them into a pipeline that fits your devices and existing services.
 
-Built on [SNode.C](https://github.com/SNodeC/snode.c#project-overview), the suite shares its event-driven networking and configuration model. Native MQTT and MQTT over WebSockets are available over IPv4, IPv6 and Unix-domain sockets, with plain and TLS variants according to build configuration.
-
 <!-- snodec:begin menu -->
 <p>
   <a href="#quick-start" title="Start"><img src="docs/readme/media/menu/snodec-start-108.svg" alt="Start" width="108" height="24"></a>
   <a href="#install" title="Install"><img src="docs/readme/media/menu/snodec-install-108.svg" alt="Install" width="108" height="24"></a>
-  <a href="docs/readme/install.md" title="Build"><img src="docs/readme/media/menu/build-108.svg" alt="Build" width="108" height="24"></a>
+  <a href="docs/readme/install.md#page-overview" title="Build"><img src="docs/readme/media/menu/build-108.svg" alt="Build" width="108" height="24"></a>
   <a href="#first-success" title="Use"><img src="docs/readme/media/menu/snodec-use-108.svg" alt="Use" width="108" height="24"></a>
   <a href="#configuration" title="Configure"><img src="docs/readme/media/menu/snodec-configure-108.svg" alt="Configure" width="108" height="24"></a>
   <a href="#architecture" title="Architecture"><img src="docs/readme/media/menu/snodec-architecture-108.svg" alt="Architecture" width="108" height="24"></a>
-  <a href="https://snodec.github.io/mqttsuite-doc/html/index.html" title="API"><img src="docs/readme/media/menu/snodec-api-108.svg" alt="API" width="108" height="24"></a>
+  <a href="https://snodec.github.io/mqttsuite-doc/html/annotated.html" title="API"><img src="docs/readme/media/menu/snodec-api-108.svg" alt="API" width="108" height="24"></a>
   <a href="#contributing" title="Contribute"><img src="docs/readme/media/menu/snodec-contribute-108.svg" alt="Contribute" width="108" height="24"></a>
 </p>
 
@@ -46,7 +44,7 @@ Built on [SNode.C](https://github.com/SNodeC/snode.c#project-overview), the suit
 
 ## First success
 
-Start with [one publish/subscribe exchange](#publish-your-first-message); then try [mapping](#translate-a-devices-language), [bridging](#bridge-separate-brokers) or [storage](docs/readme/storage.md).
+Start with [one publish/subscribe exchange](#publish-your-first-message); then try [mapping](#translate-a-devices-language), [bridging](#bridge-separate-brokers) or [storage](docs/readme/storage.md#page-overview).
 
 ### Publish your first message
 
@@ -87,7 +85,7 @@ mqttcli \
 
 **Boundaries:** clients use unencrypted loopback MQTT, with no credentials or persistent sessions. Other compiled broker listeners remain enabled on their default addresses; use an isolated, trusted network until you deliberately bind or disable them. `socket --reconnect=false` makes the publisher a one-shot operation. The configuration section `in-mqtt` names an SNode.C connection instance; its `remote`, `pub`, `sub` and `socket` sections configure that instance's responsibilities.
 
-[![deployment and access controls](docs/readme/media/menu/further-deployment.svg)](docs/readme/deployment.md)
+[![deployment and access controls](docs/readme/media/menu/further-deployment.svg)](docs/readme/deployment.md#page-overview)
 
 **Keep a working configuration:** append `-w` (short for `--write-config`) to a working command to save its persistent settings in the application's default INI-style configuration file and exit. Then run the same application without arguments, as the same user, to start with those saved settings. Nonpersistent options are not saved. Configuration uses dotted keys such as `in-mqtt.remote.host="127.0.0.1"`. Save settings after experimenting; later examples assume no saved configuration. See [configuration and deployment](docs/readme/deployment.md#configuration).
 
@@ -159,7 +157,7 @@ mqttcli \
 
 **Boundaries:** other payloads do not match these rules. Stop the processes before the next example. To map through an existing broker use MQTTIntegrator instead, with its administrative listeners explicitly disabled as shown in the guide; do not apply the same rules in both places unless duplicate outputs are intended.
 
-[![complete integrator and JSON-template examples](docs/readme/media/menu/further-mapping-examples.svg)](docs/readme/mapping.md)
+[![complete integrator and JSON-template examples](docs/readme/media/menu/further-mapping-examples.svg)](docs/readme/mapping.md#page-overview)
 
 ### Bridge separate brokers
 
@@ -292,11 +290,11 @@ mqttcli \
 
 **Boundaries:** `legacy` means unencrypted transport. `loop_prevention` requests suppression of the bridge's own publications through a non-standard MQTT CONNECT bridge bit also used by Mosquitto; the remote broker must support that bit. For other brokers, disable it and design non-overlapping topic paths. This example's `relay/` outputs match neither `telemetry/#` nor `commands/#`, so they are not fed back into the bridge. MQTTBridge may normalize and rewrite `bridge.json`; use this writable demo copy, not a read-only source of record. Stop all demo processes with Ctrl+C.
 
-[![bridge topology, sessions and deployment](docs/readme/media/menu/further-bridge-guide.svg)](docs/readme/bridging.md)
+[![bridge topology, sessions and deployment](docs/readme/media/menu/further-bridge-guide.svg)](docs/readme/bridging.md#page-overview)
 
 ### Keep the original message—and query the useful fields
 
-MQTTStore keeps the raw MQTT envelope and projects JSON fields into application-owned typed tables. The [complete storage walkthrough](docs/readme/storage.md) covers MariaDB provisioning, `projections.json`, run commands, expected rows and delivery boundaries. It needs a local MariaDB server; start there after the basic publish/subscribe exchange.
+MQTTStore keeps the raw MQTT envelope and projects JSON fields into application-owned typed tables. The [complete storage walkthrough](docs/readme/storage.md#page-overview) covers MariaDB provisioning, `projections.json`, run commands, expected rows and delivery boundaries. It needs a local MariaDB server; start there after the basic publish/subscribe exchange.
 
 ## Capabilities
 
@@ -326,6 +324,8 @@ WebSocket client/server variants also exist for IPv6 and Unix sockets. MQTTBridg
 
 ## Architecture
 
+Built on [SNode.C](https://github.com/SNodeC/snode.c#project-overview), the suite shares its event-driven networking and configuration model. Native MQTT and MQTT over WebSockets are available over IPv4, IPv6 and Unix-domain sockets, with plain and TLS variants according to build configuration.
+
 <picture>
   <source media="(max-width: 600px)" srcset="docs/readme/media/message-flow-mobile.svg">
   <img src="docs/readme/media/message-flow.svg" alt="Example message paths: devices publish to a broker; an integrator transforms and republishes, a bridge forwards to another broker, and a store persists messages in MariaDB.">
@@ -335,26 +335,29 @@ WebSocket client/server variants also exist for IPv6 and Unix sockets. MQTTBridg
 
 ## Configuration
 
-Use the [runtime configuration guide](docs/readme/deployment.md#configuration) to inspect application settings, persist configuration and choose deployment access boundaries. These are runtime settings; [Build from source](docs/readme/install.md) covers compilation and CMake options.
+Use the [runtime configuration guide](docs/readme/deployment.md#configuration) to inspect application settings, persist configuration and choose deployment access boundaries. These are runtime settings; [Build from source](docs/readme/install.md#page-overview) covers compilation and CMake options.
 
 ### Before exposing a service
 
-- **MQTTBroker:** `in-http` / `in-https` combine MQTT-over-WebSocket and the client-inspection UI. They are not separate public/private listeners.
+- **MQTTBroker authentication:** MQTT CONNECT username/password are recorded, not validated against a credential store; there is no topic ACL. Restrict broker access at the network boundary or through an appropriate authenticated gateway.
+- **MQTTBroker web listeners:** `in-http` / `in-https` combine MQTT-over-WebSocket and the client-inspection UI. They are not separate public/private listeners.
 - **MQTTBridge:** `admin-legacy` (8081) and `admin-tls` (8082) expose mutable bridge configuration without built-in authentication. Disable them when unused; isolate or authenticate access outside the application when enabled.
 - **MQTTIntegrator:** its mapping-admin HTTP API uses built-in Basic-auth credentials `admin` / `admin` and can rewrite the mapping file. Disable `in-http` and `in-https` unless that API is deliberately isolated behind access controls.
 
-Review the [deployment guide](docs/readme/deployment.md) before exposing a service.
+Review the [deployment guide](docs/readme/deployment.md#page-overview) before exposing a service.
 
 ## Documentation
 
-[Documentation index](docs/index.md) — the existing guides and MQTTStore reference.
+The API menu opens the legacy Doxygen class index. It is a reference snapshot, not proof of current release/platform support; use these source guides and the Packages matrix for current installation decisions.
 
-- **Translate messages:** [Mapping walkthrough](docs/readme/mapping.md)
-- **Link brokers:** [Bridge walkthrough](docs/readme/bridging.md)
-- **Store telemetry:** [Storage walkthrough](docs/readme/storage.md) and [MQTTStore reference](docs/mqttstore-user-guide.md)
+[Documentation index](docs/index.md#page-overview) — the existing guides and MQTTStore reference.
+
+- **Translate messages:** [Mapping walkthrough](docs/readme/mapping.md#page-overview)
+- **Link brokers:** [Bridge walkthrough](docs/readme/bridging.md#page-overview)
+- **Store telemetry:** [Storage walkthrough](docs/readme/storage.md#page-overview) and [MQTTStore reference](docs/mqttstore-user-guide.md#page-overview)
 - **Choose packages:** [Binary packages](https://github.com/SNodeC/Packages#readme)
-- **Run a service:** [Deployment guide](docs/readme/deployment.md)
-- **Extend applications:** [API reference](https://snodec.github.io/mqttsuite-doc/html/index.html) and [SNode.C](https://github.com/SNodeC/snode.c#project-overview)
+- **Run a service:** [Deployment guide](docs/readme/deployment.md#page-overview)
+- **Extend applications:** [API reference](https://snodec.github.io/mqttsuite-doc/html/annotated.html) and [SNode.C](https://github.com/SNodeC/snode.c#project-overview)
 
 ## Platforms and packages
 
@@ -364,9 +367,12 @@ Native Linux source builds need a C++20 toolchain (GCC 12.2+ or Clang 13+), CMak
 
 Choose your route.
 
-**Signed packages:** Use [SNodeC/Packages](https://github.com/SNodeC/Packages#readme) and select your distribution, release and architecture. The application packages install their required SNode.C components automatically; no separate framework build is needed.
+<p>
+  <a href="https://github.com/SNodeC/Packages#readme" title="Signed packages"><img src="docs/readme/media/menu/route-packages.svg" alt="Signed packages" width="152" height="24"></a>
+  <a href="docs/readme/install.md#page-overview" title="Build from source"><img src="docs/readme/media/menu/route-source.svg" alt="Build from source" width="152" height="24"></a>
+</p>
 
-**From source:** Follow [Build from source](docs/readme/install.md) for native Linux or OpenWrt.
+Use signed packages for your distribution, release and architecture, or build from source for native Linux or OpenWrt. Application packages install the required SNode.C components automatically; no separate framework build is needed.
 
 ## Releases
 
