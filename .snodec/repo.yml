@@ -1,0 +1,14 @@
+# Build specifics only; identity lives in SNodeC/.github/catalog.yml.
+ci:
+  profile: cpp
+  deps:
+  - snode.c@dev
+  cmake_options:
+  - -DCMAKE_BUILD_TYPE=Debug
+  - -DBUILD_TESTING=ON
+  ctest_args:
+  - --output-on-failure
+  ipv6: true
+  runtime_dirs: true
+  parallel: 2
+  sdk: true

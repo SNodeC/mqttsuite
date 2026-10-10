@@ -106,4 +106,9 @@ add_subdirectory(mqttbridge)
 add_subdirectory(mqttcli)
 add_subdirectory(mqttstore)
 
+include(CTest)
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()
+
 include(Packing)
