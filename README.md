@@ -20,8 +20,6 @@
 
 **From a device message to an integrated system.**
 
-**[Get prebuilt packages](https://github.com/SNodeC/Packages#readme)** — Signed packages and installation instructions for OpenWrt, Raspberry Pi OS, Debian, Ubuntu, Rocky Linux and Fedora.
-
 MQTTSuite is a set of five C++ applications for **MQTT 3.1.1**: run a broker, translate topics and payloads, connect separate brokers, publish and subscribe from the command line, or persist messages in MariaDB. Use the applications independently or combine them into a pipeline that fits your devices and existing services.
 
 Built on [SNode.C](https://github.com/SNodeC/snode.c#project-overview), the suite shares its event-driven networking and configuration model. Native MQTT and MQTT over WebSockets are available over IPv4, IPv6 and Unix-domain sockets, with plain and TLS variants according to build configuration.
@@ -38,19 +36,13 @@ Built on [SNode.C](https://github.com/SNodeC/snode.c#project-overview), the suit
   <a href="#contributing" title="Contribute"><img src="docs/readme/media/menu/snodec-contribute-108.svg" alt="Contribute" width="108" height="24"></a>
 </p>
 
-<details>
-<summary>Text navigation</summary>
-
-[Start](#quick-start) · [Install](#install) · [Build](#build-from-source) · [Use](#first-success) · [Configure](#configuration) · [Architecture](#architecture) · [API](https://snodec.github.io/mqttsuite-doc/html/index.html) · [Contribute](#contributing)
-
-</details>
 <!-- snodec:end menu -->
 
 ## Quick start
 
-1. [Install](#install) — choose the available installation route and prepare its requirements.
-2. [Use](#first-success) — publish and receive a message.
-3. [Configure](#configuration) — review runtime settings and access boundaries before deployment.
+1. [Install](#install) — get the MQTT applications you need.
+2. [Use](#first-success) — publish and receive your first message.
+3. [Configure](#configuration) — review runtime settings and access controls before deployment.
 
 ## First success
 
@@ -149,23 +141,30 @@ WebSocket client/server variants also exist for IPv6 and Unix sockets. MQTTBridg
 
 Use the [runtime configuration guide](docs/readme/deployment.md#configuration) to inspect application settings, persist configuration and choose deployment access boundaries. These are runtime settings; [Build from source](#build-from-source) covers compilation and CMake options.
 
+#### Before exposing a service
+
+- **MQTTBroker:** `in-http` / `in-https` combine MQTT-over-WebSocket and the client-inspection UI. They are not separate public/private listeners.
+- **MQTTBridge:** includes browser-based management surfaces.
+- **MQTTIntegrator:** its mapping-admin HTTP API uses built-in Basic-auth credentials `admin` / `admin` and can rewrite the mapping file. Disable `in-http` and `in-https` unless that API is deliberately isolated behind access controls.
+
+Review the [deployment guide](docs/readme/deployment.md) before exposing a service.
+
 ## Platforms and packages
 
 ### Install
 
-Choose your route: [install signed packages](https://github.com/SNodeC/Packages#readme) or [build from source](#build-from-source).
+Choose your route.
 
-[Prebuilt packages](https://github.com/SNodeC/Packages#readme) · [Build from source](docs/readme/install.md) · [Deploy](docs/readme/deployment.md)
+| Route | How to install |
+| --- | --- |
+| **Signed packages** | Use [SNodeC/Packages](https://github.com/SNodeC/Packages#readme) and select your distribution, release and architecture. |
+| **From source** | Follow [Build from source](#build-from-source) for native Linux or OpenWrt. |
 
-Signed packages from **[SNodeC/Packages](https://github.com/SNodeC/Packages#readme)** are available for the distributions, releases and architectures listed in the [Packages repository](https://github.com/SNodeC/Packages#readme). Application packages pull in the framework components they need; you do not have to build SNode.C manually when using these packages.
-
-#### Before exposing a service
-
-MQTTBroker and MQTTBridge include browser-based management surfaces; MQTTIntegrator also starts a mapping-admin HTTP API. The integrator currently uses built-in Basic-auth credentials `admin` / `admin` and can rewrite its mapping file. Disable its `in-http` and `in-https` instances unless that API is deliberately isolated behind access controls. MQTTBroker's `in-http` / `in-https` listeners expose **both** MQTT-over-WebSocket and the client-inspection UI; they are not separate public/private listeners. See [deployment](docs/readme/deployment.md) before exposing either application.
+The application packages install their required SNode.C components automatically; no separate framework build is needed.
 
 ### Build from source
 
-Follow the [source-build guide](docs/readme/install.md), choosing the [native Linux build](docs/readme/install.md#native-linux-build) or [OpenWrt cross-compilation](docs/readme/install.md#openwrt-cross-compilation). The guide covers prerequisites, build options, complete commands and installation checks.
+The [source-build guide](docs/readme/install.md) covers prerequisites, build options, complete commands and installation checks. Select the [native Linux build](docs/readme/install.md#native-linux-build) or [OpenWrt cross-compilation](docs/readme/install.md#openwrt-cross-compilation).
 
 ## Releases
 
