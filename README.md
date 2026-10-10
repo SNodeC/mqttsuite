@@ -28,7 +28,7 @@ Built on [SNode.C](https://github.com/SNodeC/snode.c#project-overview), the suit
 <p>
   <a href="#quick-start" title="Start"><img src="docs/readme/media/menu/snodec-start-108.svg" alt="Start" width="108" height="24"></a>
   <a href="#install" title="Install"><img src="docs/readme/media/menu/snodec-install-108.svg" alt="Install" width="108" height="24"></a>
-  <a href="#build-from-source" title="Build"><img src="docs/readme/media/menu/build-108.svg" alt="Build" width="108" height="24"></a>
+  <a href="docs/readme/install.md" title="Build"><img src="docs/readme/media/menu/build-108.svg" alt="Build" width="108" height="24"></a>
   <a href="#first-success" title="Use"><img src="docs/readme/media/menu/snodec-use-108.svg" alt="Use" width="108" height="24"></a>
   <a href="#configuration" title="Configure"><img src="docs/readme/media/menu/snodec-configure-108.svg" alt="Configure" width="108" height="24"></a>
   <a href="#architecture" title="Architecture"><img src="docs/readme/media/menu/snodec-architecture-108.svg" alt="Architecture" width="108" height="24"></a>
@@ -40,9 +40,9 @@ Built on [SNode.C](https://github.com/SNodeC/snode.c#project-overview), the suit
 
 ## Quick start
 
-1. [Install](#install) — get the MQTT applications you need.
-2. [Use](#first-success) — publish and receive your first message.
-3. [Configure](#configuration) — review runtime settings and access controls before deployment.
+1. [Install](#install): get the MQTT applications you need.
+2. [Use](#first-success): publish and receive your first message.
+3. [Configure](#configuration): review runtime settings and access controls before deployment.
 
 ## First success
 
@@ -139,7 +139,7 @@ WebSocket client/server variants also exist for IPv6 and Unix sockets. MQTTBridg
 
 ### Configuration
 
-Use the [runtime configuration guide](docs/readme/deployment.md#configuration) to inspect application settings, persist configuration and choose deployment access boundaries. These are runtime settings; [Build from source](#build-from-source) covers compilation and CMake options.
+Use the [runtime configuration guide](docs/readme/deployment.md#configuration) to inspect application settings, persist configuration and choose deployment access boundaries. These are runtime settings; [Build from source](docs/readme/install.md) covers compilation and CMake options.
 
 #### Before exposing a service
 
@@ -155,13 +155,9 @@ Review the [deployment guide](docs/readme/deployment.md) before exposing a servi
 
 Choose your route.
 
-**Signed packages** — Use [SNodeC/Packages](https://github.com/SNodeC/Packages#readme) and select your distribution, release and architecture. The application packages install their required SNode.C components automatically; no separate framework build is needed.
+**Signed packages:** Use [SNodeC/Packages](https://github.com/SNodeC/Packages#readme) and select your distribution, release and architecture. The application packages install their required SNode.C components automatically; no separate framework build is needed.
 
-**From source** — Follow [Build from source](#build-from-source) for native Linux or OpenWrt.
-
-### Build from source
-
-The [source-build guide](docs/readme/install.md) covers prerequisites, build options, complete commands and installation checks. Select the [native Linux build](docs/readme/install.md#native-linux-build) or [OpenWrt cross-compilation](docs/readme/install.md#openwrt-cross-compilation).
+**From source:** Follow [Build from source](docs/readme/install.md) for native Linux or OpenWrt.
 
 ## Releases
 
