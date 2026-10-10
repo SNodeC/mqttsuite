@@ -1,3 +1,10 @@
+<!-- snodec:begin page-header -->
+<a id="page-overview"></a>
+<p>
+  <a href="../README.md#project-overview" title="MQTTSuite repository"><img src="readme/media/page-banner.svg" alt="MQTTSuite documentation" width="100%"></a>
+</p>
+<!-- snodec:end page-header -->
+
 # MQTTStore User Guide
 
 MQTTStore is the MQTTSuite service that subscribes to MQTT topic filters and writes incoming MQTT publishes to MariaDB. It is designed for the production pipeline:

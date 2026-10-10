@@ -1,7 +1,14 @@
+<!-- snodec:begin page-header -->
+<a id="page-overview"></a>
+<p>
+  <a href="../../README.md#project-overview" title="MQTTSuite repository"><img src="media/page-banner.svg" alt="MQTTSuite documentation" width="100%"></a>
+</p>
+<!-- snodec:end page-header -->
+
 # Build and install MQTTSuite from source
 
 <p>
-  <a href="../../README.md"><img src="media/menu/back-mqttsuite.svg" alt="MQTTSuite" width="110" height="24"></a>
+  <a href="../../README.md#project-overview"><img src="media/menu/back-mqttsuite.svg" alt="MQTTSuite" width="110" height="24"></a>
 </p>
 
 <p>

@@ -1,7 +1,14 @@
+<!-- snodec:begin page-header -->
+<a id="page-overview"></a>
+<p>
+  <a href="../../README.md#project-overview" title="MQTTSuite repository"><img src="media/page-banner.svg" alt="MQTTSuite documentation" width="100%"></a>
+</p>
+<!-- snodec:end page-header -->
+
 # Connect two brokers
 
 <p>
-  <a href="../../README.md"><img src="media/menu/back-mqttsuite.svg" alt="MQTTSuite" width="110" height="24"></a>
+  <a href="../../README.md#project-overview"><img src="media/menu/back-mqttsuite.svg" alt="MQTTSuite" width="110" height="24"></a>
 </p>
 
 Extend the working README topology with deliberate delivery and deployment choices.
@@ -22,6 +29,6 @@ For off-host endpoints, configure TLS and appropriate broker access policy. A br
 
 Stop all demonstration processes with Ctrl+C.
 
-[![deployment](media/menu/further-deployment.svg)](deployment.md) [![bridge schema](media/menu/further-bridge-schema.svg)](../../mqttbridge/lib/bridge-schema.json)
+[![deployment](media/menu/further-deployment.svg)](deployment.md#page-overview) [![bridge schema](media/menu/further-bridge-schema.svg)](../../mqttbridge/lib/bridge-schema.json)
 
 Deployment is for unattended operation. The bridge schema lists additional network and MQTT options.

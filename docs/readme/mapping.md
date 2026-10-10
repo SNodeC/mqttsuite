@@ -1,7 +1,14 @@
+<!-- snodec:begin page-header -->
+<a id="page-overview"></a>
+<p>
+  <a href="../../README.md#project-overview" title="MQTTSuite repository"><img src="media/page-banner.svg" alt="MQTTSuite documentation" width="100%"></a>
+</p>
+<!-- snodec:end page-header -->
+
 # Map messages into the form your application needs
 
 <p>
-  <a href="../../README.md"><img src="media/menu/back-mqttsuite.svg" alt="MQTTSuite" width="110" height="24"></a>
+  <a href="../../README.md#project-overview"><img src="media/menu/back-mqttsuite.svg" alt="MQTTSuite" width="110" height="24"></a>
 </p>
 
 The landing page shows the basic example; this guide extends it.
@@ -106,4 +113,4 @@ mqttcli \
 
 The schema also supports mapping arrays, output QoS/retain settings, delay and suppression options, nested topic levels and plugin registration. Match input and output topics carefully to avoid feeding mapped output back into the same rule.
 
-[![deployment](media/menu/further-deployment.svg)](deployment.md) [![mapping schema](media/menu/further-mapping-schema.svg)](../../lib/mapping-schema.json) [![mapping implementation](media/menu/further-mapping-source.svg)](../../lib/MqttMapper.cpp)
+[![deployment](media/menu/further-deployment.svg)](deployment.md#page-overview) [![mapping schema](media/menu/further-mapping-schema.svg)](../../lib/mapping-schema.json) [![mapping implementation](media/menu/further-mapping-source.svg)](../../lib/MqttMapper.cpp)
