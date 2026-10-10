@@ -61,6 +61,7 @@
 #include <string>
 #include <string_view>
 #include <sys/ioctl.h>
+#include <termios.h> // IWYU pragma: keep
 #include <tuple>
 #include <unistd.h>
 #include <utils/system/signal.h>
@@ -262,8 +263,8 @@ namespace mqtt::mqttcli::lib {
     }
 
     bool Mqtt::onSignal(int signum) {
-        mqttsuite::log::cliLog().debug() << "MQTT: On Exit due to '" << strsignal(signum) << "' (SIG"
-                                              << utils::system::sigabbrev_np(signum) << " = " << signum << ")";
+        mqttsuite::log::cliLog().debug() << "MQTT: On Exit due to '" << strsignal(signum) << "' (SIG" << utils::system::sigabbrev_np(signum)
+                                         << " = " << signum << ")";
 
         sendDisconnect();
 
@@ -302,8 +303,8 @@ namespace mqtt::mqttcli::lib {
                                            try {
                                                qoS = getQos(compositTopic.substr(pos + 2));
                                            } catch (const std::logic_error& error) {
-                                               mqttsuite::log::cliLog().error()
-                                                   << "Malformed composite topic: " << compositTopic << "\n" << error.what();
+                                               mqttsuite::log::cliLog().error() << "Malformed composite topic: " << compositTopic << "\n"
+                                                                                << error.what();
                                                throw;
                                            }
                                        }
@@ -331,8 +332,7 @@ namespace mqtt::mqttcli::lib {
                         try {
                             qoS = getQos(pubTopic.substr(pos + 2));
                         } catch (const std::logic_error& error) {
-                            mqttsuite::log::cliLog().error()
-                                << "Malformed composite topic: " << pubTopic << "\n" << error.what();
+                            mqttsuite::log::cliLog().error() << "Malformed composite topic: " << pubTopic << "\n" << error.what();
                             throw;
                         }
                     }
