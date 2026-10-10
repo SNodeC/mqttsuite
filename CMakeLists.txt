@@ -106,4 +106,10 @@ add_subdirectory(mqttbridge)
 add_subdirectory(mqttcli)
 add_subdirectory(mqttstore)
 
+option(BUILD_TESTING "Build MQTTSuite smoke tests" OFF)
+include(CTest)
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()
+
 include(Packing)
