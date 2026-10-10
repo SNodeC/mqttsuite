@@ -1,7 +1,7 @@
 # Build and install MQTTSuite from source
 
 <p>
-  <a href="../../README.md"><img src="media/menu/back-mqttsuite.svg" alt="← MQTTSuite" width="110" height="24"></a>
+  <a href="../../README.md"><img src="media/menu/back-mqttsuite.svg" alt="MQTTSuite" width="110" height="24"></a>
 </p>
 
 <p>
@@ -17,7 +17,7 @@ Build and install on the Linux machine that will run the software.
 
 ### Requirements
 
-Install **SNode.C before configuring MQTTSuite**. Use [SNode.C’s prebuilt DEB/RPM packages](https://github.com/SNodeC/Packages#readme) (which include headers and CMake files), or follow the [SNode.C source-build guide](https://github.com/SNodeC/snode.c/blob/master/docs/readme/install.md#native-linux-build). OpenWrt runtime packages do not provide the development files needed for a native build. Current MQTTSuite CMake files request **SNode.C 2.0.0** using its package compatibility rules. Build both from compatible revisions if you are working on their APIs; do not combine arbitrary old libraries and current headers.
+Install **SNode.C before configuring MQTTSuite**. Use [SNode.C’s prebuilt DEB/RPM packages](https://github.com/SNodeC/Packages#readme) (which include headers and CMake files), or follow the [SNode.C source-build guide](https://github.com/SNodeC/snode.c#project-overview). OpenWrt runtime packages do not provide the development files needed for a native build. Current MQTTSuite CMake files request **SNode.C 2.0.0** using its package compatibility rules. Build both from compatible revisions if you are working on their APIs; do not combine arbitrary old libraries and current headers.
 
 The suite requires C++20 and CMake 3.18+. The full build also needs the SNode.C components for the chosen transports and MariaDB integration. On Debian/Ubuntu:
 
@@ -67,7 +67,7 @@ Build MQTTSuite packages with an official OpenWrt SDK matching the device's rele
 
 ### Prepare the SDK
 
-Follow [SNode.C's SDK preparation instructions](https://github.com/SNodeC/snode.c/blob/master/docs/readme/install.md#prepare-the-sdk) to choose, verify and extract the official SDK. Continue below in that SDK; OpenWrt will build SNode.C automatically as MQTTSuite's dependency. No published SNode.C SDK archive is required.
+Follow [SNode.C's SDK preparation instructions](https://github.com/SNodeC/snode.c#project-overview) to choose, verify and extract the official SDK. Continue below in that SDK; OpenWrt will build SNode.C automatically as MQTTSuite's dependency. No published SNode.C SDK archive is required.
 
 The recipes are included in the upstream checkouts. Clone whichever checkout you do not already have:
 
