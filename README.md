@@ -29,10 +29,10 @@ Built on [SNode.C](https://github.com/SNodeC/snode.c#project-overview), the suit
 <!-- snodec:begin menu -->
 <p>
   <a href="#quick-start" title="Start"><img src="docs/readme/media/menu/snodec-start-108.svg" alt="Start" width="108" height="24"></a>
-  <a href="#platforms-and-packages" title="Install"><img src="docs/readme/media/menu/snodec-install-108.svg" alt="Install" width="108" height="24"></a>
-  <a href="docs/readme/install.md" title="Build"><img src="docs/readme/media/menu/build-108.svg" alt="Build" width="108" height="24"></a>
-  <a href="#publish-your-first-message" title="Use"><img src="docs/readme/media/menu/snodec-use-108.svg" alt="Use" width="108" height="24"></a>
-  <a href="docs/readme/deployment.md#configuration" title="Configure"><img src="docs/readme/media/menu/snodec-configure-108.svg" alt="Configure" width="108" height="24"></a>
+  <a href="#install" title="Install"><img src="docs/readme/media/menu/snodec-install-108.svg" alt="Install" width="108" height="24"></a>
+  <a href="#build-from-source" title="Build"><img src="docs/readme/media/menu/build-108.svg" alt="Build" width="108" height="24"></a>
+  <a href="#first-success" title="Use"><img src="docs/readme/media/menu/snodec-use-108.svg" alt="Use" width="108" height="24"></a>
+  <a href="#configuration" title="Configure"><img src="docs/readme/media/menu/snodec-configure-108.svg" alt="Configure" width="108" height="24"></a>
   <a href="#architecture" title="Architecture"><img src="docs/readme/media/menu/snodec-architecture-108.svg" alt="Architecture" width="108" height="24"></a>
   <a href="https://snodec.github.io/mqttsuite-doc/html/index.html" title="API"><img src="docs/readme/media/menu/snodec-api-108.svg" alt="API" width="108" height="24"></a>
   <a href="#contributing" title="Contribute"><img src="docs/readme/media/menu/snodec-contribute-108.svg" alt="Contribute" width="108" height="24"></a>
@@ -41,16 +41,20 @@ Built on [SNode.C](https://github.com/SNodeC/snode.c#project-overview), the suit
 <details>
 <summary>Text navigation</summary>
 
-[Start](#quick-start) · [Install](#platforms-and-packages) · [Build](docs/readme/install.md) · [Use](#publish-your-first-message) · [Configure](docs/readme/deployment.md#configuration) · [Architecture](#architecture) · [API](https://snodec.github.io/mqttsuite-doc/html/index.html) · [Contribute](#contributing)
+[Start](#quick-start) · [Install](#install) · [Build](#build-from-source) · [Use](#first-success) · [Configure](#configuration) · [Architecture](#architecture) · [API](https://snodec.github.io/mqttsuite-doc/html/index.html) · [Contribute](#contributing)
 
 </details>
 <!-- snodec:end menu -->
 
 ## Quick start
 
-Choose your route: [install signed packages](https://github.com/SNodeC/Packages#readme) or [build from source](docs/readme/install.md). Start with [one publish/subscribe exchange](#publish-your-first-message); then try [mapping](#translate-a-devices-language), [bridging](#bridge-separate-brokers) or [storage](#keep-the-original-messageand-query-the-useful-fields).
+1. [Install](#install) — choose the available installation route and prepare its requirements.
+2. [Use](#first-success) — publish and receive a message.
+3. [Configure](#configuration) — review runtime settings and access boundaries before deployment.
 
 ## First success
+
+Start with [one publish/subscribe exchange](#publish-your-first-message); then try [mapping](#translate-a-devices-language), [bridging](#bridge-separate-brokers) or [storage](#keep-the-original-messageand-query-the-useful-fields).
 
 ### Publish your first message
 
@@ -141,11 +145,15 @@ WebSocket client/server variants also exist for IPv6 and Unix sockets. MQTTBridg
 - **Run a service:** [Deployment guide](docs/readme/deployment.md)
 - **Extend applications:** [API reference](https://snodec.github.io/mqttsuite-doc/html/index.html) and [SNode.C](https://github.com/SNodeC/snode.c#project-overview)
 
+### Configuration
+
+Use the [runtime configuration guide](docs/readme/deployment.md#configuration) to inspect application settings, persist configuration and choose deployment access boundaries. These are runtime settings; [Build from source](#build-from-source) covers compilation and CMake options.
+
 ## Platforms and packages
 
 ### Install
 
-Choose your route: use signed packages or build from source.
+Choose your route: [install signed packages](https://github.com/SNodeC/Packages#readme) or [build from source](#build-from-source).
 
 [Prebuilt packages](https://github.com/SNodeC/Packages#readme) · [Build from source](docs/readme/install.md) · [Deploy](docs/readme/deployment.md)
 
@@ -154,6 +162,10 @@ Signed packages from **[SNodeC/Packages](https://github.com/SNodeC/Packages#read
 #### Before exposing a service
 
 MQTTBroker and MQTTBridge include browser-based management surfaces; MQTTIntegrator also starts a mapping-admin HTTP API. The integrator currently uses built-in Basic-auth credentials `admin` / `admin` and can rewrite its mapping file. Disable its `in-http` and `in-https` instances unless that API is deliberately isolated behind access controls. MQTTBroker's `in-http` / `in-https` listeners expose **both** MQTT-over-WebSocket and the client-inspection UI; they are not separate public/private listeners. See [deployment](docs/readme/deployment.md) before exposing either application.
+
+### Build from source
+
+Follow the [source-build guide](docs/readme/install.md), choosing the [native Linux build](docs/readme/install.md#native-linux-build) or [OpenWrt cross-compilation](docs/readme/install.md#openwrt-cross-compilation). The guide covers prerequisites, build options, complete commands and installation checks.
 
 ## Releases
 
