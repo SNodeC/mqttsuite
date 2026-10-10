@@ -1,14 +1,14 @@
 # Persist messages and project useful fields
 
 <p>
-  <a href="../../README.md"><img src="media/menu/back-mqttsuite.svg" alt="← MQTTSuite" width="110" height="24"></a>
+  <a href="../../README.md"><img src="media/menu/back-mqttsuite.svg" alt="MQTTSuite" width="110" height="24"></a>
 </p>
 
-The landing page shows the basic example; this guide extends it.
+This is the complete raw-message and typed-projection walkthrough. It owns database setup, projection configuration, execution and verification.
 
 MQTTStore subscribes to topic filters and writes messages to MariaDB. Raw storage and typed projections are separate: keep the original payload even when a message is not JSON, and add a typed projection when the payload follows a useful schema.
 
-**You need:** MQTTBroker, MQTTCli, MQTTStore, a local MariaDB server and database-client access with an appropriately privileged account. Start in an empty working directory. Follow the [first-run and listener defaults](../../README.md#publish-your-first-message), and save `projections.json` from [the complete storage example](../../README.md#keep-the-original-messageand-query-the-useful-fields). The projection is also available as an optional [download](examples/projections.json). Port **18883** must be free. Replace the sample password before use.
+**You need:** MQTTBroker, MQTTCli, MQTTStore, a local MariaDB server and database-client access with an appropriately privileged account. Start in an empty working directory. Follow the [first-run and listener defaults](../../README.md#publish-your-first-message). Save the projection below as `projections.json`; an optional [download](examples/projections.json) is also available. Port **18883** must be free. Replace the sample password before use.
 
 **Run — terminal 1, start the broker:**
 
@@ -49,7 +49,24 @@ CREATE TABLE mqttsuite_demo.sensor_measurements (
 );
 ```
 
-The [projection JSON](examples/projections.json) matches `normalized/+/temperature`, extracts the device from topic level 1, and reads `/value` and `/unit` from JSON. Topic levels are zero-based. `required: true` writes SQL NULL when the source is missing; without it, the column is omitted. It does not validate and reject the message before insertion. Here a missing `value` violates `NOT NULL`, causing the typed insert to fail; raw storage is independent. Choose nullability, defaults and validation to fit the data you accept.
+Save as `projections.json`:
+
+```json
+{
+  "projections": [{
+    "name": "temperature",
+    "topic": "normalized/+/temperature",
+    "table": "sensor_measurements",
+    "columns": {
+      "device_id": { "topic_level": 1, "required": true },
+      "value": { "json_pointer": "/value", "required": true },
+      "unit": { "json_pointer": "/unit" }
+    }
+  }]
+}
+```
+
+The projection matches `normalized/+/temperature`, extracts the device from topic level 1, and reads `/value` and `/unit` from JSON. Topic levels are zero-based. `required: true` writes SQL NULL when the source is missing; without it, the column is omitted. It does not validate and reject the message before insertion. Here a missing `value` violates `NOT NULL`, causing the typed insert to fail; raw storage is independent. Choose nullability, defaults and validation to fit the data you accept.
 
 ## 3. Start MQTTStore
 
@@ -66,6 +83,8 @@ mqttstore \
         db --socket /run/mysqld/mysqld.sock --database mqttsuite_demo --username mqttstore_demo --password 'REPLACE-WITH-A-UNIQUE-PASSWORD' \
             storage --raw-table mqtt_messages --auto-create-raw-table --projection-file projections.json
 ```
+
+The password argument above is for a disposable demonstration only: command lines and shell history can expose it. For persistent operation, create a permission-restricted configuration file before inserting credentials, load it with `--config-file`, and never publish its dumps. Quote an INI topic filter containing `#` so it is not interpreted as a comment.
 
 ## 4. Publish a measurement
 
@@ -101,4 +120,4 @@ Omit `--projection-file` when you only want raw persistence. The raw table recor
 
 **Boundaries:** database inserts, MQTT acknowledgements and typed projections are separate boundaries. Do not infer atomic raw-plus-projection writes or exactly-once database delivery from MQTT QoS. Plan retention, backups, reconnect behavior and capacity explicitly.
 
-[![deployment →](media/menu/further-deployment.svg)](deployment.md) [![full MQTTStore guide →](media/menu/further-mqttstore-guide.svg)](https://github.com/SNodeC/mqttsuite/blob/master/docs/mqttstore-user-guide.md) [![projection schema →](media/menu/further-projection-schema.svg)](https://github.com/SNodeC/mqttsuite/blob/master/mqttstore/lib/projection-schema.json)
+[![deployment](media/menu/further-deployment.svg)](deployment.md) [![full MQTTStore guide](media/menu/further-mqttstore-guide.svg)](../mqttstore-user-guide.md) [![projection schema](media/menu/further-projection-schema.svg)](../../mqttstore/lib/projection-schema.json)

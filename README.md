@@ -15,7 +15,7 @@
 <!-- snodec:end header -->
 
 <!-- snodec:begin status -->
-[![CI](https://github.com/SNodeC/mqttsuite/actions/workflows/ci.yml/badge.svg)](https://github.com/SNodeC/mqttsuite/actions/workflows/ci.yml) · [![Release](https://img.shields.io/github/v/release/SNodeC/mqttsuite?style=flat)](https://github.com/SNodeC/mqttsuite/releases) · [![Packages](https://img.shields.io/badge/Packages-signed-334155?style=flat)](https://github.com/SNodeC/Packages#readme) · [![Licence: MIT or GPL 3.0 or later](https://img.shields.io/badge/Licence-MIT%20OR%20GPL--3.0--or--later-334155?style=flat)](LICENSE)
+[![CI](https://github.com/SNodeC/mqttsuite/actions/workflows/ci.yml/badge.svg)](https://github.com/SNodeC/mqttsuite/actions/workflows/ci.yml) · [![Release](https://img.shields.io/github/v/release/SNodeC/mqttsuite?style=flat)](https://github.com/SNodeC/mqttsuite/releases) · [![Packages](https://img.shields.io/badge/Packages-signed-334155?style=flat)](https://github.com/SNodeC/Packages#readme) · [![License: MIT or GPL 3.0 or later](https://img.shields.io/badge/License-MIT%20OR%20GPL--3.0--or--later-334155?style=flat)](LICENSE)
 <!-- snodec:end status -->
 
 **From a device message to an integrated system.**
@@ -46,11 +46,11 @@ Built on [SNode.C](https://github.com/SNodeC/snode.c#project-overview), the suit
 
 ## First success
 
-Start with [one publish/subscribe exchange](#publish-your-first-message); then try [mapping](#translate-a-devices-language), [bridging](#bridge-separate-brokers) or [storage](#keep-the-original-messageand-query-the-useful-fields).
+Start with [one publish/subscribe exchange](#publish-your-first-message); then try [mapping](#translate-a-devices-language), [bridging](#bridge-separate-brokers) or [storage](docs/readme/storage.md).
 
 ### Publish your first message
 
-Send a message through a broker running only on your own machine.
+Send a message through a broker on your machine; the clients connect through loopback.
 
 **You need:** installed `mqttbroker` and `mqttcli`, three terminals in the same working directory, and free loopback port **18883**. No source checkout is required for these examples.
 
@@ -85,85 +85,13 @@ mqttcli \
 
 **Expected result:** the subscriber reports topic `demo/hello` and payload `Hello from MQTTSuite!`. Stop the subscriber and broker with Ctrl+C before starting the next example.
 
-**Boundaries:** unencrypted loopback MQTT, no credentials and no persistent sessions. `socket --reconnect=false` makes the publisher a one-shot operation. The configuration section `in-mqtt` names an SNode.C connection instance; its `remote`, `pub`, `sub` and `socket` sections configure that instance's responsibilities.
+**Boundaries:** clients use unencrypted loopback MQTT, with no credentials or persistent sessions. Other compiled broker listeners remain enabled on their default addresses; use an isolated, trusted network until you deliberately bind or disable them. `socket --reconnect=false` makes the publisher a one-shot operation. The configuration section `in-mqtt` names an SNode.C connection instance; its `remote`, `pub`, `sub` and `socket` sections configure that instance's responsibilities.
 
-[![deployment and access controls →](docs/readme/media/menu/further-deployment.svg)](docs/readme/deployment.md)
+[![deployment and access controls](docs/readme/media/menu/further-deployment.svg)](docs/readme/deployment.md)
 
 **Keep a working configuration:** append `-w` (short for `--write-config`) to a working command to save its persistent settings in the application's default INI-style configuration file and exit. Then run the same application without arguments, as the same user, to start with those saved settings. Nonpersistent options are not saved. Configuration uses dotted keys such as `in-mqtt.remote.host="127.0.0.1"`. Save settings after experimenting; later examples assume no saved configuration. See [configuration and deployment](docs/readme/deployment.md#configuration).
 
-## Capabilities
-
-### Choose the job, choose the application
-
-- **MQTTBroker** (`mqttbroker`) — Connect MQTT publishers and subscribers, inspect clients in the Web UI, and optionally run mappings inside the broker.
-- **MQTTIntegrator** (`mqttintegrator`) — Subscribe to an existing broker, transform topics or payloads with static rules and INJA templates, and publish the result.
-- **MQTTBridge** (`mqttbridge`) — Connect outward to multiple brokers and relay selected topics between them, with configured prefixes and loop prevention.
-- **MQTTCli** (`mqttcli`) — Publish, subscribe and diagnose connections from a terminal or script.
-- **MQTTStore** (`mqttstore`) — Store raw MQTT messages in MariaDB and optionally project JSON fields into application-owned typed tables.
-
-MQTTIntegrator, MQTTBridge and MQTTStore connect as MQTT clients; they do not require MQTTBroker as the other endpoint. MQTTBridge is not another broker listener. Its optional `loop_prevention` setting uses a non-standard bridge flag that must be supported by the remote broker; the example below explains the distinction.
-
-### Connect it your way
-
-| Transport | Plain | TLS |
-| --- | --- | --- |
-| IPv4 | `in-mqtt` | `in-mqtts` |
-| IPv6 | `in6-mqtt` | `in6-mqtts` |
-| Unix socket | `un-mqtt` | `un-mqtts` |
-| WS broker | `in-http` | `in-https` |
-| WS client | `in-wsmqtt` | `in-wsmqtts` |
-
-IPv4, IPv6 and Unix socket rows use MQTT directly; their instance names apply to both broker and clients. WS means MQTT over WebSocket; those rows show IPv4 instances.
-
-WebSocket client/server variants also exist for IPv6 and Unix sockets. MQTTBridge creates its connection instances from its topology instead of using this fixed name list. Build-time selections may omit transports. WebSocket peers must agree on the `mqtt` subprotocol; certificates and trust are required for TLS/WSS.
-
-## Architecture
-
-<picture>
-  <source media="(max-width: 600px)" srcset="docs/readme/media/message-flow-mobile.svg">
-  <img src="docs/readme/media/message-flow.svg" alt="Example message paths: devices publish to a broker; an integrator transforms and republishes, a bridge forwards to another broker, and a store persists messages in MariaDB.">
-</picture>
-
-*Choose the branches you need. These are cooperating applications, not five mandatory stages in one pipeline.*
-
-## Documentation
-
-[Documentation index](docs/index.md) — the existing guides and MQTTStore reference.
-
-- **Translate messages:** [Mapping walkthrough](docs/readme/mapping.md)
-- **Link brokers:** [Bridge walkthrough](docs/readme/bridging.md)
-- **Store telemetry:** [Storage walkthrough](docs/readme/storage.md) and [MQTTStore reference](https://github.com/SNodeC/mqttsuite/blob/master/docs/mqttstore-user-guide.md)
-- **Choose packages:** [Binary packages](https://github.com/SNodeC/Packages#readme)
-- **Run a service:** [Deployment guide](docs/readme/deployment.md)
-- **Extend applications:** [API reference](https://snodec.github.io/mqttsuite-doc/html/index.html) and [SNode.C](https://github.com/SNodeC/snode.c#project-overview)
-
-### Configuration
-
-Use the [runtime configuration guide](docs/readme/deployment.md#configuration) to inspect application settings, persist configuration and choose deployment access boundaries. These are runtime settings; [Build from source](docs/readme/install.md) covers compilation and CMake options.
-
-#### Before exposing a service
-
-- **MQTTBroker:** `in-http` / `in-https` combine MQTT-over-WebSocket and the client-inspection UI. They are not separate public/private listeners.
-- **MQTTBridge:** includes browser-based management surfaces.
-- **MQTTIntegrator:** its mapping-admin HTTP API uses built-in Basic-auth credentials `admin` / `admin` and can rewrite the mapping file. Disable `in-http` and `in-https` unless that API is deliberately isolated behind access controls.
-
-Review the [deployment guide](docs/readme/deployment.md) before exposing a service.
-
-## Platforms and packages
-
-### Install
-
-Choose your route.
-
-**Signed packages:** Use [SNodeC/Packages](https://github.com/SNodeC/Packages#readme) and select your distribution, release and architecture. The application packages install their required SNode.C components automatically; no separate framework build is needed.
-
-**From source:** Follow [Build from source](docs/readme/install.md) for native Linux or OpenWrt.
-
-## Releases
-
-[Release history and release notes](https://github.com/SNodeC/mqttsuite/releases). SNode.C and MQTTSuite have independent release histories.
-
-## Translate a device’s language
+### Translate a device’s language
 
 Not every device publishes the topic or payload your application expects. This mapping turns button events into light commands inside MQTTBroker.
 
@@ -231,9 +159,9 @@ mqttcli \
 
 **Boundaries:** other payloads do not match these rules. Stop the processes before the next example. To map through an existing broker use MQTTIntegrator instead, with its administrative listeners explicitly disabled as shown in the guide; do not apply the same rules in both places unless duplicate outputs are intended.
 
-[![complete integrator and JSON-template examples →](docs/readme/media/menu/further-mapping-examples.svg)](docs/readme/mapping.md)
+[![complete integrator and JSON-template examples](docs/readme/media/menu/further-mapping-examples.svg)](docs/readme/mapping.md)
 
-## Bridge separate brokers
+### Bridge separate brokers
 
 Forward selected topics between two independent brokers without changing their publishers.
 
@@ -364,101 +292,87 @@ mqttcli \
 
 **Boundaries:** `legacy` means unencrypted transport. `loop_prevention` requests suppression of the bridge's own publications through a non-standard MQTT CONNECT bridge bit also used by Mosquitto; the remote broker must support that bit. For other brokers, disable it and design non-overlapping topic paths. This example's `relay/` outputs match neither `telemetry/#` nor `commands/#`, so they are not fed back into the bridge. MQTTBridge may normalize and rewrite `bridge.json`; use this writable demo copy, not a read-only source of record. Stop all demo processes with Ctrl+C.
 
-[![bridge topology, sessions and deployment →](docs/readme/media/menu/further-bridge-guide.svg)](docs/readme/bridging.md)
+[![bridge topology, sessions and deployment](docs/readme/media/menu/further-bridge-guide.svg)](docs/readme/bridging.md)
 
-## Keep the original message—and query the useful fields
+### Keep the original message—and query the useful fields
 
-MQTTStore keeps the raw MQTT envelope and can project JSON fields into application-owned typed tables.
+MQTTStore keeps the raw MQTT envelope and projects JSON fields into application-owned typed tables. The [complete storage walkthrough](docs/readme/storage.md) covers MariaDB provisioning, `projections.json`, run commands, expected rows and delivery boundaries. It needs a local MariaDB server; start there after the basic publish/subscribe exchange.
 
-**You need:** installed `mqttstore`, `mqttbroker` and `mqttcli`, a local MariaDB server, and an administrative database account for setup. Start the broker command from [Publish your first message](#publish-your-first-message) in another terminal. Replace the password below and adjust the database socket to your installation.
+## Capabilities
 
-**Configuration — run this SQL as a MariaDB administrator:**
+### Choose the job, choose the application
 
-<details>
-<summary>Database, dedicated account and typed table</summary>
+- **MQTTBroker** (`mqttbroker`) — Connect MQTT publishers and subscribers, inspect clients in the Web UI, and optionally run mappings inside the broker.
+- **MQTTIntegrator** (`mqttintegrator`) — Subscribe to an existing broker, transform topics or payloads with static rules and INJA templates, and publish the result.
+- **MQTTBridge** (`mqttbridge`) — Connect outward to multiple brokers and relay selected topics between them, with configured prefixes and loop prevention.
+- **MQTTCli** (`mqttcli`) — Publish, subscribe and diagnose connections from a terminal or script.
+- **MQTTStore** (`mqttstore`) — Store raw MQTT messages in MariaDB and optionally project JSON fields into application-owned typed tables.
 
-```sql
-CREATE DATABASE mqttsuite_demo
-  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'mqttstore_demo'@'localhost'
-  IDENTIFIED BY 'REPLACE-WITH-A-UNIQUE-PASSWORD';
-GRANT CREATE, INSERT, SELECT, INDEX ON mqttsuite_demo.*
-  TO 'mqttstore_demo'@'localhost';
-CREATE TABLE mqttsuite_demo.sensor_measurements (
-  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  device_id VARCHAR(255) NOT NULL,
-  value DOUBLE NOT NULL,
-  unit VARCHAR(32) NULL,
-  received_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)
-);
-```
+MQTTIntegrator, MQTTBridge and MQTTStore connect as MQTT clients; they do not require MQTTBroker as the other endpoint. MQTTBridge is not another broker listener. Its optional `loop_prevention` setting uses a non-standard bridge flag that must be supported by the remote broker; the example below explains the distinction.
 
-</details>
+### Connect it your way
 
-**Save as `projections.json`:**
+| Transport | Plain | TLS |
+| --- | --- | --- |
+| IPv4 | `in-mqtt` | `in-mqtts` |
+| IPv6 | `in6-mqtt` | `in6-mqtts` |
+| Unix socket | `un-mqtt` | `un-mqtts` |
+| WS broker | `in-http` | `in-https` |
+| WS client | `in-wsmqtt` | `in-wsmqtts` |
 
-```json
-{
-  "projections": [{
-    "name": "temperature",
-    "topic": "normalized/+/temperature",
-    "table": "sensor_measurements",
-    "columns": {
-      "device_id": { "topic_level": 1, "required": true },
-      "value": { "json_pointer": "/value", "required": true },
-      "unit": { "json_pointer": "/unit" }
-    }
-  }]
-}
-```
+IPv4, IPv6 and Unix socket rows use MQTT directly; their instance names apply to both broker and clients. WS means MQTT over WebSocket; those rows show IPv4 instances.
 
-`required: true` writes SQL NULL when the source is missing; without it, a missing source omits that column. It is not a pre-insert validation rule. Here, missing `value` conflicts with `NOT NULL`, so the typed insert fails while raw storage remains a separate operation. Topic levels are zero-based: `room1` is level 1.
+WebSocket client/server variants also exist for IPv6 and Unix sockets. MQTTBridge creates its connection instances from its topology instead of using this fixed name list. Build-time selections may omit transports. WebSocket peers must agree on the `mqtt` subprotocol; certificates and trust are required for TLS/WSS.
 
-**Run — terminal 1:**
+## Architecture
 
-```text
-mqttstore \
-    in-mqtt --disabled=false \
-        remote --host 127.0.0.1 --port 18883 \
-        session --client-id readme-store \
-        sub --topic 'normalized/#' \
-        db --socket /run/mysqld/mysqld.sock --database mqttsuite_demo --username mqttstore_demo --password 'REPLACE-WITH-A-UNIQUE-PASSWORD' \
-            storage --raw-table mqtt_messages --auto-create-raw-table --projection-file projections.json
-```
+<picture>
+  <source media="(max-width: 600px)" srcset="docs/readme/media/message-flow-mobile.svg">
+  <img src="docs/readme/media/message-flow.svg" alt="Example message paths: devices publish to a broker; an integrator transforms and republishes, a bridge forwards to another broker, and a store persists messages in MariaDB.">
+</picture>
 
-**Run — terminal 2, publish after MQTTStore connects:**
+*Choose the branches you need. These are cooperating applications, not five mandatory stages in one pipeline.*
 
-```text
-mqttcli \
-    in-mqtt --disabled=false \
-        remote --host 127.0.0.1 --port 18883 \
-        pub --topic 'normalized/room1/temperature' --message '{"value":21.5,"unit":"C"}' \
-        socket --reconnect=false
-```
+## Configuration
 
-**Verify — in a database client with read access:**
+Use the [runtime configuration guide](docs/readme/deployment.md#configuration) to inspect application settings, persist configuration and choose deployment access boundaries. These are runtime settings; [Build from source](docs/readme/install.md) covers compilation and CMake options.
 
-```sql
-SELECT topic, payload_text, payload_format
-FROM mqttsuite_demo.mqtt_messages ORDER BY id DESC LIMIT 1;
-SELECT device_id, value, unit
-FROM mqttsuite_demo.sensor_measurements ORDER BY id DESC LIMIT 1;
-```
+### Before exposing a service
 
-**Expected result:**
+- **MQTTBroker:** `in-http` / `in-https` combine MQTT-over-WebSocket and the client-inspection UI. They are not separate public/private listeners.
+- **MQTTBridge:** `admin-legacy` (8081) and `admin-tls` (8082) expose mutable bridge configuration without built-in authentication. Disable them when unused; isolate or authenticate access outside the application when enabled.
+- **MQTTIntegrator:** its mapping-admin HTTP API uses built-in Basic-auth credentials `admin` / `admin` and can rewrite the mapping file. Disable `in-http` and `in-https` unless that API is deliberately isolated behind access controls.
 
-| Storage | Result |
-| --- | --- |
-| Raw row | Topic `normalized/room1/temperature`, original `{"value":21.5,"unit":"C"}` payload. |
-| Typed row | `device_id = room1`, `value = 21.5`, `unit = C`. |
+Review the [deployment guide](docs/readme/deployment.md) before exposing a service.
 
-**Boundaries:** MQTTStore can create the raw table, but database/user provisioning and typed-table migrations are administrative tasks. Quote the INI topic filter because `#` otherwise starts a comment. Raw inserts and projections are separate operations; MQTT QoS is not an atomic database transaction guarantee. Stop MQTTStore and the broker with Ctrl+C; the database is retained.
+## Documentation
 
-[![raw-only storage, permissions and database transport →](docs/readme/media/menu/further-storage-guide.svg)](docs/readme/storage.md)
+[Documentation index](docs/index.md) — the existing guides and MQTTStore reference.
+
+- **Translate messages:** [Mapping walkthrough](docs/readme/mapping.md)
+- **Link brokers:** [Bridge walkthrough](docs/readme/bridging.md)
+- **Store telemetry:** [Storage walkthrough](docs/readme/storage.md) and [MQTTStore reference](docs/mqttstore-user-guide.md)
+- **Choose packages:** [Binary packages](https://github.com/SNodeC/Packages#readme)
+- **Run a service:** [Deployment guide](docs/readme/deployment.md)
+- **Extend applications:** [API reference](https://snodec.github.io/mqttsuite-doc/html/index.html) and [SNode.C](https://github.com/SNodeC/snode.c#project-overview)
+
+## Platforms and packages
+
+Native Linux source builds need a C++20 toolchain (GCC 12.2+ or Clang 13+), CMake 3.18+ and SNode.C 2.0.0 or newer compatible components. Signed packages cover Debian, Ubuntu, Rocky Linux, Fedora, Raspberry Pi OS and OpenWrt; check [Packages](https://github.com/SNodeC/Packages#readme) for the current release/architecture matrix.
+
+### Install
+
+Choose your route.
+
+**Signed packages:** Use [SNodeC/Packages](https://github.com/SNodeC/Packages#readme) and select your distribution, release and architecture. The application packages install their required SNode.C components automatically; no separate framework build is needed.
+
+**From source:** Follow [Build from source](docs/readme/install.md) for native Linux or OpenWrt.
+
+## Releases
+
+[Release history and release notes](https://github.com/SNodeC/mqttsuite/releases). SNode.C and MQTTSuite have independent release histories. This source tree requires SNode.C 2.0.0 or newer compatible components; keep application libraries and transport plugins ABI-compatible. See [upgrade checks](docs/readme/deployment.md#before-an-upgrade).
 
 ## Contributing
-
-### Learn more, contribute and license
 
 [Report an issue](https://github.com/SNodeC/mqttsuite/issues) with the application, transport, version and a sanitized configuration. Small topic/payload examples make mapping and forwarding reports much easier to reproduce.
 
@@ -469,7 +383,7 @@ FROM mqttsuite_demo.sensor_measurements ORDER BY id DESC LIMIT 1;
 <!-- snodec:end ecosystem -->
 
 <!-- snodec:begin footer -->
-Copyright © Volker Christian and contributors. MQTTSuite is dual-licensed under **[MIT](https://github.com/SNodeC/mqttsuite/blob/master/LICENSE-MIT) OR [GPL-3.0-or-later](https://github.com/SNodeC/mqttsuite/blob/master/LICENSE-GPL-3.0-or-later)**. SNode.C and bundled dependencies retain their own licensing terms.
+Copyright © Volker Christian and contributors. MQTTSuite is dual-licensed under **[MIT](LICENSE-MIT) OR [GPL-3.0-or-later](LICENSE-GPL-3.0-or-later)**. SNode.C and bundled dependencies retain their own licensing terms.
 
-Maintainer: [Volker Christian](https://github.com/VolkerChristian). [Organization](https://github.com/SNodeC) · [Contributing](https://github.com/SNodeC/.github/blob/main/CONTRIBUTING.md) · [Security](https://github.com/SNodeC/.github/blob/main/SECURITY.md)
+Maintainer: [Volker Christian](https://github.com/VolkerChristian). [Organization](https://github.com/SNodeC) · [Contributing](#contributing) · [Security](https://github.com/SNodeC/.github/blob/main/SECURITY.md)
 <!-- snodec:end footer -->
