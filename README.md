@@ -155,12 +155,9 @@ Review the [deployment guide](docs/readme/deployment.md) before exposing a servi
 
 Choose your route.
 
-| Route | How to install |
-| --- | --- |
-| **Signed packages** | Use [SNodeC/Packages](https://github.com/SNodeC/Packages#readme) and select your distribution, release and architecture. |
-| **From source** | Follow [Build from source](#build-from-source) for native Linux or OpenWrt. |
+**Signed packages** — Use [SNodeC/Packages](https://github.com/SNodeC/Packages#readme) and select your distribution, release and architecture. The application packages install their required SNode.C components automatically; no separate framework build is needed.
 
-The application packages install their required SNode.C components automatically; no separate framework build is needed.
+**From source** — Follow [Build from source](#build-from-source) for native Linux or OpenWrt.
 
 ### Build from source
 
