@@ -1,15 +1,11 @@
 <!-- snodec:begin page-header -->
 <a id="page-overview"></a>
 <p>
-  <a href="../../README.md#project-overview" title="MQTTSuite repository"><img src="media/page-banner.svg" alt="MQTTSuite documentation" width="100%"></a>
+  <a href="../../README.md#project-overview" title="MQTTSuite repository"><img src="media/page-banner.svg" alt="MQTTSuite repository" width="100%"></a>
 </p>
 <!-- snodec:end page-header -->
 
 # Operate MQTTSuite deliberately
-
-<p>
-  <a href="../../README.md#project-overview"><img src="media/menu/back-mqttsuite.svg" alt="MQTTSuite" width="110" height="24"></a>
-</p>
 
 The example clients connect through loopback, with disposable IDs and small topic filters. Broker listeners retain their defaults unless explicitly bound or disabled; a loopback client address does not make every listener private. A deployment also needs explicit network access, credentials, state ownership and recovery policy.
 

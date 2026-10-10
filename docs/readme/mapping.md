@@ -1,15 +1,11 @@
 <!-- snodec:begin page-header -->
 <a id="page-overview"></a>
 <p>
-  <a href="../../README.md#project-overview" title="MQTTSuite repository"><img src="media/page-banner.svg" alt="MQTTSuite documentation" width="100%"></a>
+  <a href="../../README.md#project-overview" title="MQTTSuite repository"><img src="media/page-banner.svg" alt="MQTTSuite repository" width="100%"></a>
 </p>
 <!-- snodec:end page-header -->
 
 # Map messages into the form your application needs
-
-<p>
-  <a href="../../README.md#project-overview"><img src="media/menu/back-mqttsuite.svg" alt="MQTTSuite" width="110" height="24"></a>
-</p>
 
 The landing page shows the basic example; this guide extends it.
 
@@ -114,3 +110,21 @@ mqttcli \
 The schema also supports mapping arrays, output QoS/retain settings, delay and suppression options, nested topic levels and plugin registration. Match input and output topics carefully to avoid feeding mapped output back into the same rule.
 
 [![deployment](media/menu/further-deployment.svg)](deployment.md#page-overview) [![mapping schema](media/menu/further-mapping-schema.svg)](../../lib/mapping-schema.json) [![mapping implementation](media/menu/further-mapping-source.svg)](../../lib/MqttMapper.cpp)
+
+## Mapping field reference
+
+The [mapping schema](../../lib/mapping-schema.json) defines the shape; `MqttMapper.cpp` owns rendering and emission behavior.
+
+| Field | Meaning |
+| --- | --- |
+| `mapping.topic_level` | One topic-level node or an array; `name` matches a literal or MQTT wildcard, with nested `topic_level` or a terminal `subscription` |
+| `subscription.qos` | Requested input-subscription QoS (default 0), separate from output QoS |
+| `subscription.static` | One static mapping or array; `message_mapping` matches an input message and supplies `mapped_message` |
+| `subscription.value` / `json` | One template mapping or array; `mapping_template` renders the output payload from value/JSON context |
+| `mapped_topic` | Required destination topic/template |
+| `qos`, `retain` | Output publish policy; defaults 0 and false, not implicit copies of input values |
+| `delay` | `-1` emits immediately; non-negative values use the delayed-publish path in seconds |
+| `suppressions` | Exact rendered-payload strings to skip for template mappings; an empty retained output is still emitted so retained state can be cleared |
+| `mapping.plugins` | Plugin-library paths loaded for registered template callbacks; use trusted local libraries only |
+
+Arrays let one input produce multiple outputs. A template render error is logged rather than a successful publish; inspect logs and verify every expected output. Delay/suppression and output QoS do not turn mapping into an atomic or exactly-once transaction. Keep the complete static and JSON examples above as your first tests before extending rules.

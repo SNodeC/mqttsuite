@@ -1,7 +1,7 @@
 <!-- snodec:begin page-header -->
 <a id="page-overview"></a>
 <p>
-  <a href="../README.md#project-overview" title="MQTTSuite repository"><img src="readme/media/page-banner.svg" alt="MQTTSuite documentation" width="100%"></a>
+  <a href="../README.md#project-overview" title="MQTTSuite repository"><img src="readme/media/page-banner.svg" alt="MQTTSuite repository" width="100%"></a>
 </p>
 <!-- snodec:end page-header -->
 
@@ -40,47 +40,9 @@ The automatically managed raw table contains:
 
 The table also has indexes on `received_at` and the first 255 characters of `topic`.
 
-## 2. MariaDB bootstrap: database, user, and permissions
+## 2. Database setup and permission profiles
 
-Log in as a MariaDB administrator, for example `root`:
-
-```text
-sudo mariadb
-```
-
-Create a dedicated database and user:
-
-```sql
-CREATE DATABASE mqttsuite_store
-  CHARACTER SET utf8mb4
-  COLLATE utf8mb4_unicode_ci;
-
-CREATE USER 'mqttstore'@'localhost'
-  IDENTIFIED BY 'replace-with-a-long-random-password';
-```
-
-Grant the minimum permissions needed for raw-table auto-generation and message insertion:
-
-```sql
-GRANT CREATE, INSERT, SELECT, INDEX
-  ON mqttsuite_store.*
-  TO 'mqttstore'@'localhost';
-
-FLUSH PRIVILEGES;
-```
-
-For a remote MQTTStore host, replace `localhost` with the client host or subnet, for example:
-
-```sql
-CREATE USER 'mqttstore'@'10.10.20.%'
-  IDENTIFIED BY 'replace-with-a-long-random-password';
-
-GRANT CREATE, INSERT, SELECT, INDEX
-  ON mqttsuite_store.*
-  TO 'mqttstore'@'10.10.20.%';
-
-FLUSH PRIVILEGES;
-```
+Use the complete [storage walkthrough](readme/storage.md#page-overview) for database/account bootstrap, domain-table creation, projection JSON, MQTTStore launch and expected SQL results. This page owns operational reference and troubleshooting rather than a second onboarding procedure.
 
 ### Permission profiles
 
@@ -95,327 +57,46 @@ Use the permission profile that matches how you operate MQTTStore:
 
 Do not use the MariaDB `root` user for MQTTStore. Give MQTTStore a dedicated user and only the permissions required for your deployment model.
 
-## 3. Optional: create projection tables
+## 3. Projection and raw-storage setup
 
-Raw storage works without any additional schema. Projection tables are optional typed tables for fast analytics and dashboards. MQTTStore does not auto-create projection tables because those are domain schemas and should be versioned/migrated explicitly.
+Follow [typed-table setup](readme/storage.md#2-create-the-typed-table) and [raw-only storage](readme/storage.md#raw-only-storage). MQTTStore creates the raw table when enabled, not your domain-specific tables or migrations.
 
-Example table for normalized temperature telemetry:
+## 4. Persist the configuration
 
-```sql
-CREATE TABLE mqttsuite_store.sensor_measurements (
-    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    device_id VARCHAR(255) NOT NULL,
-    metric VARCHAR(255) NOT NULL,
-    value DOUBLE NOT NULL,
-    unit VARCHAR(64) NULL,
-    received_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-    INDEX idx_device_metric_time (device_id, metric, received_at)
-);
-
-GRANT INSERT, SELECT
-  ON mqttsuite_store.sensor_measurements
-  TO 'mqttstore'@'localhost';
-
-FLUSH PRIVILEGES;
-```
-
-Projection file example:
-
-```json
-{
-  "projections": [
-    {
-      "name": "room_temperature",
-      "topic": "normalized/+/temperature",
-      "table": "sensor_measurements",
-      "columns": {
-        "device_id": { "topic_level": 1, "required": true },
-        "metric": { "literal": "temperature" },
-        "value": { "json_pointer": "/value", "required": true },
-        "unit": { "json_pointer": "/unit" }
-      }
-    }
-  ]
-}
-```
-
-Projection rules:
-
-- `--projection-file` belongs to the `storage` configuration section, so in SNode.C command-line syntax it must be written after the `storage` subcommand.
-- MQTTStore reads and validates the projection file against `mqttstore/lib/projection-schema.json` at startup. The service fails fast, reports the projection file path plus schema error locations, and exits with a non-zero status if the file is malformed or does not match the schema. Restart the service after editing the file.
-- The JSON file may contain either a top-level `projections` array or the array itself.
-- `topic` uses MQTT topic-filter syntax with `+` and `#`.
-- `topic_level` is zero-based. For `normalized/boiler/temperature`, level `0` is `normalized`, level `1` is `boiler`, and level `2` is `temperature`.
-- `literal` writes a constant string value.
-- `json_pointer` reads from the parsed JSON payload using non-empty JSON Pointer syntax that starts with `/`, for example `/value` or `/battery/voltage`.
-- Shorthand column mappings such as `"value": "/value"` are accepted and mean `json_pointer: "/value"`. Use the object form when you need `required`, `topic_level`, or `literal`.
-- `required: true` inserts `NULL` when the source is missing; without `required`, missing values are skipped.
-- Projection inserts are attempted only for valid JSON payloads whose MQTT topic matches the projection filter; the raw MQTT envelope is inserted separately.
-
-## 4. Start MQTTStore with automatic raw-table generation
-
-For a local broker on plain MQTT/TCP:
+Protect credentials before persisting: restrict the configuration directory/file to the service account, never publish dumps, and avoid secret-bearing command lines or shell history in production. The example password below is disposable; use `--config-file` for a protected configuration. Quote INI topic filters containing `#`. For service-style operation, write a known-good configuration once with `--write-config` / `-w` according to the MQTTSuite configuration workflow:
 
 ```text
 mqttstore \
     in-mqtt --disabled=false \
-        remote --host 127.0.0.1 --port 1883 \
-        session --client-id mqttstore-local \
-        sub --topic '#' \
-        db --host 127.0.0.1 --database mqttsuite_store --username mqttstore --password 'replace-with-a-long-random-password' \
-            storage --raw-table mqtt_messages --auto-create-raw-table
-```
-
-With a projection file:
-
-```text
-mqttstore \
-    in-mqtt --disabled=false \
-        remote --host 127.0.0.1 --port 1883 \
+        remote --host 127.0.0.1 --port 18883 \
         session --client-id mqttstore-local \
         sub --topic 'normalized/#' \
-        db --host 127.0.0.1 --database mqttsuite_store --username mqttstore --password 'replace-with-a-long-random-password' \
-            storage --raw-table mqtt_messages --auto-create-raw-table --projection-file /etc/mqttsuite/mqttstore-projections.json
-```
-
-### Working `--projection-file` walkthrough
-
-This is the smallest end-to-end projection example. It keeps raw storage enabled and adds one typed projection for temperature telemetry published to `normalized/<device>/temperature`.
-
-1. Create the typed projection table once if you did not already create it in section 3:
-
-   ```sql
-   CREATE TABLE IF NOT EXISTS mqttsuite_store.sensor_measurements (
-       id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-       device_id VARCHAR(255) NOT NULL,
-       metric VARCHAR(255) NOT NULL,
-       value DOUBLE NOT NULL,
-       unit VARCHAR(64) NULL,
-       received_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-       INDEX idx_device_metric_time (device_id, metric, received_at)
-   );
-   ```
-
-2. Create the projection file on the host that runs MQTTStore:
-
-   ```text
-   sudo install -d -m 0755 /etc/mqttsuite
-   sudo tee /etc/mqttsuite/mqttstore-projections.json >/dev/null <<'JSON'
-   {
-     "projections": [
-       {
-         "name": "room_temperature",
-         "topic": "normalized/+/temperature",
-         "table": "sensor_measurements",
-         "columns": {
-           "device_id": { "topic_level": 1, "required": true },
-           "metric": { "literal": "temperature" },
-           "value": { "json_pointer": "/value", "required": true },
-           "unit": { "json_pointer": "/unit" }
-         }
-       }
-     ]
-   }
-   JSON
-   ```
-
-3. Start MQTTStore with the file in the `storage` section:
-
-   ```text
-   mqttstore \
-       in-mqtt --disabled=false \
-           remote --host 127.0.0.1 --port 1883 \
-           session --client-id mqttstore-projection-demo \
-           sub --topic 'normalized/#' \
-           db --host 127.0.0.1 --database mqttsuite_store --username mqttstore --password 'replace-with-a-long-random-password' \
-               storage --raw-table mqtt_messages --auto-create-raw-table --projection-file /etc/mqttsuite/mqttstore-projections.json
-   ```
-
-4. Publish a matching message from another terminal:
-
-   ```text
-   mosquitto_pub -h 127.0.0.1 -p 1883 \
-     -t 'normalized/boiler/temperature' \
-     -m '{"value":63.4,"unit":"C","source":"demo"}'
-   ```
-
-5. Confirm both writes in MariaDB:
-
-   ```sql
-   SELECT topic, payload_format, payload_text
-   FROM mqtt_messages
-   ORDER BY id DESC
-   LIMIT 1;
-
-   SELECT device_id, metric, value, unit
-   FROM sensor_measurements
-   ORDER BY id DESC
-   LIMIT 1;
-   ```
-
-   The projected row should contain `boiler`, `temperature`, `63.4`, and `C`. If the raw row appears but the projection row does not, check that the payload is valid JSON, the topic matches `normalized/+/temperature`, the JSON Pointer `/value` exists, and the `sensor_measurements` table already exists.
-
-For MQTT over WebSockets:
-
-```text
-mqttstore \
-    in-wsmqtt --disabled=false \
-        remote --host 127.0.0.1 --port 8080 \
-        http --target /ws \
-        session --client-id mqttstore-ws \
-        sub --topic 'normalized/#' \
-        db --database mqttsuite_store --username mqttstore --password 'replace-with-a-long-random-password' \
-            storage --auto-create-raw-table
-```
-
-## 5. Persist the configuration
-
-For service-style operation, write a known-good configuration once with `--write-config` / `-w` according to the MQTTSuite configuration workflow:
-
-```text
-mqttstore \
-    in-mqtt --disabled=false \
-        remote --host 127.0.0.1 --port 1883 \
-        session --client-id mqttstore-local \
-        sub --topic 'normalized/#' \
-        db --host 127.0.0.1 --database mqttsuite_store --username mqttstore --password 'replace-with-a-long-random-password' \
+        db --host 127.0.0.1 --database mqttsuite_demo --username mqttstore_demo --password 'REPLACE-WITH-A-UNIQUE-PASSWORD' \
             storage --raw-table mqtt_messages --auto-create-raw-table \
     -w
 ```
 
 After that, the service can be started with the saved defaults, depending on your installation and instance selection.
 
-## 6. Generate example MQTT traffic
+## 5. Traffic and verification
 
-The examples below use Mosquitto clients against a local broker. If your broker listens elsewhere, adjust host and port.
+The [storage walkthrough](readme/storage.md#4-publish-a-measurement) owns the complete MQTTCli publish command and [SQL verification](readme/storage.md#5-verify-the-raw-message-and-projection), using loopback port 18883 and `mqttsuite_demo`. Its projection contains `device_id`, `value`, `unit` and `received_at`; do not query a `metric` column that that schema does not define.
 
-### JSON telemetry
-
-```text
-mosquitto_pub -h 127.0.0.1 -p 1883 \
-  -t 'normalized/boiler/temperature' \
-  -m '{"value":63.4,"unit":"C","source":"demo"}'
-```
-
-Expected raw-table behavior:
-
-- `topic = normalized/boiler/temperature`
-- `payload_format = json`
-- `payload_text` contains the original JSON string
-- `payload_json` contains the parsed JSON document
-
-If the projection example above is enabled, MQTTStore also inserts a row into `sensor_measurements`:
-
-| device_id | metric | value | unit |
-| --------- | ------ | ----- | ---- |
-| `boiler` | `temperature` | `63.4` | `C` |
-
-### Plain text status
-
-```text
-mosquitto_pub -h 127.0.0.1 -p 1883 \
-  -t 'devices/pump-1/status' \
-  -m 'running'
-```
-
-Expected raw-table behavior:
-
-- `payload_format = text`
-- `payload_text = running`
-- `payload_json = NULL`
-
-### Retained state
-
-```text
-mosquitto_pub -h 127.0.0.1 -p 1883 \
-  -r \
-  -t 'devices/pump-1/availability' \
-  -m 'online'
-```
-
-Expected raw-table behavior:
-
-- `retain_flag = 1`
-- The message is still stored like any other publish.
-- Downstream consumers can decide whether retained state represents a new measurement or broker state.
-
-### QoS 1 publish
-
-```text
-mosquitto_pub -h 127.0.0.1 -p 1883 \
-  -q 1 \
-  -t 'normalized/room-101/temperature' \
-  -m '{"value":22.7,"unit":"C"}'
-```
-
-Expected raw-table behavior:
-
-- `qos = 1`
-- JSON parsing and projections behave the same as for QoS 0.
-
-### Subscribing with a QoS override
-
-MQTTStore topic filters accept the MQTTSuite `##<qos>` suffix. For example, subscribe to normalized messages at QoS 1:
-
-```text
-mqttstore \
-    in-mqtt --disabled=false \
-        remote --host 127.0.0.1 --port 1883 \
-        session --client-id mqttstore-qos1 \
-        sub --topic 'normalized/###1' \
-        db --database mqttsuite_store --username mqttstore --password 'replace-with-a-long-random-password' \
-            storage --auto-create-raw-table
-```
-
-## 7. Verify stored data
-
-Open MariaDB:
-
-```text
-mariadb -u mqttstore -p mqttsuite_store
-```
-
-Inspect recent messages:
+For raw storage, JSON messages populate the available JSON/text representations; plain text has no parsed JSON representation. Raw metadata also records QoS and retained/duplicate flags. To inspect a larger recent sample, use your database client with the same demonstration database:
 
 ```sql
-SELECT id,
-       received_at,
-       source_instance,
-       topic,
-       qos,
-       retain_flag,
-       dup_flag,
-       packet_identifier,
-       payload_format,
-       payload_text
-FROM mqtt_messages
-ORDER BY id DESC
-LIMIT 10;
+SELECT id, received_at, topic, qos, retain_flag, payload_format, payload_text
+FROM mqttsuite_demo.mqtt_messages
+ORDER BY id DESC LIMIT 10;
 ```
 
-Query JSON payloads:
+Use the broker/client's own `pub --help` for additional retained/QoS traffic tests, and the `sub` topic suffix `##<qos>` in the subscription reference for an input QoS override. MQTT QoS is not a promise of exactly-once SQL insertion. Raw-only storage needs no projection file; typed tables, nullability and validation remain operator-owned.
 
-```sql
-SELECT id,
-       topic,
-       JSON_UNQUOTE(JSON_EXTRACT(payload_json, '$.value')) AS value,
-       JSON_UNQUOTE(JSON_EXTRACT(payload_json, '$.unit')) AS unit
-FROM mqtt_messages
-WHERE payload_format = 'json'
-ORDER BY id DESC
-LIMIT 10;
-```
+### Subscription QoS override
 
-Inspect projected measurements:
+A topic filter ending in `##<qos>` selects the requested subscription QoS, for example `normalized/###1` for `normalized/#` at QoS 1. Quote this value in the shell and in INI configuration so `#` is not mistaken for a comment. Check the installed application's `sub --help` before combining multiple filters. This setting is distinct from a publisher's QoS and the database's commit boundary.
 
-```sql
-SELECT id, device_id, metric, value, unit, received_at
-FROM sensor_measurements
-ORDER BY id DESC
-LIMIT 10;
-```
-
-## 8. Operational recommendations
+## 6. Operational recommendations
 
 - Keep raw storage enabled. It provides audit, replay, and debugging data even when projections change.
 - Use MQTTIntegrator to normalize vendor-specific payloads before MQTTStore when you have multiple device families.
@@ -426,7 +107,7 @@ LIMIT 10;
 - Prefer narrower topic filters in production, for example `normalized/#` instead of `#`.
 - Treat retained messages deliberately. They are useful for state, but they may not represent fresh telemetry.
 
-## 9. Troubleshooting
+## 7. Troubleshooting
 
 ### MQTTStore starts but no rows appear
 
