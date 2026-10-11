@@ -197,3 +197,9 @@ The three existing services (`mqttbroker`, `mqttintegrator`, `mqttbridge`) run i
 MQTTStore and the CLI are independent executable packages. Configure database credentials/storage projections and MQTT endpoints before running MQTTStore. TLS endpoints need suitable certificates, keys and trust settings.
 
 Then check application help/configuration, native MQTT, WS and WSS connections, service restart/logging, bridge forwarding, integrator mappings, and MQTTStore writes.
+
+### Next step
+
+Configure the applications you installed, then start the packaged procd services for MQTTBroker, MQTTBridge or MQTTIntegrator as appropriate. Review listener bindings, administrative access and logs before opening firewall access.
+
+[![Deployment →](../media/menu/further-deployment.svg)](deployment.md#page-overview)
