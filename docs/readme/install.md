@@ -20,7 +20,7 @@ Build and install on the Linux machine that will run the software.
 
 ### Requirements
 
-Install **SNode.C before configuring MQTTSuite**. Use [SNode.C’s prebuilt DEB/RPM packages](https://github.com/SNodeC/Packages#readme) (which include headers and CMake files), or follow the [SNode.C → Build → OpenWrt cross-compilation](https://github.com/SNodeC/snode.c#project-overview). OpenWrt runtime packages do not provide the development files needed for a native build. Current MQTTSuite CMake files request **SNode.C 2.0.0** using its package compatibility rules. Build both from compatible revisions if you are working on their APIs; do not combine arbitrary old libraries and current headers.
+Install **SNode.C before configuring MQTTSuite**. Use [SNode.C’s prebuilt DEB/RPM packages](https://github.com/SNodeC/Packages#readme) (which include headers and CMake files), or follow the [SNode.C → Build → Native Linux build](https://github.com/SNodeC/snode.c#project-overview). OpenWrt runtime packages do not provide the development files needed for a native build. Current MQTTSuite CMake files request **SNode.C 2.0.0** using its package compatibility rules. Build both from compatible revisions if you are working on their APIs; do not combine arbitrary old libraries and current headers.
 
 The suite requires C++20 and CMake 3.18+. The full build also needs the SNode.C components for the chosen transports and MariaDB integration. On Debian/Ubuntu:
 
@@ -47,7 +47,7 @@ If SNode.C is in a custom prefix, add `-DCMAKE_PREFIX_PATH=/path/to/prefix`. Dat
 
 ### Select build features
 
-Transport options are application-specific, such as `CONFIG_MQTTSUITE_BROKER_TCP_IPV4`, `CONFIG_MQTTSUITE_BROKER_TLS_IPV4` and `CONFIG_MQTTSUITE_BROKER_WS`. Inspect the CMake cache and each application’s CMake file before producing a reduced build. Examples using an omitted instance will not work unchanged.
+Transport options are application-specific, such as `CONFIG_MQTTSUITE_BROKER_TCP_IPV4`, `CONFIG_MQTTSUITE_BROKER_TLS_IPV4` and `CONFIG_MQTTSUITE_BROKER_WS`. For example, append `-DCONFIG_MQTTSUITE_BROKER_WS=OFF` to the configure command to omit the broker’s WebSocket component; its dependent WSS option is disabled too. Use `cmake -LAH -N build` to inspect the configured options and consult each application’s CMake file before reducing other transports. Examples using an omitted instance will not work unchanged.
 
 ### Verify the installation
 

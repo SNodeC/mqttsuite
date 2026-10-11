@@ -9,8 +9,7 @@
 
 The landing page shows the basic example; this guide extends it.
 
-Run [Translate a device’s language](../../README.md#translate-a-devices-language) first and keep its `mapping.json`. The README owns that complete lookup-rule example. Its `topic_level` tree identifies the input topic; `subscription.static.message_mapping` contains the exact input/output pairs. This guide adds an external integrator and template-based mapping.
-
+Run [Translate a device’s language](../../README.md#translate-a-devices-language) first and keep its `mapping.json`.
 ## Use a separate integrator
 
 Map through an existing broker without adding rules to that broker.

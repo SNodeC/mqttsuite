@@ -80,7 +80,7 @@ After that, the service can be started with the saved defaults, depending on you
 
 ## 5. Traffic and verification
 
-The [storage walkthrough](readme/storage.md#4-publish-a-measurement) owns the complete MQTTCli publish command and [SQL verification](readme/storage.md#5-verify-the-raw-message-and-projection), using loopback port 18883 and `mqttsuite_demo`. Its projection contains `device_id`, `value`, `unit` and `received_at`; do not query a `metric` column that that schema does not define.
+The [storage walkthrough](readme/storage.md#4-publish-a-measurement) owns the complete MQTTCli publish command and [SQL verification](readme/storage.md#5-verify-the-raw-message-and-projection), using loopback port 18883 and `mqttsuite_demo`. Its projection contains `device_id`, `value`, `unit` and `received_at`.
 
 For raw storage, JSON messages populate the available JSON/text representations; plain text has no parsed JSON representation. Raw metadata also records QoS and retained/duplicate flags. To inspect a larger recent sample, use your database client with the same demonstration database:
 
@@ -134,7 +134,7 @@ A topic filter ending in `##<qos>` selects the requested subscription QoS, for e
 Use MariaDB to inspect grants:
 
 ```sql
-SHOW GRANTS FOR 'mqttstore'@'localhost';
+SHOW GRANTS FOR 'mqttstore_demo'@'localhost';
 ```
 
 Then add only the missing permission needed for your deployment profile.

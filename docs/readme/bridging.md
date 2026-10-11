@@ -43,8 +43,8 @@ These fields are defined by [the bridge schema](../../mqttbridge/lib/bridge-sche
 For an IPv4 TLS stream, change that broker's `network.encryption` to `tls`, keep `transport: "stream"`, and provide the real remote host/port under `network.in`. The topology schema contains transport selection, not PEM credentials. Configure its dynamically named connection through the runtime interface after selecting the topology:
 
 ```sh
-mqttbridge --definition bridge.json 'demo+a' --help=expanded
-mqttbridge --definition bridge.json 'demo+a' tls --ca-cert /path/to/trusted-ca.pem
+mqttbridge bridge --definition bridge.json 'demo+a' --help=expanded
+mqttbridge bridge --definition bridge.json 'demo+a' tls --ca-cert /path/to/trusted-ca.pem
 ```
 
 For example, replace only that broker's `network` object (the hostname is a placeholder, not an existing service):
@@ -65,15 +65,12 @@ Here `demo+a` follows `bridge.name: "demo"` and `network.instance_name: "a"`; re
 
 `admin-legacy` (8081) and `admin-tls` (8082) expose the mutable configuration API, including `/config`, without built-in authentication. Disable both when not used; otherwise isolate/authenticate them outside the application. Do not expose administration merely to establish encrypted MQTT connections. See [deployment](deployment.md#page-overview).
 
-
 ## Deploy a deliberate topology
 
-**Boundaries:** the sample’s `relay/…` outputs do not match either input subscription. Keep that separation, or design a similarly explicit namespace, when adding brokers. Built-in loop prevention is not a license to connect arbitrary overlapping bridges and wildcard subscriptions without analyzing message paths.
+The sample’s `relay/…` outputs do not match either input subscription. Keep that separation, or design a similarly explicit namespace, when adding brokers. Built-in loop prevention is not a license to connect arbitrary overlapping bridges and wildcard subscriptions without analyzing message paths.
 
 For off-host endpoints, configure TLS and appropriate broker access policy. A bridge is not broker clustering, consensus or an exactly-once end-to-end transaction mechanism. Plan reconnect behavior, retained messages, subscription QoS and persistent sessions around your workload.
 
 Stop all demonstration processes with Ctrl+C.
 
 [![deployment](media/menu/further-deployment.svg)](deployment.md#page-overview) [![bridge schema](media/menu/further-bridge-schema.svg)](../../mqttbridge/lib/bridge-schema.json)
-
-Deployment is for unattended operation. The bridge schema lists additional network and MQTT options.
