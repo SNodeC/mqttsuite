@@ -22,6 +22,13 @@
 
 Start with the [repository README](../README.md#quick-start) for a first working result. These guides own deeper build, configuration, deployment and development instructions.
 
+## Sections
+
+<!-- snodec:begin section-pages -->
+- [Guides](guides/README.md#page-overview)
+- [MQTTStore User Guide](mqttstore-user-guide.md#page-overview)
+<!-- snodec:end section-pages -->
+
 ## Guides and references
 
 - [Install and build](guides/build-from-source.md#page-overview)
@@ -30,10 +37,3 @@ Start with the [repository README](../README.md#quick-start) for a first working
 - [Storage walkthrough](guides/storage.md#page-overview)
 - [Configuration and deployment](guides/deployment.md#page-overview)
 - [MQTTStore reference](mqttstore-user-guide.md#page-overview)
-
-[Repository](../README.md#project-overview) · [SNode.C organization](https://github.com/SNodeC)
-
-<!-- snodec:begin section-pages -->
-- [Guides](guides/README.md#page-overview)
-- [MQTTStore User Guide](mqttstore-user-guide.md#page-overview)
-<!-- snodec:end section-pages -->

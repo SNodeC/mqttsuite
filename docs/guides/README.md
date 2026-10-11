@@ -8,6 +8,8 @@
 
 Guides for building, deploying, bridging, mapping and storing with MQTTSuite.
 
+## Sections
+
 <!-- snodec:begin section-pages -->
 - [Connect two brokers](bridging.md#page-overview)
 - [Build and install MQTTSuite from source](build-from-source.md#page-overview)

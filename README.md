@@ -386,12 +386,14 @@ Use signed packages for your distribution, release and architecture, or build fr
 
 ## Contributing
 
+[Engineering instructions for coding agents](AGENTS.md).
+
 [Report an issue](https://github.com/SNodeC/mqttsuite/issues) with the application, transport, version and a sanitized configuration. Small topic/payload examples make mapping and forwarding reports much easier to reproduce.
 
 <!-- snodec:begin ecosystem -->
 ## Ecosystem
 
-[SNode.C organization](https://github.com/SNodeC) · Built on [SNode.C](https://github.com/SNodeC/snode.c#project-overview) · [Signed packages](https://github.com/SNodeC/Packages#readme)
+Built on [SNode.C](https://github.com/SNodeC/snode.c#project-overview) · [Signed packages](https://github.com/SNodeC/Packages#readme)
 <!-- snodec:end ecosystem -->
 
 <!-- snodec:begin footer -->
