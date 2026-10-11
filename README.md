@@ -30,7 +30,7 @@ MQTTSuite is a set of five C++ applications for **MQTT 3.1.1**: run a broker, tr
   <a href="#first-success" title="Use"><img src="docs/readme/media/menu/snodec-use-108.svg" alt="Use" width="108" height="24"></a>
   <a href="#configuration" title="Configure"><img src="docs/readme/media/menu/snodec-configure-108.svg" alt="Configure" width="108" height="24"></a>
   <a href="#architecture" title="Architecture"><img src="docs/readme/media/menu/snodec-architecture-108.svg" alt="Architecture" width="108" height="24"></a>
-  <a href="https://snodec.github.io/mqttsuite-doc/html/annotated.html" title="API"><img src="docs/readme/media/menu/snodec-api-108.svg" alt="API" width="108" height="24"></a>
+  <a href="https://snodec.github.io/mqttsuite-doc/html/namespacemqtt.html" title="API"><img src="docs/readme/media/menu/snodec-api-108.svg" alt="API" width="108" height="24"></a>
   <a href="#contributing" title="Contribute"><img src="docs/readme/media/menu/snodec-contribute-108.svg" alt="Contribute" width="108" height="24"></a>
 </p>
 
@@ -155,7 +155,7 @@ mqttcli \
 | `pressed` | `on` |
 | `released` | `off` |
 
-**Boundaries:** other payloads do not match these rules. Stop the processes before the next example. To map through an existing broker use MQTTIntegrator instead, with its administrative listeners explicitly disabled as shown in the guide; do not apply the same rules in both places unless duplicate outputs are intended.
+**Boundaries:** other payloads do not match these rules. Publish `released` in terminal 3 to check the `off` row too. Stop the processes before the next example. To map through an existing broker use MQTTIntegrator instead, with its administrative listeners explicitly disabled as shown in the guide; do not apply the same rules in both places unless duplicate outputs are intended.
 
 [![complete integrator and JSON-template examples](docs/readme/media/menu/further-mapping-examples.svg)](docs/readme/mapping.md#page-overview)
 
@@ -296,6 +296,8 @@ mqttcli \
 
 MQTTStore keeps the raw MQTT envelope and projects JSON fields into application-owned typed tables. The [complete storage walkthrough](docs/readme/storage.md#page-overview) covers MariaDB provisioning, `projections.json`, run commands, expected rows and delivery boundaries. It needs a local MariaDB server; start there after the basic publish/subscribe exchange.
 
+If the first exchange fails, use [connection troubleshooting](docs/readme/deployment.md#troubleshoot-the-first-connection).
+
 ## Capabilities
 
 ### Choose the job, choose the application
@@ -306,7 +308,7 @@ MQTTStore keeps the raw MQTT envelope and projects JSON fields into application-
 - **MQTTCli** (`mqttcli`) — Publish, subscribe and diagnose connections from a terminal or script.
 - **MQTTStore** (`mqttstore`) — Store raw MQTT messages in MariaDB and optionally project JSON fields into application-owned typed tables.
 
-MQTTIntegrator, MQTTBridge and MQTTStore connect as MQTT clients; they do not require MQTTBroker as the other endpoint. MQTTBridge is not another broker listener. Its optional `loop_prevention` setting uses a non-standard bridge flag that must be supported by the remote broker; the example below explains the distinction.
+MQTTIntegrator, MQTTBridge and MQTTStore connect as MQTT clients; they do not require MQTTBroker as the other endpoint. MQTTBridge is not another broker listener. Its optional `loop_prevention` setting uses a non-standard bridge flag that must be supported by the remote broker; the [two-broker example](#bridge-separate-brokers) explains the distinction.
 
 ### Connect it your way
 
@@ -357,15 +359,13 @@ The API menu opens the legacy Doxygen class index. It is a reference snapshot, n
 - **Store telemetry:** [Storage walkthrough](docs/readme/storage.md#page-overview) and [MQTTStore reference](docs/mqttstore-user-guide.md#page-overview)
 - **Choose packages:** [Binary packages](https://github.com/SNodeC/Packages#readme)
 - **Run a service:** [Deployment guide](docs/readme/deployment.md#page-overview)
-- **Extend applications:** [API reference](https://snodec.github.io/mqttsuite-doc/html/annotated.html) and [SNode.C](https://github.com/SNodeC/snode.c#project-overview)
+- **Extend applications:** [API reference](https://snodec.github.io/mqttsuite-doc/html/namespacemqtt.html) and [SNode.C](https://github.com/SNodeC/snode.c#project-overview)
 
 ## Platforms and packages
 
 Native Linux source builds need a C++20 toolchain (GCC 12.2+ or Clang 13+), CMake 3.18+ and SNode.C 2.0.0 or newer compatible components. Signed packages cover Debian, Ubuntu, Rocky Linux, Fedora, Raspberry Pi OS and OpenWrt; check [Packages](https://github.com/SNodeC/Packages#readme) for the current release/architecture matrix.
 
 ### Install
-
-Choose your route.
 
 <p>
   <a href="https://github.com/SNodeC/Packages#readme" title="Signed packages"><img src="docs/readme/media/menu/route-packages.svg" alt="Signed packages" width="152" height="24"></a>
