@@ -1,7 +1,7 @@
 <!-- snodec:begin page-header -->
 <a id="page-overview"></a>
 <p>
-  <a href="../../README.md#project-overview" title="MQTTSuite repository"><img src="media/page-banner.svg" alt="MQTTSuite repository" width="100%"></a>
+  <a href="../../README.md#project-overview" title="MQTTSuite repository"><img src="../media/page-banner.svg" alt="MQTTSuite repository" width="100%"></a>
 </p>
 <!-- snodec:end page-header -->
 
@@ -44,7 +44,7 @@ mqttintegrator \
 
 **Boundaries:** the integrator's admin API currently uses built-in Basic-auth credentials `admin` / `admin`; keep it disabled unless deliberately isolated. Do not run the same mapping in both broker and integrator unless duplicate outputs are intended. Stop the integrator with Ctrl+C.
 
-[![configuration and management access](media/menu/further-configuration.svg)](deployment.md#configuration)
+[![configuration and management access](../media/menu/further-configuration.svg)](deployment.md#configuration)
 
 ## Move from lookup rules to templates
 
@@ -108,7 +108,7 @@ mqttcli \
 
 The schema also supports mapping arrays, output QoS/retain settings, delay and suppression options, nested topic levels and plugin registration. Match input and output topics carefully to avoid feeding mapped output back into the same rule.
 
-[![deployment](media/menu/further-deployment.svg)](deployment.md#page-overview) [![mapping schema](media/menu/further-mapping-schema.svg)](../../lib/mapping-schema.json) [![mapping implementation](media/menu/further-mapping-source.svg)](../../lib/MqttMapper.cpp)
+[![deployment](../media/menu/further-deployment.svg)](deployment.md#page-overview) [![mapping schema](../media/menu/further-mapping-schema.svg)](../../lib/mapping-schema.json) [![mapping implementation](../media/menu/further-mapping-source.svg)](../../lib/MqttMapper.cpp)
 
 ## Mapping field reference
 

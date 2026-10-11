@@ -1,7 +1,7 @@
 <!-- snodec:begin page-header -->
 <a id="page-overview"></a>
 <p>
-  <a href="../../README.md#project-overview" title="MQTTSuite repository"><img src="media/page-banner.svg" alt="MQTTSuite repository" width="100%"></a>
+  <a href="../../README.md#project-overview" title="MQTTSuite repository"><img src="../media/page-banner.svg" alt="MQTTSuite repository" width="100%"></a>
 </p>
 <!-- snodec:end page-header -->
 
@@ -73,4 +73,4 @@ For off-host endpoints, configure TLS and appropriate broker access policy. A br
 
 Stop all demonstration processes with Ctrl+C.
 
-[![deployment](media/menu/further-deployment.svg)](deployment.md#page-overview) [![bridge schema](media/menu/further-bridge-schema.svg)](../../mqttbridge/lib/bridge-schema.json)
+[![deployment](../media/menu/further-deployment.svg)](deployment.md#page-overview) [![bridge schema](../media/menu/further-bridge-schema.svg)](../../mqttbridge/lib/bridge-schema.json)

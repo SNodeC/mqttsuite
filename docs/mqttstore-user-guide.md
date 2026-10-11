@@ -1,7 +1,7 @@
 <!-- snodec:begin page-header -->
 <a id="page-overview"></a>
 <p>
-  <a href="../README.md#project-overview" title="MQTTSuite repository"><img src="readme/media/page-banner.svg" alt="MQTTSuite repository" width="100%"></a>
+  <a href="../README.md#project-overview" title="MQTTSuite repository"><img src="media/page-banner.svg" alt="MQTTSuite repository" width="100%"></a>
 </p>
 <!-- snodec:end page-header -->
 
@@ -42,7 +42,7 @@ The table also has indexes on `received_at` and the first 255 characters of `top
 
 ## 2. Database setup and permission profiles
 
-Use the complete [storage walkthrough](readme/storage.md#page-overview) for database/account bootstrap, domain-table creation, projection JSON, MQTTStore launch and expected SQL results. This page owns operational reference and troubleshooting rather than a second onboarding procedure.
+Use the complete [storage walkthrough](guides/storage.md#page-overview) for database/account bootstrap, domain-table creation, projection JSON, MQTTStore launch and expected SQL results. This page owns operational reference and troubleshooting rather than a second onboarding procedure.
 
 ### Permission profiles
 
@@ -59,7 +59,7 @@ Do not use the MariaDB `root` user for MQTTStore. Give MQTTStore a dedicated use
 
 ## 3. Projection and raw-storage setup
 
-Follow [typed-table setup](readme/storage.md#2-create-the-typed-table) and [raw-only storage](readme/storage.md#raw-only-storage). MQTTStore creates the raw table when enabled, not your domain-specific tables or migrations.
+Follow [typed-table setup](guides/storage.md#2-create-the-typed-table) and [raw-only storage](guides/storage.md#raw-only-storage). MQTTStore creates the raw table when enabled, not your domain-specific tables or migrations.
 
 ## 4. Persist the configuration
 
@@ -80,7 +80,7 @@ After that, the service can be started with the saved defaults, depending on you
 
 ## 5. Traffic and verification
 
-The [storage walkthrough](readme/storage.md#4-publish-a-measurement) owns the complete MQTTCli publish command and [SQL verification](readme/storage.md#5-verify-the-raw-message-and-projection), using loopback port 18883 and `mqttsuite_demo`. Its projection contains `device_id`, `value`, `unit` and `received_at`.
+The [storage walkthrough](guides/storage.md#4-publish-a-measurement) owns the complete MQTTCli publish command and [SQL verification](guides/storage.md#5-verify-the-raw-message-and-projection), using loopback port 18883 and `mqttsuite_demo`. Its projection contains `device_id`, `value`, `unit` and `received_at`.
 
 For raw storage, JSON messages populate the available JSON/text representations; plain text has no parsed JSON representation. Raw metadata also records QoS and retained/duplicate flags. To inspect a larger recent sample, use your database client with the same demonstration database:
 

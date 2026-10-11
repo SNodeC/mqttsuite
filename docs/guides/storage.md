@@ -1,7 +1,7 @@
 <!-- snodec:begin page-header -->
 <a id="page-overview"></a>
 <p>
-  <a href="../../README.md#project-overview" title="MQTTSuite repository"><img src="media/page-banner.svg" alt="MQTTSuite repository" width="100%"></a>
+  <a href="../../README.md#project-overview" title="MQTTSuite repository"><img src="../media/page-banner.svg" alt="MQTTSuite repository" width="100%"></a>
 </p>
 <!-- snodec:end page-header -->
 
@@ -11,7 +11,7 @@ This is the complete raw-message and typed-projection walkthrough. It owns datab
 
 MQTTStore subscribes to topic filters and writes messages to MariaDB. Raw storage and typed projections are separate: keep the original payload even when a message is not JSON, and add a typed projection when the payload follows a useful schema.
 
-**You need:** MQTTBroker, MQTTCli, MQTTStore, a local MariaDB server and database-client access with an appropriately privileged account. Start in an empty working directory. Follow the [first-run and listener defaults](../../README.md#publish-your-first-message). Save the projection below as `projections.json`; an optional [download](examples/projections.json) is also available. Port **18883** must be free. Replace the sample password before use.
+**You need:** MQTTBroker, MQTTCli, MQTTStore, a local MariaDB server and database-client access with an appropriately privileged account. Start in an empty working directory. Follow the [first-run and listener defaults](../../README.md#publish-your-first-message). Save the projection below as `projections.json`; an optional [download](../readme/examples/projections.json) is also available. Port **18883** must be free. Replace the sample password before use.
 
 **Run — terminal 1, start the broker:**
 
@@ -123,4 +123,4 @@ Omit `--projection-file` when you only want raw persistence. The raw table recor
 
 **Boundaries:** database inserts, MQTT acknowledgements and typed projections are separate boundaries. Do not infer atomic raw-plus-projection writes or exactly-once database delivery from MQTT QoS. Plan retention, backups, reconnect behavior and capacity explicitly.
 
-[![deployment](media/menu/further-deployment.svg)](deployment.md#page-overview) [![full MQTTStore guide](media/menu/further-mqttstore-guide.svg)](../mqttstore-user-guide.md#page-overview) [![projection schema](media/menu/further-projection-schema.svg)](../../mqttstore/lib/projection-schema.json)
+[![deployment](../media/menu/further-deployment.svg)](deployment.md#page-overview) [![full MQTTStore guide](../media/menu/further-mqttstore-guide.svg)](../mqttstore-user-guide.md#page-overview) [![projection schema](../media/menu/further-projection-schema.svg)](../../mqttstore/lib/projection-schema.json)

@@ -1,15 +1,15 @@
 <!-- snodec:begin page-header -->
 <a id="page-overview"></a>
 <p>
-  <a href="../../README.md#project-overview" title="MQTTSuite repository"><img src="media/page-banner.svg" alt="MQTTSuite repository" width="100%"></a>
+  <a href="../../README.md#project-overview" title="MQTTSuite repository"><img src="../media/page-banner.svg" alt="MQTTSuite repository" width="100%"></a>
 </p>
 <!-- snodec:end page-header -->
 
 # Build and install MQTTSuite from source
 
 <p>
-  <a href="#native-linux-build" title="Native Linux build"><img src="media/install-native-linux.svg" alt="Native Linux build" width="274" height="28"></a>
-  <a href="#openwrt-cross-compilation" title="OpenWrt cross-compilation"><img src="media/install-openwrt.svg" alt="OpenWrt cross-compilation" width="274" height="28"></a>
+  <a href="#native-linux-build" title="Native Linux build"><img src="../media/install-native-linux.svg" alt="Native Linux build" width="274" height="28"></a>
+  <a href="#openwrt-cross-compilation" title="OpenWrt cross-compilation"><img src="../media/install-openwrt.svg" alt="OpenWrt cross-compilation" width="274" height="28"></a>
 </p>
 
 **Prefer prebuilt binaries?** See [Packages](https://github.com/SNodeC/Packages#readme) for supported distributions and installation instructions.
@@ -116,7 +116,7 @@ OpenWrt builds and stages SNode.C before compiling MQTTSuite, as declared by the
 
 This example creates unsigned packages for local use. Adjust the parallel job count to the build host. In an existing SDK, retain your `.config` and change selections through `make menuconfig` instead of replacing it.
 
-Use **Network / MQTTSuite** in `make menuconfig`. `CONFIG_PACKAGE_<package>=m` builds an installable package; `y` also selects it for an image build; `n` omits it unless required by a selected consumer. `mqttsuite` selects all five applications and both mapping plugins. Required SNode.C layers are selected automatically. See the [package catalog](https://github.com/SNodeC/Packages/blob/main/docs/mqttsuite-package-options.md) for contents.
+Use **Network / MQTTSuite** in `make menuconfig`. `CONFIG_PACKAGE_<package>=m` builds an installable package; `y` also selects it for an image build; `n` omits it unless required by a selected consumer. `mqttsuite` selects all five applications and both mapping plugins. Required SNode.C layers are selected automatically. See the [package catalog](https://github.com/SNodeC/Packages/blob/main/docs/catalogs/mqttsuite.md) for contents.
 
 MQTTSuite compiles only selected applications. Each has eight transport options; WebSocket plugins compile and ship only with WS enabled. TLS requires its base socket family; WSS requires WS and an enabled TLS family. WS requires a socket family. IPv4 TCP is retained when both IPv6 and Unix sockets are disabled. Unix-socket TLS defaults to disabled. Mapping plugins are selected separately for packaging.
 
