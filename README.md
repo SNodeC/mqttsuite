@@ -4,12 +4,12 @@
 <p>
 <picture>
   <source media="(max-width: 600px)" srcset="docs/media/hero-mobile.svg">
-  <img src="docs/media/hero.svg" alt="MQTTSuite — connect devices, translate messages, bridge brokers and store telemetry. Built on SNode.C.">
+  <img src="docs/media/hero.svg" alt="MQTTSuite — Make messages useful. Connect. Translate. Bridge. Store. Broker · Integrator · Bridge · CLI · Store. MQTT 3.1.1 · Built on SNode.C." width="100%">
 </picture>
 </p>
 
 <!-- snodec:begin organization -->
-<p><a href="https://github.com/SNodeC" title="SNodeC organization"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/media/nav/organization-dark.svg"><img align="right" src="docs/media/nav/organization-light.svg" alt="SNodeC organization" width="160" height="28"></picture></a><br clear="all"></p>
+<p><a href="https://github.com/SNodeC" title="SNodeC organization"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/media/nav/organization-dark.svg"><img align="right" src="docs/media/nav/organization-light.svg" alt="SNodeC organization" title="SNodeC organization" width="160" height="28"></picture></a><br clear="all"></p>
 <!-- snodec:end organization -->
 
 # MQTTSuite

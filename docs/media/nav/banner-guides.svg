@@ -14,4 +14,4 @@
     <circle cx="-80" cy="-46" r="14" fill="#75caff" />
     <path d="M-25 14V-15L0 2L25-15V14" fill="none" stroke="#f1fff9" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" />
   </g>
-  </g><text x="84" y="37" font-family="Segoe UI,Helvetica,Arial,sans-serif" font-size="25" font-weight="700" fill="#ffffff">MQTTSuite</text><text x="1244" y="37" text-anchor="end" font-family="Segoe UI,Helvetica,Arial,sans-serif" font-size="23" font-weight="600" fill="#86efac">Guides</text></svg>
+  </g><text x="84" y="37" font-family="-apple-system, &quot;Segoe UI&quot;, &quot;Noto Sans&quot;, Helvetica, Arial, sans-serif" font-size="25" font-weight="700" fill="#ffffff">MQTTSuite</text><text x="1244" y="37" text-anchor="end" font-family="-apple-system, &quot;Segoe UI&quot;, &quot;Noto Sans&quot;, Helvetica, Arial, sans-serif" font-size="23" font-weight="600" fill="#86efac">Guides</text></svg>
