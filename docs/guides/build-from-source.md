@@ -202,4 +202,4 @@ Then check application help/configuration, native MQTT, WS and WSS connections, 
 
 Configure the applications you installed, then start the packaged procd services for MQTTBroker, MQTTBridge or MQTTIntegrator as appropriate. Review listener bindings, administrative access and logs before opening firewall access.
 
-[![Deployment →](../media/menu/further-deployment.svg)](deployment.md#page-overview)
+Next: [Deployment](deployment.md#page-overview).
