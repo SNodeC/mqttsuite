@@ -72,4 +72,4 @@ For off-host endpoints, configure TLS and appropriate broker access policy. A br
 
 Stop all demonstration processes with Ctrl+C.
 
-[![deployment](../media/menu/further-deployment.svg)](deployment.md#page-overview) [![bridge schema](../media/menu/further-bridge-schema.svg)](../../mqttbridge/lib/bridge-schema.json)
+Next: [deployment](deployment.md#page-overview) or [the bridge JSON schema](../../mqttbridge/lib/bridge-schema.json).

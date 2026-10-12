@@ -30,14 +30,14 @@ MQTTSuite is a set of five C++ applications for **MQTT 3.1.1**: run a broker, tr
 
 <!-- snodec:begin menu -->
 <p>
-  <a href="#quick-start" title="Start"><img src="docs/media/menu/snodec-start-108.svg" alt="Start" width="160" height="28"></a>
-  <a href="#install" title="Install"><img src="docs/media/menu/snodec-install-108.svg" alt="Install" width="160" height="28"></a>
-  <a href="docs/guides/build-from-source.md#page-overview" title="Build"><img src="docs/media/menu/build-108.svg" alt="Build" width="160" height="28"></a>
-  <a href="#first-success" title="Use"><img src="docs/media/menu/snodec-use-108.svg" alt="Use" width="160" height="28"></a>
-  <a href="#configuration" title="Configure"><img src="docs/media/menu/snodec-configure-108.svg" alt="Configure" width="160" height="28"></a>
-  <a href="#architecture" title="Architecture"><img src="docs/media/menu/snodec-architecture-108.svg" alt="Architecture" width="160" height="28"></a>
-  <a href="https://snodec.github.io/mqttsuite-doc/html/namespacemqtt.html" title="API"><img src="docs/media/menu/snodec-api-108.svg" alt="API" width="160" height="28"></a>
-  <a href="#contributing" title="Contribute"><img src="docs/media/menu/snodec-contribute-108.svg" alt="Contribute" width="160" height="28"></a>
+  <a href="#quick-start" title="Start"><img src="docs/media/menu/start.svg" alt="Start" width="160" height="28"></a>
+  <a href="#install" title="Install"><img src="docs/media/menu/install.svg" alt="Install" width="160" height="28"></a>
+  <a href="docs/guides/build-from-source.md#page-overview" title="Build"><img src="docs/media/menu/build.svg" alt="Build" width="160" height="28"></a>
+  <a href="#first-success" title="Use"><img src="docs/media/menu/use.svg" alt="Use" width="160" height="28"></a>
+  <a href="#configuration" title="Configure"><img src="docs/media/menu/configure.svg" alt="Configure" width="160" height="28"></a>
+  <a href="#architecture" title="Architecture"><img src="docs/media/menu/architecture.svg" alt="Architecture" width="160" height="28"></a>
+  <a href="https://snodec.github.io/mqttsuite-doc/html/namespacemqtt.html" title="API"><img src="docs/media/menu/api.svg" alt="API" width="160" height="28"></a>
+  <a href="#contributing" title="Contribute"><img src="docs/media/menu/contribute.svg" alt="Contribute" width="160" height="28"></a>
 </p>
 
 <!-- snodec:end menu -->
@@ -91,7 +91,7 @@ mqttcli \
 
 **Boundaries:** clients use unencrypted loopback MQTT, with no credentials or persistent sessions. Other compiled broker listeners remain enabled on their default addresses; use an isolated, trusted network until you deliberately bind or disable them. `socket --reconnect=false` makes the publisher a one-shot operation. The configuration section `in-mqtt` names an SNode.C connection instance; its `remote`, `pub`, `sub` and `socket` sections configure that instance's responsibilities.
 
-[![deployment and access controls](docs/media/menu/further-deployment.svg)](docs/guides/deployment.md#page-overview)
+Next: [deployment and access controls](docs/guides/deployment.md#page-overview).
 
 **Keep a working configuration:** append `-w` (short for `--write-config`) to a working command to save its persistent settings in the application's default INI-style configuration file and exit. Then run the same application without arguments, as the same user, to start with those saved settings. Nonpersistent options are not saved. Configuration uses dotted keys such as `in-mqtt.remote.host="127.0.0.1"`. Save settings after experimenting; later examples assume no saved configuration. See [configuration and deployment](docs/guides/deployment.md#configuration).
 
@@ -163,7 +163,7 @@ mqttcli \
 
 **Boundaries:** other payloads do not match these rules. Publish `released` in terminal 3 to check the `off` row too. Stop the processes before the next example. To map through an existing broker use MQTTIntegrator instead, with its administrative listeners explicitly disabled as shown in the guide; do not apply the same rules in both places unless duplicate outputs are intended.
 
-[![complete integrator and JSON-template examples](docs/media/menu/further-mapping-examples.svg)](docs/guides/mapping.md#page-overview)
+Next: [complete integrator and JSON-template examples](docs/guides/mapping.md#page-overview).
 
 ### Bridge separate brokers
 
@@ -296,7 +296,7 @@ mqttcli \
 
 **Boundaries:** `legacy` means unencrypted transport. `loop_prevention` requests suppression of the bridge's own publications through a non-standard MQTT CONNECT bridge bit also used by Mosquitto; the remote broker must support that bit. For other brokers, disable it and design non-overlapping topic paths. This example's `relay/` outputs match neither `telemetry/#` nor `commands/#`, so they are not fed back into the bridge. MQTTBridge may normalize and rewrite `bridge.json`; use this writable demo copy, not a read-only source of record. Stop all demo processes with Ctrl+C.
 
-[![bridge topology, sessions and deployment](docs/media/menu/further-bridge-guide.svg)](docs/guides/bridging.md#page-overview)
+Next: [bridge topology, sessions and deployment](docs/guides/bridging.md#page-overview).
 
 ### Keep the original message—and query the useful fields
 
@@ -373,12 +373,7 @@ Native Linux source builds need a C++20 toolchain (GCC 12.2+ or Clang 13+), CMak
 
 ### Install
 
-<p>
-  <a href="https://github.com/SNodeC/Packages#readme" title="Signed packages"><img src="docs/media/menu/route-packages.svg" alt="Signed packages" width="160" height="28"></a>
-  <a href="docs/guides/build-from-source.md#page-overview" title="Build from source"><img src="docs/media/menu/route-source.svg" alt="Build from source" width="160" height="28"></a>
-</p>
-
-Use signed packages for your distribution, release and architecture, or build from source for native Linux or OpenWrt. Application packages install the required SNode.C components automatically; no separate framework build is needed.
+Install from [signed packages](https://github.com/SNodeC/Packages#readme) for your distribution, release and architecture, or [build from source](docs/guides/build-from-source.md#page-overview) for native Linux or OpenWrt.
 
 ## Releases
 
