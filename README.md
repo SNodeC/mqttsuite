@@ -4,7 +4,7 @@
 <p>
 <picture>
   <source media="(max-width: 600px)" srcset="docs/media/hero-mobile.svg">
-  <img src="docs/media/hero.svg" alt="MQTTSuite — connect devices, translate messages, bridge brokers and store telemetry. Built on SNode.C.">
+  <img src="docs/media/hero.svg" alt="MQTTSuite — Make messages useful. Connect. Translate. Bridge. Store. Broker · Integrator · Bridge · CLI · Store. MQTT 3.1.1 · Built on SNode.C." width="100%">
 </picture>
 </p>
 
