@@ -1,0 +1,43 @@
+<div class="sheet">
+  <div class="sheet-header">
+    <div class="title">Topics</div>
+  </div>
+
+  <div class="list">
+    @for (row of rows; track row.node.id) {
+    <div class="row" [class.isActive]="row.node.id === (activeTopicId$ | async)">
+      <button mat-icon-button [style.marginLeft.px]="12 + row.depth * 16" [class.hidden]="!row.hasChildren">
+        <mat-icon class="chevron" (click)="$event.stopPropagation(); toggle(row.node.id)"
+          [svgIcon]="row.expanded ? 'chevron-down' : 'chevron-right'">
+        </mat-icon>
+      </button>
+      <button mat-button type="button" (click)="goTo(row.node)">
+        <span class="name">{{ row.node.name }}</span>
+      </button>
+      <button mat-icon-button (click)="$event.stopPropagation(); addChildTopic(row.node)" aria-label="Add child topic"
+        matTooltip="Add child topic" matTooltipShowDelay="300">
+        <mat-icon svgIcon="create-topic"></mat-icon>
+      </button>
+      <button mat-icon-button (click)="$event.stopPropagation(); removeTopic(row.node)" aria-label="Remove topic"
+        matTooltip="Remove topic" matTooltipShowDelay="300">
+        <mat-icon svgIcon="delete"></mat-icon>
+      </button>
+    </div>
+
+    <mat-divider></mat-divider>
+    }
+    @if(integratorLoaded) {
+    <div class="row last-row">
+      <button mat-button type="button" (click)="createNewRootTopic()">
+        <mat-icon svgIcon="create-topic"></mat-icon>
+
+        <span class="name">Create new topic</span>
+
+      </button>
+    </div>
+    } @else {
+    <span class="name" style="padding-top: 16px; padding-left: 16px;">Choose or create new integrator...</span>
+    }
+  </div>
+
+</div>

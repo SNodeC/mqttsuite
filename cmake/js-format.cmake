@@ -70,6 +70,7 @@ if(JS_BEAUTIFY)
 
     filter_items(CHECK_JS_SOURCE_FILES "/build/")
     filter_items(CHECK_JS_SOURCE_FILES "/json-schema-validator/")
+    filter_items(CHECK_JS_SOURCE_FILES "/node_modules/")
     filter_items(CHECK_JS_SOURCE_FILES "(^|/)html/.*\\.(js)$")
 
     list(LENGTH CHECK_JS_SOURCE_FILES CHECK_JS_SOURCE_FILES_LEN)

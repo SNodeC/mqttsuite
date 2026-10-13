@@ -1,0 +1,35 @@
+.shell {
+    height: 100%;
+}
+
+.drawer {
+    width: 100%;
+
+    .drawer-content {
+        display: flex;
+        height: 100vh;
+        flex-direction: column;
+        width: 100%;
+        flex: 1;
+        position: relative;
+        border-radius: unset;
+    }
+
+
+    &.is-desktop {
+        max-width: 400px;
+    }
+
+    app-home-page {
+        height: calc(100% - 40px);
+    }
+}
+
+.mat-drawer,
+.mat-sidenav {
+    border-radius: 0 !important;
+}
+
+.mat-drawer.mat-drawer-end {
+    box-shadow: -4px 0 12px rgba(0, 0, 0, 0.2);
+}

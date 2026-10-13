@@ -1,0 +1,25 @@
+<div class="page">
+    <mat-card class="card" appearance="outlined">
+        <mat-card-header>
+            <mat-card-title>MQTT Integrator</mat-card-title>
+            <mat-card-subtitle>Start a new config or load a JSON file</mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+            <div class="actions">
+                <button mat-flat-button color="primary" class="actionBtn" (click)="createNew()">
+                    <mat-icon aria-hidden="true">add</mat-icon>
+                    <span>Create new integrator</span>
+                </button>
+
+                <button mat-stroked-button class="actionBtn" (click)="fileInput.click()">
+                    <mat-icon aria-hidden="true">upload_file</mat-icon>
+                    <span>Load integrator (JSON)</span>
+                </button>
+
+                <input #fileInput type="file" accept="application/json,.json" (change)="onFileSelected($event)"
+                    hidden />
+            </div>
+        </mat-card-content>
+    </mat-card>
+</div>

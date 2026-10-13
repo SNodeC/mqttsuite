@@ -1,0 +1,385 @@
+<div class="page">
+    <div class="form-div">
+        @if (topicLevel$ | async; as topicLevel) {
+
+        <!-- CARD 1: Basic + Subscription -->
+        <div class="card" appearance="outlined">
+            <div [formGroup]="form">
+                <mat-form-field appearance="outline" class="full">
+                    <mat-label>Name</mat-label>
+                    <input matInput formControlName="name" />
+                    @if (form.get('name')?.touched && form.get('name')?.hasError('required')) {
+                    <mat-error>Name is required</mat-error>
+                    }
+                    @if (form.get('name')?.touched && form.get('name')?.hasError('pattern')) {
+                    <mat-error>Cannot contain + or # (unless single character)</mat-error>
+                    }
+                </mat-form-field>
+
+                <div class="form-entry-no-input">
+                    <mat-label>Subscription</mat-label>
+                    <mat-slide-toggle formControlName="hasSubscription"></mat-slide-toggle>
+                </div>
+
+                @if (form.get('hasSubscription')?.value) {
+                <div formGroupName="subscription">
+                    <mat-form-field appearance="outline" class="full">
+                        <mat-label>Kind</mat-label>
+                        <mat-select formControlName="kind">
+                            <mat-option value="static">Static</mat-option>
+                            <mat-option value="value">Value</mat-option>
+                            <mat-option value="json">JSON</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+
+                    <div class="form-entry-no-input">
+                        <mat-label>QoS</mat-label>
+                        <mat-button-toggle-group formControlName="qos" aria-label="QoS">
+                            <mat-button-toggle [value]="0">0</mat-button-toggle>
+                            <mat-button-toggle [value]="1">1</mat-button-toggle>
+                            <mat-button-toggle [value]="2">2</mat-button-toggle>
+                        </mat-button-toggle-group>
+                    </div>
+
+                    <mat-form-field appearance="outline" class="full">
+                        <mat-label>Type</mat-label>
+                        <input matInput formControlName="type" />
+                    </mat-form-field>
+                </div>
+                }
+            </div>
+        </div>
+
+        <!-- CARD 2: Mapping -->
+        @if (form.get('hasSubscription')?.value && form.get('subscription')?.get('kind')?.value === 'static') {
+        @for (staticCtrl of mappings.controls; track staticCtrl; let staticIndex = $index) {
+        <div class="card" appearance="outlined">
+            <div [formGroup]="form">
+                <div formGroupName="subscription">
+                    <div formArrayName="mappings">
+
+                        <div [formGroupName]="staticIndex">
+
+                            <div class="mapping-header">
+                                <h4>Static Mapping</h4>
+                                <button mat-icon-button type="button" (click)="removeMapping(staticIndex)"
+                                    [disabled]="mappings.length <= 1" class="delete-mapping-button">
+                                    <mat-icon aria-label="Delete" svgIcon="delete"></mat-icon>
+                                </button>
+                            </div>
+
+                            <mat-form-field appearance="outline" class="full">
+                                <mat-label>Mapped Topic</mat-label>
+                                <input matInput formControlName="mappedTopic" />
+                                @if(staticCtrl.get('mappedTopic')?.hasError('required')) {
+                                <mat-error>Can't be empty</mat-error>
+                                }
+                                @if(staticCtrl.get('mappedTopic')?.hasError('pattern')) {
+                                <mat-error>{{ mappedTopicPatternHint }}</mat-error>
+                                }
+                            </mat-form-field>
+
+                            <div class="form-entry-no-input">
+                                <div class="retain-control">
+                                    <mat-label>Retain</mat-label>
+                                    <mat-slide-toggle formControlName="retain"></mat-slide-toggle>
+                                </div>
+
+                                <div class="qos-control">
+                                    <mat-label>QoS</mat-label>
+                                    <mat-button-toggle-group formControlName="qos" aria-label="QoS">
+                                        <mat-button-toggle [value]="0">0</mat-button-toggle>
+                                        <mat-button-toggle [value]="1">1</mat-button-toggle>
+                                        <mat-button-toggle [value]="2">2</mat-button-toggle>
+                                    </mat-button-toggle-group>
+                                </div>
+
+                                <div class="delay-control">
+                                    <mat-label>Delay</mat-label>
+                                    <mat-slide-toggle formControlName="hasDelay"></mat-slide-toggle>
+                                </div>
+                            </div>
+
+                            @if (staticCtrl.get('hasDelay')?.value) {
+                            <mat-form-field appearance="outline" class="full">
+                                <mat-label>Delay (in seconds)</mat-label>
+                                <input matInput type="number" formControlName="delay" />
+                            </mat-form-field>
+                            }
+
+
+                            <div formArrayName="messageMappings">
+                                @for (mmCtrl of staticMessageMappings(staticIndex).controls; track mmCtrl; let mmIndex =
+                                $index) {
+                                <div [formGroupName]="mmIndex">
+
+                                    <div class="mapping-header">
+                                        <h4>Message Mapping</h4>
+                                        <button mat-icon-button type="button"
+                                            [disabled]="staticMessageMappings(staticIndex).length <= 1"
+                                            (click)="removeMessageMapping(staticIndex, mmIndex)"
+                                            class="delete-mapping-button">
+                                            <mat-icon aria-label="Delete" svgIcon="delete"></mat-icon>
+                                        </button>
+                                    </div>
+
+                                    <mat-form-field appearance="outline" class="full">
+                                        <mat-label>Message</mat-label>
+                                        <input matInput formControlName="message" />
+                                        @if(mmCtrl.get('message')?.hasError('required')) {
+                                        <mat-error>Can't be empty</mat-error>
+                                        }
+                                    </mat-form-field>
+
+                                    <mat-form-field appearance="outline" class="full">
+                                        <mat-label>Mapped Message</mat-label>
+                                        <input matInput formControlName="mappedMessage" />
+                                        @if(mmCtrl.get('mappedMessage')?.hasError('required')) {
+                                        <mat-error>Can't be empty</mat-error>
+                                        }
+                                    </mat-form-field>
+                                </div>
+                                }
+                            </div>
+
+                            <div class="add-button-section">
+                                <button mat-button type="button" class="button-with-icon"
+                                    (click)="addMessageMapping(staticIndex)">
+                                    Add message mapping
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <mat-divider class="divider"></mat-divider>
+                <button mat-button type="button" class="button-with-icon" (click)="addStaticMapping()">
+                    Add static mapping
+                </button>
+            </div>
+        </div>
+
+        }
+
+        } @else if (form.get('hasSubscription')?.value && form.get('subscription')?.get('kind')?.value === 'value') {
+        @for (mapping of mappings.controls; track mapping; let i = $index) {
+        <div class="card" appearance="outlined">
+            <div [formGroup]="form">
+                <div formGroupName="subscription">
+                    <div formArrayName="mappings">
+
+                        <div [formGroupName]="i">
+                            <div class="mapping-header">
+                                <h4>Template Mapping</h4>
+                                <button mat-icon-button type="button" (click)="removeMapping($index)"
+                                    [disabled]="mappings.length <= 1">
+                                    <mat-icon aria-label="Delete" svgIcon="delete"></mat-icon>
+                                </button>
+                            </div>
+
+                            <div class="form-entry-no-input">
+                                <div class="retain-control">
+                                    <mat-label>Retain</mat-label>
+                                    <mat-slide-toggle formControlName="retain"></mat-slide-toggle>
+                                </div>
+
+                                <div class="qos-control">
+                                    <mat-label>QoS</mat-label>
+                                    <mat-button-toggle-group formControlName="qos" aria-label="QoS">
+                                        <mat-button-toggle [value]="0">0</mat-button-toggle>
+                                        <mat-button-toggle [value]="1">1</mat-button-toggle>
+                                        <mat-button-toggle [value]="2">2</mat-button-toggle>
+                                    </mat-button-toggle-group>
+                                </div>
+
+                                <div class="delay-control">
+                                    <mat-label>Delay</mat-label>
+                                    <mat-slide-toggle formControlName="hasDelay"></mat-slide-toggle>
+                                </div>
+                            </div>
+
+                            @if (mapping.get('hasDelay')?.value) {
+                            <mat-form-field appearance="outline" class="full">
+                                <mat-label>Delay (in seconds)</mat-label>
+                                <input matInput type="number" formControlName="delay" />
+                            </mat-form-field>
+                            }
+
+                            <mat-form-field appearance="outline" class="full">
+                                <mat-label>Mapped Topic</mat-label>
+                                <input matInput formControlName="mappedTopic" />
+                                @if(mapping.get('mappedTopic')?.hasError('required')) {
+                                <mat-error>Can't be empty</mat-error>
+                                }
+                                @if(mapping.get('mappedTopic')?.hasError('pattern')) {
+                                <mat-error>{{ mappedTopicPatternHint }}</mat-error>
+                                }
+                            </mat-form-field>
+
+                            <mat-form-field appearance="outline" class="full">
+                                <mat-label>Mapping Template</mat-label>
+                                <input matInput formControlName="mappingTemplate" />
+                                @if(mapping.get('mappingTemplate')?.hasError('required')) {
+                                <mat-error>Can't be empty</mat-error>
+                                }
+                            </mat-form-field>
+
+
+                            <div class="form-entry-no-input">
+                                <mat-label>Suppressions</mat-label>
+                                <mat-slide-toggle formControlName="hasSuppressions"></mat-slide-toggle>
+                            </div>
+
+                            @if (mapping.get('hasSuppressions')?.value) {
+                            <div formArrayName="suppressions">
+                                @for (ctrl of suppressionsArray(i).controls; track ctrl; let sIndex = $index) {
+                                <mat-form-field appearance="outline" class="full">
+                                    <mat-label>Suppression</mat-label>
+                                    <input matInput [formControlName]="sIndex" />
+                                </mat-form-field>
+                                }
+
+                                <div class="add-button-section">
+                                    <button mat-button type="button" class="button-with-icon"
+                                        (click)="addSuppression(i)">
+                                        Add suppression
+                                    </button>
+                                </div>
+                            </div>
+                            }
+                        </div>
+
+                    </div>
+                </div>
+                <mat-divider class="divider"></mat-divider>
+                <button mat-button type="button" class="button-with-icon" (click)="addTemplateMapping()">
+                    Add template mapping
+                </button>
+            </div>
+        </div>
+        }
+        }@else if (form.get('hasSubscription')?.value && form.get('subscription')?.get('kind')?.value === 'json') {
+        @for (mapping of mappings.controls; track mapping; let i = $index) {
+        <div class="card" appearance="outlined">
+            <div [formGroup]="form">
+                <div formGroupName="subscription">
+                    <div formArrayName="mappings">
+
+                        <div [formGroupName]="i">
+                            <div class="mapping-header">
+                                <h4>Template Mapping</h4>
+                                <button mat-icon-button type="button" (click)="removeMapping($index)"
+                                    [disabled]="mappings.length <= 1">
+                                    <mat-icon aria-label="Delete" svgIcon="delete"></mat-icon>
+                                </button>
+                            </div>
+
+                            <div class="form-entry-no-input">
+                                <div class="retain-control">
+                                    <mat-label>Retain</mat-label>
+                                    <mat-slide-toggle formControlName="retain"></mat-slide-toggle>
+                                </div>
+
+                                <div class="qos-control">
+                                    <mat-label>QoS</mat-label>
+                                    <mat-button-toggle-group formControlName="qos" aria-label="QoS">
+                                        <mat-button-toggle [value]="0">0</mat-button-toggle>
+                                        <mat-button-toggle [value]="1">1</mat-button-toggle>
+                                        <mat-button-toggle [value]="2">2</mat-button-toggle>
+                                    </mat-button-toggle-group>
+                                </div>
+
+                                <div class="delay-control">
+                                    <mat-label>Delay</mat-label>
+                                    <mat-slide-toggle formControlName="hasDelay"></mat-slide-toggle>
+                                </div>
+                            </div>
+
+                            @if (mapping.get('hasDelay')?.value) {
+                            <mat-form-field appearance="outline" class="full">
+                                <mat-label>Delay (in seconds)</mat-label>
+                                <input matInput type="number" formControlName="delay" />
+                            </mat-form-field>
+                            }
+
+                            <mat-form-field appearance="outline" class="full">
+                                <mat-label>Mapped Topic</mat-label>
+                                <input matInput formControlName="mappedTopic" />
+                                @if(mapping.get('mappedTopic')?.hasError('required')) {
+                                <mat-error>Can't be empty</mat-error>
+                                }
+                                @if(mapping.get('mappedTopic')?.hasError('pattern')) {
+                                <mat-error>{{ mappedTopicPatternHint }}</mat-error>
+                                }
+                            </mat-form-field>
+
+                            <mat-form-field appearance="outline" class="full">
+                                <mat-label>Mapping Template</mat-label>
+                                <input matInput formControlName="mappingTemplate" />
+                                @if(mapping.get('mappingTemplate')?.hasError('required')) {
+                                <mat-error>Can't be empty</mat-error>
+                                }
+                            </mat-form-field>
+
+                            <div class="form-entry-no-input">
+                                <mat-label>Suppressions</mat-label>
+                                <mat-slide-toggle formControlName="hasSuppressions"></mat-slide-toggle>
+                            </div>
+
+                            @if (mapping.get('hasSuppressions')?.value) {
+                            <div formArrayName="suppressions">
+                                @for (ctrl of suppressionsArray(i).controls; track ctrl; let sIndex = $index) {
+                                <mat-form-field appearance="outline" class="full">
+                                    <mat-label>Suppression</mat-label>
+                                    <input matInput [formControlName]="sIndex" />
+                                </mat-form-field>
+                                }
+
+                                <div class="add-button-section">
+                                    <button mat-button type="button" class="button-with-icon"
+                                        (click)="addSuppression(i)">
+                                        Add suppression
+                                    </button>
+                                </div>
+                            </div>
+                            }
+                        </div>
+
+                    </div>
+                </div>
+
+                <mat-divider class="divider"></mat-divider>
+
+                <button mat-button type="button" class="button-with-icon" (click)="addTemplateMapping()">
+                    Add template mapping
+                </button>
+            </div>
+        </div>
+        }
+        }
+
+
+
+
+
+        }
+    </div>
+    <div class="button-controls-bottom">
+        <button mat-button class="button-with-icon" (click)="addTopicLevel()" aria-label="Add child topic">
+            <div class="text">Add child topic</div>
+            <mat-icon svgIcon="create-topic"></mat-icon>
+        </button>
+        <button mat-button class="button-with-icon delete-button" (click)="removeTopicLevel()"
+            aria-label="Add child topic">
+            <div class="text">Remove topic</div>
+            <mat-icon svgIcon="delete"></mat-icon>
+        </button>
+
+        <div class="spacer"></div>
+        <button mat-button type="button" class="button-with-icon save-button" (click)="saveChanges()">
+            <mat-icon svgIcon="save"></mat-icon>
+            <div class="text">Save changes</div>
+        </button>
+
+    </div>
+</div>

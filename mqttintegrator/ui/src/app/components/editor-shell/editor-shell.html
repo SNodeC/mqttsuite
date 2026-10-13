@@ -1,0 +1,68 @@
+<div class="editor-shell">
+  <mat-toolbar>
+    @if (showBack$ | async) {
+    <button mat-icon-button class="back-button" (click)="back()" aria-label="Back">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    }
+
+    <span class="title">{{ title$ | async }}</span>
+
+
+    <span class="spacer"></span>
+
+    <div class="status">
+      @if (isDeploying$ | async) {
+      <div class="icon-wrapper spin">
+        <mat-icon svgIcon="sync"></mat-icon>
+      </div>
+      } @else if (dirty$ | async) {
+      <button class="is-dirty" mat-icon-button (click)="deploy()" aria-label="upload to server" matTooltip="Upload to server">
+        <mat-icon svgIcon="database-upload"></mat-icon>
+      </button>
+      } @else {
+      <div class="icon-wrapper is-live" matTooltip="Config is live">
+        <mat-icon svgIcon="database"></mat-icon>
+      </div>
+      }
+    </div>
+
+    <button mat-icon-button class="tree-button" (click)="goToTopicTree()" aria-label="Topic tree">
+      <mat-icon svgIcon="tree"></mat-icon>
+    </button>
+
+    <button mat-icon-button (click)="openConfig()" aria-label="Integrator config" matTooltip="Integrator config"
+      matTooltipShowDelay="300">
+      <mat-icon svgIcon="settings"></mat-icon>
+    </button>
+
+    <!-- <button mat-icon-button (click)="openSidenav()" aria-label="Open file explorer"> //not in use
+      <mat-icon>menu</mat-icon>
+    </button> -->
+  </mat-toolbar>
+
+  <div class="content">
+    @if(isDesktop$ | async) {
+    <div class="sideview" [style.height.px]="sideviewPx">
+      <div class="topic-tree">
+        <app-topic-tree-sheet></app-topic-tree-sheet>
+      </div>
+      @if (showOutlet$ | async) {
+      <div class="router-outlet">
+        <router-outlet></router-outlet>
+      </div>
+      }
+    </div>
+    <div class="splitter" (pointerdown)="startResize($event)"></div>
+    <div class="json-preview" [style.height.px]="previewPx">
+      <app-json-preview></app-json-preview>
+    </div>
+    } @else {
+    <div class="router-outlet">
+      <router-outlet></router-outlet>
+    </div>
+    }
+
+  </div>
+
+</div>

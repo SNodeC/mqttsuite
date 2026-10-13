@@ -1,0 +1,173 @@
+$entry-margin-bottom: 24px;
+$entry-padding-sides: 16px;
+$matformfield-margin-bottom: 10px;
+
+mat-error {
+    font-size: 0.7rem;
+}
+
+button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    mat-icon {
+        margin: 0;
+        padding: 0;
+    }
+}
+
+.button-controls {
+    display: flex;
+    justify-content: space-between;
+}
+
+.button-with-icon {
+    display: flex;
+    width: fit-content;
+    align-items: center;
+    justify-content: flex-start;
+    border: 1px solid black;
+    border-color: var(--mat-card-outlined-outline-color, var(--mat-sys-outline-variant));
+    ;
+
+
+}
+
+.form-entry-no-input {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: $entry-margin-bottom;
+    padding: 0 $entry-padding-sides;
+
+    mat-label {
+        padding-right: 16px;
+    }
+}
+
+mat-form-field {
+    width: 100%;
+    margin-bottom: $matformfield-margin-bottom;
+}
+
+
+.title {
+    margin-left: 8px;
+    font-weight: 600;
+}
+
+.mapping-header {
+    padding: 0 $entry-padding-sides;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .delete-mapping-button {
+        width: 30px;
+        margin: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 0 !important;
+
+        mat-icon {
+            margin: 0;
+            padding: 0;
+        }
+    }
+}
+
+.spacer {
+    flex: 1 1 auto;
+}
+
+.page {
+    position: relative;
+    width: 100%;
+    height: 100%;
+
+    .form-div {
+        height: calc(100% - 72px);
+        padding: 32px;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        overflow: auto;
+    }
+
+    .button-controls-bottom {
+        padding: 16px;
+        background-color: var(--mat-sys-surface);
+        width: 100%;
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        border-top: 1px solid rgba(0, 0, 0, 0.12);
+
+        .delete-button {
+            margin-left: 16px;
+        }
+
+        button {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            mat-icon {
+                margin: 0;
+
+                @media(min-width: 1024px) {
+                    margin-right: 8px;
+                }
+            }
+
+            .text {
+                display: none;
+
+                @media(min-width: 1024px) {
+                    display: block;
+                }
+            }
+        }
+    }
+}
+
+.card {
+    margin-bottom: 16px;
+    width: 100%;
+    max-width: 720px;
+    border-radius: 16px;
+}
+
+.full {
+    width: 100%;
+}
+
+.divider {
+    width: 100%;
+    margin: 24px 0 24px;
+}
+
+.sectionTitle {
+    margin: 0 0 12px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+.add-button-section {
+    padding: 0 16px;
+}
+
+h4 {
+    margin: 24px 0px;
+}

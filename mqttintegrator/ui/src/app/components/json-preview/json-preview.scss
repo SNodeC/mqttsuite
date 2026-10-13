@@ -1,0 +1,22 @@
+.content {
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: black;
+
+    .json {
+        color: white;
+        padding: 16px;
+        font-family: monospace;
+        white-space: pre-wrap;
+        word-break: break-all;
+    }
+
+    button {
+        background-color: white;
+        color: black;
+        position: fixed;
+        bottom: 16px;
+        right: 32px;
+    };
+}

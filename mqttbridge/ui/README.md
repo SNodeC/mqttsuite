@@ -1,0 +1,23 @@
+
+  # MQTT Bridge Configuration UI
+
+  This is a code bundle for a graphical interface for the MQTT Bridge Configuration in the MQTTSuite. It is based on a Figma prototype available at https://www.figma.com/design/YdgbzQUl5u5550Kv88Jw7G/MQTT-Bridge-Configuration-UI-improved.
+
+  ## Running the code
+
+  Run `npm i` to install the dependencies.
+
+  Run `npm run dev` to start the development server.
+
+
+## MQTTSuite integration
+
+Imported directly from SNodeC/mqtt-bridge-config-ui at commit `47303745064e693f71909f00bc67a01d4884c98f`. These sources are maintained in MQTTSuite; no external checkout or submodule is required. Original source notices and attribution are retained.
+
+Use Node.js 22 (22.12 or newer) or Node.js 24, with npm. From this directory, run `npm ci` and `npm run build` to replace `../html/`. Commit source changes, the lockfile, and generated HTML together. Ordinary C++ builds and cross builds install the checked-in HTML without requiring Node or npm.
+
+After configuring MQTTSuite with CMake, `cmake --build <build-directory> --target mqttbridge-ui` performs the same clean dependency installation and production build. Reconfigure CMake after regeneration so IDE asset lists reflect the new files.
+
+The runtime option is `bridge --html-dir <directory>`, validated as an existing directory. Its default is `<install-prefix>/var/www/mqttsuite/mqttbridge`. CMake installs the complete HTML tree in the corresponding application component. Custom directories must contain the production build, including its assets.
+
+The interface is served at `/config/index.html`; its API and event stream remain at `/api/bridge/*`. The broker client dashboard is independent of these sources.

@@ -1,0 +1,69 @@
+{
+  "bridges": [
+    {
+      "name": "SampleBridge",
+      "brokers": [
+        {
+          "network": {
+            "instance_name": "LocalBroker",
+            "protocol": "in",
+            "encryption": "legacy",
+            "transport": "stream",
+            "in": {
+              "host": "192.168.1.204",
+              "port": 1883
+            }
+          },
+          "topics": [
+            {
+              "topic": "#",
+              "qos": 0
+            }
+          ],
+          "mqtt": {
+            "client_id": "",
+            "keep_alive": 60,
+            "clean_session": true,
+            "will_topic": "",
+            "will_message": "",
+            "will_qos": 0,
+            "will_retain": false,
+            "username": "",
+            "password": "",
+            "loop_prevention": false
+          }
+        },
+        {
+          "network": {
+            "instance_name": "Cloudbroker",
+            "protocol": "in",
+            "encryption": "legacy",
+            "transport": "stream",
+            "in": {
+              "host": "10.0.1.2",
+              "port": 1883
+            }
+          },
+          "topics": [
+            {
+              "topic": "#",
+              "qos": 0
+            }
+          ],
+          "mqtt": {
+            "client_id": "",
+            "keep_alive": 60,
+            "clean_session": true,
+            "will_topic": "",
+            "will_message": "",
+            "will_qos": 0,
+            "will_retain": false,
+            "username": "",
+            "password": "",
+            "loop_prevention": false
+          }
+        }
+      ]
+    }
+  ]
+}
