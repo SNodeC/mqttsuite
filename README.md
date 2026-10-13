@@ -356,6 +356,8 @@ Review the [deployment guide](docs/guides/deployment.md#page-overview) before ex
 
 ## Documentation
 
+Manual CI builds and tests MQTTSuite. Version tags start package builds; DistributionPackages also requests dependent builds after publishing each SNode.C target, then signs and publishes successful MQTTSuite targets. See the organization [workflow graph](https://github.com/SNodeC/.github/blob/main/docs/workflow-graph.md#page-overview).
+
 The API menu opens the legacy Doxygen class index. It is a reference snapshot, not proof of current release/platform support; use these source guides and the Packages matrix for current installation decisions.
 
 [Documentation index](docs/README.md#page-overview) — the existing guides and MQTTStore reference.
