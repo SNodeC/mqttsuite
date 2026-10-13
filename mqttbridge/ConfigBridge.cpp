@@ -52,7 +52,7 @@ namespace mqtt::bridge {
         , bridgeDefinitionOpt( //
               addOption("--definition", "MQTT bridge definition file (JSON format)", "file", CLI::ExistingFile))
         , htmlDirOpt( //
-              addOption("--html-dir", "Path to html source directory", "directory", CLI::ExistingDirectory)) {
+              addOption("--html-dir", "Path to HTML source directory", "directory", CLI::ExistingDirectory)) {
         required(bridgeDefinitionOpt);
     }
 
@@ -68,11 +68,11 @@ namespace mqtt::bridge {
     }
 
     void mqtt::bridge::ConfigBridge::setHtmlDir(const std::string& htmlDir) const {
-        htmlDirOpt->default_val(htmlDir)->clear();
+        htmlDirOpt->default_str(htmlDir)->clear();
     }
 
     std::string mqtt::bridge::ConfigBridge::getHtmlDir() const {
-        return htmlDirOpt->as<std::string>();
+        return htmlDirOpt->empty() ? htmlDirOpt->get_default_str() : htmlDirOpt->results().front();
     }
 
 } // namespace mqtt::bridge

@@ -1,0 +1,52 @@
+.sheet {
+  padding: 16px;
+
+  .title {
+    margin-left: 8px;
+    font-weight: 600;
+    font-size: 1rem;
+  }
+
+  .list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .row {
+    height: 60px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    text-align: left;
+
+    @media(min-width: 1024px) {
+      &.isActive {
+        .name {
+          font-weight: bolder;
+          color: black;
+        }
+      }
+    }
+  }
+
+  .last-row {
+    margin-top: 16px;
+  }
+
+  .chevron {
+    margin-right: 6px;
+  }
+
+  button.hidden {
+    visibility: hidden;
+    /* keeps text aligned */
+  }
+
+  .name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+}

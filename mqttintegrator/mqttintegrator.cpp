@@ -179,6 +179,7 @@ HttpClient startClient(const std::string& name, const std::function<void(typenam
 
 int main(int argc, char* argv[]) {
     mqtt::lib::ConfigMqttIntegrator* configMqttIntegrator = utils::Config::configRoot.newSubCommand<mqtt::lib::ConfigMqttIntegrator>();
+    configMqttIntegrator->setHtmlDir(MQTTSUITE_HTML_DIR);
 
     configMqttIntegrator->setMappingFile("mapping.json"); // Load mapping from mapping.json. (can throw)
 
@@ -220,8 +221,8 @@ int main(int argc, char* argv[]) {
     core::SNodeC::init(argc, argv);
 
     // Instanciate Admin Router for Mapping Management
-    express::Router router =
-        mqtt::lib::admin::makeMappingAdminRouter(configMqttIntegrator, mqtt::lib::admin::AdminOptions{}, [](bool mustReconnect) {
+    express::Router router = mqtt::lib::admin::makeMappingAdminRouter(
+        configMqttIntegrator, configMqttIntegrator->getHtmlDir(), mqtt::lib::admin::AdminOptions{}, [](bool mustReconnect) {
             return mqtt::mqttintegrator::lib::Mqtt::updateSubscriptions(mustReconnect);
         });
 

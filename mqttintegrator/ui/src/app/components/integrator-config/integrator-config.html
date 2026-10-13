@@ -1,0 +1,74 @@
+<div class="page">
+    <div class="form-div">
+        <div class="card">
+
+            <div [formGroup]="form">
+                <mat-form-field appearance="outline" class="full">
+                    <mat-label>Discover prefix</mat-label>
+                    <input matInput formControlName="discoverPrefix" placeholder="e.g. homeassistant" />
+                </mat-form-field>
+
+                <mat-divider class="divider"></mat-divider>
+
+                <h3 class="sectionTitle">Connection</h3>
+
+                <div class="grid">
+                    <mat-form-field appearance="outline" class="full">
+                        <mat-label>Client ID</mat-label>
+                        <input matInput formControlName="clientId" />
+                    </mat-form-field>
+
+                    <div class="controls-besides">
+                        <mat-form-field appearance="outline" class="half">
+                            <mat-label>Keep alive (sec)</mat-label>
+                            <input matInput type="number" formControlName="keepAlive" />
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline" class="half">
+                            <mat-label>Will QoS (0-2)</mat-label>
+                            <input matInput type="number" formControlName="willQos" />
+                        </mat-form-field>
+                    </div>
+
+                    <div class="toggles">
+                        <mat-slide-toggle formControlName="cleanSession">
+                            Clean session
+                        </mat-slide-toggle>
+
+                        <mat-slide-toggle formControlName="willRetain">
+                            Will retain
+                        </mat-slide-toggle>
+                    </div>
+
+                    <mat-form-field appearance="outline" class="full">
+                        <mat-label>Will topic</mat-label>
+                        <input matInput formControlName="willTopic" />
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="full">
+                        <mat-label>Will message</mat-label>
+                        <input matInput formControlName="willMessage" />
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="full">
+                        <mat-label>Username</mat-label>
+                        <input matInput formControlName="username" />
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="full">
+                        <mat-label>Password</mat-label>
+                        <input matInput formControlName="password" />
+                    </mat-form-field>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="button-controls-bottom">
+
+        <div class="spacer"></div>
+        <button mat-button type="button" class="button-with-icon save-button" (click)="saveChanges()">
+            <div class="text">Save changes</div>
+            <mat-icon svgIcon="save"></mat-icon>
+        </button>
+    </div>
+</div>

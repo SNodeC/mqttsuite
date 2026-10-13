@@ -521,7 +521,7 @@ static void startBridges() {
 }
 
 int main(int argc, char* argv[]) {
-    utils::Config::configRoot.newSubCommand<mqtt::bridge::ConfigBridge>();
+    utils::Config::configRoot.newSubCommand<mqtt::bridge::ConfigBridge>()->setHtmlDir(MQTTSUITE_HTML_DIR);
 
     core::SNodeC::init(argc, argv);
 
@@ -585,7 +585,7 @@ int main(int argc, char* argv[]) {
         res->redirect("/config/index.html");
     });
 
-    express::legacy::in::Server( //
+    const auto adminServer = express::legacy::in::Server( //
         "admin-legacy",
         router,
         reportState, //
@@ -595,7 +595,7 @@ int main(int argc, char* argv[]) {
             config->setReuseAddress();
         });
 
-    express::tls::in::Server( //
+    const auto adminTlsServer = express::tls::in::Server( //
         "admin-tls",
         router,
         reportState,

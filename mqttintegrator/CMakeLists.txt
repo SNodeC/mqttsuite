@@ -180,4 +180,5 @@ install(TARGETS mqttintegrator RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
                                        COMPONENT integrator
 )
 
-target_sources(mqttintegrator PRIVATE)
+include(WebUI)
+mqttsuite_web_ui(mqttintegrator integrator)

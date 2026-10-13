@@ -112,6 +112,9 @@ namespace mqtt::lib {
         ConfigMqttIntegrator(utils::SubCommand* parent);
 
         ~ConfigMqttIntegrator() override;
+
+        void setHtmlDir(const std::string& htmlDir);
+        std::string getHtmlDir() const;
     };
 
 } // namespace mqtt::lib

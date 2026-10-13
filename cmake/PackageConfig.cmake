@@ -1,4 +1,6 @@
 # Evaluated by CPack after release/version overrides have been applied.
+list(APPEND CPACK_SOURCE_IGNORE_FILES "/node_modules/" "/[.]angular/")
+set(CPACK_IGNORE_FILES "${CPACK_SOURCE_IGNORE_FILES}")
 set(names "${CPACK_PACKAGE_NAME}\n")
 set(full_requires "")
 foreach(component IN LISTS CPACK_COMPONENTS_ALL)

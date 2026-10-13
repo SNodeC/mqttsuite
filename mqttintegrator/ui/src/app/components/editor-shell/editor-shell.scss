@@ -1,0 +1,132 @@
+.title {
+  min-width: 0;
+  /* CRUCIAL: allows shrinking */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.spacer {
+  flex: 1;
+}
+
+mat-toolbar {
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 20px 25px -5px, rgba(0, 0, 0, 0.04) 0px 10px 10px -5px;
+
+  @media(min-width: 1024px) {
+    .back-button {
+      display: none;
+    }
+
+    .tree-button {
+      display: none;
+    }
+  }
+
+  .mat-toolbar-single-row {
+    padding: 0 32px !important;
+  }
+
+  .status {
+    display: flex;
+    align-items: center;
+
+    .icon-wrapper {
+      height: 40px;
+      width: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .is-dirty mat-icon {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #f44336;
+    }
+
+    .is-live mat-icon {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #4caf50;
+    }
+  }
+}
+
+.content {
+  width: 100%;
+  height: calc(100dvh - 64px); // mobile-safe viewport
+  display: flex;
+  flex-direction: column;
+  min-height: 120px;
+  display: flex;
+
+  .sideview {
+    width: 100%;
+    height: 100%;
+    display: flex;
+
+    @media(min-width: 1024px) {
+      height: calc(70%); // mobile-safe viewport
+    }
+
+
+
+    .topic-tree {
+      padding: 16px;
+      height: 100%;
+      display: none;
+
+      @media(min-width: 1024px) {
+        display: block;
+        width: 50%;
+        max-width: 560px;
+        border-right: 1px solid rgba(0, 0, 0, 0.12);
+        overflow: auto;
+      }
+    }
+  }
+
+  .router-outlet {
+    flex: 1 1 auto;
+    height: 100%;
+  }
+
+  .splitter {
+    height: 8px;
+    cursor: row-resize;
+    user-select: none;
+    touch-action: none; // important for pointer events on mobile
+    background: rgba(0, 0, 0, 0.08);
+
+    display: none;
+
+    @media (min-width: 1024px) {
+      display: block;
+    }
+  }
+
+  .json-preview {
+    width: 100%;
+    display: none;
+
+    @media (min-width: 1024px) {
+      display: block;
+    }
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}

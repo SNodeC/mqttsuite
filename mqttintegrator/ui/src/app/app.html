@@ -1,0 +1,16 @@
+<!-- <mat-sidenav-container class="shell">
+  <mat-sidenav #drawer position="end" [mode]="(isDesktop$ | async) ? 'side' : 'over'"
+    [opened]="(isDesktop$ | async) ? true : false" class="drawer" [class.is-desktop]="isDesktop$ | async">
+    <div class="drawer-content">
+      <button mat-icon-button class="tree-button" (click)="drawer.close()" aria-label="Topic tree">
+        <mat-icon>close</mat-icon>
+      </button>
+      <app-home-page></app-home-page>
+    </div>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <router-outlet></router-outlet>
+  </mat-sidenav-content>
+</mat-sidenav-container> -->
+<router-outlet></router-outlet>

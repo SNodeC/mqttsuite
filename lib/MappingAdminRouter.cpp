@@ -64,7 +64,10 @@
 
 namespace mqtt::lib::admin {
 
-    express::Router makeMappingAdminRouter(ConfigApplication* configApplication, const AdminOptions& opt, ReloadCallback onDeploy) {
+    express::Router makeMappingAdminRouter(ConfigApplication* configApplication,
+                                           const std::string& htmlDir,
+                                           const AdminOptions& opt,
+                                           ReloadCallback onDeploy) {
         express::Router api;
 
         api.use(express::middleware::JsonMiddleware());
@@ -260,8 +263,7 @@ namespace mqtt::lib::admin {
             res->redirect("/ui/index.html");
         });
 
-        api.use("/ui",
-                express::middleware::StaticMiddleware("/home/voc/tmp/integrator/mqtt-integrator-ui/dist/mqtt-integrator-ui/browser"));
+        api.use("/ui", express::middleware::StaticMiddleware(htmlDir));
 
         api.get("*", [] APPLICATION(req, res) {
             res->redirect("/ui/index.html");
