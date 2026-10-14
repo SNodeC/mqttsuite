@@ -1,6 +1,12 @@
-# MqttIntegratorUi
+<!-- snodec:begin page-header -->
+<a id="page-overview"></a>
+<p><picture><source media="(max-width: 640px)" srcset="../../docs/media/nav/banner-integrator-ui-compact.svg"><img src="../../docs/media/nav/banner-integrator-ui.svg" alt="MQTTSuite — Integrator UI" width="100%"></picture></p>
+<p><a href="../../docs/guides/mapping.md#page-overview" title="Up to Mapping"><picture><source media="(prefers-color-scheme: dark)" srcset="../../docs/media/nav/up-mapping-dark.svg"><img src="../../docs/media/nav/up-mapping-light.svg" alt="Up to Mapping" title="Up to Mapping" width="160" height="28"></picture></a><a href="https://github.com/SNodeC" title="SNode.C organization"><picture><source media="(max-width: 640px) and (prefers-color-scheme: dark)" srcset="../../docs/media/nav/organization-icon-dark.svg"><source media="(max-width: 640px)" srcset="../../docs/media/nav/organization-icon-light.svg"><source media="(prefers-color-scheme: dark)" srcset="../../docs/media/nav/organization-dark.svg"><img align="right" src="../../docs/media/nav/organization-light.svg" alt="SNode.C organization" title="SNode.C organization"></picture></a><a href="../../README.md#project-overview" title="MQTTSuite repository"><picture><source media="(max-width: 640px) and (prefers-color-scheme: dark)" srcset="../../docs/media/nav/repository-icon-dark.svg"><source media="(max-width: 640px)" srcset="../../docs/media/nav/repository-icon-light.svg"><source media="(prefers-color-scheme: dark)" srcset="../../docs/media/nav/repository-dark.svg"><img align="right" src="../../docs/media/nav/repository-light.svg" alt="MQTTSuite repository" title="MQTTSuite repository"></picture></a><br clear="all"></p>
+<!-- snodec:end page-header -->
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.3.4.
+# MQTT Integrator Mapping UI
+
+This Angular web interface edits, validates, deploys and rolls back MQTTIntegrator mappings through the admin API.
 
 ## Development server
 
