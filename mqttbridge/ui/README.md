@@ -1,13 +1,18 @@
+<!-- snodec:begin page-header -->
+<a id="page-overview"></a>
+<p><picture><source media="(max-width: 640px)" srcset="../../docs/media/nav/banner-bridge-ui-compact.svg"><img src="../../docs/media/nav/banner-bridge-ui.svg" alt="MQTTSuite — Bridge UI" width="100%"></picture></p>
+<p><a href="../../docs/guides/bridging.md#page-overview" title="Up to Bridging"><picture><source media="(prefers-color-scheme: dark)" srcset="../../docs/media/nav/up-bridging-dark.svg"><img src="../../docs/media/nav/up-bridging-light.svg" alt="Up to Bridging" title="Up to Bridging" width="160" height="28"></picture></a><a href="https://github.com/SNodeC" title="SNode.C organization"><picture><source media="(max-width: 640px) and (prefers-color-scheme: dark)" srcset="../../docs/media/nav/organization-icon-dark.svg"><source media="(max-width: 640px)" srcset="../../docs/media/nav/organization-icon-light.svg"><source media="(prefers-color-scheme: dark)" srcset="../../docs/media/nav/organization-dark.svg"><img align="right" src="../../docs/media/nav/organization-light.svg" alt="SNode.C organization" title="SNode.C organization"></picture></a><a href="../../README.md#project-overview" title="MQTTSuite repository"><picture><source media="(max-width: 640px) and (prefers-color-scheme: dark)" srcset="../../docs/media/nav/repository-icon-dark.svg"><source media="(max-width: 640px)" srcset="../../docs/media/nav/repository-icon-light.svg"><source media="(prefers-color-scheme: dark)" srcset="../../docs/media/nav/repository-dark.svg"><img align="right" src="../../docs/media/nav/repository-light.svg" alt="MQTTSuite repository" title="MQTTSuite repository"></picture></a><br clear="all"></p>
+<!-- snodec:end page-header -->
 
-  # MQTT Bridge Configuration UI
+# MQTT Bridge Configuration UI
 
-  This is a code bundle for a graphical interface for the MQTT Bridge Configuration in the MQTTSuite. It is based on a Figma prototype available at https://www.figma.com/design/YdgbzQUl5u5550Kv88Jw7G/MQTT-Bridge-Configuration-UI-improved.
+This is a code bundle for a graphical interface for the MQTT Bridge Configuration in the MQTTSuite. It is based on a Figma prototype available at https://www.figma.com/design/YdgbzQUl5u5550Kv88Jw7G/MQTT-Bridge-Configuration-UI-improved.
 
-  ## Running the code
+## Running the code
 
-  Run `npm i` to install the dependencies.
+Run `npm i` to install the dependencies.
 
-  Run `npm run dev` to start the development server.
+Run `npm run dev` to start the development server.
 
 
 ## MQTTSuite integration
