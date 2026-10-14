@@ -379,6 +379,8 @@ Install from [signed packages](https://github.com/SNodeC/Packages#readme) for yo
 
 ## Releases
 
+To rebuild an existing version without moving its tag, open **Build MQTTSuite distribution packages** in Actions, select **Run workflow** on the default branch and enter its existing `vMAJOR.MINOR.PATCH` tag. Each manual start creates a fresh capture and package revision. Ordinary job retries still require the original capture artifact; use a new manual run if that artifact is unavailable.
+
 [Release history and release notes](https://github.com/SNodeC/mqttsuite/releases). SNode.C and MQTTSuite have independent release histories. This source tree requires SNode.C 2.0.0 or newer compatible components; keep application libraries and transport plugins ABI-compatible. See [upgrade checks](docs/guides/deployment.md#before-an-upgrade).
 
 ## Contributing
