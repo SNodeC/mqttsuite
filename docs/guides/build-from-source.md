@@ -1,7 +1,9 @@
+<a id="banner"></a>
+
 <!-- snodec:begin page-header -->
-<a id="page-overview"></a>
+<a id="banner"></a><a id="page-overview"></a>
 <p><picture><source media="(max-width: 640px)" srcset="../media/nav/banner-guides-compact.svg"><img src="../media/nav/banner-guides.svg" alt="MQTTSuite — Guides" width="100%"></picture></p>
-<p><a href="README.md#page-overview" title="Up to Guides"><picture><source media="(prefers-color-scheme: dark)" srcset="../media/nav/up-guides-dark.svg"><img src="../media/nav/up-guides-light.svg" alt="Up to Guides" title="Up to Guides" width="160" height="28"></picture></a><a href="https://github.com/SNodeC" title="SNode.C organization"><picture><source media="(max-width: 640px) and (prefers-color-scheme: dark)" srcset="../media/nav/organization-icon-dark.svg"><source media="(max-width: 640px)" srcset="../media/nav/organization-icon-light.svg"><source media="(prefers-color-scheme: dark)" srcset="../media/nav/organization-dark.svg"><img align="right" src="../media/nav/organization-light.svg" alt="SNode.C organization" title="SNode.C organization"></picture></a><a href="../../README.md#project-overview" title="MQTTSuite repository"><picture><source media="(max-width: 640px) and (prefers-color-scheme: dark)" srcset="../media/nav/repository-icon-dark.svg"><source media="(max-width: 640px)" srcset="../media/nav/repository-icon-light.svg"><source media="(prefers-color-scheme: dark)" srcset="../media/nav/repository-dark.svg"><img align="right" src="../media/nav/repository-light.svg" alt="MQTTSuite repository" title="MQTTSuite repository"></picture></a><br clear="all"></p>
+<p><a href="README.md#banner" title="Up to Guides"><picture><source media="(prefers-color-scheme: dark)" srcset="../media/nav/up-guides-dark.svg"><img src="../media/nav/up-guides-light.svg" alt="Up to Guides" title="Up to Guides" width="160" height="28"></picture></a><a href="https://github.com/VolkerChristian#banner" title="Volker Christian account"><picture><source media="(max-width: 640px) and (prefers-color-scheme: dark)" srcset="../media/nav/account-icon-dark.svg"><source media="(max-width: 640px)" srcset="../media/nav/account-icon-light.svg"><source media="(prefers-color-scheme: dark)" srcset="../media/nav/account-dark.svg"><img align="right" src="../media/nav/account-light.svg" alt="Volker Christian account" title="Volker Christian account"></picture></a><a href="https://github.com/SNodeC#banner" title="SNode.C organization"><picture><source media="(max-width: 640px) and (prefers-color-scheme: dark)" srcset="../media/nav/organization-icon-dark.svg"><source media="(max-width: 640px)" srcset="../media/nav/organization-icon-light.svg"><source media="(prefers-color-scheme: dark)" srcset="../media/nav/organization-dark.svg"><img align="right" src="../media/nav/organization-light.svg" alt="SNode.C organization" title="SNode.C organization"></picture></a><a href="../../README.md#banner" title="MQTTSuite repository"><picture><source media="(max-width: 640px) and (prefers-color-scheme: dark)" srcset="../media/nav/repository-icon-dark.svg"><source media="(max-width: 640px)" srcset="../media/nav/repository-icon-light.svg"><source media="(prefers-color-scheme: dark)" srcset="../media/nav/repository-dark.svg"><img align="right" src="../media/nav/repository-light.svg" alt="MQTTSuite repository" title="MQTTSuite repository"></picture></a><br clear="all"></p>
 <!-- snodec:end page-header -->
 
 # Build and install MQTTSuite from source
@@ -13,7 +15,7 @@
 </p>
 <!-- snodec:end menu -->
 
-**Prefer prebuilt binaries?** See [Packages](https://github.com/SNodeC/Packages#readme) for supported distributions and installation instructions.
+**Prefer prebuilt binaries?** See [Packages](https://github.com/SNodeC/Packages#banner) for supported distributions and installation instructions.
 
 ## Native Linux build
 
@@ -21,7 +23,7 @@ Build and install on the Linux machine that will run the software.
 
 ### Requirements
 
-Install **SNode.C before configuring MQTTSuite**. Use [SNode.C’s prebuilt DEB/RPM packages](https://github.com/SNodeC/Packages#readme) (which include headers and CMake files), or follow the [SNode.C → Build → Native Linux build](https://github.com/SNodeC/snode.c#project-overview). OpenWrt runtime packages do not provide the development files needed for a native build. Current MQTTSuite CMake files request **SNode.C 2.0.0** using its package compatibility rules. Build both from compatible revisions if you are working on their APIs; do not combine arbitrary old libraries and current headers.
+Install **SNode.C before configuring MQTTSuite**. Use [SNode.C’s prebuilt DEB/RPM packages](https://github.com/SNodeC/Packages#banner) (which include headers and CMake files), or follow the [SNode.C → Build → Native Linux build](https://github.com/SNodeC/snode.c#banner). OpenWrt runtime packages do not provide the development files needed for a native build. Current MQTTSuite CMake files request **SNode.C 2.0.0** using its package compatibility rules. Build both from compatible revisions if you are working on their APIs; do not combine arbitrary old libraries and current headers.
 
 The suite requires C++20 and CMake 3.18+. The full build also needs the SNode.C components for the chosen transports and MariaDB integration. On Debian/Ubuntu:
 
@@ -71,7 +73,7 @@ Build MQTTSuite packages with an official OpenWrt SDK matching the device's rele
 
 ### Prepare the SDK
 
-Follow [SNode.C → Build → OpenWrt cross-compilation → Prepare the SDK](https://github.com/SNodeC/snode.c#project-overview) to choose, verify and extract the official SDK. Continue below in that SDK; OpenWrt will build SNode.C automatically as MQTTSuite's dependency. No published SNode.C SDK archive is required.
+Follow [SNode.C → Build → OpenWrt cross-compilation → Prepare the SDK](https://github.com/SNodeC/snode.c#banner) to choose, verify and extract the official SDK. Continue below in that SDK; OpenWrt will build SNode.C automatically as MQTTSuite's dependency. No published SNode.C SDK archive is required.
 
 The recipes are included in the upstream checkouts. Clone whichever checkout you do not already have:
 
@@ -117,7 +119,7 @@ OpenWrt builds and stages SNode.C before compiling MQTTSuite, as declared by the
 
 This example creates unsigned packages for local use. Adjust the parallel job count to the build host. In an existing SDK, retain your `.config` and change selections through `make menuconfig` instead of replacing it.
 
-Use **Network / MQTTSuite** in `make menuconfig`. `CONFIG_PACKAGE_<package>=m` builds an installable package; `y` also selects it for an image build; `n` omits it unless required by a selected consumer. `mqttsuite` selects all five applications and both mapping plugins. Required SNode.C layers are selected automatically. See the [package catalog](https://github.com/SNodeC/Packages/blob/main/docs/catalogs/mqttsuite.md) for contents.
+Use **Network / MQTTSuite** in `make menuconfig`. `CONFIG_PACKAGE_<package>=m` builds an installable package; `y` also selects it for an image build; `n` omits it unless required by a selected consumer. `mqttsuite` selects all five applications and both mapping plugins. Required SNode.C layers are selected automatically. See the [package catalog](https://github.com/SNodeC/Packages/blob/main/docs/catalogs/mqttsuite.md#banner) for contents.
 
 MQTTSuite compiles only selected applications. Each has eight transport options; WebSocket plugins compile and ship only with WS enabled. TLS requires its base socket family; WSS requires WS and an enabled TLS family. WS requires a socket family. IPv4 TCP is retained when both IPv6 and Unix sockets are disabled. Unix-socket TLS defaults to disabled. Mapping plugins are selected separately for packaging.
 
@@ -204,4 +206,4 @@ Then check application help/configuration, native MQTT, WS and WSS connections, 
 
 Configure the applications you installed, then start the packaged procd services for MQTTBroker, MQTTBridge or MQTTIntegrator as appropriate. Review listener bindings, administrative access and logs before opening firewall access.
 
-Next: [deployment](deployment.md#page-overview).
+Next: [deployment](deployment.md#banner).

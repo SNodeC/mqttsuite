@@ -1,7 +1,9 @@
+<a id="banner"></a>
+
 <!-- snodec:begin page-header -->
-<a id="page-overview"></a>
+<a id="banner"></a><a id="page-overview"></a>
 <p><picture><source media="(max-width: 640px)" srcset="../media/nav/banner-guides-compact.svg"><img src="../media/nav/banner-guides.svg" alt="MQTTSuite — Guides" width="100%"></picture></p>
-<p><a href="README.md#page-overview" title="Up to Guides"><picture><source media="(prefers-color-scheme: dark)" srcset="../media/nav/up-guides-dark.svg"><img src="../media/nav/up-guides-light.svg" alt="Up to Guides" title="Up to Guides" width="160" height="28"></picture></a><a href="https://github.com/SNodeC" title="SNode.C organization"><picture><source media="(max-width: 640px) and (prefers-color-scheme: dark)" srcset="../media/nav/organization-icon-dark.svg"><source media="(max-width: 640px)" srcset="../media/nav/organization-icon-light.svg"><source media="(prefers-color-scheme: dark)" srcset="../media/nav/organization-dark.svg"><img align="right" src="../media/nav/organization-light.svg" alt="SNode.C organization" title="SNode.C organization"></picture></a><a href="../../README.md#project-overview" title="MQTTSuite repository"><picture><source media="(max-width: 640px) and (prefers-color-scheme: dark)" srcset="../media/nav/repository-icon-dark.svg"><source media="(max-width: 640px)" srcset="../media/nav/repository-icon-light.svg"><source media="(prefers-color-scheme: dark)" srcset="../media/nav/repository-dark.svg"><img align="right" src="../media/nav/repository-light.svg" alt="MQTTSuite repository" title="MQTTSuite repository"></picture></a><br clear="all"></p>
+<p><a href="README.md#banner" title="Up to Guides"><picture><source media="(prefers-color-scheme: dark)" srcset="../media/nav/up-guides-dark.svg"><img src="../media/nav/up-guides-light.svg" alt="Up to Guides" title="Up to Guides" width="160" height="28"></picture></a><a href="https://github.com/VolkerChristian#banner" title="Volker Christian account"><picture><source media="(max-width: 640px) and (prefers-color-scheme: dark)" srcset="../media/nav/account-icon-dark.svg"><source media="(max-width: 640px)" srcset="../media/nav/account-icon-light.svg"><source media="(prefers-color-scheme: dark)" srcset="../media/nav/account-dark.svg"><img align="right" src="../media/nav/account-light.svg" alt="Volker Christian account" title="Volker Christian account"></picture></a><a href="https://github.com/SNodeC#banner" title="SNode.C organization"><picture><source media="(max-width: 640px) and (prefers-color-scheme: dark)" srcset="../media/nav/organization-icon-dark.svg"><source media="(max-width: 640px)" srcset="../media/nav/organization-icon-light.svg"><source media="(prefers-color-scheme: dark)" srcset="../media/nav/organization-dark.svg"><img align="right" src="../media/nav/organization-light.svg" alt="SNode.C organization" title="SNode.C organization"></picture></a><a href="../../README.md#banner" title="MQTTSuite repository"><picture><source media="(max-width: 640px) and (prefers-color-scheme: dark)" srcset="../media/nav/repository-icon-dark.svg"><source media="(max-width: 640px)" srcset="../media/nav/repository-icon-light.svg"><source media="(prefers-color-scheme: dark)" srcset="../media/nav/repository-dark.svg"><img align="right" src="../media/nav/repository-light.svg" alt="MQTTSuite repository" title="MQTTSuite repository"></picture></a><br clear="all"></p>
 <!-- snodec:end page-header -->
 
 # Connect two brokers
@@ -62,9 +64,9 @@ Here `demo+a` follows `bridge.name: "demo"` and `network.instance_name: "a"`; re
 
 ## Administration is a separate boundary
 
-MQTTBridge ships a web interface for editing its configuration; its [sources and build instructions](../../mqttbridge/ui/README.md#page-overview) live in `mqttbridge/ui/`.
+MQTTBridge ships a web interface for editing its configuration; its [sources and build instructions](../../mqttbridge/ui/README.md#banner) live in `mqttbridge/ui/`.
 
-`admin-legacy` (8081) and `admin-tls` (8082) expose the mutable configuration API, including `/config`, without built-in authentication. Disable both when not used; otherwise isolate/authenticate them outside the application. Do not expose administration merely to establish encrypted MQTT connections. See [deployment](deployment.md#page-overview).
+`admin-legacy` (8081) and `admin-tls` (8082) expose the mutable configuration API, including `/config`, without built-in authentication. Disable both when not used; otherwise isolate/authenticate them outside the application. Do not expose administration merely to establish encrypted MQTT connections. See [deployment](deployment.md#banner).
 
 ## Deploy a deliberate topology
 
@@ -74,4 +76,4 @@ For off-host endpoints, configure TLS and appropriate broker access policy. A br
 
 Stop all demonstration processes with Ctrl+C.
 
-Next: [deployment](deployment.md#page-overview) or [the bridge JSON schema](../../mqttbridge/lib/bridge-schema.json).
+Next: [deployment](deployment.md#banner) or [the bridge JSON schema](../../mqttbridge/lib/bridge-schema.json).
