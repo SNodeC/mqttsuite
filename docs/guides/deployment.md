@@ -1,7 +1,9 @@
+<a id="banner"></a>
+
 <!-- snodec:begin page-header -->
-<a id="page-overview"></a>
+<a id="banner"></a><a id="page-overview"></a>
 <p><picture><source media="(max-width: 640px)" srcset="../media/nav/banner-guides-compact.svg"><img src="../media/nav/banner-guides.svg" alt="MQTTSuite — Guides" width="100%"></picture></p>
-<p><a href="README.md#page-overview" title="Up to Guides"><picture><source media="(prefers-color-scheme: dark)" srcset="../media/nav/up-guides-dark.svg"><img src="../media/nav/up-guides-light.svg" alt="Up to Guides" title="Up to Guides" width="160" height="28"></picture></a><a href="https://github.com/SNodeC" title="SNode.C organization"><picture><source media="(max-width: 640px) and (prefers-color-scheme: dark)" srcset="../media/nav/organization-icon-dark.svg"><source media="(max-width: 640px)" srcset="../media/nav/organization-icon-light.svg"><source media="(prefers-color-scheme: dark)" srcset="../media/nav/organization-dark.svg"><img align="right" src="../media/nav/organization-light.svg" alt="SNode.C organization" title="SNode.C organization"></picture></a><a href="../../README.md#project-overview" title="MQTTSuite repository"><picture><source media="(max-width: 640px) and (prefers-color-scheme: dark)" srcset="../media/nav/repository-icon-dark.svg"><source media="(max-width: 640px)" srcset="../media/nav/repository-icon-light.svg"><source media="(prefers-color-scheme: dark)" srcset="../media/nav/repository-dark.svg"><img align="right" src="../media/nav/repository-light.svg" alt="MQTTSuite repository" title="MQTTSuite repository"></picture></a><br clear="all"></p>
+<p><a href="README.md#banner" title="Up to Guides"><picture><source media="(prefers-color-scheme: dark)" srcset="../media/nav/up-guides-dark.svg"><img src="../media/nav/up-guides-light.svg" alt="Up to Guides" title="Up to Guides" width="160" height="28"></picture></a><a href="https://github.com/VolkerChristian#banner" title="Volker Christian account"><picture><source media="(max-width: 640px) and (prefers-color-scheme: dark)" srcset="../media/nav/account-icon-dark.svg"><source media="(max-width: 640px)" srcset="../media/nav/account-icon-light.svg"><source media="(prefers-color-scheme: dark)" srcset="../media/nav/account-dark.svg"><img align="right" src="../media/nav/account-light.svg" alt="Volker Christian account" title="Volker Christian account"></picture></a><a href="https://github.com/SNodeC#banner" title="SNode.C organization"><picture><source media="(max-width: 640px) and (prefers-color-scheme: dark)" srcset="../media/nav/organization-icon-dark.svg"><source media="(max-width: 640px)" srcset="../media/nav/organization-icon-light.svg"><source media="(prefers-color-scheme: dark)" srcset="../media/nav/organization-dark.svg"><img align="right" src="../media/nav/organization-light.svg" alt="SNode.C organization" title="SNode.C organization"></picture></a><a href="../../README.md#banner" title="MQTTSuite repository"><picture><source media="(max-width: 640px) and (prefers-color-scheme: dark)" srcset="../media/nav/repository-icon-dark.svg"><source media="(max-width: 640px)" srcset="../media/nav/repository-icon-light.svg"><source media="(prefers-color-scheme: dark)" srcset="../media/nav/repository-dark.svg"><img align="right" src="../media/nav/repository-light.svg" alt="MQTTSuite repository" title="MQTTSuite repository"></picture></a><br clear="all"></p>
 <!-- snodec:end page-header -->
 
 # Operate MQTTSuite deliberately
@@ -121,7 +123,7 @@ On OpenWrt, after configuring `/etc/snode.c/mqttbroker.conf`, the packaged init 
 /etc/init.d/mqttbroker start
 ```
 
-Confirm the intended listeners and logs before opening firewall access. See [Packages](https://github.com/SNodeC/Packages#readme) for platform-specific setup and updates.
+Confirm the intended listeners and logs before opening firewall access. See [Packages](https://github.com/SNodeC/Packages#banner) for platform-specific setup and updates.
 
 ## Before an upgrade
 
@@ -137,4 +139,4 @@ Confirm the intended listeners and logs before opening firewall access. See [Pac
 - **No received message:** confirm the selected transport is enabled, wait for subscriber/bridge/integrator connection before publishing, and compare the topic filter with the output topic. The README gives exact expected topics for each walkthrough.
 - **Unexpected mapped output:** do not run the same mapping in broker and integrator unless duplication is intended; verify input/output namespaces cannot feed back into a rule.
 - **Cannot load a shared library or plugin:** use binaries, libraries and WebSocket modules from a compatible installation; check custom-prefix runtime lookup and build components.
-- **Database/projection failure:** distinguish MQTT delivery, raw persistence and typed insert failures. Follow [the storage walkthrough](storage.md#page-overview) and [MQTTStore troubleshooting](../mqttstore-user-guide.md#7-troubleshooting) for schema, permissions and socket settings.
+- **Database/projection failure:** distinguish MQTT delivery, raw persistence and typed insert failures. Follow [the storage walkthrough](storage.md#banner) and [MQTTStore troubleshooting](../mqttstore-user-guide.md#7-troubleshooting) for schema, permissions and socket settings.
