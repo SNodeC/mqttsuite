@@ -75,7 +75,10 @@ namespace mqtt::lib::admin {
     using ReloadCallback = std::function<ReloadResult(bool)>;
 
     // Creates and returns a Router that handles /config/* endpoints.
-    express::Router makeMappingAdminRouter(ConfigApplication* configApplication, const AdminOptions& opt, ReloadCallback onDeploy = {});
+    express::Router makeMappingAdminRouter(ConfigApplication* configApplication,
+                                           const std::string& htmlDir,
+                                           const AdminOptions& opt,
+                                           ReloadCallback onDeploy = {});
 
 } // namespace mqtt::lib::admin
 

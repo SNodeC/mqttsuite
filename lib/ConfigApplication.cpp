@@ -261,8 +261,18 @@ namespace mqtt::lib {
 
     ConfigMqttIntegrator::ConfigMqttIntegrator(utils::SubCommand* parent)
         : ConfigApplication(parent, this) {
+        addOption("--html-dir", "Path to HTML source directory", "directory", CLI::ExistingDirectory);
     }
 
     ConfigMqttIntegrator::~ConfigMqttIntegrator() = default;
+
+    void ConfigMqttIntegrator::setHtmlDir(const std::string& htmlDir) {
+        getAppWithPtr()->get_option("--html-dir")->default_str(htmlDir)->clear();
+    }
+
+    std::string ConfigMqttIntegrator::getHtmlDir() const {
+        const CLI::Option* htmlDirOpt = getAppWithPtr()->get_option("--html-dir");
+        return htmlDirOpt->empty() ? htmlDirOpt->get_default_str() : htmlDirOpt->results().front();
+    }
 
 } // namespace mqtt::lib

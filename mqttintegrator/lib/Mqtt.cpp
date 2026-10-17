@@ -54,6 +54,7 @@
 
 #include <algorithm>
 #include <functional>
+#include <tuple>
 
 #endif
 

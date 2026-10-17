@@ -65,6 +65,7 @@ if(BRETTIER)
 
     filter_items(CHECK_CSS_SOURCE_FILES "/build/")
     filter_items(CHECK_CSS_SOURCE_FILES "/json-schema-validator/")
+    filter_items(CHECK_CSS_SOURCE_FILES "/node_modules/")
     filter_items(CHECK_CSS_SOURCE_FILES "(^|/)html/.*\\.(css)$")
 
     list(LENGTH CHECK_CSS_SOURCE_FILES CHECK_CSS_SOURCE_FILES_LEN)

@@ -130,7 +130,6 @@
       },
       "default": {
         "client_id": "",
-        "session_store": "",
         "keep_alive": 60,
         "clean_session": true,
         "will_topic": "",

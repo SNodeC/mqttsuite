@@ -197,31 +197,7 @@ HttpClient startClient(const std::string& name, const std::function<void(typenam
 
 int main(int argc, char* argv[]) {
     mqtt::lib::ConfigMqttIntegrator* configMqttIntegrator = utils::Config::configRoot.newSubCommand<mqtt::lib::ConfigMqttIntegrator>();
-    /*
-        configMqttIntegrator->setMappingFile("mapping.json"); // Load mapping from mapping.json. (can throw)
-
-        configMqttIntegrator->setMapping( // Override mapping from mapping.json with a in-code mapping (can throw)
-            R"({
-                        "mapping": {
-                          "plugins": [],
-                          "topic_level": [{
-                          "name": "value",
-                          "subscription": {
-                            "value": {
-                              "mapped_topic": "mapping/json",
-                              "mapping_template": "{\"state\":\"{{message}}\"}"
-                            }
-                          }
-                        }]
-                      }
-                    })");
-
-        if (configMqttIntegrator->persistMapping()) {
-            std::cout << "Mapping persisted successfully" << std::endl;
-        } else {
-            std::cout << "Mapping deploy acknowledged but not persisted" << std::endl;
-        }
-    */
+    configMqttIntegrator->setHtmlDir(MQTTSUITE_HTML_DIR);
 
     configMqttIntegrator->setMappingFile("mapping.json"); // Load mapping from mapping.json. (can throw)
 
@@ -267,8 +243,8 @@ int main(int argc, char* argv[]) {
     }
 
     // Instanciate Admin Router for Mapping Management
-    express::Router router =
-        mqtt::lib::admin::makeMappingAdminRouter(configMqttIntegrator, mqtt::lib::admin::AdminOptions{}, [](bool mustReconnect) {
+    express::Router router = mqtt::lib::admin::makeMappingAdminRouter(
+        configMqttIntegrator, configMqttIntegrator->getHtmlDir(), mqtt::lib::admin::AdminOptions{}, [](bool mustReconnect) {
             return mqtt::mqttintegrator::lib::Mqtt::updateSubscriptions(mustReconnect);
         });
 

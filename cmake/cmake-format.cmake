@@ -65,6 +65,7 @@ if(CMAKE_FORMAT)
     endfunction(filter_items)
 
     filter_items(CMAKELISTS_TXT_FILES "/json-schema-validator/")
+    filter_items(CMAKELISTS_TXT_FILES "/node_modules/")
 
     add_custom_command(
         OUTPUT format-cmds

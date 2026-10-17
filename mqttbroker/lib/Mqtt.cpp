@@ -55,6 +55,7 @@
 
 #include <functional>
 #include <list>
+#include <tuple>
 
 #endif
 

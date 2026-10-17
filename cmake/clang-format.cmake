@@ -72,6 +72,7 @@ if(CLANG_FORMAT)
 
     filter_items(CHECK_CXX_SOURCE_FILES "/build/")
     filter_items(CHECK_CXX_SOURCE_FILES "/json-schema-validator/")
+    filter_items(CHECK_CXX_SOURCE_FILES "/node_modules/")
 
     add_custom_command(
         OUTPUT format-cmds

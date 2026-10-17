@@ -130,8 +130,8 @@ define Package/mqttsuite/install-app
 	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libmqtt-$(2).so.* $(1)/usr/lib/
 	$(if $(CONFIG_MQTTSUITE_$(3)_WS),$(INSTALL_DIR) $(1)/usr/lib/snode.c/web/http/upgrade/websocket/mqtt$(2))
 	$(if $(CONFIG_MQTTSUITE_$(3)_WS),$(CP) $(PKG_INSTALL_DIR)/usr/lib/snode.c/web/http/upgrade/websocket/mqtt$(2)/*.so.* $(1)/usr/lib/snode.c/web/http/upgrade/websocket/mqtt$(2)/)
-	$(if $(filter broker bridge,$(2)),$(INSTALL_DIR) $(1)/usr/var/www/mqttsuite/mqtt$(2))
-	$(if $(filter broker bridge,$(2)),$(CP) $(PKG_INSTALL_DIR)/usr/var/www/mqttsuite/mqtt$(2)/* $(1)/usr/var/www/mqttsuite/mqtt$(2)/)
+	$(if $(filter broker bridge integrator,$(2)),$(INSTALL_DIR) $(1)/usr/var/www/mqttsuite/mqtt$(2))
+	$(if $(filter broker bridge integrator,$(2)),$(CP) $(PKG_INSTALL_DIR)/usr/var/www/mqttsuite/mqtt$(2)/* $(1)/usr/var/www/mqttsuite/mqtt$(2)/)
 	$(if $(filter broker integrator bridge,$(2)),$(INSTALL_DIR) $(1)/etc/init.d)
 	$(if $(filter broker integrator bridge,$(2)),$(INSTALL_BIN) ./files/mqtt$(2).init $(1)/etc/init.d/mqtt$(2))
 	bash ./files/normalize-rpath.sh "$(STAGING_DIR_HOST)/bin/patchelf" "$(TARGET_CROSS)readelf" "$(STAGING_DIR)" "$(1)/usr"
