@@ -3,9 +3,7 @@
   "type": ["object", "null"],
   "default": {
     "meta": {
-      "version": "0",
-      "comment": "New mapping description",
-      "author": "anonymous"
+      "revision": 0
     },
     "discover_prefix": "",
     "connection": {
@@ -28,28 +26,13 @@
     "meta": {
       "type": "object",
       "default": {
-        "version": "0",
-        "comment": "New mapping description",
-        "author": "anonymous"
+        "revision": 0
       },
       "properties": {
-        "version": {
-          "type": "string",
-          "description": "Auto-generated timestamp or ID",
-          "default": "0"
-        },
-        "comment": {
-          "type": "string",
-          "description": "User description of this configuration state",
-          "default": "New mapping description"
-        },
-        "author": {
-          "type": "string",
-          "default": "anonymous"
-        },
-        "created": {
-          "type": "string",
-          "format": "date-time"
+        "revision": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0
         }
       }
     },

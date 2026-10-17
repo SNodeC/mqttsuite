@@ -97,6 +97,7 @@ namespace mqtt::lib {
         std::string getClientId() const;
         uint16_t getKeepAlive() const;
         ConnectParameter getConnectPayload() const;
+        uint64_t getRevision() const;
 
         std::list<iot::mqtt::Topic> extractSubscriptions() const;
         MappedPublishes getMappings(const iot::mqtt::packets::Publish& publish);

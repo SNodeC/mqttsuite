@@ -4,6 +4,7 @@
 /.qtcreator/
 /mqttbroker/mock-up/
 /misc/*
+!/misc/mapping-admin-scenarios/
 !/misc/openwrt/
 .vscode/
 /local/

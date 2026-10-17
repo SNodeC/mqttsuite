@@ -147,7 +147,7 @@ HttpClient startClient(const std::string& name, const std::function<void(typenam
                 "websocket",
                 [connectionName](bool success) {
                     mqttsuite::log::integratorLog().debug() << connectionName << ": HTTP Upgrade (http -> websocket||"
-                                                                 << "mqtt" << ") start " << (success ? "success" : "failed");
+                                                            << "mqtt" << ") start " << (success ? "success" : "failed");
                 },
                 []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req,
                    [[maybe_unused]] const std::shared_ptr<web::http::client::Response>& res,
