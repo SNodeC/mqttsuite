@@ -47,9 +47,10 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include "lib/Log.h"
+
 #include <cstdint>
 #include <cstring>
-#include <log/Logger.h>
 #include <utils/system/signal.h>
 
 #endif
@@ -62,17 +63,17 @@ namespace mqtt::bridge::lib {
                                   broker.getKeepAlive(),
                                   broker.getSessionStoreFileName())
         , broker(broker) {
-        VLOG(1) << "Client Id: " << clientId;
-        VLOG(1) << "  Keep Alive: " << keepAlive;
-        VLOG(1) << "  Prefix: " << broker.getPrefix();
-        VLOG(1) << "  Clean Session: " << broker.getCleanSession();
-        VLOG(1) << "  Will Topic: " << broker.getWillTopic();
-        VLOG(1) << "  Will Message: " << broker.getWillMessage();
-        VLOG(1) << "  Will QoS: " << static_cast<uint16_t>(broker.getWillQoS());
-        VLOG(1) << "  Will Retain " << broker.getWillRetain();
-        VLOG(1) << "  Username: " << broker.getUsername();
-        VLOG(1) << "  Password: " << broker.getPassword();
-        VLOG(1) << "  Loop Prevention: " << broker.getLoopPrevention();
+        mqttsuite::log::bridgeLog().debug() << "Client Id: " << clientId;
+        mqttsuite::log::bridgeLog().debug() << "  Keep Alive: " << keepAlive;
+        mqttsuite::log::bridgeLog().debug() << "  Prefix: " << broker.getPrefix();
+        mqttsuite::log::bridgeLog().debug() << "  Clean Session: " << broker.getCleanSession();
+        mqttsuite::log::bridgeLog().debug() << "  Will Topic: " << broker.getWillTopic();
+        mqttsuite::log::bridgeLog().debug() << "  Will Message: " << broker.getWillMessage();
+        mqttsuite::log::bridgeLog().debug() << "  Will QoS: " << static_cast<uint16_t>(broker.getWillQoS());
+        mqttsuite::log::bridgeLog().debug() << "  Will Retain " << broker.getWillRetain();
+        mqttsuite::log::bridgeLog().debug() << "  Username: " << broker.getUsername();
+        mqttsuite::log::bridgeLog().debug() << "  Password: " << broker.getPassword();
+        mqttsuite::log::bridgeLog().debug() << "  Loop Prevention: " << broker.getLoopPrevention();
     }
 
     const Broker& Mqtt::getBroker() const {
@@ -80,7 +81,7 @@ namespace mqtt::bridge::lib {
     }
 
     void Mqtt::onConnected() {
-        VLOG(1) << "MQTT: Initiating Session";
+        mqttsuite::log::bridgeLog().debug() << "MQTT: Initiating Session";
 
         sendConnect(broker.getCleanSession(),
                     broker.getWillTopic(),
@@ -95,12 +96,12 @@ namespace mqtt::bridge::lib {
     void Mqtt::onDisconnected() {
         mqtt::bridge::lib::BridgeStore::instance().mqttDisconnected(broker, this);
 
-        VLOG(1) << "MQTT: Disconnected";
+        mqttsuite::log::bridgeLog().debug() << "MQTT: Disconnected";
     }
 
     bool Mqtt::onSignal(int signum) {
-        VLOG(1) << "MQTT: On Exit due to '" << strsignal(signum) << "' (SIG" << utils::system::sigabbrev_np(signum) << " = " << signum
-                << ")";
+        mqttsuite::log::bridgeLog().debug()
+            << "MQTT: On Exit due to '" << strsignal(signum) << "' (SIG" << utils::system::sigabbrev_np(signum) << " = " << signum << ")";
 
         sendDisconnect();
 

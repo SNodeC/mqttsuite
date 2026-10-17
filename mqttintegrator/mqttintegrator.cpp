@@ -81,7 +81,7 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <log/Logger.h>
+#include "lib/Log.h"
 //
 #include <utility>
 
@@ -113,16 +113,16 @@ static void
 reportState(const std::string& instanceName, const core::socket::SocketAddress& socketAddress, const core::socket::State& state) {
     switch (state) {
         case core::socket::State::OK:
-            VLOG(1) << instanceName << ": connected to '" << socketAddress.toString() << "'";
+            mqttsuite::log::integratorLog().debug() << instanceName << ": connected to '" << socketAddress.toString() << "'";
             break;
         case core::socket::State::DISABLED:
-            VLOG(1) << instanceName << ": disabled";
+            mqttsuite::log::integratorLog().debug() << instanceName << ": disabled";
             break;
         case core::socket::State::ERROR:
-            VLOG(1) << instanceName << ": " << socketAddress.toString() << ": " << state.what();
+            mqttsuite::log::integratorLog().debug() << instanceName << ": " << socketAddress.toString() << ": " << state.what();
             break;
         case core::socket::State::FATAL:
-            VLOG(1) << instanceName << ": " << socketAddress.toString() << ": " << state.what();
+            mqttsuite::log::integratorLog().debug() << instanceName << ": " << socketAddress.toString() << ": " << state.what();
             break;
     }
 }
@@ -137,6 +137,7 @@ startClient(const std::string& instanceName,
 
     Client socketClient = core::socket::stream::Client<Client>(instanceName, configurator, std::forward<Args>(args)...);
 
+    socketClient.getConfig()->setDisabled();
     socketClient.getConfig()->setRetry();
     socketClient.getConfig()->setRetryBase(1);
     socketClient.getConfig()->setReconnect();
@@ -163,25 +164,26 @@ HttpClient startClient(const std::string& name, const std::function<void(typenam
                 "/ws",
                 "websocket",
                 [connectionName](bool success) {
-                    VLOG(1) << connectionName << ": HTTP Upgrade (http -> websocket||"
-                            << "mqtt" << ") start " << (success ? "success" : "failed");
+                    mqttsuite::log::integratorLog().debug() << connectionName << ": HTTP Upgrade (http -> websocket||"
+                                                                 << "mqtt" << ") start " << (success ? "success" : "failed");
                 },
                 []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req,
                    [[maybe_unused]] const std::shared_ptr<web::http::client::Response>& res,
                    [[maybe_unused]] bool success) {
                 },
                 [connectionName](const std::shared_ptr<web::http::client::Request>&, const std::string& message) {
-                    VLOG(1) << connectionName << ": Request parse error: " << message;
+                    mqttsuite::log::integratorLog().debug() << connectionName << ": Request parse error: " << message;
                 });
         },
         []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req) {
-            VLOG(1) << "Session ended";
+            mqttsuite::log::integratorLog().debug() << "Session ended";
         });
 
     if (configurator != nullptr) {
         configurator(httpClient.getConfig());
     }
 
+    httpClient.getConfig()->setDisabled();
     httpClient.getConfig()->setRetry();
     httpClient.getConfig()->setRetryBase(1);
     httpClient.getConfig()->setReconnect();
@@ -218,6 +220,43 @@ int main(int argc, char* argv[]) {
             std::cout << "Mapping persisted successfully" << std::endl;
         } else {
             std::cout << "Mapping deploy acknowledged but not persisted" << std::endl;
+        }
+    */
+
+    configMqttIntegrator->setMappingFile("mapping.json"); // Load mapping from mapping.json. (can throw)
+
+    configMqttIntegrator->setMapping( // Override mapping from mapping.json with a in-code mapping (can throw)
+        R"(
+              {
+                "discover_prefix": "",
+                "connection": {
+                  "keep_alive": 60,
+                  "client_id": "",
+                  "clean_session": true,
+                  "will_topic": "",
+                  "will_message": "",
+                  "will_qos": 0,
+                  "will_retain": false
+                },
+                "mapping": {
+                  "plugins": [],
+                  "topic_level": [{
+                    "name": "value",
+                    "subscription": {
+                      "value": {
+                        "mapped_topic": "mapping/json",
+                        "mapping_template": "{\"state\":\"{{message}}\"}"
+                      }
+                    }
+                  }]
+                }
+              }
+            )");
+    /*
+        if (configMqttIntegrator->persistMapping()) {
+            mqttsuite::log::integratorLog().info() << "Mapping persisted successfully";
+        } else {
+            mqttsuite::log::integratorLog().info() << "Mapping deploy acknowledged but not persisted";
         }
     */
 

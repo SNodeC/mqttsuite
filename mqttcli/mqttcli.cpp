@@ -77,7 +77,7 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <log/Logger.h>
+#include "lib/Log.h"
 //
 #include <list>
 
@@ -87,33 +87,34 @@ static void
 reportState(const std::string& instanceName, const core::socket::SocketAddress& socketAddress, const core::socket::State& state) {
     switch (state) {
         case core::socket::State::OK:
-            VLOG(1) << instanceName << ": connected to '" << socketAddress.toString() << "'";
+            mqttsuite::log::cliLog().debug() << instanceName << ": connected to '" << socketAddress.toString() << "'";
             break;
         case core::socket::State::DISABLED:
-            VLOG(1) << instanceName << ": disabled";
+            mqttsuite::log::cliLog().debug() << instanceName << ": disabled";
             break;
         case core::socket::State::ERROR:
-            VLOG(1) << instanceName << ": " << socketAddress.toString() << ": " << state.what();
+            mqttsuite::log::cliLog().debug() << instanceName << ": " << socketAddress.toString() << ": " << state.what();
             break;
         case core::socket::State::FATAL:
-            VLOG(1) << instanceName << ": " << socketAddress.toString() << ": " << state.what();
+            mqttsuite::log::cliLog().debug() << instanceName << ": " << socketAddress.toString() << ": " << state.what();
             break;
     }
 }
 
 static void logResponse(const std::shared_ptr<web::http::client::Request>& req, const std::shared_ptr<web::http::client::Response>& res) {
-    VLOG(1) << req->getConnectionName() << " HTTP response for: " << req->method << " " << req->url << " HTTP/" << req->httpMajor << "."
-            << req->httpMinor << "\n"
-            << httputils::toString(req->method,
-                                   req->url,
-                                   "HTTP/" + std::to_string(req->httpMajor) + "." + std::to_string(req->httpMinor),
-                                   req->getQueries(),
-                                   req->getHeaders(),
-                                   req->getTrailer(),
-                                   req->getCookies(),
-                                   {})
-            << "\n"
-            << httputils::toString(res->httpVersion, res->statusCode, res->reason, res->headers, res->cookies, res->body);
+    mqttsuite::log::cliLog().debug()
+        << req->getConnectionName() << " HTTP response for: " << req->method << " " << req->url << " HTTP/" << req->httpMajor << "."
+        << req->httpMinor << "\n"
+        << httputils::toString(req->method,
+                               req->url,
+                               "HTTP/" + std::to_string(req->httpMajor) + "." + std::to_string(req->httpMinor),
+                               req->getQueries(),
+                               req->getHeaders(),
+                               req->getTrailer(),
+                               req->getCookies(),
+                               {})
+        << "\n"
+        << httputils::toString(res->httpVersion, res->statusCode, res->reason, res->headers, res->cookies, res->body);
 }
 
 template <template <typename SocketContextFactoryT, typename... ArgsT> typename SocketClient>
@@ -158,33 +159,34 @@ static HttpClient startClient(const std::string& name, const std::function<void(
                 target,
                 "websocket",
                 [connectionName](bool success) {
-                    VLOG(1) << connectionName << ": HTTP Upgrade (http -> websocket||"
-                            << "mqtt" << ") start " << (success ? "success" : "failed");
+                    mqttsuite::log::cliLog().debug() << connectionName << ": HTTP Upgrade (http -> websocket||"
+                                                          << "mqtt" << ") start " << (success ? "success" : "failed");
                 },
                 [connectionName](const std::shared_ptr<web::http::client::Request>& req,
                                  const std::shared_ptr<web::http::client::Response>& res,
                                  bool success) {
                     logResponse(req, res);
 
-                    VLOG(1) << connectionName << ": HTTP Upgrade " << (success ? "success" : "failed");
+                    mqttsuite::log::cliLog().debug() << connectionName << ": HTTP Upgrade " << (success ? "success" : "failed");
                 },
                 [connectionName](const std::shared_ptr<web::http::client::Request>& req, const std::string& message) {
-                    VLOG(1) << connectionName << ": Response parse error: " << message;
-                    VLOG(1) << "  Request was: " << req->method << " " << req->url << " HTTP/" << req->httpMajor << "." << req->httpMinor
-                            << "\n"
-                            << httputils::toString(req->method,
-                                                   req->url,
-                                                   "HTTP/" + std::to_string(req->httpMajor) + "." + std::to_string(req->httpMinor),
-                                                   req->getQueries(),
-                                                   req->getHeaders(),
-                                                   req->getTrailer(),
-                                                   req->getCookies(),
-                                                   {})
-                            << "\n";
+                    mqttsuite::log::cliLog().debug() << connectionName << ": Response parse error: " << message;
+                    mqttsuite::log::cliLog().debug()
+                        << "  Request was: " << req->method << " " << req->url << " HTTP/" << req->httpMajor << "." << req->httpMinor
+                        << "\n"
+                        << httputils::toString(req->method,
+                                               req->url,
+                                               "HTTP/" + std::to_string(req->httpMajor) + "." + std::to_string(req->httpMinor),
+                                               req->getQueries(),
+                                               req->getHeaders(),
+                                               req->getTrailer(),
+                                               req->getCookies(),
+                                               {})
+                        << "\n";
                 });
         },
         []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req) {
-            VLOG(1) << "Session ended";
+            mqttsuite::log::cliLog().debug() << "Session ended";
         });
 
     configurator(httpClient.getConfig());
@@ -219,13 +221,11 @@ static void createConfig(net::config::ConfigInstance* config) {
             }
 
             if (!pubApp->getTopic().empty()) {
-                VLOG(0) << "[" << Color::Code::FG_LIGHT_GREEN << "Success" << Color::Code::FG_DEFAULT << "] " << "Bootstrap of "
-                        << config->getInstanceName() << ":pub";
+                mqttsuite::log::cliLog().info() << "Bootstrap succeeded for " << config->getInstanceName() << ":pub";
             }
 
             if (!subApp->getTopic().empty()) {
-                VLOG(0) << "[" << Color::Code::FG_LIGHT_GREEN << "Success" << Color::Code::FG_DEFAULT << "] " << "Bootstrap of "
-                        << config->getInstanceName() << ":sub";
+                mqttsuite::log::cliLog().info() << "Bootstrap succeeded for " << config->getInstanceName() << ":sub";
             }
         }
     });

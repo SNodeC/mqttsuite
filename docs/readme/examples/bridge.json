@@ -1,0 +1,40 @@
+{
+  "bridges": [{
+    "name": "demo",
+    "prefix": "relay/",
+    "brokers": [
+      {
+        "prefix": "a/",
+        "network": {
+          "instance_name": "demo-a",
+          "protocol": "in",
+          "in": { "host": "127.0.0.1", "port": 18883 },
+          "encryption": "legacy",
+          "transport": "stream"
+        },
+        "mqtt": {
+          "client_id": "readme-bridge-a",
+          "clean_session": true,
+          "loop_prevention": true
+        },
+        "topics": [{ "topic": "telemetry/#", "qos": 0 }]
+      },
+      {
+        "prefix": "b/",
+        "network": {
+          "instance_name": "demo-b",
+          "protocol": "in",
+          "in": { "host": "127.0.0.1", "port": 18884 },
+          "encryption": "legacy",
+          "transport": "stream"
+        },
+        "mqtt": {
+          "client_id": "readme-bridge-b",
+          "clean_session": true,
+          "loop_prevention": true
+        },
+        "topics": [{ "topic": "commands/#", "qos": 0 }]
+      }
+    ]
+  }]
+}

@@ -119,7 +119,6 @@ target_include_directories(mqtt-mapping PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_compile_options(
     mqtt-mapping
     PUBLIC -Wno-float-equal
-    PRIVATE $<$<CXX_COMPILER_ID:GNU>:-fno-gnu-unique>
 )
 
 target_link_libraries(

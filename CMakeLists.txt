@@ -36,14 +36,23 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.18)
+
+include(cmake/Version.cmake)
 
 project(
     MQTTSuite
     DESCRIPTION "A lightweight MQTT Integration System"
-    VERSION 1.0.1
+    VERSION ${RELEASE_VERSION}
 )
+
+include(CheckPIESupported)
+check_pie_supported()
+option(CMAKE_POSITION_INDEPENDENT_CODE "Build position-independent code" ON)
+
 set(MQTTSUITE_SOVERSION ${MQTTSuite_VERSION_MAJOR})
+
+configure_file(cmake/CTestCustom.cmake CTestCustom.cmake COPYONLY)
 
 include(GNUInstallDirs)
 
@@ -59,6 +68,8 @@ include(iwyu)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+include_directories(${PROJECT_SOURCE_DIR})
+
 add_compile_options(
     -Werror
     -Wall
@@ -70,6 +81,7 @@ add_compile_options(
     -fexec-charset=UTF-8
     -Wno-shadow # yes we do
     -Wno-psabi # needed for RaspberryPi
+    $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CXX_COMPILER_ID:GNU>>:-fno-gnu-unique>
     $<$<CXX_COMPILER_ID:Clang>:-Weverything>
     $<$<CXX_COMPILER_ID:Clang>:-Wno-c++98-compat-pedantic>
     $<$<CXX_COMPILER_ID:Clang>:-Wno-exit-time-destructors>
@@ -92,3 +104,6 @@ add_subdirectory(mqttbroker)
 add_subdirectory(mqttintegrator)
 add_subdirectory(mqttbridge)
 add_subdirectory(mqttcli)
+add_subdirectory(mqttstore)
+
+include(Packing)

@@ -71,4 +71,6 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     target_compile_options(mqtt-broker PRIVATE -Wno-shadow-field)
 endif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 
-install(TARGETS mqtt-broker RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(TARGETS mqtt-broker LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                                    COMPONENT broker
+)

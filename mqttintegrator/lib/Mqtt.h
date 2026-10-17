@@ -71,6 +71,8 @@ namespace iot::mqtt {
 #include <utility>
 #include <vector>
 
+// IWYU pragma: no_include <format>
+
 #endif
 
 namespace mqtt::mqttintegrator::lib {

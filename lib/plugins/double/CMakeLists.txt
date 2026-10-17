@@ -48,5 +48,5 @@ target_include_directories(
 )
 
 install(TARGETS mqtt-mapping-plugin-double
-        RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT mapping-double
 )

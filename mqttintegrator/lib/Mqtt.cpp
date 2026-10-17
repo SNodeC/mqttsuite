@@ -142,8 +142,6 @@ namespace mqtt::mqttintegrator::lib {
         for (const iot::mqtt::packets::Publish& immediatePublish : immediatePublishes) {
             sendPublish(
                 immediatePublish.getTopic(), immediatePublish.getMessage(), immediatePublish.getQoS(), immediatePublish.getRetain());
-
-            onPublish(immediatePublish);
         }
     }
 
@@ -209,8 +207,6 @@ namespace mqtt::mqttintegrator::lib {
             pop();
 
             mqtt->sendPublish(duePublish.getTopic(), duePublish.getMessage(), duePublish.getQoS(), duePublish.getRetain());
-
-            mqtt->onPublish(duePublish);
         }
     }
 

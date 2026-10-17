@@ -148,7 +148,7 @@ add_subdirectory(websocket)
 
 find_package(nlohmann_json 3.7.0 REQUIRED)
 find_package(
-    snodec 1.0.0 REQUIRED
+    snodec 2.0.0 REQUIRED
     COMPONENTS ${MQTTBRIDGE_COMPONENTS} http-server-express-legacy-in
                http-server-express-tls-in mqtt
     OPTIONAL_COMPONENTS net-l2-stream-legacy net-rc-stream-legacy
@@ -190,11 +190,14 @@ target_link_libraries(
            snodec::http-server-express-tls-in mqtt-bridge
 )
 
-install(TARGETS mqttbridge RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(TARGETS mqttbridge RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+                                   COMPONENT bridge
+)
 
 install(
     DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/html/
     DESTINATION ${CMAKE_INSTALL_PREFIX}/var/www/mqttsuite/mqttbridge
+    COMPONENT bridge
     FILES_MATCHING
     PATTERN "*.html"
     PATTERN "*.css"

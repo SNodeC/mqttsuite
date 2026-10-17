@@ -50,10 +50,11 @@ struct tm;
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
+#include "lib/Log.h"
+
 #include <ctime>
 #include <functional>
 #include <iomanip>
-#include <log/Logger.h>
 #include <nlohmann/json.hpp>
 #include <sstream>
 
@@ -77,7 +78,7 @@ namespace mqtt::bridge::lib {
 
         eventReceiverList.emplace_back(eventReceiverId, response);
 
-        response->getSocketContext()->onDisconnected([this, eventReceiverId]() {
+        response->getSocketContext()->setOnDisconnected([this, eventReceiverId]() {
             eventReceiverList.remove_if([eventReceiverId](const EventReceiver& eventReceiver) {
                 return eventReceiver.getId() == eventReceiverId;
             });
@@ -112,7 +113,7 @@ namespace mqtt::bridge::lib {
     }
 
     void SSEDistributor::sendEvent(const std::string& data, const std::string& event, const std::string& id) {
-        VLOG(0) << "Server sent event: " << event << "\n" << data;
+        mqttsuite::log::bridgeLog().info() << "Server sent event: " << event << "\n" << data;
 
         for (const auto& eventReceiver : eventReceiverList) {
             if (const auto& response = eventReceiver.getResponse()) {

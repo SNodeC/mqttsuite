@@ -45,17 +45,20 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include "log/Logger.h"
+#include "lib/Log.h"
 
 #include <cerrno>
 #include <exception>
 #include <fcntl.h>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 #include <map>
 #include <stdexcept>
 #include <system_error>
 #include <unistd.h>
+//
+#include <nlohmann/json_fwd.hpp>
 
 #endif
 
@@ -106,19 +109,20 @@ namespace mqtt::lib {
                   "--mqtt-mapping-file",
                   [this](const std::string& mappFilename) {
                       try {
-                          this->mappFilename = mappFilename;
-                          loadMapping();
+                          loadMapping(mappFilename);
                       } catch (std::runtime_error& e) {
-                          this->mappFilename.clear();
+                          this->mapFilename.clear();
 
-                          throw CLI::ValidationError(
-                              getName(), std::string("Activating mapping description in '" + mappFilename + "' failed\nWhat: " + e.what()));
+                          throw CLI::ValidationError(getName(),
+                                                     std::string("Activating mapping description in '" + mappFilename +
+                                                                 "' failed\n"
+                                                                 "What: " +
+                                                                 e.what()));
                       }
                   },
                   "MQTT mapping file (json format) for integration",
                   "filename",
-                  !CLI::ExistingDirectory)
-                  ->run_callback_for_default())
+                  !CLI::ExistingDirectory))
         , sessionStoreOpt( //
               addOption(   //
                   "--mqtt-session-store",
@@ -139,89 +143,94 @@ namespace mqtt::lib {
         return sessionStoreOpt->as<std::string>();
     }
 
-    ConfigApplication* ConfigApplication::setMappingFile(const std::string& mappingFile) {
-        setDefaultValue(mappingFileOpt, mappingFile); // callback is called due to run_callback_for_default())
+    const std::shared_ptr<MqttMapper> ConfigApplication::getMqttMapper() const {
+        return mqttMapper;
+    }
 
-        return this;
+    bool ConfigApplication::setMappingFile(const std::string& mapFilename) {
+        setDefaultValue(mappingFileOpt, mapFilename);
+
+        return loadMapping(mapFilename);
+    }
+
+    std::string ConfigApplication::getMappingFilename() const {
+        return mapFilename;
+    }
+
+    bool ConfigApplication::setMapping(const std::string& mapping) const {
+        return mqttMapper->setMapping(nlohmann::json::parse(mapping));
+    }
+
+    std::string ConfigApplication::getMapping(int indent) const {
+        return mqttMapper->getMapping().dump(indent);
     }
 
     bool ConfigApplication::persistMapping() const {
         bool success = false;
 
-        if (mappFilename.empty()) {
-            return success;
-        }
+        if (!mapFilename.empty()) {
+            try {
+                const fs::path targetPath(mapFilename);
+                const fs::path parentDir = targetPath.parent_path().empty() ? fs::path(".") : targetPath.parent_path();
+                const fs::path tempPath = mapFilename + ".tmp";
 
-        try {
-            const fs::path targetPath(mappFilename);
-            const fs::path parentDir = targetPath.parent_path().empty() ? fs::path(".") : targetPath.parent_path();
-            const fs::path tempPath = mappFilename + ".tmp";
-
-            {
-                std::ofstream mapFile(tempPath, std::ios::trunc);
-                if (!mapFile.is_open()) {
-                    throw std::runtime_error("Cannot open temp file for writing: " + tempPath.string());
+                {
+                    std::ofstream mapFile(tempPath, std::ios::trunc);
+                    if (!mapFile.is_open()) {
+                        throw std::runtime_error("Cannot open temp file for writing: " + tempPath.string());
+                    }
+                    mapFile << mqttMapper->getMapping().dump(2);
                 }
-                mapFile << mqttMapper->getMapping().dump(2);
+
+                fsyncPath(tempPath);
+                fs::rename(tempPath, targetPath);
+                fsyncDirectory(parentDir);
+
+                mqttsuite::log::mappingLog().debug() << "Write mapping file success";
+
+                success = true;
+            } catch (const std::exception& e) {
+                mqttsuite::log::mappingLog().debug() << "Write mapping file failed: " << e.what();
             }
-
-            fsyncPath(tempPath);
-            fs::rename(tempPath, targetPath);
-            fsyncDirectory(parentDir);
-
-            VLOG(1) << "Write mapping file success";
-
-            success = true;
-        } catch (const std::exception& e) {
-            VLOG(1) << "Write mapping file failed: " << e.what();
         }
 
         return success;
     }
 
-    bool ConfigApplication::loadMapping() const {
-        bool success = false;
+    bool ConfigApplication::loadMapping(const std::string mapFilename) {
+        mqttsuite::log::mappingLog().debug() << "Mapping file: " << mapFilename;
 
-        if (!mappFilename.empty()) {
-            std::ifstream mapFile(mappFilename);
+        this->mapFilename = mapFilename;
+
+        bool mustReconnect = true;
+
+        if (!mapFilename.empty()) {
+            std::ifstream mapFile(mapFilename);
 
             if (mapFile.is_open()) {
-                VLOG(1) << "Mapping file: " << mappFilename;
-
                 try {
-                    nlohmann::json mappingJson;
-                    mapFile >> mappingJson;
+                    mustReconnect = setMapping({std::istreambuf_iterator<char>(mapFile), std::istreambuf_iterator<char>()});
 
-                    mqttMapper->setMapping(mappingJson);
+                    mapFile.close();
 
-                    VLOG(1) << "Load mapping file success";
-
-                    success = true;
+                    mqttsuite::log::mappingLog().debug() << "Load mapping file success";
                 } catch (const std::exception& e) {
-                    VLOG(1) << "Load mapping file failed: " << e.what() << " at " << mapFile.tellg();
+                    mapFile.close();
+
+                    throw std::runtime_error("Loading mapping description from '" + mapFilename +
+                                             "' failed\n"
+                                             "What: " +
+                                             e.what());
                 }
 
-                mapFile.close();
             } else {
-                VLOG(1) << "Mapping file: " << mappFilename << " not found";
+                mqttsuite::log::mappingLog().debug()
+                    << "Mapping file '" + mapFilename +
+                           "' not found. Please provide a valid mapping file with the option --mqtt-mapping-file";
             }
         }
 
-        return success;
-    }
-
-    const std::shared_ptr<MqttMapper> ConfigApplication::getMqttMapper() const {
-        return mqttMapper;
-    }
-
-    ConfigApplication* ConfigApplication::setMapping(const std::string& mapping) {
-        mqttMapper->setMapping(nlohmann::json::parse(mapping));
-
-        return this;
-    }
-
-    std::string ConfigApplication::getMapping(int indent) const {
-        return mqttMapper->getMapping().dump(indent);
+        return mustReconnect;
     }
 
     ConfigMqttBroker::ConfigMqttBroker(utils::SubCommand* parent)
