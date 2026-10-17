@@ -39,7 +39,7 @@
  * THE SOFTWARE.
  */
 
-#include "SocketContextFactory.h" // IWYU pragma: keep
+#include "SocketContextFactory.h"
 #include "config.h"
 #include "lib/ConfigApplication.h"
 #include "lib/Mqtt.h"

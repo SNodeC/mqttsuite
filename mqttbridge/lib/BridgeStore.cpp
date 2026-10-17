@@ -47,23 +47,19 @@
 
 #include "lib/Log.h"
 
-#include <nlohmann/json-schema.hpp>
-
 #include <cmath>
 #include <exception>
 #include <fstream>
 #include <list>
 #include <map>
+#include <nlohmann/json-schema.hpp>
 #include <utility>
-
-// IWYU pragma: no_include <nlohmann/json_fwd.hpp>
-// IWYU pragma: no_include <nlohmann/detail/iterators/iter_impl.hpp>
 
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
 namespace mqtt::bridge::lib {
 
-#include "bridge-schema.json.h" // IWYU pragma: keep
+#include "bridge-schema.json.h"
 
     BridgeStore& BridgeStore::instance() {
         static BridgeStore bridgeConfigLoader;
