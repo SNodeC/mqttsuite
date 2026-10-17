@@ -41,6 +41,12 @@
  * THE SOFTWARE.
  */
 
+// JSON and chrono provide these implementation dependencies through their public headers.
+// IWYU pragma: no_include <cmath>
+// IWYU pragma: no_include <compare>
+// IWYU pragma: no_include <map>
+// IWYU pragma: no_include <nlohmann/detail/json_ref.hpp>
+
 #include "JsonMappingReader.h"
 
 #include "ConfigApplication.h"
@@ -62,6 +68,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
+#include <memory>
 #include <random>
 #include <sstream>
 #include <stdexcept>
@@ -69,6 +76,7 @@
 #include <sys/file.h>
 #include <system_error>
 #include <unistd.h>
+#include <utility>
 
 #endif
 

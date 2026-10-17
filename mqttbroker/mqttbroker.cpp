@@ -104,8 +104,6 @@
 // IWYU pragma: no_include <nlohmann/json_fwd.hpp>
 //
 #include "lib/Log.h"
-//
-#include <utility>
 
 #endif
 

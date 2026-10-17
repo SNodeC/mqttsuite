@@ -56,7 +56,9 @@
 #include <filesystem>
 #include <functional>
 #include <optional>
+#include <stdexcept>
 #include <utility>
+#include <vector>
 
 // IWYU pragma: no_include <nlohmann/detail/json_ref.hpp>
 
