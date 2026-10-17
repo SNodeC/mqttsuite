@@ -42,7 +42,7 @@
 #ifndef MQTT_LIB_MQTTMAPPERPLUGIN_H
 #define MQTT_LIB_MQTTMAPPERPLUGIN_H
 
-// #include "MqttMapper.h" // IWYU pragma: export
+// #include "MqttMapper.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 

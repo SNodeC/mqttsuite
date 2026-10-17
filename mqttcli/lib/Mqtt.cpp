@@ -61,7 +61,7 @@
 #include <string>
 #include <string_view>
 #include <sys/ioctl.h>
-#include <termios.h> // IWYU pragma: keep
+#include <termios.h>
 #include <tuple>
 #include <unistd.h>
 #include <utils/system/signal.h>

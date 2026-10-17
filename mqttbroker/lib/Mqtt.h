@@ -68,8 +68,6 @@ namespace mqtt::lib {
 #include <string>
 #include <vector>
 
-// IWYU pragma: no_include <format>
-
 #endif // DOXYGEN_SHOULD_SKIP_THIS
 
 namespace mqtt::mqttbroker::lib {

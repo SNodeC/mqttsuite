@@ -13,24 +13,21 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <nlohmann/json-schema.hpp>
-
 #include <exception>
 #include <fstream>
 #include <iterator>
 #include <map>
+#include <nlohmann/json-schema.hpp>
 #include <nlohmann/json.hpp>
 #include <sstream>
 #include <stdexcept>
 #include <vector>
 
-// IWYU pragma: no_include <nlohmann/detail/iterators/iter_impl.hpp>
-
 #endif
 
 namespace mqtt::mqttstore::lib {
 
-#include "projection-schema.json.h" // IWYU pragma: keep
+#include "projection-schema.json.h"
 
     namespace {
 
