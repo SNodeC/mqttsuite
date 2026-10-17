@@ -143,9 +143,7 @@ namespace {
         }
     }
 
-    nlohmann::json makeDraftConflictResponse(const std::string& adminStorageRoot,
-                                             const std::string& draftId,
-                                             const std::string& details) {
+    nlohmann::json makeDraftConflictResponse(const std::string& adminStorageRoot, const std::string& draftId, const std::string& details) {
         nlohmann::json conflictResponse = {{"error", "Draft modified concurrently"}, {"details", details}, {"draft_id", draftId}};
         try {
             if (const std::optional<int64_t> currentDraftRevision =
@@ -376,9 +374,7 @@ namespace mqtt::lib::admin {
             try {
                 nlohmann::json body = parseJsonBody(req, true);
                 const nlohmann::json draft = JsonMappingReader::createDraftFromActive(
-                    adminStorageRoot,
-                    configApplication,
-                    body.contains("draft_id") ? body.at("draft_id").get<std::string>() : "");
+                    adminStorageRoot, configApplication, body.contains("draft_id") ? body.at("draft_id").get<std::string>() : "");
                 res->status(201).json(draft);
             } catch (const OCCConflictError& e) {
                 res->status(409).json({{"error", "Draft already exists"}, {"details", e.what()}});
@@ -420,9 +416,8 @@ namespace mqtt::lib::admin {
                 [](const nlohmann::json& body) -> const nlohmann::json& {
                     return body.at("patch");
                 },
-                [adminStorageRoot](const std::string& draftId,
-                                   const nlohmann::json& patchOps,
-                                   std::optional<int64_t> expectedDraftRevision) {
+                [adminStorageRoot](
+                    const std::string& draftId, const nlohmann::json& patchOps, std::optional<int64_t> expectedDraftRevision) {
                     return JsonMappingReader::patchDraft(adminStorageRoot, draftId, patchOps, expectedDraftRevision);
                 });
         });
@@ -438,9 +433,8 @@ namespace mqtt::lib::admin {
                 [](const nlohmann::json& body) -> const nlohmann::json& {
                     return body.at("mapping");
                 },
-                [adminStorageRoot](const std::string& draftId,
-                                   const nlohmann::json& mapping,
-                                   std::optional<int64_t> expectedDraftRevision) {
+                [adminStorageRoot](
+                    const std::string& draftId, const nlohmann::json& mapping, std::optional<int64_t> expectedDraftRevision) {
                     return JsonMappingReader::replaceDraft(adminStorageRoot, draftId, mapping, expectedDraftRevision);
                 });
         });
@@ -530,9 +524,8 @@ namespace mqtt::lib::admin {
                 }
                 const std::optional<std::uint64_t> expectedRevision = resolveExpectedRevision(req, &jsonBody);
 
-                const mqtt::lib::JsonMappingReader::ApplyResult applyResult =
-                    mqtt::lib::JsonMappingReader::rollbackAndApplyVersion(
-                        adminStorageRoot, configApplication, *snapshotId, expectedRevision);
+                const mqtt::lib::JsonMappingReader::ApplyResult applyResult = mqtt::lib::JsonMappingReader::rollbackAndApplyVersion(
+                    adminStorageRoot, configApplication, *snapshotId, expectedRevision);
 
                 const MappingApplyResult responseResult = toMappingApplyResult(applyResult, onDeploy);
                 setRevisionHeaders(res, responseResult.revision);

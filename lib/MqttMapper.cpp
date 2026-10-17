@@ -48,10 +48,9 @@
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-#include <nlohmann/json-schema.hpp>
-
 #include <cmath>
 #include <exception>
+#include <nlohmann/json-schema.hpp>
 
 #ifdef __GNUC__
 #pragma GCC diagnostic push
@@ -291,8 +290,8 @@ namespace mqtt::lib {
                     } catch (const nlohmann::json::parse_error& e) {
                         mqttsuite::log::mappingLog().debug() << "  Parsing message into json failed: " << publish.getMessage();
                         mqttsuite::log::mappingLog().debug() << "     What: " << e.what() << '\n'
-                                                                  << "     Exception Id: " << e.id << '\n'
-                                                                  << "     Byte position of error: " << e.byte;
+                                                             << "     Exception Id: " << e.id << '\n'
+                                                             << "     Byte position of error: " << e.byte;
                     }
                 }
             }
@@ -375,7 +374,8 @@ namespace mqtt::lib {
                 }
             }
         } else if (topicLevel.is_array()) {
-            for (auto topicLevelEntry = topicLevel.cbegin(); topicLevelEntry != topicLevel.cend() && foundTopicLevel.empty(); ++topicLevelEntry) {
+            for (auto topicLevelEntry = topicLevel.cbegin(); topicLevelEntry != topicLevel.cend() && foundTopicLevel.empty();
+                 ++topicLevelEntry) {
                 foundTopicLevel = findMatchingTopicLevel(*topicLevelEntry, topic);
             }
         }
@@ -426,8 +426,7 @@ namespace mqtt::lib {
                     mqttsuite::log::mappingLog().debug() << "  Send mapping: suppressed";
                 }
             } catch (const inja::InjaError& e) {
-                mqttsuite::log::mappingLog().debug()
-                    << "  Message template rendering failed: " << mappingTemplate << " : " << json.dump();
+                mqttsuite::log::mappingLog().debug() << "  Message template rendering failed: " << mappingTemplate << " : " << json.dump();
                 mqttsuite::log::mappingLog().debug() << "    What: " << e.what();
                 mqttsuite::log::mappingLog().debug() << "    INJA: " << e.type << ": " << e.message;
                 mqttsuite::log::mappingLog().debug() << "    INJA (line:column):" << e.location.line << ":" << e.location.column;

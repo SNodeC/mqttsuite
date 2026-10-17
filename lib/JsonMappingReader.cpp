@@ -381,16 +381,15 @@ namespace mqtt::lib {
         }
 
         std::string createDraftFromMappingNoLock(const std::string& adminStorageRoot,
-                             const nlohmann::json& activeMapping,
-                             std::uint64_t activeRevision,
-                             const std::string& draftId);
+                                                 const nlohmann::json& activeMapping,
+                                                 std::uint64_t activeRevision,
+                                                 const std::string& draftId);
 
         template <typename MappingMutator>
-        nlohmann::json
-        mutateDraftNoLock(const std::string& adminStorageRoot,
-                          const std::string& draftId,
-                          std::optional<int64_t> expectedDraftRevision,
-                          MappingMutator&& mutator) {
+        nlohmann::json mutateDraftNoLock(const std::string& adminStorageRoot,
+                                         const std::string& draftId,
+                                         std::optional<int64_t> expectedDraftRevision,
+                                         MappingMutator&& mutator) {
             nlohmann::json envelope = readDraftEnvelopeNoLock(adminStorageRoot, draftId);
             const int64_t currentRevision = readDraftRevisionValue(envelope, getDraftFile(adminStorageRoot, draftId));
 
@@ -430,10 +429,8 @@ namespace mqtt::lib {
         applyMappingAndPersist(ConfigApplication* configApplication, const nlohmann::json& mapping, const std::string& draftId) {
             const bool mustReconnect = configApplication->getMqttMapper()->setMapping(mapping);
             const bool mappingPersisted = configApplication->persistMapping();
-            return JsonMappingReader::ApplyResult{configApplication->getMqttMapper()->getRevision(),
-                                                  draftId,
-                                                  mappingPersisted,
-                                                  mustReconnect};
+            return JsonMappingReader::ApplyResult{
+                configApplication->getMqttMapper()->getRevision(), draftId, mappingPersisted, mustReconnect};
         }
 
         template <typename Operation>
@@ -583,12 +580,7 @@ namespace mqtt::lib {
                                                                  std::optional<int64_t> expectedDraftRevision) {
         return withActiveStateLock(adminStorageRoot, configApplication, [&](const ActiveState& activeState) {
             return mutateDraftWithAutoCreateNoLock(
-                adminStorageRoot,
-                activeState.mapping,
-                activeState.revision,
-                draftId,
-                expectedDraftRevision,
-                [&](const nlohmann::json&) {
+                adminStorageRoot, activeState.mapping, activeState.revision, draftId, expectedDraftRevision, [&](const nlohmann::json&) {
                     return mapping;
                 });
         });
@@ -600,15 +592,14 @@ namespace mqtt::lib {
                                                                const nlohmann::json& patchOps,
                                                                std::optional<int64_t> expectedDraftRevision) {
         return withActiveStateLock(adminStorageRoot, configApplication, [&](const ActiveState& activeState) {
-            return mutateDraftWithAutoCreateNoLock(
-                adminStorageRoot,
-                activeState.mapping,
-                activeState.revision,
-                draftId,
-                expectedDraftRevision,
-                [&](const nlohmann::json& currentMapping) {
-                    return currentMapping.patch(patchOps);
-                });
+            return mutateDraftWithAutoCreateNoLock(adminStorageRoot,
+                                                   activeState.mapping,
+                                                   activeState.revision,
+                                                   draftId,
+                                                   expectedDraftRevision,
+                                                   [&](const nlohmann::json& currentMapping) {
+                                                       return currentMapping.patch(patchOps);
+                                                   });
         });
     }
 
@@ -694,11 +685,10 @@ namespace mqtt::lib {
         });
     }
 
-    JsonMappingReader::ApplyResult JsonMappingReader::rollbackAndApplyVersion(
-        const std::string& adminStorageRoot,
-        ConfigApplication* configApplication,
-        const std::string& snapshotId,
-        const std::optional<std::uint64_t>& expectedActiveRevision) {
+    JsonMappingReader::ApplyResult JsonMappingReader::rollbackAndApplyVersion(const std::string& adminStorageRoot,
+                                                                              ConfigApplication* configApplication,
+                                                                              const std::string& snapshotId,
+                                                                              const std::optional<std::uint64_t>& expectedActiveRevision) {
         return withActiveStateLock(adminStorageRoot, configApplication, [&](const ActiveState& activeState) {
             const fs::path backupPath = getVersionDir(adminStorageRoot) / (snapshotId + ".json");
             if (!fs::exists(backupPath)) {

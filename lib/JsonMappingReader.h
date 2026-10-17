@@ -85,9 +85,8 @@ namespace mqtt::lib {
         };
 
         // Admin / Live Reload Support
-        static nlohmann::json createDraftFromActive(const std::string& adminStorageRoot,
-                                ConfigApplication* configApplication,
-                                const std::string& draftId = "");
+        static nlohmann::json
+        createDraftFromActive(const std::string& adminStorageRoot, ConfigApplication* configApplication, const std::string& draftId = "");
         static std::vector<nlohmann::json> listDrafts(const std::string& adminStorageRoot);
         static nlohmann::json readDraft(const std::string& adminStorageRoot, const std::string& draftId);
         static std::optional<int64_t> readDraftRevision(const std::string& adminStorageRoot, const std::string& draftId);
@@ -100,15 +99,15 @@ namespace mqtt::lib {
                                          const nlohmann::json& patchOps,
                                          std::optional<int64_t> expectedDraftRevision = std::nullopt);
         static nlohmann::json replaceDraftWithAutoCreate(const std::string& adminStorageRoot,
-                                 ConfigApplication* configApplication,
-                                 const std::string& draftId,
-                                 const nlohmann::json& mapping,
-                                 std::optional<int64_t> expectedDraftRevision = std::nullopt);
+                                                         ConfigApplication* configApplication,
+                                                         const std::string& draftId,
+                                                         const nlohmann::json& mapping,
+                                                         std::optional<int64_t> expectedDraftRevision = std::nullopt);
         static nlohmann::json patchDraftWithAutoCreate(const std::string& adminStorageRoot,
-                                   ConfigApplication* configApplication,
-                                   const std::string& draftId,
-                                   const nlohmann::json& patchOps,
-                                   std::optional<int64_t> expectedDraftRevision = std::nullopt);
+                                                       ConfigApplication* configApplication,
+                                                       const std::string& draftId,
+                                                       const nlohmann::json& patchOps,
+                                                       std::optional<int64_t> expectedDraftRevision = std::nullopt);
         static bool isMappingValid(const nlohmann::json& mapping);
         static bool isDraftValid(const std::string& adminStorageRoot, const std::string& draftId);
         static void discardDraft(const std::string& adminStorageRoot, const std::string& draftId);
@@ -123,14 +122,14 @@ namespace mqtt::lib {
         static std::vector<VersionEntry> getHistory(const std::string& adminStorageRoot);
 
         static ApplyResult deployAndApplyDraft(const std::string& adminStorageRoot,
-                               ConfigApplication* configApplication,
-                               const std::string& draftId,
-                               const std::optional<std::uint64_t>& expectedActiveRevision);
+                                               ConfigApplication* configApplication,
+                                               const std::string& draftId,
+                                               const std::optional<std::uint64_t>& expectedActiveRevision);
 
         static ApplyResult rollbackAndApplyVersion(const std::string& adminStorageRoot,
-                               ConfigApplication* configApplication,
-                               const std::string& snapshotId,
-                               const std::optional<std::uint64_t>& expectedActiveRevision);
+                                                   ConfigApplication* configApplication,
+                                                   const std::string& snapshotId,
+                                                   const std::optional<std::uint64_t>& expectedActiveRevision);
     };
 
 } // namespace mqtt::lib

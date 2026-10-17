@@ -91,24 +91,6 @@
 #include "lib/MappingAdminRouter.h"
 #include "lib/Mqtt.h"
 
-namespace {
-
-    bool isConfigTriggerActive(const char* optionName) {
-        try {
-            const CLI::Option* option = utils::Config::configRoot.getOption(optionName);
-            return option != nullptr && option->count() > 0;
-        } catch (...) {
-            return false;
-        }
-    }
-
-    bool isFrameworkControlModeRequested() {
-        return isConfigTriggerActive("--help") || isConfigTriggerActive("--show-config") || isConfigTriggerActive("--command-line") ||
-               isConfigTriggerActive("--write-config") || isConfigTriggerActive("--version") || isConfigTriggerActive("--kill");
-    }
-
-} // namespace
-
 static void
 reportState(const std::string& instanceName, const core::socket::SocketAddress& socketAddress, const core::socket::State& state) {
     switch (state) {
@@ -165,7 +147,7 @@ HttpClient startClient(const std::string& name, const std::function<void(typenam
                 "websocket",
                 [connectionName](bool success) {
                     mqttsuite::log::integratorLog().debug() << connectionName << ": HTTP Upgrade (http -> websocket||"
-                                                                 << "mqtt" << ") start " << (success ? "success" : "failed");
+                                                            << "mqtt" << ") start " << (success ? "success" : "failed");
                 },
                 []([[maybe_unused]] const std::shared_ptr<web::http::client::Request>& req,
                    [[maybe_unused]] const std::shared_ptr<web::http::client::Response>& res,
@@ -237,10 +219,6 @@ int main(int argc, char* argv[]) {
     */
 
     core::SNodeC::init(argc, argv);
-
-    if (isFrameworkControlModeRequested()) {
-        return core::SNodeC::start();
-    }
 
     // Instanciate Admin Router for Mapping Management
     express::Router router = mqtt::lib::admin::makeMappingAdminRouter(
