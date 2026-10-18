@@ -357,7 +357,7 @@ Review the [deployment guide](docs/guides/deployment.md#banner) before exposing 
 
 ## Documentation
 
-Manual CI builds and tests MQTTSuite. Version tags start package builds; DistributionPackages also requests dependent builds after publishing each SNode.C target, then signs and publishes successful MQTTSuite targets. See the organization [workflow graph](https://github.com/SNodeC/.github/blob/main/docs/workflow-graph.md#banner).
+Manual CI builds and tests MQTTSuite. Version tags notify DistributionPackages with the exact source commit. Its coordinator captures the dependency graph, dispatches unsigned builds through a shared workflow and signs and publishes each target before scheduling its dependents. See [CI orchestration](https://github.com/SNodeC/DistributionPackages/blob/main/docs/ci-orchestration.md#banner).
 
 The API menu opens the legacy Doxygen class index. It is a reference snapshot, not proof of current release/platform support; use these source guides and the Packages matrix for current installation decisions.
 
@@ -380,7 +380,7 @@ Install from [signed packages](https://github.com/SNodeC/Packages#banner) for yo
 
 ## Releases
 
-To rebuild an existing version without moving its tag, open **Build MQTTSuite distribution packages** in Actions, select **Run workflow** on the default branch and enter its existing `vMAJOR.MINOR.PATCH` tag. Each manual start creates a fresh capture and package revision. Ordinary job retries still require the original capture artifact; use a new manual run if that artifact is unavailable.
+Use **Re-run failed jobs** on the source build to retry compilation within its immutable capture; retry central publication separately for signing or handoff failures. Capture and package artifacts must still exist. Release capture belongs to DistributionPackages; the former source-specific manual release entry point is removed. See the [retry and migration guide](https://github.com/SNodeC/DistributionPackages/blob/main/docs/ci-orchestration.md#banner).
 
 [Release history and release notes](https://github.com/SNodeC/mqttsuite/releases). SNode.C and MQTTSuite have independent release histories. This source tree requires SNode.C 2.0.0 or newer compatible components; keep application libraries and transport plugins ABI-compatible. See [upgrade checks](docs/guides/deployment.md#before-an-upgrade).
 
