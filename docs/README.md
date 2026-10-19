@@ -22,7 +22,7 @@
 
 <!-- snodec:end menu -->
 
-Start with the [repository README](../README.md#quick-start) for a first working result. These guides own deeper build, configuration, deployment and development instructions.
+Start with the [repository README](../README.md#quick-start) for a first working example. These guides cover building, configuration, deployment and development.
 
 ## Sections
 

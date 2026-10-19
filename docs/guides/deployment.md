@@ -6,7 +6,7 @@
 <p><a href="README.md#banner" title="Up to Guides"><picture><source media="(prefers-color-scheme: dark)" srcset="../media/nav/up-guides-dark.svg"><img src="../media/nav/up-guides-light.svg" alt="Up to Guides" title="Up to Guides" width="160" height="28"></picture></a><a href="https://github.com/VolkerChristian#banner" title="Volker Christian account"><picture><source media="(max-width: 640px) and (prefers-color-scheme: dark)" srcset="../media/nav/account-icon-dark.svg"><source media="(max-width: 640px)" srcset="../media/nav/account-icon-light.svg"><source media="(prefers-color-scheme: dark)" srcset="../media/nav/account-dark.svg"><img align="right" src="../media/nav/account-light.svg" alt="Volker Christian account" title="Volker Christian account"></picture></a><a href="https://github.com/SNodeC#banner" title="SNode.C organization"><picture><source media="(max-width: 640px) and (prefers-color-scheme: dark)" srcset="../media/nav/organization-icon-dark.svg"><source media="(max-width: 640px)" srcset="../media/nav/organization-icon-light.svg"><source media="(prefers-color-scheme: dark)" srcset="../media/nav/organization-dark.svg"><img align="right" src="../media/nav/organization-light.svg" alt="SNode.C organization" title="SNode.C organization"></picture></a><a href="../../README.md#banner" title="MQTTSuite repository"><picture><source media="(max-width: 640px) and (prefers-color-scheme: dark)" srcset="../media/nav/repository-icon-dark.svg"><source media="(max-width: 640px)" srcset="../media/nav/repository-icon-light.svg"><source media="(prefers-color-scheme: dark)" srcset="../media/nav/repository-dark.svg"><img align="right" src="../media/nav/repository-light.svg" alt="MQTTSuite repository" title="MQTTSuite repository"></picture></a><br clear="all"></p>
 <!-- snodec:end page-header -->
 
-# Operate MQTTSuite deliberately
+# Configure and deploy MQTTSuite
 
 The example clients connect through loopback, with disposable IDs and small topic filters. Broker listeners retain their defaults unless explicitly bound or disabled; a loopback client address does not make every listener private. A deployment also needs explicit network access, credentials, state ownership and recovery policy.
 
@@ -53,13 +53,13 @@ MQTTIntegrator starts its own mapping-admin API on `in-http` (default port 8085)
 
 MQTTBridge starts `admin-legacy` on **8081** and `admin-tls` on **8082** by default. Its router serves `/config` and allows bridge-definition changes, without built-in authentication middleware. With a valid `bridge.json`, disable both with `mqttbridge bridge --definition bridge.json admin-legacy --disabled admin-tls --disabled` when unused. To use management deliberately, configure their `local --host` and ports, keep them private, and put remote access behind an external authenticated TLS boundary. TLS on `admin-tls` encrypts the connection; it does not add a user login.
 
-The current MQTTBroker CONNECT path records MQTT username/password fields but does not validate them against a credential store; its subscription/publication path does not implement a topic ACL. Supplying client credentials is therefore not proof of broker authorization. Do not expose it to untrusted clients on that assumption; choose network/application access controls appropriate to the deployment.
+MQTTBroker records CONNECT username/password fields but does not validate them or enforce topic ACLs. Restrict broker access through network controls or an authenticated gateway.
 
 For MQTT over WebSockets, use a client advertising the **`mqtt`** subprotocol. TLS/WSS requires certificates, private keys and peer-trust settings. Do not ship the repository’s demo certificates as production identity material.
 
 ## Management APIs: inspect, stage, deploy
 
-These interfaces change live configuration; use only after applying the private-listener/access policy above. The names below are current source-defined routes, not a promise of compatibility across releases. Keep an offline copy of the active mapping/topology and test changes in a disposable environment first.
+These interfaces change live configuration. Restrict access as described above and keep a backup of the active mapping or topology before editing.
 
 ### MQTTIntegrator mapping API
 
@@ -76,13 +76,15 @@ Routes are rooted at the selected `in-http`/`in-https` listener, not at `/api`. 
 | `GET /config/history` | List recorded versions (`id`, `comment`, `date`) |
 | `POST /config/rollback` | Supply `{"version_id":"ID_FROM_HISTORY"}` to restore/load/persist that version and update subscriptions |
 
-For a listener deliberately bound to loopback, a read-only check is `curl --user admin http://127.0.0.1:8085/config` (curl prompts for the password). Use your actual private port if changed. Validate a complete candidate, stage it with POST, then validate the saved draft before deploying. Check HTTP status and the returned `deploy-ack`/reload information, inspect `GET /config`, and publish a representative message to verify the real effect. A successful HTTP response does not prove end-to-end delivery or an atomic update across brokers. Failed deployment/rollback needs inspection of active state and disk files, not an assumed automatic transaction rollback.
+For a loopback listener, read the active mapping with `curl --user admin http://127.0.0.1:8085/config` (curl prompts for the password). Adjust the port if needed. Validate a candidate, stage it with POST, validate the saved draft, then deploy it. Check the HTTP status and returned `deploy-ack`/reload information, inspect `GET /config`, and publish a representative message to verify the mapping. After a failed deployment or rollback, inspect the active mapping and saved file before retrying.
+
+Draft and active revision checks reject stale client edits.
 
 ### MQTTBridge topology API
 
 The administration listener serves `/config` as the browser editor. `GET /api/bridge/config` reads the topology; `PATCH /api/bridge/config` applies a JSON Patch, persists the definition and may reconnect bridges. `/api/bridge/sse` streams updates. This is a different API from the integrator's draft/deploy workflow; it has no built-in authentication and no corresponding draft/history/rollback routes. Back up the definition before editing, handle 409 while restarting, and verify connections/topic paths after the change. Disabling `admin-legacy` and `admin-tls` does not prevent encrypted broker connections.
 
-## Configure TLS deliberately
+## Configure TLS
 
 Use an installed TLS-enabled component and a PEM certificate chain/private key appropriate to the listener's identity. The native SNode.C `tls` section accepts `--cert`, `--cert-key`, `--ca-cert` and `--ca-cert-dir`; inspect the selected instance before configuring it:
 
@@ -103,14 +105,14 @@ mqttcli in-mqtts --disabled=false remote --host 127.0.0.1 --port 18884 \
 
 These commands configure the chosen endpoints, not all other broker listeners. Disable unused compiled instances and inspect the effective configuration before deployment. Restrict key-file permissions, configure peer verification/trust as required by your application, and test the actual DNS/IP identity and rejected-peer cases. Do not enable `--ca-cert-accept-unknown` as a production workaround, and never use the repository's demonstration certificates as identity material. TLS trust is separate from MQTT user authorization.
 
-## State and delivery boundaries
+## Persistent data
 
 - **MQTT sessions.** Configure session persistence where needed; clean-session behavior is a separate choice.
-- **Broker session store.** Set `--mqtt-session-store` in the `broker` section and give the service account write access. The current SNode.C broker consumes/removes a successfully opened store at startup and writes its in-memory sessions/retained/subscription state during destruction. This is a graceful-shutdown snapshot, not continuous crash-safe storage: a kill, crash or failed write can lose the current state. Stop cleanly and verify/back up the resulting file; test recovery with the same framework revision.
-- **Mapping definitions.** Validate against the mapping schema; keep source and output topic spaces intentional.
+- **Broker session store.** Set `broker --mqtt-session-store <file>` and give the service account write access. Session state is saved on clean shutdown, not continuously. The store is removed after it is successfully opened at startup; back it up before starting the broker if you need to retain a recovery copy.
+- **Mapping definitions and administration data.** Give each process its own mapping file and administration storage. Administration data is stored in `$TMPDIR/mqttsuite/admin/<application>`; use separate `TMPDIR` directories for separate instances. JSON files are overwritten directly, so keep backups for recovery after interrupted writes.
 - **Bridge topology.** Use unique client IDs, narrow subscriptions, explicit prefixes and loop prevention.
 - **MariaDB.** Provision users/schema, migrations, capacity, retention and backups separately.
-- **Typed projections.** Raw messages and projection inserts are separate operations; monitor failures rather than assuming end-to-end atomicity.
+- **MQTTStore writes.** See [storage behavior](storage.md#storage-behavior) for raw-message and projection persistence.
 
 ## Service supervision
 

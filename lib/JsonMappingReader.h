@@ -73,6 +73,7 @@ namespace mqtt::lib {
         }
     };
 
+    // Called synchronously by the event loop; each process owns its administration storage.
     class JsonMappingReader {
     public:
         JsonMappingReader() = delete;

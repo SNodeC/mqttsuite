@@ -43,7 +43,7 @@ The table also has indexes on `received_at` and the first 255 characters of `top
 
 ## 2. Database setup and permission profiles
 
-Use the complete [storage walkthrough](guides/storage.md#banner) for database/account bootstrap, domain-table creation, projection JSON, MQTTStore launch and expected SQL results. This page owns operational reference and troubleshooting rather than a second onboarding procedure.
+For database setup, projection configuration, launch commands and expected SQL results, follow the [storage walkthrough](guides/storage.md#banner).
 
 ### Permission profiles
 
@@ -81,7 +81,7 @@ After that, the service can be started with the saved defaults, depending on you
 
 ## 5. Traffic and verification
 
-The [storage walkthrough](guides/storage.md#4-publish-a-measurement) owns the complete MQTTCli publish command and [SQL verification](guides/storage.md#5-verify-the-raw-message-and-projection), using loopback port 18883 and `mqttsuite_demo`. Its projection contains `device_id`, `value`, `unit` and `received_at`.
+Use the [publish command](guides/storage.md#4-publish-a-measurement) and [SQL queries](guides/storage.md#5-verify-the-raw-message-and-projection) to verify the demonstration configuration.
 
 For raw storage, JSON messages populate the available JSON/text representations; plain text has no parsed JSON representation. Raw metadata also records QoS and retained/duplicate flags. To inspect a larger recent sample, use your database client with the same demonstration database:
 
@@ -91,11 +91,11 @@ FROM mqttsuite_demo.mqtt_messages
 ORDER BY id DESC LIMIT 10;
 ```
 
-Use the broker/client's own `pub --help` for additional retained/QoS traffic tests, and the `sub` topic suffix `##<qos>` in the subscription reference for an input QoS override. MQTT QoS is not a promise of exactly-once SQL insertion. Raw-only storage needs no projection file; typed tables, nullability and validation remain operator-owned.
+Use `pub --help` for retained/QoS options. For persistence semantics, see [storage behavior](guides/storage.md#storage-behavior).
 
 ### Subscription QoS override
 
-A topic filter ending in `##<qos>` selects the requested subscription QoS, for example `normalized/###1` for `normalized/#` at QoS 1. Quote this value in the shell and in INI configuration so `#` is not mistaken for a comment. Check the installed application's `sub --help` before combining multiple filters. This setting is distinct from a publisher's QoS and the database's commit boundary.
+A topic filter ending in `##<qos>` selects the requested subscription QoS, for example `normalized/###1` for `normalized/#` at QoS 1. Quote this value in the shell and in INI configuration so `#` is not mistaken for a comment. See `sub --help` for subscription options.
 
 ## 6. Operational recommendations
 

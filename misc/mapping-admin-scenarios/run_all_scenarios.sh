@@ -196,7 +196,7 @@ main() {
         "${SCRIPT_DIR}/scenario2_occ_layer1_draft_conflict.sh"
         "${SCRIPT_DIR}/scenario3_occ_layer2_stale_deploy.sh"
         "${SCRIPT_DIR}/scenario4_invalid_configuration_rejection.sh"
-        "${SCRIPT_DIR}/scenario5_atomicity_and_persistence.sh"
+        "${SCRIPT_DIR}/scenario5_draft_persistence.sh"
         "${SCRIPT_DIR}/scenario6_fr02_json_patch.sh"
         "${SCRIPT_DIR}/scenario7_fr05_history_observability.sh"
         "${SCRIPT_DIR}/scenario8_memory_usage_profile.sh"

@@ -8,12 +8,8 @@ source "${SCRIPT_DIR}/_common.sh"
 require_tools
 
 tmp_dir="$(mktemp -d)"
-orphan_tmp=""
 cleanup() {
     cleanup_http_artifacts
-    if [[ -n "${orphan_tmp}" && -f "${orphan_tmp}" ]]; then
-        rm -f "${orphan_tmp}"
-    fi
     rm -rf "${tmp_dir}"
 }
 trap cleanup EXIT
@@ -30,7 +26,7 @@ WRAPPER_LOG="${LOGS_DIR}/mqttintegrator-wrapper.log"
 # writes to whatever path was passed on the command line.
 MAPPING_FILE="${MAPPING_FILE:-${REPO_ROOT}/mapfile.json}"
 
-log "Scenario 10: Active-config atomic persistence and restart recovery (NFR-04 / FR-04)"
+log "Scenario 10: Active-config persistence and normal restart recovery"
 
 if [[ ! -f "${MAPPING_FILE}" ]]; then
     fail "Mapping file not found: ${MAPPING_FILE}"
@@ -68,7 +64,7 @@ fi
 
 log "Deploy A acknowledged: status=${deploy_status}, revision=${deployed_revision_a}"
 
-# Round-trip check: confirm the atomic write in persistMapping() actually put
+# Round-trip check: confirm the direct write in persistMapping() actually put
 # the new content on disk, not just in memory. Prior scenarios never opened
 # the mapping file directly, so this is new coverage.
 on_disk_comment_a="$(jq -r '.meta.comment // ""' "${MAPPING_FILE}")"
@@ -82,33 +78,7 @@ fi
 
 log "On-disk mapping file confirmed to match deployed revision ${deployed_revision_a}"
 
-# --- Part B: simulate a crash between temp-file creation and rename --------
-# ConfigApplication::persistMapping() writes to <mappingFile>.tmp, fsyncs it,
-# then atomically renames it onto the target. A process killed in that window
-# leaves exactly this artifact behind: an orphaned .tmp file next to an
-# untouched, still-valid canonical file.
-canonical_backup="${tmp_dir}/canonical_mapfile.backup.json"
-cp "${MAPPING_FILE}" "${canonical_backup}"
-
-orphan_tmp="${MAPPING_FILE}.tmp"
-printf '{ "connection": { "client_id": "truncated-mid-write"' >"${orphan_tmp}"
-
-if ! cmp -s "${MAPPING_FILE}" "${canonical_backup}"; then
-    fail "Canonical mapping file changed unexpectedly while simulating a partial write"
-fi
-
-log "Simulated orphan temp file: ${orphan_tmp}"
-log "Verifying canonical mapping file is untouched and the live process is unaffected"
-
-request_json GET "/config"
-assert_status 200 "GET /config after simulated crash"
-live_comment="$(json_must_get '.meta.comment')"
-live_revision="$(json_must_get '.meta.revision')"
-if [[ "${live_comment}" != "${marker_a}" || "${live_revision}" -ne "${deployed_revision_a}" ]]; then
-    fail "Live active config changed unexpectedly after simulating a crash artifact on disk"
-fi
-
-# --- Part C: the orphaned temp file must not block the next real deploy ----
+# --- Part B: persist a second deployment -----------------------------------
 draft_id_b="$(unique_draft_id "s10crash2")"
 create_draft "${draft_id_b}"
 assert_status 201 "POST /drafts/create (second draft)"
@@ -140,25 +110,18 @@ if [[ "${on_disk_comment_b}" != "${marker_b}" ]]; then
     fail "On-disk mapping file comment '${on_disk_comment_b}' does not reflect the second deploy '${marker_b}'"
 fi
 
-# The orphaned .tmp is overwritten (same fixed name) by the next real write,
-# so it should no longer contain the truncated garbage from Part B.
-if [[ -f "${orphan_tmp}" ]] && grep -q "truncated-mid-write" "${orphan_tmp}" 2>/dev/null; then
-    fail "Orphaned temp file still contains simulated-crash garbage after a subsequent successful deploy"
-fi
-orphan_tmp=""
+log "Second deploy persisted; revision now ${deployed_revision_b}"
 
-log "Second deploy succeeded with orphan tmp present; revision now ${deployed_revision_b}"
+record_metric "scenario10_recovery" "active_config_persistence_verified" "1" "bool"
 
-record_metric "scenario10_recovery" "fr04_active_config_atomic_persistence_verified" "1" "bool"
-
-# --- Part D: restart recovery (NFR-04) --------------------------------------
+# --- Part C: restart recovery (NFR-04) --------------------------------------
 # Only meaningful when this scenario is driven by run_all_scenarios.sh, which
 # tracks the managed integrator pid the same way scenario9 does.
 if [[ ! -f "${PID_FILE}" ]]; then
     log "SKIP: ${PID_FILE} not found; restart-recovery check requires the"
     log "server to have been started by run_all_scenarios.sh (START_INTEGRATOR=1)."
     printf '\nScenario 10 PARTIAL\n'
-    printf 'Atomic persistence of the active mapping file verified (Parts A-C).\n'
+    printf 'Active mapping persistence verified (Parts A-B).\n'
     printf 'Restart-recovery check skipped (no managed pid file found).\n'
     exit 0
 fi
@@ -219,7 +182,6 @@ fi
 record_metric "scenario10_recovery" "nfr04_restart_recovery_verified" "1" "bool"
 
 printf '\nScenario 10 PASS\n'
-printf 'Simulated crash temp file did not corrupt the canonical active mapping file.\n'
-printf 'A subsequent deploy succeeded normally with the orphan tmp file present.\n'
+printf 'Two deployments were saved to the active mapping file.\n'
 printf 'After a real process restart, the active config recovered to revision %s (marker: %s).\n' \
     "${deployed_revision_b}" "${marker_b}"
