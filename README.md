@@ -90,7 +90,7 @@ mqttcli \
 
 **Expected result:** the subscriber reports topic `demo/hello` and payload `Hello from MQTTSuite!`. Stop the subscriber and broker with Ctrl+C before starting the next example.
 
-**Boundaries:** clients use unencrypted loopback MQTT, with no credentials or persistent sessions. Other compiled broker listeners remain enabled on their default addresses; use an isolated, trusted network until you deliberately bind or disable them. `socket --reconnect=false` makes the publisher a one-shot operation. The configuration section `in-mqtt` names an SNode.C connection instance; its `remote`, `pub`, `sub` and `socket` sections configure that instance's responsibilities.
+The examples use unencrypted MQTT without credentials or persistent sessions. Other compiled broker listeners remain enabled on their default addresses; see [listener configuration](docs/guides/deployment.md#broker-and-management-listeners) before exposing the broker. `socket --reconnect=false` makes the publisher exit after sending.
 
 Next: [deployment and access controls](docs/guides/deployment.md#banner).
 
@@ -162,7 +162,7 @@ mqttcli \
 | `pressed` | `on` |
 | `released` | `off` |
 
-**Boundaries:** other payloads do not match these rules. Publish `released` in terminal 3 to check the `off` row too. Stop the processes before the next example. To map through an existing broker use MQTTIntegrator instead, with its administrative listeners explicitly disabled as shown in the guide; do not apply the same rules in both places unless duplicate outputs are intended.
+Other payloads do not match these rules. Publish `released` in terminal 3 to check the `off` row too. To map through an existing broker, use [MQTTIntegrator](docs/guides/mapping.md#use-a-separate-integrator).
 
 Next: [complete integrator and JSON-template examples](docs/guides/mapping.md#banner).
 
@@ -295,7 +295,7 @@ mqttcli \
   <img src="docs/media/bridge-topics.svg" alt="A to B: relay/ + a/ + b/ + telemetry/temperature. B to A: relay/ + b/ + a/ + commands/light. Relayed topics do not match the input subscriptions.">
 </picture>
 
-**Boundaries:** `legacy` means unencrypted transport. `loop_prevention` requests suppression of the bridge's own publications through a non-standard MQTT CONNECT bridge bit also used by Mosquitto; the remote broker must support that bit. For other brokers, disable it and design non-overlapping topic paths. This example's `relay/` outputs match neither `telemetry/#` nor `commands/#`, so they are not fed back into the bridge. MQTTBridge may normalize and rewrite `bridge.json`; use this writable demo copy, not a read-only source of record. Stop all demo processes with Ctrl+C.
+`legacy` selects unencrypted transport. `loop_prevention` uses a non-standard MQTT CONNECT bridge bit also used by Mosquitto; disable it for brokers that do not support it. This example’s `relay/` outputs match neither input subscription, preventing feedback. MQTTBridge may rewrite `bridge.json`, so use a writable copy.
 
 Next: [bridge topology, sessions and deployment](docs/guides/bridging.md#banner).
 
@@ -333,7 +333,7 @@ WebSocket client/server variants also exist for IPv6 and Unix sockets. MQTTBridg
 
 ## Architecture
 
-Built on [SNode.C](https://github.com/SNodeC/snode.c#banner), the suite shares its event-driven networking and configuration model. Native MQTT and MQTT over WebSockets are available over IPv4, IPv6 and Unix-domain sockets, with plain and TLS variants according to build configuration.
+Built on [SNode.C](https://github.com/SNodeC/snode.c#banner), each application processes networking and administration callbacks on a single event-loop thread. The suite shares SNode.C’s configuration model and supports native MQTT and MQTT over WebSockets over IPv4, IPv6 and Unix-domain sockets, with plain and TLS variants according to build configuration.
 
 <picture>
   <source media="(max-width: 600px)" srcset="docs/media/message-flow-mobile.svg">
@@ -344,7 +344,7 @@ Built on [SNode.C](https://github.com/SNodeC/snode.c#banner), the suite shares i
 
 ## Configuration
 
-Use the [runtime configuration guide](docs/guides/deployment.md#configuration) to inspect application settings, persist configuration and choose deployment access boundaries. These are runtime settings; [Build from source](docs/guides/build-from-source.md#banner) covers compilation and CMake options.
+Use the [runtime configuration guide](docs/guides/deployment.md#configuration) to inspect application settings, save configuration and configure network access. For compilation and CMake options, see [Build from source](docs/guides/build-from-source.md#banner).
 
 ### Before exposing a service
 
@@ -359,7 +359,7 @@ Review the [deployment guide](docs/guides/deployment.md#banner) before exposing 
 
 Manual CI builds and tests MQTTSuite. Version tags notify DistributionPackages with the exact source commit. Its coordinator captures the dependency graph, dispatches unsigned builds through a shared workflow and signs and publishes each target before scheduling its dependents. See [CI orchestration](https://github.com/SNodeC/DistributionPackages/blob/main/docs/ci-orchestration.md#banner).
 
-The API menu opens the legacy Doxygen class index. It is a reference snapshot, not proof of current release/platform support; use these source guides and the Packages matrix for current installation decisions.
+The API menu opens a legacy Doxygen reference snapshot. For current platform availability and installation instructions, use the [Packages matrix](https://github.com/SNodeC/Packages#banner).
 
 [Documentation index](docs/README.md#banner) — the existing guides and MQTTStore reference.
 

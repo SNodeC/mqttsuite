@@ -8,7 +8,7 @@
 
 # Persist messages and project useful fields
 
-This is the complete raw-message and typed-projection walkthrough. It owns database setup, projection configuration, execution and verification.
+Follow this walkthrough to create the database, configure projections and verify stored messages.
 
 MQTTStore subscribes to topic filters and writes messages to MariaDB. Raw storage and typed projections are separate: keep the original payload even when a message is not JSON, and add a typed projection when the payload follows a useful schema.
 
@@ -122,6 +122,8 @@ ORDER BY id DESC LIMIT 1;
 
 Omit `--projection-file` when you only want raw persistence. The raw table records receive time, source instance, topic, QoS, retain/duplicate flags, packet identifier where present, original payload bytes and available text/JSON representations.
 
-**Boundaries:** database inserts, MQTT acknowledgements and typed projections are separate boundaries. Do not infer atomic raw-plus-projection writes or exactly-once database delivery from MQTT QoS. Plan retention, backups, reconnect behavior and capacity explicitly.
+## Storage behavior
+
+Raw-message and typed-projection inserts are separate operations. A failed projection does not undo a stored raw message. MQTT QoS does not guarantee exactly-once database insertion; account for duplicates in applications that require deduplication.
 
 Next: [deployment](deployment.md#banner), [full MQTTStore guide](../mqttstore-user-guide.md#banner), [projection schema](../../mqttstore/lib/projection-schema.json).

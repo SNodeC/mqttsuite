@@ -43,7 +43,7 @@ mqttintegrator \
 
 **Expected result:** `pressed` produces `on` on `actuators/light/set` through the external integrator.
 
-**Boundaries:** the integrator's admin API currently uses built-in Basic-auth credentials `admin` / `admin`; keep it disabled unless deliberately isolated. Do not run the same mapping in both broker and integrator unless duplicate outputs are intended. Stop the integrator with Ctrl+C.
+The integrator admin API uses built-in credentials `admin` / `admin`; leave it disabled unless access is restricted. Run a mapping in either the broker or the integrator to avoid duplicate outputs.
 
 Next: [configuration and management access](deployment.md#configuration).
 
@@ -105,7 +105,7 @@ mqttcli \
 
 **Expected result:** topic `normalized/room1/summary`, payload `T=21.5;H=48`.
 
-**Boundaries:** `json` selects parsed-JSON input; the output template may produce text. Use `value` for scalar/text input and `static` for exact matches. Stop demo processes with Ctrl+C.
+`json` selects parsed-JSON input; the output template may produce text. Use `value` for scalar/text input and `static` for exact matches.
 
 The schema also supports mapping arrays, output QoS/retain settings, delay and suppression options, nested topic levels and plugin registration. Match input and output topics carefully to avoid feeding mapped output back into the same rule.
 
@@ -115,7 +115,7 @@ Next: [deployment](deployment.md#banner), [mapping schema](../../lib/mapping-sch
 
 MQTTIntegrator ships a web interface for editing, validating, deploying and rolling back mappings, served at `/ui/index.html` on the admin router and protected by HTTP Basic authentication; see its [sources and build instructions](../../mqttintegrator/ui/README.md#banner).
 
-The [mapping schema](../../lib/mapping-schema.json) defines the shape; `MqttMapper.cpp` owns rendering and emission behavior.
+The [mapping schema](../../lib/mapping-schema.json) defines the available fields.
 
 | Field | Meaning |
 | --- | --- |
@@ -129,4 +129,4 @@ The [mapping schema](../../lib/mapping-schema.json) defines the shape; `MqttMapp
 | `suppressions` | Exact rendered-payload strings to skip for template mappings; an empty retained output is still emitted so retained state can be cleared |
 | `mapping.plugins` | Plugin-library paths loaded for registered template callbacks; use trusted local libraries only |
 
-Arrays let one input produce multiple outputs. A template render error is logged rather than a successful publish; inspect logs and verify every expected output. Delay/suppression and output QoS do not turn mapping into an atomic or exactly-once transaction. Keep the complete static and JSON examples above as your first tests before extending rules.
+Arrays let one input produce multiple outputs. If template rendering fails, the error is logged and that output is not published.

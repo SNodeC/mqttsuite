@@ -15,7 +15,7 @@ Guides for building, deploying, bridging, mapping and storing with MQTTSuite.
 <!-- snodec:begin section-pages -->
 - [Connect two brokers](bridging.md#banner)
 - [Build and install MQTTSuite from source](build-from-source.md#banner)
-- [Operate MQTTSuite deliberately](deployment.md#banner)
+- [Configure and deploy MQTTSuite](deployment.md#banner)
 - [Map messages into the form your application needs](mapping.md#banner)
 - [Persist messages and project useful fields](storage.md#banner)
 <!-- snodec:end section-pages -->

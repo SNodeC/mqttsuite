@@ -8,13 +8,13 @@
 
 # Connect two brokers
 
-Extend the working README topology with deliberate delivery and deployment choices.
+Extend the README topology with TLS, session settings and additional brokers.
 
 MQTTBridge connects as a client to every broker in a logical bridge. Messages received from one connection are forwarded to the other connected brokers, not directly back to their origin. Subscription filters decide which messages enter the bridge; prefixes decide their destination topics.
 
 ## Start with the working topology
 
-Run the complete [two-broker walkthrough](../../README.md#bridge-separate-brokers), which owns the configuration, five terminal commands and expected topic. This guide explains extending that topology; it does not keep a second copy of the procedure.
+Start with the [two-broker walkthrough](../../README.md#bridge-separate-brokers) for configuration, commands and expected messages.
 
 In the reverse direction, `commands/light` published on broker B becomes `relay/b/a/commands/light` on A. Preserve the rule **bridge prefix + origin prefix + destination prefix + original topic** when designing both directions.
 
@@ -37,7 +37,7 @@ These fields are defined by [the bridge schema](../../mqttbridge/lib/bridge-sche
 | `broker.mqtt.will_*` | Broker-side last-will topic, payload, QoS and retain policy |
 | `broker.mqtt.loop_prevention` | Requests the non-standard CONNECT bridge bit (e.g. Mosquitto); requires broker support and does not make arbitrary topologies safe |
 
-`Bridge::publish` forwards the received payload, QoS and retain flag to every currently connected destination except the origin. Received retained messages can therefore seed a destination retained topic; choose subscriptions and namespaces deliberately. Broker-side persistent sessions (`clean_session: false`) and local session storage are separate choices, not an end-to-end durable transaction guarantee. Test disconnect/reconnect and retained replay against your actual brokers before deployment.
+The bridge forwards the received payload, QoS and retain flag to every connected destination except the origin. Retained messages can therefore populate retained topics on destination brokers. Configure broker-side persistent sessions with `clean_session: false`; configure local session storage separately.
 
 ## Encrypted remote-broker connection
 
@@ -60,19 +60,19 @@ For example, replace only that broker's `network` object (the hostname is a plac
 }
 ```
 
-Here `demo+a` follows `bridge.name: "demo"` and `network.instance_name: "a"`; replace it for your topology. Use a remote hostname matching the server certificate, keep peer verification enabled, and add client certificate/key options only if that broker requires mutual TLS. Check the selected instance's help for available options and persist settings in a protected file. Never use demonstration certificates or accept-unknown trust bypasses in production. The local two-broker walkthrough remains the runnable first success; an off-host variant requires your own broker, trusted certificate and access policy.
+Here `demo+a` combines `bridge.name: "demo"` and `network.instance_name: "a"`; adjust it for your topology. Use a hostname matching the server certificate and a trusted CA. Add client certificate/key options if the broker requires mutual TLS, then save the connection settings in a protected configuration file.
 
-## Administration is a separate boundary
+## Administration
 
 MQTTBridge ships a web interface for editing its configuration; its [sources and build instructions](../../mqttbridge/ui/README.md#banner) live in `mqttbridge/ui/`.
 
 `admin-legacy` (8081) and `admin-tls` (8082) expose the mutable configuration API, including `/config`, without built-in authentication. Disable both when not used; otherwise isolate/authenticate them outside the application. Do not expose administration merely to establish encrypted MQTT connections. See [deployment](deployment.md#banner).
 
-## Deploy a deliberate topology
+## Extend the topology
 
-The sample’s `relay/…` outputs do not match either input subscription. Keep that separation, or design a similarly explicit namespace, when adding brokers. Built-in loop prevention is not a license to connect arbitrary overlapping bridges and wildcard subscriptions without analyzing message paths.
+When adding brokers, keep output topics outside the input subscriptions to prevent feedback, as the sample does with `relay/…`.
 
-For off-host endpoints, configure TLS and appropriate broker access policy. A bridge is not broker clustering, consensus or an exactly-once end-to-end transaction mechanism. Plan reconnect behavior, retained messages, subscription QoS and persistent sessions around your workload.
+For remote brokers, configure TLS and broker access credentials. Choose subscriptions, QoS and persistent-session settings for the messages you need to forward.
 
 Stop all demonstration processes with Ctrl+C.
 

@@ -1,0 +1,7 @@
+# OpenWrt packaging internals
+
+The SDK build dependency builds and stages SNode.C first. MQTTSuite uses a separate CMake build directory so its private `lib/Log.h` cannot shadow SNode.C's public `Log.h`. Every recipe configuration option participates in OpenWrt's reconfiguration stamp. The recipes use upstream build systems without source patches.
+
+The HTTP loader opens `/usr/lib/snode.c/web/http/upgrade/libsnodec-websocket-{server,client}.so.<ABI>`. The WebSocket subprotocol loader then opens the application-specific `/usr/lib/snode.c/web/http/upgrade/websocket/mqtt<app>/libsnodec-websocket-mqtt-{server,client}.so.<ABI>`. MQTTSuite's plugin SONAME follows SNode.C's ABI major, while the real plugin filename follows MQTTSuite's release version. Both the real file and ABI symlink are packaged. Ordinary MQTTSuite libraries use MQTTSuite's ABI major.
+
+The plugin directory identifies the `dlopen` object; its dependencies still need the correct ELF library search paths. Before OpenWrt runs `rstrip`, the MQTTSuite recipe removes only the literal staging-directory prefix from each RPATH/RUNPATH entry. It preserves target subdirectories, `$ORIGIN`, unrelated entries, permissions, and the original tag type; patchelf errors fail the build. It does not delete or shrink all RPATHs. OpenWrt may subsequently remove ordinary system-directory entries; the packaged libraries retain the remaining paths on each ELF file against that package's dependency closure.
