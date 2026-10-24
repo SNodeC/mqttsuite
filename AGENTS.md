@@ -33,3 +33,9 @@ tag also requires explicit approval for that tag and action. Ordinary developmen
 - Include the required examples directly in the README collection, with the code, configuration, prerequisites, run instructions and expected results needed to follow them. Do not delegate required example content to the book repository.
 - Check both link text and destinations before handing off README changes, including generated previews. Preserve one physical source line per prose paragraph.
 - Follow the recorded owner requirements in `local/docs/readme-owner-findings.md` (local, untracked); do not mark pending changes complete merely because they have been recorded.
+
+## Repository-owned package CI
+
+`ci/packages.json` owns targets, dependency names and source build hooks. The coordinator master contains registration and policy overrides only. Temporary task checkouts use `/tmp/codex/checkouts/mqttsuite/<task>`; remove only after uncommitted work is preserved. Temporary checks use `/tmp/codex/build/mqttsuite/<task>`. Existing persistent layout rules above remain authoritative. Shared formatting settings match the canonical baseline; format targets reuse the shared modules without formatting third-party sources.
+
+This task uses `/tmp/codex/checkouts/mqttsuite/repository-owned-package-ci` on `refactor/repository-owned-package-ci` for isolated CI changes, preserving the occupied canonical checkout. Retain it until its uncommitted changes are integrated or otherwise preserved. Local package-CI fixture checks/logs use `/tmp/codex/build/snodec/package-ci`; no product installation or live activation is authorized.
