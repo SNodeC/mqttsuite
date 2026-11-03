@@ -23,5 +23,17 @@ printf '\nsrc-link core_ci /work/recipes\n' >> feeds.conf.default
 ./scripts/feeds install -a
 printf '\nCONFIG_PACKAGE_mqttsuite=m\n' >> .config
 make defconfig
+# Reusing core skips its compile target, so prepare that target's SDK dependencies first.
+dependencies=$(make --no-print-directory -s -f - dependencies <<'DEPENDENCIES'
+curdir:=package
+include .config
+include tmp/.packagedeps
+.PHONY: dependencies
+dependencies:
+	@printf '%s\n' '$(package/feeds/core_ci/snode.c/compile)'
+DEPENDENCIES
+)
+test -n "$dependencies"
+make -j2 $dependencies V=s BUILD_LOG=1
 make -j2 MAKE='make -o package/feeds/core_ci/snode.c/compile' package/mqttsuite/compile V=s BUILD_LOG=1
 python3 /tool/openwrt_container.py --outputs
