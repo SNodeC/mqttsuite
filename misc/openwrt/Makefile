@@ -11,7 +11,7 @@ PKG_SOURCE_VERSION:=$(or $(MQTTSUITE_SOURCE_TAG),v$(PKG_VERSION))
 PKG_MAINTAINER:=Volker Christian <me@vchrist.at>
 PKG_LICENSE:=GPL-3.0-or-later
 PKG_LICENSE_FILES:=LICENSE
-PKG_BUILD_DEPENDS:=nlohmannjson snode.c
+PKG_BUILD_DEPENDS:=nlohmannjson openssl file bluez libmariadb snode.c
 PKG_BUILD_PARALLEL:=1
 
 MQTTSUITE_APPS:=broker integrator bridge cli store
