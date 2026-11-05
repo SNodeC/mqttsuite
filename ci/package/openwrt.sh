@@ -1,26 +1,24 @@
 #!/bin/sh
 set -eu
-: "${SOURCE_DIR:?}" "${SDK_DIR:?}" "${SDK_STAGING_DIR:?}" "${SOURCE_COMMIT:?}"
+: "${SOURCE_DIR:?}" "${SDK_DIR:?}" "${SDK_STAGING_DIR:?}" "${SOURCE_TAG:?}"
 mkdir -p /work/recipes/mqttsuite "$SDK_DIR/dl"
 cp -a "$SOURCE_DIR/misc/openwrt/." /work/recipes/mqttsuite/
 cp -a "$SDK_STAGING_DIR/usr/share/core-ci/openwrt/snode.c" /work/recipes/snode.c
 mkdir -p "$SDK_STAGING_DIR/pkginfo"
 cp -a "$SDK_STAGING_DIR/usr/share/core-ci/pkginfo/." "$SDK_STAGING_DIR/pkginfo/"
 export MQTTSUITE_PACKAGE_RELEASE="$PACKAGE_REVISION"
-export MQTTSUITE_SOURCE_TAG="$SOURCE_COMMIT"
+export MQTTSUITE_SOURCE_TAG="$SOURCE_TAG"
 export MQTTSUITE_PACKAGE_VERSION="$PACKAGE_UPSTREAM_VERSION"
 archive="$SDK_DIR/dl/mqttsuite-$PACKAGE_UPSTREAM_VERSION.tar.gz"
 tar --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner \
     --transform="s,^\.,mqttsuite-$PACKAGE_UPSTREAM_VERSION," -czf "$archive" -C "$SOURCE_DIR" .
 MQTTSUITE_SOURCE_HASH=$(sha256sum "$archive" | cut -d ' ' -f1)
 export MQTTSUITE_SOURCE_HASH
-core_version=$(PYTHONPATH=/tool python3 - <<'VERSION'
-import os
+core_version=$(python3 - <<'VERSION'
+import json, os
 from pathlib import Path
-from contract import read_json, versions
-receipt = read_json(next(Path(os.environ["PREREQUISITES_DIR"]).glob("*/receipt.json")))
-encoded = versions(receipt["source"]["tag"], receipt["revision"], receipt["target"]["build"]["format"])
-print(encoded["version"], receipt["revision"])
+metadata = json.loads((Path(os.environ["PREREQUISITES_DIR"]) / "snodec/metadata.json").read_text())
+print(metadata["upstream_version"], metadata["revision"])
 VERSION
 )
 SNODEC_PACKAGE_VERSION=${core_version% *}

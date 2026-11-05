@@ -1,6 +1,7 @@
 {
   "schema": 1,
   "title": "MQTTSuite",
+  "revision_base": 121,
   "package": "mqttsuite",
   "depends_on": [
     "snodec"
@@ -1029,6 +1030,14 @@
       "ncurses-devel",
       "json-devel",
       "sqlite-devel"
+    ]
+  },
+  "development_packages": {
+    "deb": [
+      "mqttsuite"
+    ],
+    "rpm": [
+      "mqttsuite"
     ]
   }
 }
