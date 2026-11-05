@@ -1030,5 +1030,13 @@
       "json-devel",
       "sqlite-devel"
     ]
+  },
+  "development_packages": {
+    "deb": [
+      "mqttsuite"
+    ],
+    "rpm": [
+      "mqttsuite"
+    ]
   }
 }
