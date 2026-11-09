@@ -15,5 +15,5 @@ build=/work/build-product
 cmake -S "$SOURCE_DIR" -B "$build" -G Ninja \
     -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr \
     -DCMAKE_INSTALL_LIBDIR="$libdir" -DCMAKE_INSTALL_SYSCONFDIR=/etc
-cmake --build "$build" --parallel 4
+cmake --build "$build" --parallel "$(nproc)"
 python3 /tool/native_container.py --package "$build"
