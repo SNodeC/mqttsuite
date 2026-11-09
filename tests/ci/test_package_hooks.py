@@ -60,7 +60,7 @@ elif name == 'make':
             OUTPUT_DIR=str(root / 'output'), TARGET_JSON=str(target), CI_DIR=str(repository),
             PREREQUISITES_DIR=str(root / 'prerequisites'), COMMANDS=str(commands),
             PATH=str(root / 'bin') + os.pathsep + os.environ['PATH'])
-        subprocess.run(['/bin/sh', '-ec', hook], env=environment, check=True, capture_output=True)
+        subprocess.run(['/bin/sh', '-ec', hook], cwd=root, env=environment, check=True, capture_output=True)
         calls = [json.loads(line) for line in commands.read_text().splitlines()]
         if native:
             builds = [call for call in calls if call[:2] == ['cmake', '--build']]
