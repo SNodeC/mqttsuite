@@ -26,9 +26,16 @@ SNODEC_PACKAGE_RELEASE=${core_version##* }
 export SNODEC_PACKAGE_VERSION SNODEC_PACKAGE_RELEASE
 cd "$SDK_DIR"
 printf '\nsrc-link core_ci /work/recipes\n' >> feeds.conf.default
-./scripts/feeds update -a
-./scripts/feeds install -a
-printf '\nCONFIG_PACKAGE_mqttsuite=m\n' >> .config
+./scripts/feeds update base packages core_ci
+./scripts/feeds install -a -p core_ci
+cat > .config <<'CONFIG'
+# CONFIG_ALL is not set
+# CONFIG_ALL_NONSHARED is not set
+# CONFIG_ALL_KMODS is not set
+# CONFIG_AUTOREMOVE is not set
+# CONFIG_SIGNED_PACKAGES is not set
+CONFIG_PACKAGE_mqttsuite=m
+CONFIG
 make defconfig
 # Reusing core skips its compile target, so prepare that target's SDK dependencies first.
 dependencies=$(make --no-print-directory -s -f - dependencies <<'DEPENDENCIES'
@@ -41,6 +48,6 @@ dependencies:
 DEPENDENCIES
 )
 test -n "$dependencies"
-make -j2 $dependencies V=s BUILD_LOG=1
-make -j2 MAKE='make -o package/feeds/core_ci/snode.c/compile' package/mqttsuite/compile V=s BUILD_LOG=1
+make -j"$(nproc)" $dependencies V=s BUILD_LOG=1
+make -j"$(nproc)" MAKE='make -o package/feeds/core_ci/snode.c/compile' package/mqttsuite/compile V=s BUILD_LOG=1
 python3 /tool/openwrt_container.py --outputs
