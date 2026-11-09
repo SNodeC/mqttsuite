@@ -3,3 +3,5 @@ project(openwrt_architecture_checks NONE)
 enable_testing()
 find_package(Python3 3.10 REQUIRED COMPONENTS Interpreter)
 add_test(NAME OpenWrtPackageArchitecture COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/architecture.py")
+
+add_test(NAME NativeBuildParallelism COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/native.py")
