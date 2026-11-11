@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "title": "MQTTSuite",
-  "revision_base": 121,
+  "revision_base": 125,
   "package": "mqttsuite",
   "depends_on": [
     "snodec"
