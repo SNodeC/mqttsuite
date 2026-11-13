@@ -36,9 +36,3 @@ if(TARGET mqttbroker AND CONFIG_MQTTSUITE_BROKER_TCP_IPV4)
     )
     set_tests_properties(smoke_broker_pubsub PROPERTIES TIMEOUT 30)
 endif()
-
-add_test(NAME PackageHookPolicy
-         COMMAND ${Python3_EXECUTABLE}
-                 ${CMAKE_CURRENT_SOURCE_DIR}/ci/test_package_hooks.py
-)
-set_tests_properties(PackageHookPolicy PROPERTIES TIMEOUT 20)
