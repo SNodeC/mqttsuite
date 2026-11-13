@@ -22,7 +22,7 @@
 <!-- snodec:end header -->
 
 <!-- snodec:begin status -->
-[![CI](https://img.shields.io/github/actions/workflow/status/SNodeC/mqttsuite/build-and-test.yml?branch=master&label=CI&style=flat)](https://github.com/SNodeC/mqttsuite/actions/workflows/build-and-test.yml) [![Release](https://img.shields.io/github/v/release/SNodeC/mqttsuite?style=flat)](https://github.com/SNodeC/mqttsuite/releases) [![Packages](https://img.shields.io/badge/Packages-signed-334155?style=flat)](https://github.com/SNodeC/Packages#banner) [![License: MIT or GPL 3.0 or later](https://img.shields.io/badge/License-MIT%20OR%20GPL--3.0--or--later-334155?style=flat)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/SNodeC/mqttsuite?style=flat)](https://github.com/SNodeC/mqttsuite/releases) [![Packages](https://img.shields.io/badge/Packages-signed-334155?style=flat)](https://github.com/SNodeC/Packages#banner) [![License: MIT or GPL 3.0 or later](https://img.shields.io/badge/License-MIT%20OR%20GPL--3.0--or--later-334155?style=flat)](LICENSE)
 <!-- snodec:end status -->
 
 **From a device message to an integrated system.**
@@ -357,7 +357,6 @@ Review the [deployment guide](docs/guides/deployment.md#banner) before exposing 
 
 ## Documentation
 
-Manual CI builds and tests MQTTSuite. Version tags notify DistributionPackages with the exact source commit. Its coordinator captures the dependency graph, dispatches unsigned builds through a shared workflow and signs and publishes each target before scheduling its dependents. See [CI orchestration](https://github.com/SNodeC/DistributionPackages/blob/main/docs/ci-orchestration.md#banner).
 
 The API menu opens a legacy Doxygen reference snapshot. For current platform availability and installation instructions, use the [Packages matrix](https://github.com/SNodeC/Packages#banner).
 
@@ -380,7 +379,6 @@ Install from [signed packages](https://github.com/SNodeC/Packages#banner) for yo
 
 ## Releases
 
-Use **Re-run failed jobs** on the source build to retry compilation within its immutable capture; retry central publication separately for signing or handoff failures. Capture and package artifacts must still exist. Release capture belongs to DistributionPackages; the former source-specific manual release entry point is removed. See the [retry and recovery guide](https://github.com/SNodeC/DistributionPackages/blob/main/docs/ci-orchestration.md#banner).
 
 [Release history and release notes](https://github.com/SNodeC/mqttsuite/releases). SNode.C and MQTTSuite have independent release histories. This source tree requires SNode.C 2.0.0 or newer compatible components; keep application libraries and transport plugins ABI-compatible. See [upgrade checks](docs/guides/deployment.md#before-an-upgrade).
 
@@ -401,11 +399,3 @@ Copyright © Volker Christian and contributors. MQTTSuite is dual-licensed under
 
 Maintainer: [Volker Christian](https://github.com/VolkerChristian#banner). [Organization](https://github.com/SNodeC#banner) · [Contributing](#contributing) · [Security](https://github.com/SNodeC/.github/blob/main/SECURITY.md)
 <!-- snodec:end footer -->
-
-## Distribution package CI
-
-This repository owns its full matrix, `depends_on`, package namespace and hook paths in [`ci/packages.json`](ci/packages.json), with product commands under `ci/package/`. A created or moved strict `vMAJOR.MINOR.PATCH` tag transmits the exact source and full JSON. Its first valid notification activates this allowed repository in DistributionPackages; a failed build keeps activation. The tag commit must contain the integration and a matching root `VERSION`. Ordinary branch pushes do not start package CI.
-
-A direct release builds that exact tag, including an older supported version. A prerequisite-triggered chain selects this active repository's highest semantic-version tag, per matching target. Missing published prerequisites fail the affected direct rows; they are never built implicitly. Successful prerequisite publication later admits a highest-tag cascade. Status pages show only the highest version; older direct bug-fix builds still sign/publish without replacing that display.
-
-The wrapper builds unsigned packages from captured source hooks and reports the real source job/artifact identity. DP verifies, signs and publishes centrally. Only the separated notify/capture-reader credentials belong here; signing keys and feed-write authority remain in DP. Both notification and build jobs need the coordinator reader for private-coordinator checkout. See [setup/onboarding](https://github.com/SNodeC/DistributionPackages/blob/main/docs/setup.md#banner) and [orchestration/recovery](https://github.com/SNodeC/DistributionPackages/blob/main/docs/ci-orchestration.md#banner).
