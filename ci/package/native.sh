@@ -3,7 +3,7 @@ set -eu
 family=$(printf '%s' "$TARGET_JSON" | jq -r .family)
 build=/tmp/codex/build/mqttsuite/wave
 mkdir -p "$build" "$OUTPUT_DIR"
-export TMPDIR="$build" QT_QPA_PLATFORM=offscreen
+export TMPDIR="$build"
 cmake -S "$SOURCE_DIR" -B "$build" -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX=/usr -DBUILD_TESTING=ON
 cmake --build "$build" --parallel "$(nproc)"
