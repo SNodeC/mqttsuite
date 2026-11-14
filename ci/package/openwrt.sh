@@ -1,7 +1,8 @@
 #!/bin/sh
 set -eu
-recipe="$SDK_DIR/package/mqttsuite"
+recipe="$SDK_DIR/feeds/base/mqttsuite"
 mkdir -p "$recipe" "$SDK_DIR/dl" "$OUTPUT_DIR"
+ln -s "$recipe" "$SDK_DIR/package/mqttsuite"
 cp -R "$SOURCE_DIR/misc/openwrt/." "$recipe/"
 commit=$(git -C "$SOURCE_DIR" rev-parse HEAD)
 {
