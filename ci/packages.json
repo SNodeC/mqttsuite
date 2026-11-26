@@ -1,9 +1,12 @@
 {
-  "schema": 1,
+  "schema": 2,
   "package": "mqttsuite",
   "title": "MQTTSuite",
   "depends_on": [
-    "snodec"
+    {
+      "package": "snodec",
+      "version": ">=2.0.0,<3"
+    }
   ],
   "build": {
     "deb": "ci/package/native.sh",
@@ -38,6 +41,9 @@
     "openwrt": [
       "nlohmannjson",
       "snode.c"
+    ],
+    "rpm@rocky-9": [
+      "gcc-toolset-14-gcc-c++"
     ]
   },
   "targets": [

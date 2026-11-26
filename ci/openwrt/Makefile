@@ -1,13 +1,8 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=mqttsuite
-PKG_VERSION:=$(or $(MQTTSUITE_PACKAGE_VERSION),$(patsubst v%,%,$(filter v%,$(MQTTSUITE_SOURCE_TAG))),1.0.2)
+PKG_VERSION:=$(or $(MQTTSUITE_PACKAGE_VERSION),$(shell cat "$(MQTTSUITE_SOURCE_DIR)/VERSION"))
 PKG_RELEASE:=$(or $(MQTTSUITE_PACKAGE_RELEASE),1)
-PKG_MIRROR_HASH:=$(or $(MQTTSUITE_SOURCE_HASH),skip)
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL:=https://github.com/SNodeC/mqttsuite.git
-PKG_SOURCE_VERSION:=$(or $(MQTTSUITE_SOURCE_TAG),v$(PKG_VERSION))
 PKG_MAINTAINER:=Volker Christian <me@vchrist.at>
 PKG_LICENSE:=GPL-3.0-or-later
 PKG_LICENSE_FILES:=LICENSE
@@ -27,6 +22,13 @@ include $(INCLUDE_DIR)/cmake.mk
 
 CMAKE_OPTIONS += -DCMAKE_SKIP_RPATH=FALSE -DCMAKE_MODULE_PATH=$(CURDIR)/files
 CMAKE_OPTIONS += $(foreach app,BROKER INTEGRATOR BRIDGE CLI STORE,$(foreach transport,$(MQTTSUITE_TRANSPORTS),-DCONFIG_MQTTSUITE_$(app)_$(transport)=$(if $(CONFIG_MQTTSUITE_$(app)_$(transport)),ON,OFF)))
+
+# Use the source checkout supplied by the chain, including its submodules.
+define Build/Prepare
+	test -d "$(MQTTSUITE_SOURCE_DIR)"
+	mkdir -p "$(PKG_BUILD_DIR)"
+	bash -o pipefail -c 'tar -C "$$1" --exclude=.git -cf - . | tar -C "$$2" -xf -' sh "$(MQTTSUITE_SOURCE_DIR)" "$(PKG_BUILD_DIR)"
+endef
 
 define Package/mqttsuite/Default
   SECTION:=net

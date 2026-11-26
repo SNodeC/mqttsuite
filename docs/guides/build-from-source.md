@@ -69,7 +69,7 @@ Run the [loopback publish/subscribe example](../../README.md#publish-your-first-
 
 ## OpenWrt cross-compilation
 
-Build MQTTSuite packages with an official OpenWrt SDK matching the device's release, target and ABI. Use the [MQTTSuite recipe](../../misc/openwrt/Makefile) in this repository’s `misc/openwrt/` directory. The recipe uses the upstream build system without source patches. OpenWrt package selections are separate from native CMake options.
+Build MQTTSuite packages with an official OpenWrt SDK matching the device's release, target and ABI. Use the [MQTTSuite recipe](../../ci/openwrt/Makefile) in this repository’s `ci/openwrt/` directory. The recipe uses the upstream build system without source patches. OpenWrt package selections are separate from native CMake options.
 
 ### Prepare the SDK
 
@@ -90,13 +90,13 @@ Run the following inside the extracted SDK. Replace `/path/to/snode.c` and `/pat
 ./scripts/feeds update base packages
 ./scripts/feeds install nlohmannjson libopenssl libmagic bluez-libs libmariadb
 mkdir -p package/local
-ln -s /path/to/snode.c/supplement/openwrt package/local/snode.c
-ln -s /path/to/mqttsuite/misc/openwrt package/local/mqttsuite
+ln -s /path/to/snode.c/ci/openwrt package/local/snode.c
+ln -s /path/to/mqttsuite/ci/openwrt package/local/mqttsuite
 ```
 
 The symlinks use the recipes from your current checkouts and reflect recipe changes automatically. Keep the checkouts at those locations while using the SDK.
 
-Each recipe declares its default source release. To select other releases, export `SNODEC_SOURCE_TAG=vX.Y.Z` and `MQTTSUITE_SOURCE_TAG=vA.B.C` with compatible real release tags before invoking `make`; each recipe derives its package version from its tag. Record both recipe commits and selected source tags to reproduce the build.
+After the coordinated CI conversion, recipes build from local source checkouts. Check out compatible release tags with their submodules, then export `SNODEC_SOURCE_DIR=/path/to/snode.c` and `MQTTSUITE_SOURCE_DIR=/path/to/mqttsuite`. Set `SNODEC_PACKAGE_VERSION` and `MQTTSUITE_PACKAGE_VERSION` from the respective `VERSION` files, and pass numeric package releases as needed. Record the source commits, recipe commits and versions to reproduce the build; no source archive is downloaded.
 
 ### Select and compile MQTTSuite
 
