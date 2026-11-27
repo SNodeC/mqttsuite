@@ -33,3 +33,7 @@ tag also requires explicit approval for that tag and action. Ordinary developmen
 - Include the required examples directly in the README collection, with the code, configuration, prerequisites, run instructions and expected results needed to follow them. Do not delegate required example content to the book repository.
 - Check both link text and destinations before handing off README changes, including generated previews. Preserve one physical source line per prose paragraph.
 - Follow the recorded owner requirements in `local/docs/readme-owner-findings.md` (local, untracked); do not mark pending changes complete merely because they have been recorded.
+
+## Workspace and CI formatting
+
+Canonical source: `/home/voc/projects/snodec/mqttsuite`. Persistent agent builds use `/home/voc/projects/snodec/build/codex/mqttsuite/<configuration>`; manual builds use `/home/voc/projects/snodec/build/qtcreator/mqttsuite/<configuration>`. Temporary builds use `/tmp/codex/build/mqttsuite/<task>`. Additional checkouts require owner approval. Existing CMake formatter discovery includes repository-owned `ci/` assets; ordinary builds never format sources.

@@ -1,23 +1,21 @@
 #!/bin/sh
 set -eu
 recipe="$SDK_DIR/feeds/base/mqttsuite"
-mkdir -p "$recipe" "$SDK_DIR/dl" "$OUTPUT_DIR"
+rm -rf "$recipe"
+mkdir -p "$recipe" "$OUTPUT_DIR"
 ln -s "$recipe" "$SDK_DIR/package/mqttsuite"
-cp -R "$SOURCE_DIR/misc/openwrt/." "$recipe/"
-commit=$(git -C "$SOURCE_DIR" rev-parse HEAD)
+cp -R "$CI_DIR/openwrt/." "$recipe/"
+dependency=$(printf '%s' "$DEPENDENCIES_JSON" | jq -er '
+    if length == 1 and .[0].package == "snodec" then
+        "snodec (= \(.[0].version)-r\(.[0].revision))"
+    else error("Expected the resolved snodec dependency") end')
 {
     printf 'MQTTSUITE_PACKAGE_VERSION:=%s\n' "$PACKAGE_VERSION"
     printf 'MQTTSUITE_PACKAGE_RELEASE:=%s\n' "$PACKAGE_RELEASE"
-    printf 'MQTTSUITE_SOURCE_TAG:=%s\n' "$commit"
-    cat "$SOURCE_DIR/misc/openwrt/Makefile"
+    printf 'MQTTSUITE_SOURCE_DIR:=%s\n' "$SOURCE_DIR"
+    printf 'EXTRA_DEPENDS:=%s\n' "$dependency"
+    cat "$CI_DIR/openwrt/Makefile"
 } > "$recipe/Makefile"
-archive="$SDK_DIR/dl/mqttsuite-$PACKAGE_VERSION.tar"
-git -C "$SOURCE_DIR" archive --format=tar --prefix="mqttsuite-$PACKAGE_VERSION/" -o "$archive" HEAD
-git -C "$SOURCE_DIR/lib/json-schema-validator" archive --format=tar \
-    --prefix="mqttsuite-$PACKAGE_VERSION/lib/json-schema-validator/" -o "$archive.submodule" HEAD
-tar --concatenate --file="$archive" "$archive.submodule"
-gzip -nf "$archive"
-rm "$archive.submodule"
 cd "$SDK_DIR"
 printf 'CONFIG_PACKAGE_mqttsuite=y\n' >> .config
 make defconfig
