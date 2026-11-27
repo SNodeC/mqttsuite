@@ -112,7 +112,7 @@ add_subdirectory(websocket)
 
 find_package(nlohmann_json 3.7.0 REQUIRED)
 find_package(
-    snodec 2.0.0 REQUIRED COMPONENTS ${MQTTSTORE_COMPONENTS} mqtt-client
+    snodec 3.0.0 REQUIRED COMPONENTS ${MQTTSTORE_COMPONENTS} mqtt-client
 )
 
 configure_file(
