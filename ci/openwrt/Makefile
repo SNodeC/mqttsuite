@@ -20,7 +20,7 @@ CMAKE_INSTALL:=1
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/cmake.mk
 
-CMAKE_OPTIONS += -DCMAKE_SKIP_RPATH=FALSE -DCMAKE_MODULE_PATH=$(CURDIR)/files
+CMAKE_OPTIONS += -DCMAKE_SKIP_RPATH=FALSE -DCMAKE_MODULE_PATH=$(STAGING_DIR)/usr/lib/cmake/snodec
 CMAKE_OPTIONS += $(foreach app,BROKER INTEGRATOR BRIDGE CLI STORE,$(foreach transport,$(MQTTSUITE_TRANSPORTS),-DCONFIG_MQTTSUITE_$(app)_$(transport)=$(if $(CONFIG_MQTTSUITE_$(app)_$(transport)),ON,OFF)))
 
 # Use the source checkout supplied by the chain, including its submodules.
