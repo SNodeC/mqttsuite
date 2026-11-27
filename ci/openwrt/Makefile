@@ -27,7 +27,7 @@ CMAKE_OPTIONS += $(foreach app,BROKER INTEGRATOR BRIDGE CLI STORE,$(foreach tran
 define Build/Prepare
 	test -d "$(MQTTSUITE_SOURCE_DIR)"
 	mkdir -p "$(PKG_BUILD_DIR)"
-	bash -o pipefail -c 'tar -C "$$1" --exclude=.git -cf - . | tar -C "$$2" -xf -' sh "$(MQTTSUITE_SOURCE_DIR)" "$(PKG_BUILD_DIR)"
+	bash -o pipefail -c 'tar -C "$(MQTTSUITE_SOURCE_DIR)" --exclude=.git -cf - . | tar -C "$(PKG_BUILD_DIR)" -xf -'
 endef
 
 define Package/mqttsuite/Default
