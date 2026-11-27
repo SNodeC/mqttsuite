@@ -371,7 +371,7 @@ The API menu opens a legacy Doxygen reference snapshot. For current platform ava
 
 ## Platforms and packages
 
-Native Linux source builds need a C++20 toolchain (GCC 12.2+ or Clang 13+), CMake 3.18+ and SNode.C 2.0.0 or newer compatible components. Signed packages cover Debian, Ubuntu, Rocky Linux, Fedora, Raspberry Pi OS and OpenWrt; check [Packages](https://github.com/SNodeC/Packages#banner) for the current release/architecture matrix.
+Native Linux source builds need a C++20 toolchain (GCC 12.2+ or Clang 13+), CMake 3.18+ and a compatible SNode.C 3.x installation (3.0.0 or newer). Signed packages cover Debian, Ubuntu, Rocky Linux, Fedora, Raspberry Pi OS and OpenWrt; check [Packages](https://github.com/SNodeC/Packages#banner) for the current release/architecture matrix.
 
 ### Install
 
@@ -380,7 +380,7 @@ Install from [signed packages](https://github.com/SNodeC/Packages#banner) for yo
 ## Releases
 
 
-[Release history and release notes](https://github.com/SNodeC/mqttsuite/releases). SNode.C and MQTTSuite have independent release histories. This source tree requires SNode.C 2.0.0 or newer compatible components; keep application libraries and transport plugins ABI-compatible. See [upgrade checks](docs/guides/deployment.md#before-an-upgrade).
+[Release history and release notes](https://github.com/SNodeC/mqttsuite/releases). SNode.C and MQTTSuite have independent release histories. This source tree requires a compatible SNode.C 3.x installation (3.0.0 or newer); keep application libraries and transport plugins ABI-compatible. See [upgrade checks](docs/guides/deployment.md#before-an-upgrade).
 
 ## Contributing
 
