@@ -20,7 +20,7 @@ CMAKE_INSTALL:=1
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/cmake.mk
 
-CMAKE_OPTIONS += -DCMAKE_SKIP_RPATH=FALSE -DCMAKE_MODULE_PATH=$(STAGING_DIR)/usr/lib/cmake/snodec
+CMAKE_OPTIONS += -DCMAKE_SKIP_RPATH=FALSE
 CMAKE_OPTIONS += $(foreach app,BROKER INTEGRATOR BRIDGE CLI STORE,$(foreach transport,$(MQTTSUITE_TRANSPORTS),-DCONFIG_MQTTSUITE_$(app)_$(transport)=$(if $(CONFIG_MQTTSUITE_$(app)_$(transport)),ON,OFF)))
 
 # Use the source checkout supplied by the chain, including its submodules.
@@ -46,7 +46,7 @@ endef
 define Package/mqttsuite-broker
   $(call Package/mqttsuite/Default)
   TITLE:=MQTT broker
-  DEPENDS:=+snodec-mqtt-server \
+  DEPENDS:=+libpcre2 +snodec-mqtt-server \
     +MQTTSUITE_BROKER_TCP_IPV4:snodec-net-in-stream-legacy \
     +MQTTSUITE_BROKER_TCP_IPV4:snodec-http-server-express-legacy-in \
     +MQTTSUITE_BROKER_TLS_IPV4:snodec-net-in-stream-tls \
@@ -66,7 +66,7 @@ endef
 define Package/mqttsuite-integrator
   $(call Package/mqttsuite/Default)
   TITLE:=MQTT integrator
-  DEPENDS:=+snodec-mqtt-client \
+  DEPENDS:=+libpcre2 +snodec-mqtt-client \
     +snodec-http-server-express-legacy-in \
     +snodec-http-server-express-tls-in \
     +MQTTSUITE_INTEGRATOR_TCP_IPV4:snodec-net-in-stream-legacy \
@@ -82,7 +82,7 @@ endef
 define Package/mqttsuite-bridge
   $(call Package/mqttsuite/Default)
   TITLE:=MQTT bridge
-  DEPENDS:=+snodec-mqtt-client \
+  DEPENDS:=+libpcre2 +snodec-mqtt-client \
     +snodec-http-server-express-legacy-in \
     +snodec-http-server-express-tls-in \
     +MQTTSUITE_BRIDGE_TCP_IPV4:snodec-net-in-stream-legacy \
@@ -112,7 +112,7 @@ endef
 define Package/mqttsuite-store
   $(call Package/mqttsuite/Default)
   TITLE:=MQTT store
-  DEPENDS:=+snodec-mqtt-client \
+  DEPENDS:=+libpcre2 +snodec-mqtt-client \
     +snodec-db-mariadb \
     +MQTTSUITE_STORE_TCP_IPV4:snodec-net-in-stream-legacy \
     +MQTTSUITE_STORE_TLS_IPV4:snodec-net-in-stream-tls \
