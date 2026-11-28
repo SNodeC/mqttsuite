@@ -6,7 +6,7 @@ PKG_RELEASE:=$(or $(MQTTSUITE_PACKAGE_RELEASE),1)
 PKG_MAINTAINER:=Volker Christian <me@vchrist.at>
 PKG_LICENSE:=GPL-3.0-or-later
 PKG_LICENSE_FILES:=LICENSE
-PKG_BUILD_DEPENDS:=nlohmannjson snode.c
+PKG_BUILD_DEPENDS:=nlohmannjson pcre2 snode.c
 PKG_BUILD_PARALLEL:=1
 
 MQTTSUITE_APPS:=broker integrator bridge cli store
@@ -23,7 +23,15 @@ include $(INCLUDE_DIR)/cmake.mk
 CMAKE_OPTIONS += -DCMAKE_SKIP_RPATH=FALSE
 CMAKE_OPTIONS += $(foreach app,BROKER INTEGRATOR BRIDGE CLI STORE,$(foreach transport,$(MQTTSUITE_TRANSPORTS),-DCONFIG_MQTTSUITE_$(app)_$(transport)=$(if $(CONFIG_MQTTSUITE_$(app)_$(transport)),ON,OFF)))
 
-# Use the source checkout supplied by the chain, including its submodules.
+# Use the frozen source checkout, including its submodules.
+JSON_CMAKE_STAGE:=$(PKG_BUILD_DIR)/.ci/nlohmann_json
+CMAKE_OPTIONS += -Dnlohmann_json_DIR="$(JSON_CMAKE_STAGE)/share/cmake/nlohmann_json"
+
+define Build/Configure
+	sh ./stage-nlohmann-json.sh "$(STAGING_DIR)" "$(JSON_CMAKE_STAGE)"
+	$(call Build/Configure/Default)
+endef
+
 define Build/Prepare
 	test -d "$(MQTTSUITE_SOURCE_DIR)"
 	mkdir -p "$(PKG_BUILD_DIR)"
@@ -35,6 +43,7 @@ define Package/mqttsuite/Default
   CATEGORY:=Network
   SUBMENU:=MQTTSuite
   URL:=https://github.com/SNodeC/mqttsuite
+  EXTRA_DEPENDS:=$(MQTTSUITE_SNODEC_DEPENDENCY)
 endef
 
 define Package/mqttsuite/config
